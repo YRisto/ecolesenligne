@@ -1,0 +1,14 @@
+{
+  "ecoles": [
+    { "slug": "centre-europeen-de-formation", "nom": "Centre Européen de Formation", "groupe": "", "site_web": "https://www.centre-europeen-formation.fr" },
+    { "slug": "ecole-109", "nom": "École 109", "groupe": "", "site_web": "https://www.ecole109.fr" },
+    { "slug": "hippocratus", "nom": "Hippocratus", "groupe": "", "site_web": "https://www.hippocratus.com" },
+    { "slug": "entheor", "nom": "Entheor", "groupe": "", "site_web": "https://www.entheor.com" },
+    { "slug": "enaco", "nom": "ENACO", "groupe": "", "site_web": "https://www.enaco.fr" },
+    { "slug": "skill-and-you", "nom": "Skill&You", "groupe": "Skill and You", "site_web": "https://www.skillandyou.com" }
+  ],
+  "formations": [
+    { "slug": "bts-mco-enaco", "ecole": "enaco", "intitule": "BTS Management Commercial Opérationnel", "domaine": "Commerce & Marketing", "type": "BTS", "niveau": "Bac+2", "rncp": "", "duree": "24 mois", "prix_eur": null, "prix_texte": "", "cpf": null, "alternance": true, "description": "Exemple provisoire, en attente de validation.", "url_ecole": "" },
+    { "slug": "tp-toiletteur-canin-skill-and-you", "ecole": "skill-and-you", "intitule": "Toiletteur canin et félin", "domaine": "Animaux", "type": "Formation qualifiante", "niveau": "", "rncp": "", "duree": "", "prix_eur": null, "prix_texte": "", "cpf": null, "alternance": false, "description": "Exemple provisoire, en attente de validation.", "url_ecole": "" }
+  ]
+}

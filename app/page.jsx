@@ -1,34 +1,29 @@
-const domaines = [
-  { nom: "Commerce & Marketing", ex: "BTS NDRC, BTS MCO, Bachelor Marketing" },
-  { nom: "Gestion & RH", ex: "BTS Gestion de la PME, Bachelor RH" },
-  { nom: "Santé & Bien-être", ex: "Naturopathie, Diététique, Secrétaire médical" },
-  { nom: "Animaux", ex: "Toiletteur, Auxiliaire vétérinaire, Éducateur canin" },
-  { nom: "Informatique & Réseaux", ex: "TP Assistant informatique, TP Technicien réseau" },
-  { nom: "Bâtiment & Technique", ex: "BTS Bâtiment, Électricité, Mécanique" },
-  { nom: "Création & Mode", ex: "TP Graphiste, Styliste, Modéliste" },
-  { nom: "Services & Formation", ex: "TP Formateur, Secrétaire assistant, ADVF" },
-  { nom: "VAE", ex: "Validation des acquis de l'expérience" },
-];
+import Link from "next/link";
+import { DOMAINES, getFormations } from "../lib/catalogue";
+import FormationCard from "../components/FormationCard";
 
 export default function Home() {
+  const formations = getFormations();
   return (
-    <main>
-      <span className="badge">Bientôt disponible</span>
+    <>
+      <span className="chip">Comparateur indépendant</span>
       <h1>Comparez les formations 100 % à distance</h1>
-      <p className="lead">
-        BTS, Bachelors, titres professionnels, VAE : toutes les formations en
-        ligne des grandes écoles à distance, comparées sur les mêmes critères.
-        Prix, durée, reconnaissance RNCP, financement CPF.
-      </p>
+      <p className="lead">BTS, Bachelors, titres professionnels, CAP, VAE : les formations en ligne des grandes écoles à distance, comparées sur les mêmes critères. Prix, durée, reconnaissance RNCP, financement CPF.</p>
+      <p><Link href="/formations" className="btn">Voir toutes les formations</Link> <Link href="/comparer" className="btn btn-outline">Comparer</Link></p>
+      <h2>Par domaine</h2>
       <div className="grid">
-        {domaines.map((d) => (
-          <div className="card" key={d.nom}>
-            <h2>{d.nom}</h2>
-            <p>{d.ex}</p>
-          </div>
-        ))}
+        {DOMAINES.map((d) => {
+          const n = formations.filter((f) => f.domaine === d).length;
+          return (
+            <Link key={d} href={`/formations?domaine=${encodeURIComponent(d)}`} className="card" style={{ textDecoration: "none", color: "inherit" }}>
+              <h2 style={{ margin: 0 }}>{d}</h2>
+              <p className="muted">{n} formation{n > 1 ? "s" : ""}</p>
+            </Link>
+          );
+        })}
       </div>
-      <footer>© {new Date().getFullYear()} ecolesenligne.fr — Site en construction.</footer>
-    </main>
+      <h2>Dernières formations ajoutées</h2>
+      <div className="grid">{formations.slice(0, 6).map((f) => <FormationCard key={f.slug} f={f} />)}</div>
+    </>
   );
 }
