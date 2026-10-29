@@ -1243,7 +1243,27 @@
   "domaine": "Gestion & RH",
   "type": "Certification",
   "niveau": "Certification RS",
-  "synthese": null
+  "synthese": {
+   "metiers": "La certification RS6931 « Intégrer le management d'équipe dans son activité professionnelle », enregistrée au Répertoire spécifique de France Compétences le 28 novembre 2024 (certificateur Manitude, échéance 28 novembre 2026), ne prépare pas à un métier unique mais à une fonction transversale : l'encadrement d'une équipe par un professionnel qui conserve son activité technique. Elle concerne les managers de proximité, chefs d'équipe, responsables de service, coordinateurs ou chefs de projet, dans tous les secteurs (industrie, commerce, services, santé, fonction publique). Elle s'adresse typiquement à des experts métier promus à un premier poste d'encadrement ou appelés à l'être. Elle relève du Répertoire spécifique et non du RNCP : c'est une attestation de compétences complémentaires, pas un diplôme de niveau.",
+   "missions": "Les six compétences attestées par la fiche France Compétences structurent les missions : définir les objectifs des membres de l'équipe en cohérence avec la stratégie de l'entreprise, répartir les missions selon les compétences de chacun, construire des outils de pilotage (tableaux de bord) pour suivre les résultats et corriger les écarts. Le manager conduit des entretiens individuels de suivi, anime des réunions d'équipe et adapte son style de management et sa communication aux situations, y compris conflictuelles. Au quotidien, cela se traduit par la planification du travail, le suivi de la performance, l'accompagnement des collaborateurs et la remontée d'informations à la hiérarchie. L'évaluation certifiante repose sur une préparation écrite et des mises en situation sur des cas de management fictifs.",
+   "conditions": "L'accès à la formation suppose, selon la fiche RS6931, au moins deux ans d'expérience professionnelle dans son métier ; la certification est accessible uniquement par la formation continue, souvent finançable via le CPF. La fonction de manager de proximité s'exerce en entreprise ou en administration, dans un rôle d'interface entre la direction et le terrain, ce qui impose de la disponibilité, de la gestion de priorités et une exposition à la pression des objectifs et des tensions humaines. Les horaires suivent ceux de l'activité encadrée (journée, équipes postées, astreintes selon les secteurs). Le poste exige du sens relationnel, de la rigueur dans le suivi et une capacité à décider et à arbitrer.",
+   "salaire": "La certification elle-même n'ouvre pas de grille salariale ; la rémunération dépend du métier d'origine et de la taille de l'équipe. D'après la synthèse du Blog RH s'appuyant sur les études Michael Page et Robert Walters 2026, un manager de proximité (2 à 5 personnes) débute entre environ 40 000 et 50 000 € brut annuels en région ou en PME (soit 3 300 à 4 200 € brut mensuels), jusqu'à 45 000 à 60 000 € en début de carrière dans les grandes entreprises, et atteint environ 65 000 € brut annuels (5 400 € mensuels) une fois confirmé. Un responsable d'équipe de 10 à 15 personnes se situe entre 60 000 et 90 000 € selon la région. Dans les métiers ouvriers ou de services, un chef d'équipe débutant se situe plutôt entre 2 200 et 2 800 € brut mensuels ; aucune statistique spécifique aux titulaires de la RS6931 n'existe.",
+   "evolution": "La certification constitue généralement une première marche vers des fonctions d'encadrement intermédiaire : responsable de service, chef de département, responsable d'unité ou de site. Elle peut être complétée par un titre RNCP de niveau 6 ou 7 en management (bachelor ou master management des organisations, titre Manager d'unité opérationnelle) ou par des certifications complémentaires (gestion de projet, conduite du changement, prévention des RPS). Les compétences acquises facilitent également une mobilité vers les ressources humaines, la formation interne ou le conseil. L'enregistrement de la RS6931 arrive à échéance le 28 novembre 2026 ; il convient de vérifier son renouvellement avant de s'engager.",
+   "sources": [
+    {
+     "titre": "France Compétences – Fiche RS6931 Intégrer le management d'équipe dans son activité professionnelle",
+     "url": "https://www.francecompetences.fr/recherche/rs/6931"
+    },
+    {
+     "titre": "Blog RH – Salaire manager : combien gagne-t-on selon son niveau de responsabilité ?",
+     "url": "https://www.blog-rh.com/salaire-manager/"
+    },
+    {
+     "titre": "Lefebvre Dalloz – Parcours Intégrer le management d'équipe dans son activité professionnelle (RS6931)",
+     "url": "https://formation.lefebvre-dalloz.fr/formations/parcours-integrer-le-management-dequipe-dans-son-activite-professionnelle_701760"
+    }
+   ]
+  }
  },
  {
   "code": "CERT-IA",
@@ -1339,7 +1359,31 @@
   "domaine": "Santé & Bien-être",
   "type": "Formation qualifiante",
   "niveau": "Non certifiant",
-  "synthese": null
+  "synthese": {
+   "metiers": "Le coach en nutrition accompagne des personnes en bonne santé qui souhaitent modifier leurs habitudes alimentaires : perte ou prise de poids, rééquilibrage, alimentation du sportif, transition vers un régime végétarien, par exemple. Il ne faut pas le confondre avec le diététicien, profession de santé réglementée par le Code de la santé publique (BTS diététique ou BUT génie biologique), ni avec le médecin nutritionniste : le coach en nutrition n'est pas un professionnel de santé et ne prend pas en charge de pathologies. Le métier n'est pas réglementé et aucun diplôme n'est exigé pour l'exercer, ce qui rend une formation sérieuse d'autant plus importante pour la crédibilité. Il s'exerce le plus souvent en indépendant, parfois en salle de sport, en magasin bio, en centre de bien-être ou en complément d'une activité de coach sportif ou de naturopathe.",
+   "missions": "Le coach réalise un bilan des habitudes alimentaires et du mode de vie du client, fixe avec lui des objectifs réalistes et propose un plan d'action adapté à son quotidien (organisation des repas, courses, cuisine, gestion des écarts). Il assure un suivi régulier, en séance individuelle, en groupe ou à distance, ajuste les recommandations et travaille sur la motivation et les comportements. Il doit savoir repérer les situations qui dépassent son champ (troubles du comportement alimentaire, maladies métaboliques, grossesse à risque) et orienter vers un médecin ou un diététicien. Il ne prescrit pas de régime thérapeutique et ne pose pas de diagnostic. Une part importante du temps est consacrée à la communication et à la prospection de clientèle.",
+   "conditions": "La majorité des coachs en nutrition exercent en micro-entreprise ou en société (EURL, SASU), à domicile, en cabinet partagé, en visioconférence ou en se déplaçant chez le client. Les horaires sont souples mais incluent souvent soirées et samedis pour s'adapter aux disponibilités de la clientèle. Le démarrage demande un investissement commercial soutenu (site, réseaux sociaux, partenariats avec des salles de sport ou des entreprises) et une assurance responsabilité civile professionnelle est fortement recommandée. Le métier n'est pas réglementé, mais l'usage des titres de diététicien ou de nutritionniste médical est protégé et sanctionné.",
+   "salaire": "Il n'existe pas de grille salariale ni de statistique officielle pour ce métier. D'après Legalplace, une séance est facturée entre 40 et 120 € ; un coach salarié (salle de sport, centre de remise en forme) perçoit environ 1 800 à 2 500 € brut mensuels, jusqu'à 3 000 € avec une spécialisation. En indépendant, les revenus de départ se situent souvent autour de 1 200 à 2 000 € nets mensuels, et peuvent atteindre 3 000 à 4 000 € une fois la clientèle développée. Ces montants sont indicatifs et dépendent fortement de la zone géographique, de la notoriété et du volume de clients.",
+   "evolution": "L'évolution passe surtout par la spécialisation (nutrition du sportif, périnatalité, alimentation des seniors, nutrition végétale) et par la diversification des formats : programmes en ligne, ateliers collectifs, interventions en entreprise ou en structures de bien-être. Certains coachs complètent leur profil par une formation de coach sportif, de naturopathe ou de micronutrition, ou reprennent des études pour obtenir le BTS diététique, seul moyen d'accéder au titre de diététicien et à une pratique thérapeutique. La création d'une structure (cabinet, studio, marque de programmes) et la formation d'autres coachs sont d'autres débouchés.",
+   "sources": [
+    {
+     "titre": "Legalplace – Devenir coach en nutrition : missions, statut, revenus",
+     "url": "https://www.legalplace.fr/guides/devenir-coach-nutrition/"
+    },
+    {
+     "titre": "Legalstart – Comment devenir coach en nutrition ?",
+     "url": "https://www.legalstart.fr/fiches-pratiques/autres-metiers/devenir-coach-nutrition/"
+    },
+    {
+     "titre": "YouSchool – Différences entre coach en nutrition, diététicien et nutritionniste",
+     "url": "https://www.youschool.fr/nutritionniste/differences-metiers-nutrition/"
+    },
+    {
+     "titre": "France Travail – Exemple d'offre Coach en nutrition (H/F)",
+     "url": "https://candidat.francetravail.fr/offres/recherche/detail/191QGQN"
+    }
+   ]
+  }
  },
  {
   "code": "Q-DECO",
@@ -1435,7 +1479,27 @@
   "domaine": "Santé & Bien-être",
   "type": "Formation qualifiante",
   "niveau": "Non certifiant",
-  "synthese": null
+  "synthese": {
+   "metiers": "La prothésiste ongulaire (ou styliste ongulaire) est une spécialiste de l'embellissement et de la reconstruction des ongles des mains et des pieds. Elle exerce en bar à ongles, en institut de beauté, en salon de coiffure proposant ce service, en spa ou à domicile, et très souvent en indépendante. Le métier relève du code ROME D1208 (soins esthétiques et corporels) et de la convention collective de l'esthétique-cosmétique (IDCC 3032) pour les salariées. L'accès n'est pas soumis à un diplôme obligatoire tant que l'activité se limite à la pose et à la décoration des ongles ; en revanche, les soins esthétiques au sens large (manucure-beauté des pieds avec soins de la peau) relèvent de l'esthétique réglementée et supposent un CAP esthétique ou une qualification équivalente.",
+   "missions": "Elle réalise la préparation de l'ongle naturel, la pose de capsules, de gel, de résine ou de vernis semi-permanent, le remplissage et la dépose, ainsi que les décorations (nail art, french, strass). Elle conseille la cliente sur l'entretien, repère les contre-indications (mycoses, ongles abîmés) et oriente si nécessaire vers un professionnel de santé. Elle gère l'hygiène et la désinfection du matériel, les stocks de produits et, en indépendante, la prise de rendez-vous, la communication sur les réseaux sociaux et la comptabilité. La vente de produits complémentaires fait souvent partie de l'activité en institut.",
+   "conditions": "Le travail s'effectue assis, en position penchée, avec des gestes minutieux et répétitifs sur de longues séances (1 à 2 heures par cliente). L'exposition aux résines, solvants et poussières de limage impose une ventilation adaptée et le port d'un masque FFP2 ; un suivi médical renforcé est prévu dans la convention collective. Les horaires incluent presque toujours le samedi et des amplitudes élargies en fin de journée. Le secteur est très concurrentiel, avec une part importante de micro-entrepreneuses, ce qui rend la fidélisation et la qualité du travail déterminantes.",
+   "salaire": "D'après fiche-paie.fr, une prothésiste ongulaire salariée débute généralement au SMIC, soit environ 1 800 € brut mensuels, et atteint autour de 2 200 € brut lorsqu'elle est spécialisée en nail art ou responsable d'un bar à ongles, commissions sur ventes et pourboires en sus. En indépendante, les revenus sont très variables : les professionnelles installées et reconnues déclarent entre 1 500 et 4 000 € nets mensuels selon la clientèle et la zone. Aucune statistique officielle (INSEE, France Travail) propre à ce métier n'a été trouvée.",
+   "evolution": "Avec l'expérience, la prothésiste peut devenir responsable de bar à ongles, ouvrir son propre salon ou développer une activité à domicile. La spécialisation en nail art, la création de contenus et la formation d'autres praticiennes (formatrice pour une marque ou un organisme) sont des voies fréquentes. Compléter sa qualification par un CAP esthétique-cosmétique-parfumerie ou un CQP styliste ongulaire élargit le champ d'intervention aux soins esthétiques réglementés et aux postes en institut. Certaines évoluent vers la vente ou la représentation de marques de produits ongulaires.",
+   "sources": [
+    {
+     "titre": "fiche-paie.fr – Prothésiste ongulaire : salaire, primes et spécificités",
+     "url": "https://fiche-paie.fr/metier/prothesiste-ongulaire"
+    },
+    {
+     "titre": "Intercariforef – Certification Prothésiste ongulaire",
+     "url": "https://www.intercariforef.org/formations/certification-95027.html"
+    },
+    {
+     "titre": "France Travail – Exemple d'offre Prothésiste ongulaire (H/F)",
+     "url": "https://candidat.francetravail.fr/offres/recherche/detail/190JGFM"
+    }
+   ]
+  }
  },
  {
   "code": "Q-SOPHRO",
@@ -1531,7 +1595,27 @@
   "domaine": "Animaux",
   "type": "Formation qualifiante",
   "niveau": "Non certifiant",
-  "synthese": null
+  "synthese": {
+   "metiers": "L'éleveur canin et félin sélectionne, fait reproduire et élève des chiens ou des chats, le plus souvent de race inscrite au LOF ou au LOOF, destinés à la compagnie, aux concours, au travail ou à l'assistance. La grande majorité des éleveurs sont indépendants, à la tête d'une petite structure familiale ; d'autres sont salariés en élevage, en refuge, en pension, en animalerie ou dans des structures publiques (armée, police, écoles de chiens guides). Le métier relève du code ROME A1403 (étude et développement agricole/élevage). L'activité est encadrée : toute personne vendant au moins deux portées par an doit être déclarée, disposer de l'ACACED (attestation de connaissances) ou d'un diplôme reconnu équivalent, et respecter les règles sanitaires et de bien-être animal.",
+   "missions": "L'éleveur assure les soins quotidiens (alimentation, hygiène, nettoyage des locaux, exercice), surveille la santé des animaux et organise la prophylaxie avec le vétérinaire (vaccins, vermifuges, identification). Il planifie les saillies, suit les gestations et les mises bas, puis la socialisation des chiots et chatons avant leur cession vers 8 à 12 semaines. Il gère la partie administrative et commerciale : inscription des portées, déclaration de l'activité, contrats de vente, communication et relation avec les acquéreurs, parfois participation à des expositions. Beaucoup complètent leur activité par de la pension, du toilettage ou de l'éducation canine.",
+   "conditions": "Le travail s'effectue en grande partie en extérieur et dans les locaux d'élevage, par tous les temps, avec une forte disponibilité : les soins sont quotidiens, week-ends et jours fériés compris, et les mises bas ou les animaux malades peuvent exiger des interventions de nuit. L'installation demande du foncier, des bâtiments conformes et un capital de départ (reproducteurs, matériel, frais vétérinaires). L'ACACED est obligatoire pour l'activité d'élevage déclarée, et les formations agricoles (BPA ou bac pro conduite d'une entreprise du secteur canin et félin) sont recommandées pour accéder aux aides à l'installation. L'exposition aux allergènes, le port de charges et le lien affectif avec les animaux font partie du quotidien.",
+   "salaire": "Les revenus sont très variables et souvent modestes. Selon la fiche Je change de métier, un éleveur salarié perçoit une rémunération proche du SMIC (environ 1 800 € brut mensuels), tandis que le revenu de l'éleveur indépendant dépend du nombre de portées, de la race et des charges ; cette fiche souligne que l'activité est fréquemment complémentaire d'un autre revenu, tout en affichant une moyenne indicative de 22 000 à 35 000 € brut annuels pour les structures établies. Aucune statistique officielle (INSEE, MSA) spécifique à l'élevage canin et félin n'a été trouvée ; les chiffres ci-dessus doivent être pris comme des ordres de grandeur.",
+   "evolution": "L'évolution la plus courante est le développement de la structure : agrandissement de l'élevage, ajout d'une pension, d'un salon de toilettage ou d'une activité d'éducation canine, voire reprise ou gérance d'un refuge. Des spécialisations existent vers le dressage (chiens de travail, de sécurité, de détection) ou vers l'éducation de chiens guides d'aveugles après un brevet professionnel complémentaire. Les formations agricoles (BPA travaux de l'élevage canin et félin, bac pro CGESCF) et les certifications d'éducateur canin ou de comportementaliste permettent d'élargir l'offre. Le juge d'exposition et le conseil en génétique canine ou féline sont des évolutions plus rares.",
+   "sources": [
+    {
+     "titre": "Je change de métier – Fiche métier Éleveur de chiens et chats",
+     "url": "https://www.je-change-de-metier.com/fiche-metier-eleveur-chiens-chats"
+    },
+    {
+     "titre": "Chlorofil (ministère de l'Agriculture) – Référentiel BEPA Travaux de l'élevage canin et félin",
+     "url": "https://chlorofil.fr/fileadmin/user_upload/02-diplomes/referentiels/secondaire/bepa/bepa-tcanin-ref.pdf"
+    },
+    {
+     "titre": "HelloWork – Fiche métier Éleveur",
+     "url": "https://www.hellowork.com/fr-fr/metiers/eleveur.html"
+    }
+   ]
+  }
  },
  {
   "code": "Q-SOIGN",
@@ -1627,7 +1711,31 @@
   "domaine": "VAE",
   "type": "VAE",
   "niveau": "Niveau 5",
-  "synthese": null
+  "synthese": {
+   "metiers": "La VAE du BTS Management commercial opérationnel (diplôme de niveau 5, Éducation nationale) vise les professionnels déjà en poste dans la vente et la distribution : conseillers de vente, vendeurs confirmés, chefs de rayon, adjoints ou responsables de magasin, chargés de clientèle en banque-assurance, téléconseillers encadrant une équipe, commerciaux sédentaires. Elle permet de faire reconnaître officiellement une expérience acquise sans le diplôme, ce qui est fréquent dans le commerce où la promotion interne est courante. Le BTS MCO est l'un des BTS tertiaires les plus demandés en VAE auprès des DAVA (dispositifs académiques de validation des acquis). Le métier visé reste celui décrit dans le référentiel : gestion d'une unité commerciale ou d'une partie de celle-ci.",
+   "missions": "Le référentiel du BTS MCO est organisé en quatre blocs que le candidat doit prouver par son expérience : développer la relation client et assurer la vente conseil ; animer et dynamiser l'offre commerciale (merchandising, promotions, communication) ; assurer la gestion opérationnelle de l'unité commerciale (stocks, budgets, indicateurs) ; manager une équipe commerciale (planning, recrutement, animation). Dans le dossier de VAE (livret 2), le candidat décrit des situations réelles illustrant chacune de ces activités, avec les résultats obtenus et les outils utilisés. Le jury peut valider la totalité du diplôme ou seulement certains blocs, le candidat conservant alors ces blocs sans limite de durée et complétant les autres par une formation ou une nouvelle expérience.",
+   "conditions": "La recevabilité exige au moins un an d'expérience (salariée, non salariée ou bénévole) en rapport direct avec le référentiel du diplôme ; la demande se fait auprès du DAVA de l'académie (livret 1), puis le livret 2 est rédigé avec ou sans accompagnement avant le passage devant un jury composé d'enseignants et de professionnels. La durée moyenne d'un parcours est de l'ordre de 8 à 12 mois, et les délais de jury visés par le service public France VAE sont de 6 à 8 mois. L'accompagnement et les frais peuvent être financés par le CPF, l'employeur ou France VAE lorsque la certification y est intégrée. Les conditions de travail du métier restent celles du commerce : présence en magasin, travail le samedi et en périodes de forte activité, part variable de rémunération.",
+   "salaire": "La VAE ne modifie pas mécaniquement le salaire mais sécurise l'accès aux grilles de classification des conventions collectives (commerce de détail, grande distribution) qui réservent certains niveaux aux titulaires d'un bac+2, et facilite une mobilité externe. D'après aufutur.fr, les titulaires du BTS MCO se situent entre environ 1 800 et 2 000 € brut mensuels pour un conseiller de vente débutant, 2 000 à 2 500 € pour un chef de rayon ou chargé de clientèle, et 2 500 à 3 000 € brut pour un responsable de magasin, primes et variable non compris. Les candidats VAE étant par définition expérimentés, ils se situent le plus souvent dans le haut de ces fourchettes.",
+   "evolution": "Le diplôme obtenu par VAE ouvre les mêmes poursuites que la voie scolaire : licence professionnelle commerce-distribution, bachelor ou titre RNCP de niveau 6 (responsable de développement commercial, manager d'unité marchande), eux-mêmes accessibles ensuite par VAE. Dans l'entreprise, il appuie une évolution vers responsable de magasin, responsable de secteur ou directeur régional, et sert de prérequis à certains concours administratifs de catégorie B. Les compétences validées permettent aussi une reconversion vers le commerce B2B, la banque de détail ou l'immobilier. Selon la Banque des Territoires, environ 400 000 personnes ont obtenu un diplôme par la VAE depuis 2022, mais une part importante des candidats abandonne en cours de route, d'où l'intérêt d'un accompagnement.",
+   "sources": [
+    {
+     "titre": "VAE Éducation nationale – Portail officiel de la validation des acquis de l'expérience",
+     "url": "https://vae.education.gouv.fr/"
+    },
+    {
+     "titre": "Banque des Territoires – La VAE, une voie d'accès au diplôme encore trop marginalisée (juillet 2025)",
+     "url": "https://www.banquedesterritoires.fr/la-vae-une-voie-dacces-au-diplome-encore-trop-marginalisee"
+    },
+    {
+     "titre": "aufutur.fr – BTS MCO : programme, débouchés et salaires",
+     "url": "https://aufutur.fr/orientation/bts-mco-programme-debouches-salaires/"
+    },
+    {
+     "titre": "Centre Inffo – Que reste-t-il de la réforme de la VAE ? (2025)",
+     "url": "https://www.centre-inffo.fr/site-centre-inffo/actualites-centre-inffo/le-quotidien-de-la-formation-actualite-formation-professionnelle-apprentissage/articles-2025/que-reste-t-il-de-la-reforme-de-la-vae"
+    }
+   ]
+  }
  },
  {
   "code": "VAE-BUTGEA",
@@ -1731,7 +1839,31 @@
   "domaine": "VAE",
   "type": "VAE",
   "niveau": "Niveau 3",
-  "synthese": null
+  "synthese": {
+   "metiers": "Le diplôme d'État d'accompagnant éducatif et social (DEAES, niveau 3, RNCP36004) est le diplôme de référence des professionnels qui accompagnent au quotidien des personnes en situation de handicap, âgées ou en perte d'autonomie, à domicile, en établissement (EHPAD, foyer de vie, MAS, IME) ou en milieu scolaire (accompagnement des élèves en situation de handicap). La VAE s'adresse aux aides à domicile, auxiliaires de vie, AESH, agents de service en établissement médico-social ou aidants professionnels qui exercent déjà ces fonctions sans le diplôme. Le secteur sanitaire et social est celui qui reçoit le plus de candidatures à la VAE en France, et le DEAES fait partie des certifications prises en charge par le service public France VAE. Le diplôme est exigé ou fortement valorisé par les employeurs du secteur et dans les grilles conventionnelles.",
+   "missions": "L'AES aide la personne dans les actes essentiels (toilette, habillage, repas, déplacements) et dans les actes de la vie quotidienne (entretien du cadre de vie, courses, démarches), en respectant son autonomie et son projet de vie. Il accompagne la vie sociale et relationnelle (activités, sorties, maintien du lien familial), participe au travail d'équipe pluriprofessionnelle, transmet les informations et contribue à la prévention des risques. Le référentiel comporte cinq blocs de compétences, chacun pouvant être validé séparément par le jury VAE ; le candidat décrit dans son livret 2 des situations vécues illustrant chaque bloc. Le DEAES rénové en 2021 a remplacé les anciennes spécialités par un socle commun.",
+   "conditions": "La recevabilité exige au moins un an d'expérience en lien direct avec le référentiel, salariée, non salariée ou bénévole ; le dossier est instruit par la DREETS ou via France VAE, puis le candidat rédige son livret 2 et passe devant un jury. Les parcours durent en moyenne environ 7 mois dans le secteur sanitaire et social selon la Banque des Territoires (juillet 2025), avec un accompagnement et un financement possibles par le CPF, l'employeur ou France VAE. Le métier lui-même s'exerce debout, avec des manutentions de personnes, des horaires décalés (matin, soir, week-ends, parfois nuits en internat) et une forte charge émotionnelle ; à domicile, les déplacements entre interventions sont quotidiens.",
+   "salaire": "Selon Diplomeo, un AES débute autour de 1 800 € brut mensuels (environ 21 700 € annuels) dans le secteur privé et associatif comme dans la fonction publique, et environ 1 750 € brut à domicile. Avec l'ancienneté, la rémunération atteint environ 2 100 € brut dans le public après une douzaine d'années (jusqu'à 2 350 € avec changement de grade) et jusqu'à 2 500 € brut dans le privé ou l'associatif, hors primes de dimanche, de nuit et indemnités Ségur ou Laforcade. La VAE a un effet direct : dans les conventions collectives du secteur (BAD, CCN 66, CCN 51), le diplôme conditionne l'accès à la catégorie et au coefficient d'AES, souvent supérieur à celui d'agent non diplômé.",
+   "evolution": "Le DEAES permet d'accéder, par concours ou par formation, aux diplômes de niveau 4 (moniteur-éducateur, technicien de l'intervention sociale et familiale) puis de niveau 6 (éducateur spécialisé, assistant de service social), avec des passerelles et allègements. Vers le soin, il ouvre un accès aménagé à la formation d'aide-soignant, dont certains blocs sont en équivalence. Dans la fonction publique, le diplôme est requis pour le grade d'accompagnant éducatif et social de la filière médico-sociale. Enfin, l'expérience peut déboucher sur des fonctions de coordination d'équipe à domicile, de tuteur de stagiaires ou de formateur.",
+   "sources": [
+    {
+     "titre": "Diplomeo – Quel salaire espérer après un DEAES ?",
+     "url": "https://diplomeo.com/actualite-salaire_apres_deaes"
+    },
+    {
+     "titre": "EPL 82 (ministère de l'Agriculture) – Plaquette DEAES 2026-2028, blocs de compétences et RNCP36004",
+     "url": "https://epl82.educagri.fr/fileadmin/user_upload/images/phototheque_epl/agriculture/FPCA/Plaquettes_FPCA_2026/DEAES_2026-2028.pdf"
+    },
+    {
+     "titre": "Banque des Territoires – La VAE, une voie d'accès au diplôme encore trop marginalisée (juillet 2025)",
+     "url": "https://www.banquedesterritoires.fr/la-vae-une-voie-dacces-au-diplome-encore-trop-marginalisee"
+    },
+    {
+     "titre": "France Travail – Exemple d'offre Accompagnant éducatif et social (H/F)",
+     "url": "https://candidat.francetravail.fr/offres/recherche/detail/191JPDS"
+    }
+   ]
+  }
  },
  {
   "code": "VAE-DEME",
@@ -1831,7 +1963,31 @@
   "domaine": "VAE",
   "type": "VAE",
   "niveau": "Niveau 6",
-  "synthese": null
+  "synthese": {
+   "metiers": "Le diplôme d'État d'éducateur spécialisé (DEES, niveau 6, grade licence) est le diplôme central du travail social éducatif. L'éducateur spécialisé accompagne des enfants et adultes en situation de handicap, des mineurs en danger ou placés, des personnes en difficulté sociale, en addiction ou sortant de détention. La VAE s'adresse aux moniteurs-éducateurs, AES, « faisant fonction » d'éducateur en établissement, animateurs socio-éducatifs ou professionnels de la protection de l'enfance et de la PJJ qui exercent ces missions sans le diplôme. Selon l'ONISEP, le secteur associatif emploie la grande majorité des éducateurs, mais la fonction publique territoriale et hospitalière recrute aussi. Le DEES est délivré par le recteur d'académie, et la VAE est instruite par les DAVA.",
+   "missions": "L'éducateur spécialisé construit avec la personne un projet éducatif individualisé, transmet des repères (hygiène, alimentation, règles de vie, gestion du budget), anime des ateliers et accompagne les démarches administratives, scolaires ou professionnelles. Il travaille en équipe pluridisciplinaire (psychologues, enseignants, magistrats, soignants), rédige des écrits professionnels (rapports, bilans) et participe aux projets de service et au travail en réseau. En milieu ouvert (AEMO, prévention spécialisée), il intervient au domicile ou dans la rue sur mandat judiciaire ou administratif. Le référentiel du DEES (arrêté du 10 mars 2020) est découpé en quatre domaines de compétences que le candidat VAE doit illustrer par des situations significatives dans son livret 2.",
+   "conditions": "La notice officielle du rectorat exige une durée cumulée d'activité d'au moins un an en rapport direct avec le DEES (salariée, non salariée ou bénévole), justifiée par attestations d'employeur ou bulletins de salaire ; le parcours comprend le livret 1 (recevabilité), le livret 2 et un entretien avec le jury, pour une durée indicative d'environ 12 mois. Le jury peut prononcer une validation totale, partielle (par domaine de compétences) ou nulle. Le métier s'exerce en internat, en externat ou en milieu ouvert, avec des horaires variables, des permanences de nuit et de week-end en hébergement, et une charge émotionnelle importante ; l'ONISEP souligne l'équilibre psychologique, la patience et la fermeté requis.",
+   "salaire": "L'ONISEP indique un salaire débutant à partir d'environ 1 870 € brut mensuels, variable selon le statut et le lieu d'exercice ; dans les conventions collectives du secteur (CCN 66, CCN 51) et dans la fonction publique (assistant socio-éducatif, catégorie A depuis 2019), la rémunération augmente avec l'ancienneté pour atteindre environ 2 500 à 3 000 € brut en fin de carrière, hors primes d'internat, de dimanche et indemnité Ségur. L'intérêt salarial de la VAE est net pour les professionnels « faisant fonction » payés sur une grille de niveau 4 : l'obtention du DEES permet le reclassement sur la grille d'éducateur spécialisé. Aucune statistique nationale spécifique aux diplômés par VAE n'a été trouvée.",
+   "evolution": "Après quelques années, l'éducateur spécialisé peut devenir chef de service éducatif (CAFERUIS), directeur d'établissement (CAFDES) ou cadre de l'intervention sociale (DEIS), ou se spécialiser comme médiateur familial ou coordonnateur de parcours. Le grade licence attaché au DEES permet de poursuivre en master (sciences de l'éducation, intervention sociale). Les concours de la fonction publique (assistant socio-éducatif, éducateur de la PJJ, conseiller pénitentiaire d'insertion et de probation) sont ouverts aux titulaires. D'après la Banque des Territoires, les parcours VAE du secteur sanitaire et social durent en moyenne environ 7 mois, mais seule une minorité de candidats va jusqu'au jury, d'où l'intérêt d'un accompagnement.",
+   "sources": [
+    {
+     "titre": "ONISEP – Fiche métier Éducateur spécialisé / Éducatrice spécialisée",
+     "url": "https://www.onisep.fr/ressources/univers-metier/metiers/educateur-specialise-educatrice-specialisee"
+    },
+    {
+     "titre": "VAE Éducation nationale (académie de Poitiers) – Notice de renseignements VAE DEES niveau 6",
+     "url": "https://vae.education.gouv.fr/uploads/img/poitiers/VAE_DEES_Niveau_6_NOTICE_DE_RENSEIGNEMENTS.pdf"
+    },
+    {
+     "titre": "ENPJJ – Fiche de présentation VAE DEES 2026",
+     "url": "https://www.enpjj.justice.fr/sites/default/files/2026_fiche_presentation_vae_dees_ptfso_enpjj.pdf"
+    },
+    {
+     "titre": "Banque des Territoires – La VAE, une voie d'accès au diplôme encore trop marginalisée (juillet 2025)",
+     "url": "https://www.banquedesterritoires.fr/la-vae-une-voie-dacces-au-diplome-encore-trop-marginalisee"
+    }
+   ]
+  }
  },
  {
   "code": "VAE-DEEJE",
@@ -1923,7 +2079,31 @@
   "domaine": "VAE",
   "type": "VAE",
   "niveau": "Niveau 6",
-  "synthese": null
+  "synthese": {
+   "metiers": "Le titre « Responsable paie et administration des ressources humaines » est un titre RNCP de niveau 6 (bac+3/4) porté par l'IPAC et Eduservices. La fiche RNCP35202 est arrivée à échéance le 20 janvier 2026 et a été remplacée par la fiche RNCP41441 « Responsable paie et administration du personnel », active jusqu'au 27 octobre 2030 ; il convient de vérifier auprès de l'organisme sur quelle fiche la VAE est instruite. Les métiers visés relèvent du code ROME M1503 : responsable paie, responsable paie et administration du personnel, responsable rémunérations, chargé ou gestionnaire paie confirmé, payroll manager. La VAE s'adresse aux gestionnaires de paie expérimentés, assistants RH ou comptables en charge de la paie qui pilotent déjà tout ou partie de ces activités sans diplôme de niveau 6.",
+   "missions": "Le référentiel couvre trois domaines : organiser et contrôler la paie (collecte des éléments variables, paramétrage du logiciel, contrôle des bulletins, DSN et déclarations URSSAF, prévoyance, retraite), gérer l'administration du personnel de l'entrée à la sortie (contrats, avenants, gestion du temps, absences, registres, obligations RGPD et handicap), et participer à la politique RH (indicateurs et reporting social, épargne salariale, bilan social, veille juridique). La fiche RNCP41441 ajoute l'encadrement de l'équipe paie, la formation des gestionnaires et l'automatisation ou la digitalisation des processus. Le candidat VAE doit démontrer, dossier à l'appui, qu'il a exercé ces activités avec autonomie ; la validation peut être totale ou par blocs de compétences.",
+   "conditions": "La recevabilité suppose au moins un an d'expérience en lien direct avec le référentiel ; le parcours (recevabilité, rédaction du dossier, entretien avec le jury composé pour partie de professionnels) dure généralement de 6 à 12 mois et peut être financé par le CPF, l'employeur ou un OPCO. Les titres privés de ce type sont instruits directement par le certificateur, avec un accompagnement souvent payant. Le métier s'exerce au bureau, en entreprise, en cabinet d'expertise comptable ou en prestataire de paie, avec des pics de charge mensuels et de fin d'année (clôture de paie, DSN, campagnes de rémunération) qui demandent rigueur, discrétion et résistance aux délais. Le télétravail partiel est fréquent.",
+   "salaire": "D'après l'étude PAY JOB 2026 relayée par Salerya, un gestionnaire de paie débutant (moins de 2 ans) perçoit environ 28 900 € brut annuels (près de 2 400 € mensuels), un gestionnaire confirmé (5 à 10 ans) environ 38 800 € (3 200 € mensuels), et un responsable paie environ 49 000 € brut annuels (4 100 € mensuels), avec une fourchette de 48 000 à 90 000 € après dix ans dans la fonction selon la taille de l'entreprise et le périmètre (multi-sites, international, encadrement). Les candidats VAE se situent par construction dans la tranche confirmée à responsable. Le titre de niveau 6 facilite l'accès au statut cadre et aux postes de management dans les grandes entreprises.",
+   "evolution": "Le responsable paie évolue vers responsable rémunération et avantages sociaux (compensation & benefits), responsable administration du personnel et SIRH, DRH adjoint ou DRH de PME, ou vers le conseil en cabinet d'expertise comptable et en éditeurs de logiciels de paie. La poursuite vers un titre de niveau 7 (manager des ressources humaines, master GRH), lui aussi accessible par VAE, est la voie classique. Les compétences en droit social et en données RH permettent aussi de bifurquer vers le contrôle de gestion sociale ou l'audit social. La digitalisation de la paie renforce la demande pour des profils capables de piloter des projets SIRH.",
+   "sources": [
+    {
+     "titre": "Intercariforef / Certif Info – Responsable paie et administration des ressources humaines (RNCP35202, archivée)",
+     "url": "https://www.intercariforef.org/formations/certification-110459.html"
+    },
+    {
+     "titre": "Intercariforef / Certif Info – Responsable paie et administration du personnel (RNCP41441, active)",
+     "url": "https://www.intercariforef.org/formations/certification-119933.html"
+    },
+    {
+     "titre": "Salerya – Salaire gestionnaire de paie débutant vs confirmé 2026 (étude PAY JOB)",
+     "url": "https://salerya.fr/metiers/finance/gestionnaire-de-paie/salaire-gestionnaire-de-paie-debutant-vs-confirme-2026/"
+    },
+    {
+     "titre": "Diplomeo – Responsable paie et administration des ressources humaines IPAC : programme, débouchés",
+     "url": "https://diplomeo.com/formation/responsable_paie_et_administration_des_ressources_humaines_ipac_29534"
+    }
+   ]
+  }
  },
  {
   "code": "VAE-TPGP",
