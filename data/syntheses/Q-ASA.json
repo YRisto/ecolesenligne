@@ -1,0 +1,22 @@
+{
+  "code": "Q-ASA",
+  "metiers": "Le métier visé est celui d'auxiliaire vétérinaire, aussi appelé auxiliaire de santé animale (ASA) dans certaines formations privées, ou auxiliaire spécialisé vétérinaire (ASV) pour le titre de branche de niveau bac+2 délivré par APFORM. Il s'exerce en cabinet, clinique ou centre hospitalier vétérinaire, en statut salarié, principalement auprès des animaux de compagnie. La fiche ROME de référence est A1501 (aide aux soins animaux). Il est important de distinguer une formation privée « ASA » du titre ASV reconnu par la convention collective des vétérinaires, qui conditionne le classement salarial.",
+  "missions": "L'auxiliaire accueille les propriétaires et leurs animaux, gère les rendez-vous, les dossiers clients, la facturation et conseille sur les produits et services. Il assure l'hygiène des locaux, du matériel et des cages, et veille au bien-être des animaux hospitalisés. Il assiste le vétérinaire : préparation du matériel, contention des animaux, aide en consultation et au bloc, suivi des hospitalisés. Il gère aussi les stocks et les commandes de médicaments et de consommables.",
+  "conditions": "Les horaires sont réguliers en cabinet, mais peuvent inclure des astreintes le soir, le matin ou le week-end dans les structures assurant les urgences. Le métier est physique (manipulation d'animaux parfois lourds, station debout) et exige du sang-froid face aux situations d'urgence et à l'euthanasie. Une bonne santé est nécessaire (pas d'allergie aux poils ou aux produits). L'ONISEP signale une insertion parfois difficile, le nombre de diplômés augmentant, et une population très jeune (près de la moitié des salariés ont moins de 35 ans).",
+  "salaire": "L'ONISEP indique un salaire débutant d'environ 1 914 € brut par mois, variable selon le lieu et le statut. La convention collective des vétérinaires praticiens fixe des minima par échelon : un auxiliaire sans titre reconnu est classé plus bas qu'un ASV certifié. Les sources consultées ne donnent pas de fourchette chiffrée pour un profil confirmé ; l'ONISEP précise que l'évolution vers le métier de vétérinaire n'est pas possible avec ce niveau de formation.",
+  "evolution": "L'auxiliaire peut se spécialiser (chirurgie, élevage, équidés, NAC) ou se perfectionner par des formations courtes et des CQP. L'obtention du titre ASV (bac+2, APFORM) sécurise le classement conventionnel et la rémunération. Des évolutions existent vers la gestion d'une clinique (responsable accueil, coordination), le commerce en animalerie ou les laboratoires vétérinaires. L'expérience peut aussi mener vers le toilettage, la pension ou l'éducation canine en indépendant.",
+  "sources": [
+    {
+      "titre": "ONISEP – Auxiliaire vétérinaire",
+      "url": "https://www.onisep.fr/ressources/univers-metier/metiers/auxiliaire-veterinaire"
+    },
+    {
+      "titre": "ONISEP – Témoignage : titre d'ASV (auxiliaire spécialisé vétérinaire)",
+      "url": "https://www.onisep.fr/formation/apres-le-bac-les-etudes-superieures/ma-1-annee-en/ma-1-annee-en-formation-veterinaire/titre-d-asv-auxiliaire-specialise-veterinaire"
+    },
+    {
+      "titre": "ONISEP – Auxiliaire spécialisé vétérinaire (ESAV / institut Bonaparte)",
+      "url": "https://www.onisep.fr/ressources/structures-enseignement/auvergne-rhone-alpes/rhone/ecole-superieure-de-l-animal-et-du-vivant-institut-bonaparte/auxiliaire-specialise-veterinaire-esav"
+    }
+  ]
+}

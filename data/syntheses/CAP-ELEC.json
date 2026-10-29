@@ -1,0 +1,26 @@
+{
+  "code": "CAP-ELEC",
+  "metiers": "Le CAP Électricien est le diplôme d'entrée dans les métiers de l'électricité du bâtiment. Il mène au poste d'électricien installateur ou électricien du bâtiment, dans les entreprises d'installation électrique, les PME du second œuvre, les grands groupes du BTP et les services de maintenance. Le métier relève de la fiche ROME F1602 (électricité bâtiment) et les offres de France Travail sont nombreuses, notamment en Île-de-France. Avec l'expérience, le diplôme permet aussi de s'installer comme artisan.",
+  "missions": "L'électricien étudie les plans et schémas, repère l'emplacement des tableaux et armoires, puis pose les chemins de câbles, les conduits et les appareillages (prises, interrupteurs, luminaires, chauffage). Il réalise les raccordements, effectue les tests de conformité et participe à la mise en service avec le chef de chantier et le client. Il intervient de plus en plus sur les courants faibles : réseaux informatiques, alarmes, vidéosurveillance, domotique, gestion du chauffage et de la climatisation. Il assure aussi des opérations de maintenance et de dépannage.",
+  "conditions": "Le métier est mobile : l'électricien se déplace de chantier en chantier, en construction neuve comme en rénovation, et travaille en équipe sous la direction d'un chef de chantier. Les travaux impliquent des postures variées, du port de charges et le respect absolu des règles de sécurité face aux risques électriques. Dans les grands groupes, des déplacements de plusieurs mois en France ou à l'étranger sont possibles ; des astreintes le soir et le week-end existent en maintenance. Le statut est salarié ou artisan à son compte.",
+  "salaire": "L'Onisep situe le salaire d'un électricien débutant entre 1 867 € et 2 500 € brut par mois selon le lieu d'exercice et le statut. Les fiches sectorielles confirment un démarrage proche du SMIC, puis environ 2 000 € brut mensuels après cinq ans et 2 200 à 2 500 € brut mensuels au-delà de dix ans d'expérience. Un électricien indépendant peut dégager 2 500 à 4 000 € par mois selon sa clientèle et ses tarifs. Les salaires sont plus élevés en Île-de-France qu'en province.",
+  "evolution": "L'électricien peut devenir chef d'équipe puis chef de chantier, avec des responsabilités d'organisation, d'animation d'équipe et de suivi technique et financier. Des spécialisations existent : ascenseurs, froid et climatisation, énergies renouvelables, domotique. Le CAP se complète par un brevet professionnel électricien, un bac professionnel MELEC, puis un BTS électrotechnique ou une certification de spécialisation en énergies renouvelables. La création d'une entreprise artisanale est une évolution fréquente.",
+  "sources": [
+    {
+      "titre": "Onisep – Fiche métier Électricien installateur / Électricienne installatrice",
+      "url": "https://www.onisep.fr/ressources/univers-metier/metiers/electricien-installateur-electricienne-installatrice/pdf"
+    },
+    {
+      "titre": "Obat – Électricien : salaire et formation, fiche métier",
+      "url": "https://www.obat.fr/blog/metier-electricien/"
+    },
+    {
+      "titre": "CMA Formation Bretagne – Fiche CAP Électricien",
+      "url": "https://www.cma-formation-bretagne.fr/wp-content/uploads/sites/2/2025/09/CAP-ELECTRICIEN.pdf"
+    },
+    {
+      "titre": "France Travail – Offre Électricien du bâtiment",
+      "url": "https://candidat.francetravail.fr/offres/recherche/detail/191JGDW"
+    }
+  ]
+}

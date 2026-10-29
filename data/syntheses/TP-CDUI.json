@@ -1,0 +1,26 @@
+{
+  "code": "TP-CDUI",
+  "metiers": "Le titre professionnel Concepteur designer UI (niveau 6, bac + 3/4) du ministère du Travail, désormais enregistré sous l'intitulé Concepteur designer user interface (RNCP42140), prépare aux métiers d'UI designer, web designer, UX/UI designer, intégrateur multimédia, chargé de communication digitale ou webmarketeur. Les emplois se trouvent en agence web, communication ou publicité, dans les ESN, les entreprises de e-commerce et les services communication des organisations. Les métiers relèvent des fiches ROME E1104 (conception de contenus multimédias) et E1205 (réalisation de contenus multimédias). Le titre est également ouvert, avec l'expérience, aux fonctions d'assistant chef de projet multimédia.",
+  "missions": "Le concepteur designer UI conçoit les éléments graphiques d'une interface : maquettes, prototypes, illustrations, animations et supports de communication, en tenant compte de l'expérience utilisateur et de l'accessibilité. Il contribue à la gestion d'un projet de communication numérique, à la stratégie webmarketing et à la veille sur les usages et les outils. Il réalise et améliore des sites web : intégration de pages, gestion de contenus, optimisation du référencement et des performances. Il travaille à partir des besoins du client ou du chef de projet et en lien avec les développeurs.",
+  "conditions": "Le métier s'exerce en bureau ou en télétravail, sur des outils de conception (Figma, suite Adobe) et des CMS, en mode projet avec des délais à respecter. En agence, les projets s'enchaînent pour plusieurs clients ; en entreprise, le designer travaille sur un produit dans la durée. Le statut salarié domine, mais l'exercice en freelance est répandu. La veille technologique et créative est permanente, le secteur évoluant rapidement.",
+  "salaire": "Les fourchettes publiées pour 2026 situent un UI/UX designer junior (0 à 2 ans) entre 28 000 et 35 000 € brut annuels en province et 32 000 à 40 000 € en Île-de-France, soit environ 2 300 à 3 300 € brut mensuels. Un profil confirmé (3 à 5 ans) se situe entre 36 000 et 52 000 € brut annuels selon la région, soit environ 3 000 à 4 300 € brut mensuels. Ces chiffres concernent le marché des designers d'interface dans son ensemble ; les titulaires du titre professionnel débutant sans expérience se placent plutôt en bas de fourchette, et les offres en alternance sur France Travail sont fréquentes. Aucune statistique Apec propre à ce titre n'a été trouvée.",
+  "evolution": "Le designer UI peut évoluer vers lead UI designer, UX designer, chef de projet digital, directeur artistique ou directeur de création interactive. Les passerelles vers le développement front-end ou le product design sont courantes. Le titre peut être complété par un titre de niveau 6 ou 7 en UX design ou en gestion de projet digital. L'installation en freelance est une évolution fréquente après quelques années d'expérience et de portfolio.",
+  "sources": [
+    {
+      "titre": "Intercariforef – Titre professionnel Concepteur designer user interface (RNCP42140)",
+      "url": "https://www.intercariforef.org/formations/certification-120874"
+    },
+    {
+      "titre": "Centre Inffo – Titre professionnel de concepteur designer UI : création",
+      "url": "https://www.centre-inffo.fr/site-droit-formation/titres-professionnels/titre-professionnel-de-concepteur-designer-ui-creation"
+    },
+    {
+      "titre": "Jobrise – Combien gagne un UI/UX designer ? Fourchettes 2026",
+      "url": "https://jobrise.io/fr/blog/combien-gagne-un-ui-ux-designer-2026/"
+    },
+    {
+      "titre": "France Travail – Offre UI Designer junior en alternance",
+      "url": "https://candidat.francetravail.fr/offres/recherche/detail/1696970"
+    }
+  ]
+}

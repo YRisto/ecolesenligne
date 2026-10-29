@@ -1,0 +1,22 @@
+{
+  "code": "TP-TIP",
+  "metiers": "Le titre professionnel Technicien informatique de proximité (RNCP40799, niveau 4, parcours ouverts depuis le 1er septembre 2025, enregistré jusqu'en 2030) succède au TP Technicien d'assistance en informatique (RNCP37681). Il donne accès aux emplois de technicien d'assistance ou de maintenance en informatique, technicien helpdesk, technicien support utilisateurs, technicien de déploiement ou d'assistance en clientèle. La fiche ROME est I1401 (maintenance informatique et bureautique). Les employeurs sont les ESN, les DSI de PME, d'industries et de grands groupes, les collectivités territoriales et les services publics.",
+  "missions": "Le technicien est le point d'accès des utilisateurs aux équipes informatiques : il qualifie les incidents, les résout à distance ou sur site et enregistre et suit les demandes dans l'outil de ticketing. Il prépare, configure et met en service postes de travail, périphériques et équipements numériques en suivant les procédures de sécurité. Il installe et sécurise les équipements réseau, gère les comptes utilisateurs dans Active Directory et accompagne les utilisateurs dans la prise en main de leurs outils. Il applique les politiques de sécurité et de confidentialité et assure une veille technique.",
+  "conditions": "L'ONISEP décrit un rôle d'« urgentiste » de l'informatique, qui demande de gérer le stress et les situations critiques. L'intervention se fait sur place ou à distance (téléphone, prise en main), parfois en centre d'appels, avec des horaires étendus ou décalés et d'éventuelles astreintes. En ESN, les déplacements sur plusieurs sites clients sont fréquents. Le sens du service, la pédagogie et la rigueur dans la traçabilité des interventions sont essentiels.",
+  "salaire": "L'ONISEP indique un salaire débutant d'environ 2 160 € brut par mois pour un technicien de maintenance en informatique, variable selon le lieu et le statut. Les sources consultées ne fournissent pas de fourchette consolidée pour un profil confirmé ; l'expérience et les certifications (Microsoft, réseau, ITIL) permettent de progresser vers des postes d'administrateur mieux rémunérés. Les salaires sont plus élevés en Île-de-France et en ESN qu'en collectivité.",
+  "evolution": "Les évolutions citées par l'ONISEP sont responsable d'un centre d'appels ou d'exploitation, gestionnaire de parc micro-informatique, responsable micro-réseaux ou formateur bureautique. La poursuite vers le TP Technicien supérieur systèmes et réseaux (niveau 5) ou un BTS SIO/CIEL ouvre les postes d'administrateur systèmes et réseaux. La cybersécurité est une spécialisation en forte demande. Le titre peut aussi être obtenu ou complété par VAE après expérience.",
+  "sources": [
+    {
+      "titre": "France Compétences – RNCP40799 TP Technicien informatique de proximité",
+      "url": "https://www.francecompetences.fr/recherche/rncp/40799"
+    },
+    {
+      "titre": "ONISEP – Technicien / technicienne de maintenance en informatique",
+      "url": "https://www.onisep.fr/ressources/univers-metier/metiers/technicien-technicienne-de-maintenance-en-informatique"
+    },
+    {
+      "titre": "France Compétences – RNCP37681 TP Technicien d'assistance en informatique (ancien titre)",
+      "url": "https://www.francecompetences.fr/recherche/rncp/37681/"
+    }
+  ]
+}

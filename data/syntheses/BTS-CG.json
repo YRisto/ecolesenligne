@@ -1,0 +1,26 @@
+{
+  "code": "BTS-CG",
+  "metiers": "Le BTS Comptabilité-Gestion mène aux postes de comptable, assistant ou aide-comptable, comptable clients ou fournisseurs, gestionnaire de paie, assistant de gestion en PME et collaborateur de cabinet d'expertise comptable. La fiche ROME de référence est M1203 (comptabilité), avec M1213 pour l'assistanat comptable. Les recruteurs sont les cabinets d'expertise comptable, les PME, les services comptables des grandes entreprises, les associations et le secteur public. C'est l'un des bac+2 les plus demandés sur le marché des fonctions support.",
+  "missions": "Le comptable enregistre les factures, reçus et notes de frais, suit la trésorerie et les stocks, établit les paies et effectue les déclarations fiscales et sociales. Il prépare les comptes annuels et participe à la clôture avec le chef comptable ou l'expert-comptable. En PME il est généraliste ; en grande entreprise il se spécialise (clients, fournisseurs, paie, analytique). En cabinet, il gère un portefeuille d'une vingtaine de dossiers clients et peut les conseiller.",
+  "conditions": "Le travail s'effectue en bureau, avec une forte dématérialisation et des logiciels comptables qui ont transformé le métier. L'intensité monte nettement lors des clôtures (bilan annuel, déclarations), périodes où rigueur et gestion du stress sont indispensables. L'autonomie varie : grande en petite structure, plus parcellaire dans un grand service. En cabinet, les déplacements chez les clients sont fréquents et la variété des dossiers est plus forte.",
+  "salaire": "L'ONISEP situe le salaire débutant autour de 2 400 € brut par mois ; L'Étudiant et Aufutur donnent une fourchette plus basse en sortie de BTS, environ 1 700 à 2 000 € brut mensuels pour un premier poste d'assistant ou de comptable. Avec l'expérience, L'Étudiant cite un salaire moyen d'environ 37 400 € brut annuels (près de 3 100 € par mois) et un chef de section comptable à partir de 3 000 € brut mensuels. Les salaires sont plus élevés en Île-de-France et dans les grandes entreprises. Ces montants restent indicatifs et dépendent de la taille de la structure.",
+  "evolution": "L'évolution classique mène vers chef comptable, après une expérience en cabinet ou en PME, puis responsable administratif et financier. Le contrôle de gestion est accessible avec une formation complémentaire. La poursuite d'études est fréquente : DCG (bac+3) puis DSCG, licence professionnelle métiers de la comptabilité, ou BUT GEA. Le BTS CG donne des dispenses d'épreuves pour le DCG, ce qui ouvre à terme la voie de l'expertise comptable.",
+  "sources": [
+    {
+      "titre": "ONISEP – Comptable",
+      "url": "https://www.onisep.fr/ressources/univers-metier/metiers/comptable"
+    },
+    {
+      "titre": "France Travail – Fiche métier ROME M1203 Comptable",
+      "url": "https://candidat.francetravail.fr/metierscope/fiche-metier/M1203/comptable"
+    },
+    {
+      "titre": "L'Étudiant – Comptable : missions et salaires",
+      "url": "https://www.letudiant.fr/metiers/secteur/audit-comptabilite-gestion/comptable_2.html"
+    },
+    {
+      "titre": "Aufutur – BTS Comptabilité et gestion : débouchés et salaires",
+      "url": "https://aufutur.fr/orientation/bts-comptabilite-gestion-formation-debouches-salaires/"
+    }
+  ]
+}

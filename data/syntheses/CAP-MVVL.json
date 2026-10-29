@@ -1,0 +1,22 @@
+{
+  "code": "CAP-MVVL",
+  "metiers": "Le CAP Maintenance des véhicules, option voitures particulières, forme des mécaniciens automobiles capables d'assurer l'entretien courant et les réparations de base. Les débouchés sont les garages indépendants, les concessions et agents de marque, les centres auto et de réparation rapide, les loueurs et les flottes d'entreprise. Le métier correspond à la fiche ROME I1604 (mécanique automobile et entretien de véhicules). Le CAP est le premier niveau de qualification ; beaucoup de titulaires poursuivent vers le bac pro pour accéder au diagnostic.",
+  "missions": "Le mécanicien réalise les opérations d'entretien (vidange, freins, pneus, distribution, climatisation), diagnostique les pannes simples avec les outils d'atelier et remplace les pièces défectueuses. Il effectue les réglages selon les préconisations du constructeur, teste le véhicule et renseigne l'ordre de réparation. Il participe à la préparation des véhicules neufs ou d'occasion et aux pré-contrôles techniques. Il peut expliquer les travaux réalisés au client sous la supervision du responsable d'atelier.",
+  "conditions": "Le travail se fait en atelier, parfois dans des positions inconfortables, au contact de graisses, solvants et huiles, avec port d'équipements de protection. Les horaires suivent l'activité du garage, avec parfois des samedis et des déplacements pour dépannages ou achats de pièces. Dans un petit garage, polyvalence et contact client sont la règle ; dans une concession ou un centre auto, l'outillage est plus sophistiqué et les tâches plus spécialisées. Le diagnostic électronique prend une place croissante avec l'électrification du parc.",
+  "salaire": "L'ONISEP indique pour le technicien automobile un salaire débutant d'environ 1 867 € brut par mois, soit le niveau du SMIC, qui s'applique aussi à un mécanicien titulaire du CAP. La progression suit ensuite la grille de la convention collective des services de l'automobile selon l'échelon et les certifications obtenues. Les sources consultées ne fournissent pas de fourchette précise pour un mécanicien CAP confirmé ; un technicien expérimenté ou un chef d'atelier se situe nettement au-dessus du SMIC. Les revenus sont supérieurs en concession et en région parisienne.",
+  "evolution": "Le parcours classique est la poursuite en bac pro Maintenance des véhicules, puis éventuellement en BTS, pour devenir technicien diagnostic. Avec l'expérience, un mécanicien peut devenir chef d'équipe, réceptionnaire ou conseiller technique. Les spécialisations vers les véhicules électriques et hybrides (habilitations) sont très recherchées. La création ou la reprise d'un garage est possible après une formation en gestion.",
+  "sources": [
+    {
+      "titre": "ONISEP – Technicien / technicienne automobile",
+      "url": "https://www.onisep.fr/ressources/univers-metier/metiers/technicien-technicienne-automobile"
+    },
+    {
+      "titre": "ONISEP TV – Les métiers animés : technicien automobile",
+      "url": "https://oniseptv.onisep.fr/video/les-metiers-animes-technicien-automobile-technicienne-automobile"
+    },
+    {
+      "titre": "ONISEP – Mécanicien-réparateur de véhicules industriels (métier voisin)",
+      "url": "https://www.onisep.fr/ressources/univers-metier/metiers/mecanicien-reparateur-mecanicienne-reparatrice-de-vehicules-industriels"
+    }
+  ]
+}

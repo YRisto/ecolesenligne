@@ -1,0 +1,26 @@
+{
+  "code": "BTS-PI",
+  "metiers": "Le BTS Professions immobilières ouvre sur trois grandes familles de métiers : la transaction (négociateur ou agent immobilier, conseiller en location), la gestion locative (gestionnaire de biens) et la copropriété (assistant puis gestionnaire de copropriété). Le diplôme permet d'obtenir la carte professionnelle T (transaction) ou G (gestion), délivrée par la CCI, ce qui est un atout décisif dans une profession réglementée. Les employeurs sont les agences indépendantes ou franchisées, les cabinets d'administration de biens, les syndics, les promoteurs et les bailleurs sociaux. L'ONISEP note que 98 % des agences comptent moins de neuf salariés.",
+  "missions": "En transaction, le négociateur prospecte les vendeurs, prend des mandats, estime les biens, rédige et diffuse les annonces, organise les visites, négocie et accompagne le dossier jusqu'à la signature chez le notaire. En gestion locative, il recherche des locataires, rédige les baux, réalise les états des lieux, révise les loyers et suit la comptabilité des propriétaires. En copropriété, il prépare et tient les assemblées générales, suit les travaux et les budgets. Dans tous les cas, il informe les parties sur le financement, les diagnostics et les obligations légales.",
+  "conditions": "Les horaires sont variables et souvent étendus (soirées, samedis) car les visites se calent sur la disponibilité des clients, avec de nombreux déplacements. L'autonomie est grande, mais la rémunération en transaction dépend des affaires conclues, ce qui demande persévérance et résistance aux périodes creuses. Les statuts possibles sont salarié (souvent VRP), agent commercial indépendant ou mandataire payé uniquement à la commission, formule difficile en début de carrière. La gestion locative et la copropriété offrent des horaires plus réguliers et un cadre plus administratif.",
+  "salaire": "L'ONISEP indique un salaire débutant salarié d'environ 1 914 € brut par mois. Fiche-paie.fr décrit la structure type d'un négociateur salarié : fixe proche du SMIC (environ 1 867 € brut en 2026) complété par 15 à 30 % des honoraires d'agence, soit environ 2 500 € brut mensuels en moyenne après 2 à 5 ans, 3 500 € pour un profil confirmé performant et au-delà de 4 500 € pour les meilleurs. Les revenus en transaction sont donc très dispersés et dépendent du marché local. Pour la gestion locative et la copropriété, les sources consultées ne donnent pas de chiffres distincts.",
+  "evolution": "Après quelques années, un négociateur peut devenir responsable d'agence, franchisé ou créer sa propre agence avec la carte professionnelle. Les gestionnaires évoluent vers gestionnaire de copropriété confirmé, responsable de portefeuille ou directeur d'agence de gestion. D'autres débouchés existent chez les promoteurs, dans l'immobilier d'entreprise ou comme marchand de biens. Les poursuites d'études se font en licence professionnelle immobilier, en bachelor d'école spécialisée ou en master droit immobilier.",
+  "sources": [
+    {
+      "titre": "ONISEP – Agent immobilier / agente immobilière",
+      "url": "https://www.onisep.fr/ressources/univers-metier/metiers/agent-immobilier-agente-immobiliere"
+    },
+    {
+      "titre": "L'Étudiant – Agent immobilier : métier, salaire, formations",
+      "url": "https://www.letudiant.fr/metiers/secteur/immobilier/agent-immobilier_2.html"
+    },
+    {
+      "titre": "Fiche-paie.fr – Négociateur immobilier : salaire et commissions",
+      "url": "https://fiche-paie.fr/metier/negociateur-immobilier"
+    },
+    {
+      "titre": "Groupe IGF – Débouchés du BTS Professions immobilières",
+      "url": "https://www.groupeigf.com/media/debouches/debouches-bts-immobilier.pdf"
+    }
+  ]
+}

@@ -1,0 +1,26 @@
+{
+  "code": "VAE-RCL",
+  "metiers": "La VAE Responsable de la chaîne logistique vise un titre de niveau 6 (bac+3) ou 7 certifiant les compétences de pilotage des flux : responsable logistique, responsable supply chain, responsable approvisionnement, responsable d'entrepôt ou de plateforme, responsable transport. Les employeurs sont l'industrie (automobile, aéronautique, agroalimentaire), la grande distribution, les prestataires logistiques et le e-commerce. Les fiches ROME de référence sont N1301 (conception et organisation de la chaîne logistique) et N1303 (intervention technique d'exploitation logistique). La VAE s'adresse aux professionnels déjà en poste sur ces fonctions, souvent montés par promotion interne sans diplôme équivalent.",
+  "missions": "Le responsable de la chaîne logistique planifie et pilote les flux physiques et d'information, de l'approvisionnement à la livraison, en optimisant stocks, coûts et délais. Il négocie avec fournisseurs et transporteurs, définit les indicateurs (taux de service, rotation, ruptures) et conduit les plans d'amélioration. Il encadre les équipes d'exploitation (caristes, magasiniers, préparateurs, chefs d'équipe) et garantit la sécurité et la qualité. Il porte les projets d'organisation et d'outils (WMS, ERP, prévisions) et travaille avec la production, les achats et le commerce.",
+  "conditions": "Le poste est salarié, partagé entre bureau et terrain (entrepôt, quais, usine), avec un rythme soutenu dicté par les aléas d'approvisionnement et les pics d'activité. Il implique des responsabilités d'encadrement et de budget, une forte réactivité et parfois des astreintes ou des horaires décalés selon l'organisation du site. L'anglais et la maîtrise des outils de gestion logistique sont attendus. Pour le candidat VAE, le dossier se construit sur des réalisations concrètes (projets, indicateurs, équipes encadrées).",
+  "salaire": "Selon Robert Half, le responsable supply chain se situe en France entre 46 000 € brut annuels pour un profil débutant dans la fonction (environ 3 800 € par mois), 61 000 € en confirmé (environ 5 100 €) et 76 000 € en senior (environ 6 300 €). L'ONISEP indique un salaire débutant d'environ 2 900 € brut mensuels pour un responsable approvisionnement et 2 100 à 2 500 € pour un technicien logistique, ce qui donne la mesure de l'écart entre les fonctions opérationnelles et le pilotage. Les salaires dépendent fortement de la taille du site et du secteur industriel.",
+  "evolution": "La VAE sécurise le parcours d'un professionnel promu en interne en lui donnant un diplôme reconnu, utile pour une mobilité externe ou l'accès à des postes de direction. Côté chiffres nationaux, la DEPP (note d'information 22.40) recense 16 540 candidatures VAE examinées en 2021 pour les diplômes de l'Éducation nationale, avec 68 % de validations totales, 20 % de validations partielles et 12 % de refus. Les parcours s'étalent généralement sur plusieurs mois (recevabilité, rédaction du dossier, entretien avec le jury). Les évolutions citées par l'ONISEP sont directeur logistique, responsable transports, acheteur ou responsable e-procurement, puis directeur supply chain ou directeur industriel. Une poursuite vers un master ou un mastère spécialisé en supply chain reste possible après la validation.",
+  "sources": [
+    {
+      "titre": "Robert Half – Salaire du responsable supply chain en France",
+      "url": "https://www.roberthalf.com/fr/fr/details-emploi/responsable-supply-chain"
+    },
+    {
+      "titre": "ONISEP – Responsable approvisionnement",
+      "url": "https://www.onisep.fr/ressources/univers-metier/metiers/responsable-approvisionnement"
+    },
+    {
+      "titre": "ONISEP – Technicien / technicienne logistique",
+      "url": "https://www.onisep.fr/ressources/univers-metier/metiers/technicien-technicienne-logistique"
+    },
+    {
+      "titre": "DEPP – Note d'information 22.40, la VAE en 2021 (chiffres clés)",
+      "url": "https://education.gouv.fr/media/119776/download"
+    }
+  ]
+}

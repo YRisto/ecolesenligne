@@ -1,0 +1,26 @@
+{
+  "code": "TP-FPA",
+  "metiers": "Le titre professionnel Formateur professionnel d'adultes (RNCP37275, niveau 5, bac + 2) prépare aux postes de formateur, formateur d'adultes, formateur technique, animateur de formation ou formateur consultant. Les emplois se situent dans les organismes de formation publics et privés, les structures d'insertion, les centres de formation d'apprentis et les services formation des entreprises, tous secteurs confondus. Le métier relève de la fiche ROME K2111 (formation professionnelle). Beaucoup de formateurs exercent sur leur domaine d'expertise initial, le titre apportant la compétence pédagogique.",
+  "missions": "Le formateur analyse la demande de formation, conçoit les parcours, les séquences et les ressources pédagogiques, puis anime les sessions en présence ou à distance. Il évalue les acquis des apprenants, accompagne leur progression de manière individualisée et adapte ses méthodes aux publics (salariés, demandeurs d'emploi, jeunes en insertion). Il assure la veille sur son domaine et sur les outils numériques de formation. Il participe souvent au suivi administratif des actions et aux démarches qualité de l'organisme.",
+  "conditions": "La grande majorité des formateurs sont salariés, mais le secteur compte beaucoup de vacations, de temps partiels et de contrats temporaires ; un formateur travaille souvent pour plusieurs organismes. Les interventions ont lieu dans les locaux de l'organisme, chez le client ou en ligne, ce qui implique des déplacements. Le métier demande une forte autonomie, de l'aisance face à un groupe et une capacité à gérer des publics hétérogènes. Les indépendants doivent aussi assurer la prospection et la gestion de leur activité.",
+  "salaire": "L'Onisep indique un salaire débutant à partir de 1 868 € brut par mois, et le CIDJ environ 2 000 € brut mensuels, selon le statut et le lieu d'exercice. Les estimations tirées des offres d'emploi (Hellowork) donnent une médiane autour de 3 150 € brut mensuels pour l'ensemble des formateurs d'adultes, avec des débutants entre 22 000 et 26 000 € brut annuels et des profils confirmés autour de 43 000 € brut annuels, soit environ 3 600 € brut mensuels. Les écarts sont importants selon le domaine enseigné et le type d'employeur ; les formateurs indépendants facturent à la journée.",
+  "evolution": "Avec l'expérience, le formateur peut devenir coordinateur pédagogique, responsable de formation, conseiller en formation, consultant ou responsable pédagogique, et participer au recrutement et à la conception des programmes. Des passerelles existent vers le conseil en insertion professionnelle et les ressources humaines. La spécialisation en ingénierie de formation ou en e-learning est un axe de développement fréquent. Le titre est accessible par la formation ou par la VAE, et des poursuites en licence professionnelle ou master en sciences de l'éducation sont possibles.",
+  "sources": [
+    {
+      "titre": "France Compétences – Fiche RNCP247 TP Formateur professionnel d'adultes (remplacée par RNCP37275)",
+      "url": "https://www.francecompetences.fr/recherche/rncp/247/"
+    },
+    {
+      "titre": "Onisep – Fiche métier Formateur / Formatrice d'adultes",
+      "url": "https://www.onisep.fr/ressources/univers-metier/metiers/formateur-formatrice-d-adultes"
+    },
+    {
+      "titre": "CIDJ – Formatrice / Formateur",
+      "url": "https://www.cidj.com/metiers/formatrice-formateur"
+    },
+    {
+      "titre": "Hellowork – Panorama des salaires Formateur d'adultes",
+      "url": "https://www.hellowork.com/fr-fr/salaires/formateur-adultes.html"
+    }
+  ]
+}

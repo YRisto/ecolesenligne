@@ -1,0 +1,26 @@
+{
+  "code": "VAE-DCG",
+  "metiers": "La VAE DCG permet d'obtenir le Diplôme de comptabilité et de gestion, diplôme d'État de niveau 6 (bac+3), sans passer les épreuves, à partir d'une expérience en service comptable, financier ou administratif, ou en cabinet d'expertise comptable, de conseil ou d'audit. Le DCG mène aux métiers de comptable, comptable unique, chef comptable, gestionnaire de paie, contrôleur de gestion junior, collaborateur de cabinet et credit manager. La fiche ROME de référence est M1203 (comptabilité) avec M1204 pour le contrôle de gestion. Le DCG est aussi la première marche de la filière de l'expertise comptable (DSCG puis DEC).",
+  "missions": "Le titulaire du DCG tient ou supervise la comptabilité générale et analytique, établit les déclarations fiscales et sociales, prépare les comptes annuels et les liasses fiscales. En cabinet, il gère un portefeuille de clients, les conseille et révise leurs comptes. En entreprise, il peut encadrer une petite équipe, participer aux budgets et aux tableaux de bord, et dialoguer avec les commissaires aux comptes. Le référentiel couvre aussi le droit des sociétés, le droit fiscal, la finance et le management.",
+  "conditions": "Le métier s'exerce en bureau, avec une forte saisonnalité liée aux clôtures et aux échéances fiscales, et une dématérialisation très avancée. Pour la VAE, le candidat doit justifier d'au moins un an d'expérience en lien avec le DCG (arrêté du 25 octobre 2021). Le parcours comprend un livret de recevabilité (réponse sous 10 semaines maximum), un livret 2 détaillant les activités par unité d'enseignement, puis un entretien d'une heure maximum devant une commission qui transmet ses conclusions au jury national. Le calendrier est fixé chaque année par le bulletin officiel.",
+  "salaire": "D'après Studi, un comptable titulaire du DCG débute autour de 2 000 € brut par mois et atteint environ 3 000 € avec l'expérience ; un chef comptable se situe entre 3 000 € en début de fonction et 5 000 € après plusieurs années ; un contrôleur de gestion junior débute autour de 2 000 €. L'ONISEP indique 2 400 € brut pour un comptable débutant et L'Étudiant un salaire moyen d'environ 3 100 € brut mensuels. Les cabinets et les grandes entreprises d'Île-de-France paient davantage. Pour un professionnel déjà en poste, la VAE joue surtout sur le repositionnement conventionnel et l'accès à des postes d'encadrement.",
+  "evolution": "La VAE DCG reconnaît une expérience comptable souvent acquise avec un bac+2 et ouvre la voie au DSCG puis au diplôme d'expertise comptable, eux aussi accessibles par VAE. Studi indique qu'en 2020, 46 candidats sur 126 auditionnés ont obtenu le DCG par cette voie, ce qui montre une sélectivité réelle ; la validation partielle (certaines UE) est fréquente et permet de ne repasser que les unités manquantes. Côté chiffres nationaux, la DEPP (note d'information 22.40) recense 16 540 candidatures VAE examinées en 2021 pour les diplômes de l'Éducation nationale, avec 68 % de validations totales, 20 % de validations partielles et 12 % de refus. Les parcours s'étalent généralement sur plusieurs mois (recevabilité, rédaction du dossier, entretien avec le jury). Les évolutions de carrière mènent vers chef comptable, responsable administratif et financier, contrôleur de gestion ou expert-comptable.",
+  "sources": [
+    {
+      "titre": "Studi – Pourquoi faire une VAE DCG (conditions, étapes, chiffres)",
+      "url": "https://www.studi.com/fr/vae/dcg"
+    },
+    {
+      "titre": "Studi – Quel salaire après un DCG",
+      "url": "https://www.studi.com/fr/blog/la-vie-pro/quel-salaire-apres-un-dcg"
+    },
+    {
+      "titre": "ONISEP – Comptable",
+      "url": "https://www.onisep.fr/ressources/univers-metier/metiers/comptable"
+    },
+    {
+      "titre": "DEPP – Note d'information 22.40, la VAE en 2021 (chiffres clés)",
+      "url": "https://education.gouv.fr/media/119776/download"
+    }
+  ]
+}

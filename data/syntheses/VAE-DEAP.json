@@ -1,0 +1,26 @@
+{
+  "code": "VAE-DEAP",
+  "metiers": "La VAE DEAP permet d'obtenir le Diplôme d'État d'auxiliaire de puériculture (niveau 4) à partir d'une expérience auprès de jeunes enfants, par exemple en crèche avec un CAP AEPE, comme assistant maternel ou agent en maternité. L'auxiliaire de puériculture exerce en crèche et multi-accueil, en maternité et néonatalogie, en pédiatrie, en PMI ou en pouponnière de l'aide sociale à l'enfance. La fiche ROME de référence est J1304 (aide en puériculture). Le diplôme est obligatoire pour exercer le métier, ce qui donne à la VAE un intérêt direct sur l'emploi et la rémunération.",
+  "missions": "L'auxiliaire assure les soins d'hygiène et de confort (change, toilette, repas, sommeil), surveille l'état de santé et le développement de l'enfant et transmet ses observations à l'équipe. En crèche, elle organise les activités d'éveil et accueille les parents le matin et le soir. À l'hôpital, elle participe aux soins sous la responsabilité de l'infirmière ou de la puéricultrice, sans accomplir d'actes médicaux. Elle veille à l'hygiène des locaux et du matériel et participe aux réunions d'équipe.",
+  "conditions": "Les journées sont longues et cadrées (amplitude d'ouverture des crèches d'environ 7 h à 19 h, travail en roulement), avec des horaires de nuit et de week-end à l'hôpital. Le métier est physique (portage, postures penchées) et bruyant, et demande une grande disponibilité émotionnelle. Le statut est fonctionnaire (hospitalier ou territorial, catégorie B depuis la réforme) ou salarié du privé associatif ou lucratif. L'ONISEP signale que les postes hospitaliers sont difficiles à obtenir, surtout en région parisienne, alors que les crèches recrutent.",
+  "salaire": "Dans la fonction publique, la grille 2026 relevée par YouSchool va d'environ 1 836 € brut mensuels au premier échelon de classe normale (1 905 € en classe supérieure) à 2 545 € en fin de classe normale (2 757 € en classe supérieure), auxquels s'ajoute le complément de traitement indiciaire d'environ 241 € brut pour l'hospitalier et le territorial. Dans le privé, la même source indique 1 700 à 1 900 € brut en début de carrière et 2 100 à 2 500 € avec l'expérience. Ces montants sont indicatifs et varient selon les primes et les conventions collectives (crèches privées, hospitalisation privée).",
+  "evolution": "La VAE apporte la reconnaissance d'une expérience auprès des enfants et l'accès au diplôme sans passer par les 11 mois de formation initiale ; le parcours se déroule en plusieurs mois (recevabilité, livret 2, jury), souvent avec un accompagnement. Pour les diplômes sanitaires, Centre Inffo rappelle que la VAE est exigeante : pour le DEAS voisin, environ un candidat sur quatre obtenait une validation totale en 2016 et près de la moitié butaient sur le livret 2, d'où l'intérêt de l'accompagnement et de la validation partielle. Côté chiffres nationaux, la DEPP (note d'information 22.40) recense 16 540 candidatures VAE examinées en 2021 pour les diplômes de l'Éducation nationale, avec 68 % de validations totales, 20 % de validations partielles et 12 % de refus. Les parcours s'étalent généralement sur plusieurs mois (recevabilité, rédaction du dossier, entretien avec le jury). Avec le DEAP, l'évolution passe par la VAE ou le concours d'éducateur de jeunes enfants, la passerelle vers aide-soignant (deux modules), puis les études d'infirmier et de puéricultrice pour qui reprend un cursus.",
+  "sources": [
+    {
+      "titre": "ONISEP – Auxiliaire de puériculture",
+      "url": "https://www.onisep.fr/ressources/univers-metier/metiers/auxiliaire-de-puericulture"
+    },
+    {
+      "titre": "ONISEP – Tchat avec Jessica, auxiliaire de puériculture",
+      "url": "https://www.onisep.fr/nos-tchats/revivez-nos-tchats/revivez-le-tchat-avec-jessica-auxiliaire-de-puericulture"
+    },
+    {
+      "titre": "YouSchool – Salaire de l'auxiliaire de puériculture (grilles 2026)",
+      "url": "https://www.youschool.fr/cap-petite-enfance/metiers/auxiliaire-puericulture/salaire/"
+    },
+    {
+      "titre": "Centre Inffo – Réussite à la VAE : un parcours idéal à interroger (DEAS)",
+      "url": "https://www.centre-inffo.fr/site-centre-inffo/actualites-centre-inffo/le-quotidien-de-la-formation-actualite-formation-professionnelle-apprentissage/articles-2024/reussite-a-la-vae-un-parcours-ideal-a-interroger"
+    }
+  ]
+}

@@ -1,0 +1,22 @@
+{
+  "code": "CAP-PATI",
+  "metiers": "Le CAP Pâtissier est le diplôme d'entrée dans le métier de pâtissier, exercé en pâtisserie artisanale, en boulangerie-pâtisserie, en restaurant (pâtissier de restaurant), chez un traiteur, en grande distribution ou dans l'industrie agroalimentaire. Il permet d'être embauché comme ouvrier pâtissier, commis de pâtisserie ou aide-pâtissier. La fiche ROME correspondante est D1104 (pâtisserie, confiserie, chocolaterie et glacerie). Le diplôme est aussi la première étape pour s'installer à son compte.",
+  "missions": "Le pâtissier fabrique gâteaux, tartes, entremets, viennoiseries, bûches et pièces montées, parfois des glaces, chocolats et confiseries, plus rarement des produits salés. Il pèse, prépare les pâtes et crèmes, gère les cuissons et soigne la décoration et la présentation. Il peut créer de nouveaux desserts ou revisiter des classiques, et se spécialiser (chocolat, macarons, confiserie, traiteur). Il applique strictement les règles d'hygiène et participe à l'entretien du laboratoire et à la gestion des matières premières.",
+  "conditions": "Dans l'artisanat, la journée commence souvent entre 4 h et 6 h du matin ; le travail est debout, près des fours, dans un laboratoire soumis à des règles d'hygiène strictes. Les week-ends et jours fériés sont travaillés, avec des pics d'activité à Noël et à Pâques. Le travail se fait en équipe sous la responsabilité d'un chef, en statut salarié ou artisan. En restaurant, les horaires suivent ceux du service (coupures, soirées).",
+  "salaire": "L'ONISEP indique un salaire débutant d'environ 1 868 € brut par mois, soit le niveau du SMIC, variable selon le lieu et le statut. Un ouvrier pâtissier qualifié progresse ensuite selon la grille de la convention collective de la boulangerie-pâtisserie ; les sources consultées ne donnent pas de fourchette chiffrée précise pour un profil confirmé, mais un chef pâtissier ou responsable de laboratoire se situe nettement au-dessus. Les revenus d'un artisan installé dépendent de son chiffre d'affaires.",
+  "evolution": "Après des débuts comme ouvrier, l'évolution mène à chef de partie, chef d'équipe, responsable de laboratoire, chef de rayon en grande surface ou chef pâtissier en restaurant. Une spécialisation en chocolaterie, confiserie ou glacerie est possible via une mention complémentaire (CS desserts de restaurant, pâtisserie de boutique). Le brevet de maîtrise ou le BTM apporte les compétences de gestion utiles pour reprendre ou créer une boutique. L'installation à son compte est une évolution fréquente après plusieurs années.",
+  "sources": [
+    {
+      "titre": "ONISEP – Pâtissier / pâtissière",
+      "url": "https://www.onisep.fr/ressources/univers-metier/metiers/patissier-patissiere"
+    },
+    {
+      "titre": "ONISEP – Pâtissier / pâtissière de restaurant",
+      "url": "https://www.onisep.fr/ressources/univers-metier/metiers/patissier-patissiere-de-restaurant"
+    },
+    {
+      "titre": "ONISEP – Chocolatier-confiseur (spécialisation possible)",
+      "url": "https://www.onisep.fr/ressources/univers-metier/metiers/chocolatier-confiseur-chocolatiere-confiseuse"
+    }
+  ]
+}

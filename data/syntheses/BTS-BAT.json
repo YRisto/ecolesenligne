@@ -1,0 +1,22 @@
+{
+  "code": "BTS-BAT",
+  "metiers": "Le BTS Bâtiment forme des techniciens supérieurs pour les entreprises de construction, de gros œuvre et de second œuvre, les bureaux d'études et les maîtres d'ouvrage. Les premiers postes sont ceux de chef de chantier, d'assistant conducteur de travaux, de technicien bureau d'études, de métreur ou de technicien méthodes. Le métier emblématique visé à terme est conducteur de travaux, accessible après une première expérience de chantier. Les offres se situent chez les majors du BTP, les PME de construction, les entreprises de rénovation et les collectivités.",
+  "missions": "Le technicien bâtiment prépare le chantier : lecture de plans, métrés, choix des procédés, planification et consultation des fournisseurs. Sur le chantier, il organise les équipes, suit l'avancement, contrôle la qualité et la sécurité et gère les approvisionnements. En bureau d'études, il réalise les études de prix, les plans d'exécution et les dossiers techniques. Le conducteur de travaux coordonne ensuite l'ensemble des moyens techniques, humains et financiers, de l'étude du dossier jusqu'à la réception des travaux, et négocie avec les sous-traitants.",
+  "conditions": "Le métier est mobile : la présence sur le terrain est fréquente et les chantiers peuvent être éloignés du domicile, parfois à l'étranger dans les grands groupes. Les horaires dépassent régulièrement la journée standard en période de livraison et les responsabilités en matière de sécurité sont importantes. Le travail se partage entre le bureau (études, planning, administratif) et le chantier, par tous les temps. Les sources décrivent un métier fatigant physiquement et nerveusement, mais avec de bonnes perspectives et des responsabilités valorisantes.",
+  "salaire": "Les grilles publiées pour le secteur donnent, pour un conducteur de travaux débutant, environ 25 000 à 30 000 € brut par an, soit 2 100 à 2 500 € brut mensuels. Un technicien ou chef de chantier sortant de BTS se situe plutôt entre le SMIC et 2 300 € brut mensuels selon la région et la taille de l'entreprise. Avec l'expérience, un conducteur de travaux confirmé dépasse 40 000 € brut par an, soit plus de 3 300 € brut mensuels, la médiane observée se situant autour de 3 000 € brut mensuels. Ces montants proviennent de sites spécialisés du BTP et n'ont pas pu être confirmés par une statistique Insee ou Apec propre au diplôme.",
+  "evolution": "Le parcours classique mène de chef de chantier à conducteur de travaux après quelques années d'expérience, puis à conducteur principal ou directeur de travaux. Des évolutions existent aussi vers l'économie de la construction, la maîtrise d'œuvre ou la coordination sécurité. La poursuite d'études est fréquente : licence professionnelle en un an, BUT génie civil, ou admission en école d'ingénieurs par la voie des admissions parallèles. La création d'entreprise dans le bâtiment est également une suite courante après plusieurs années d'expérience.",
+  "sources": [
+    {
+      "titre": "Obat – Comment devenir conducteur de travaux ? Formation et salaire",
+      "url": "https://www.obat.fr/blog/devenir-conducteur-de-travaux/"
+    },
+    {
+      "titre": "Thotis – Devenir conducteur de travaux : missions, salaire",
+      "url": "https://thotismedia.com/devenir-conducteur-de-travaux/"
+    },
+    {
+      "titre": "Salairebrut-en-net – Les chiffres clés des salaires du BTP",
+      "url": "https://salairebrut-en-net.fr/classement/salaires-secteur-btp.html"
+    }
+  ]
+}

@@ -1,0 +1,22 @@
+{
+  "code": "CAP-CUIS",
+  "metiers": "Le CAP Cuisine est le diplôme de référence pour entrer en cuisine professionnelle. Il mène aux postes de commis de cuisine, puis de cuisinier, dans la restauration commerciale (restaurants traditionnels, gastronomiques, brasseries), la restauration collective (scolaire, hospitalière, d'entreprise) et l'hôtellerie. Les métiers relèvent de la fiche ROME G1602 (personnel de cuisine) et le secteur recrute en continu, comme le montrent les nombreuses offres de France Travail. Le diplôme permet aussi, à terme, d'exercer comme traiteur ou de reprendre un établissement.",
+  "missions": "Le commis ou le cuisinier réceptionne et contrôle les marchandises, prépare les ingrédients (épluchage, taillage, découpe) et réalise les cuissons et les sauces selon les fiches techniques. Il dresse les assiettes, assure l'envoi pendant le service et participe au nettoyage et à l'entretien du poste de travail. Il applique strictement les règles d'hygiène et de sécurité alimentaire (méthode HACCP) et gère les stocks avec le chef. Avec l'expérience, il participe à l'élaboration des menus et à la gestion des coûts matière.",
+  "conditions": "Le travail s'effectue debout, dans la chaleur et le bruit, avec des gestes répétitifs et des cadences soutenues pendant les services. Les horaires sont souvent coupés (midi et soir), avec travail le week-end et les jours fériés, et des heures supplémentaires fréquentes lors des coups de feu. La convention collective des hôtels, cafés, restaurants (HCR) encadre la rémunération et prévoit un repas fourni par jour travaillé et une indemnité pour les jours fériés travaillés. La restauration collective offre des horaires plus réguliers, généralement en journée et en semaine.",
+  "salaire": "Un commis de cuisine débutant est rémunéré au niveau du SMIC ou légèrement au-dessus : la grille HCR situe l'employé de niveau I autour de 1 870 à 1 900 € brut mensuels en 2026, pour un débutant comme pour un commis avec un à deux ans d'expérience. Un cuisinier qualifié ou chef de partie se situe en général entre 2 000 et 2 500 € brut mensuels, davantage en restauration gastronomique ou en région parisienne. Les postes de second et de chef de cuisine dépassent 2 500 à 3 500 € brut mensuels selon l'établissement. Les pourboires et les heures supplémentaires majorées complètent souvent le salaire de base.",
+  "evolution": "La progression suit la brigade : commis, demi-chef de partie, chef de partie, second de cuisine puis chef de cuisine. Le CAP peut être complété par une mention complémentaire (cuisinier en desserts de restaurant, par exemple), un brevet professionnel arts de la cuisine ou un bac professionnel cuisine, puis un BTS management en hôtellerie-restauration. Beaucoup de cuisiniers évoluent vers la création ou la reprise d'un restaurant, l'activité de traiteur ou la cuisine à domicile. Le secteur offre aussi des opportunités à l'étranger et dans les collectivités, où les postes de chef gérant sont recherchés.",
+  "sources": [
+    {
+      "titre": "France Compétences – Fiche RNCP CAP Cuisine (ancien format)",
+      "url": "https://certifpro.francecompetences.fr/api/fiches/downloadAncFormat/14137"
+    },
+    {
+      "titre": "Fiche-paie.fr – Commis de cuisine : salaire, primes et spécificités",
+      "url": "https://fiche-paie.fr/metier/commis-de-cuisine"
+    },
+    {
+      "titre": "France Travail – Offre Cuisinier / Cuisinière",
+      "url": "https://candidat.francetravail.fr/offres/recherche/detail/191JLYY"
+    }
+  ]
+}

@@ -1,0 +1,22 @@
+{
+  "code": "VAE-DEAS",
+  "metiers": "La VAE du diplôme d'État d'aide-soignant (DEAS) s'adresse aux personnes qui exercent déjà des activités de soins d'hygiène et de confort sans le diplôme : agents de service hospitalier, auxiliaires de vie, accompagnants en EHPAD, aides à domicile. L'aide-soignant exerce en hôpital, en clinique, en EHPAD, en service de soins à domicile et en structures de handicap, sous la responsabilité de l'infirmier. Le métier relève de la fiche ROME J1501 (soins d'hygiène, de confort du patient). Le secteur est en forte tension de recrutement, ce qui fait de la VAE une voie d'accès importante au diplôme pour les professionnels en poste.",
+  "missions": "L'aide-soignant accompagne la personne dans les activités de la vie quotidienne : toilette, habillage, repas, mobilité, en préservant son autonomie. Il observe l'état clinique, mesure les paramètres vitaux, réalise certains soins et transmet les informations à l'équipe. Il participe à l'entretien de l'environnement du patient et à la prévention des risques. Le référentiel comporte plusieurs blocs de compétences, et le jury de VAE évalue chacun d'eux à partir du livret et de l'entretien.",
+  "conditions": "Le parcours de VAE comprend une demande de recevabilité, la rédaction d'un livret de présentation des acquis décrivant des situations professionnelles vécues, puis un entretien avec un jury d'au moins 45 minutes. Un accompagnement méthodologique est proposé et fortement conseillé, car la rédaction du livret est l'étape où le plus de candidats abandonnent. En cas de validation partielle, les compétences manquantes peuvent être acquises par des modules de formation ou une expérience complémentaire, puis présentées à nouveau. Les listes d'admis publiées par les DREETS montrent des sessions de jury régulières dans chaque région. Les conditions d'expérience ont été assouplies par la réforme de 2022-2023 ; les textes antérieurs exigeaient trois ans d'expérience.",
+  "salaire": "Les grilles de rémunération de l'aide-soignant dans la fonction publique hospitalière et dans les conventions collectives du secteur privé n'ont pas pu être consultées pour cette synthèse ; les montants ci-dessous sont donnés à titre indicatif et à vérifier. Depuis les revalorisations du Ségur de la santé et le passage en catégorie B, un aide-soignant débutant dans la fonction publique hospitalière se situe généralement autour de 1 900 à 2 100 € brut mensuels primes comprises, et un profil confirmé entre 2 300 et 2 700 € brut mensuels. Les salaires sont souvent un peu inférieurs dans le secteur privé non lucratif et le domicile. Le diplôme obtenu par VAE donne accès à la même grille que la formation initiale.",
+  "evolution": "La VAE apporte la reconnaissance officielle des compétences, un changement de grade et de rémunération pour les agents en poste, et l'accès aux concours réservés aux titulaires du DEAS. Les données disponibles indiquent que la validation totale au premier passage reste minoritaire : la DREES relevait en 2016 environ un entretien final sur quatre aboutissant à une validation totale, et une étude du Céreq publiée en 2024 montre que de nombreuses candidates obtiennent le diplôme après plusieurs tentatives, près de la moitié butant sur la rédaction du livret. Après le DEAS, l'évolution passe par la formation d'infirmier, accessible par une voie spécifique pour les aides-soignants expérimentés, ou par des spécialisations (gérontologie, assistant de soins en gérontologie).",
+  "sources": [
+    {
+      "titre": "Centre Inffo – Réussite à la VAE : un « parcours idéal » à interroger (données DREES et Céreq)",
+      "url": "https://www.centre-inffo.fr/site-centre-inffo/actualites-centre-inffo/le-quotidien-de-la-formation-actualite-formation-professionnelle-apprentissage/articles-2024/reussite-a-la-vae-un-parcours-ideal-a-interroger"
+    },
+    {
+      "titre": "Infirmiers.com – Formation aide-soignante : validation des acquis de l'expérience",
+      "url": "https://www.infirmiers.com/ressources-infirmieres/nos-collegues/formation-aide-soignante-validation-des-acquis-de-l-experience-vae.html"
+    },
+    {
+      "titre": "DREETS Pays de la Loire – Liste des admis VAE DEAS (janvier 2026)",
+      "url": "https://pays-de-la-loire.dreets.gouv.fr/sites/pays-de-la-loire.dreets.gouv.fr/IMG/pdf/admis_vae_deas_28_janvier_2026-internet.pdf"
+    }
+  ]
+}

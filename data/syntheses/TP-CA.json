@@ -1,0 +1,26 @@
+{
+  "code": "TP-CA",
+  "metiers": "Le titre professionnel Comptable assistant (RNCP37121, niveau 4, actif jusqu'au 1er mars 2028) est délivré par le ministère du Travail. Il donne accès aux emplois d'assistant comptable, assistant ou collaborateur de cabinet comptable, comptable clients, comptable fournisseurs, comptable trésorerie, comptable spécialisé ou technicien comptable. La fiche ROME de référence est M1203 (comptabilité) ; M1213 couvre l'assistanat comptable. Le métier s'exerce uniquement en tant que salarié, en PME, en cabinet d'expertise comptable, en association ou dans un service comptable de grande entreprise.",
+  "missions": "Le comptable assistant traite les opérations courantes de l'entreprise (ventes, achats, frais généraux) et les opérations périodiques : variables de paie, déclaration de TVA, tableaux de bord. Il contrôle les justificatifs, corrige les comptes et lettre les écritures. Il prépare les documents de synthèse annuels et les écritures de clôture sous la responsabilité d'un comptable ou d'un expert-comptable. Il travaille au quotidien sur des outils numériques de gestion comptable et de dématérialisation.",
+  "conditions": "Le travail s'effectue en bureau, dans un cadre réglementé par les normes comptables et fiscales. L'intensité est forte lors des échéances (TVA mensuelle, clôture annuelle, bilan) et plus régulière le reste de l'année. En cabinet, le comptable assistant traite plusieurs dossiers clients en parallèle et peut se déplacer ; en entreprise, il est souvent affecté à un périmètre (clients, fournisseurs). Rigueur, organisation et discrétion sont attendues.",
+  "salaire": "Les sources convergent sur un salaire débutant d'environ 1 800 à 2 000 € brut par mois pour un assistant comptable (Studi, Aufutur), l'ONISEP indiquant 2 400 € pour un comptable confirmé en début de carrière. Avec l'expérience, un assistant comptable atteint environ 2 500 € brut mensuels et un comptable autour de 3 000 €. Les salaires sont supérieurs en Île-de-France et dans les grandes structures. Ces chiffres sont indicatifs et varient selon le secteur et la taille de l'entreprise.",
+  "evolution": "Le comptable assistant évolue vers comptable unique en PME ou comptable confirmé en cabinet, puis gestionnaire de paie ou chef comptable après plusieurs années. La poursuite de formation est classique : titre professionnel Gestionnaire comptable et fiscal (niveau 5), BTS Comptabilité-Gestion, puis DCG. L'expérience acquise peut aussi être valorisée par une VAE pour obtenir un diplôme de niveau supérieur. Le contrôle de gestion est accessible avec une formation complémentaire.",
+  "sources": [
+    {
+      "titre": "France Compétences – RNCP37121 TP Comptable assistant",
+      "url": "https://www.francecompetences.fr/recherche/rncp/37121/"
+    },
+    {
+      "titre": "ONISEP – Comptable",
+      "url": "https://www.onisep.fr/ressources/univers-metier/metiers/comptable"
+    },
+    {
+      "titre": "France Travail – Fiche métier ROME M1213 Assistant comptable",
+      "url": "https://candidat.francetravail.fr/metierscope/fiche-metier/M1213/assistant-assistante-comptable"
+    },
+    {
+      "titre": "Studi – Quel salaire après un DCG (grille assistant comptable / comptable)",
+      "url": "https://www.studi.com/fr/blog/la-vie-pro/quel-salaire-apres-un-dcg"
+    }
+  ]
+}

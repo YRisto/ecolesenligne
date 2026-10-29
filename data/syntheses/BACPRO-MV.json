@@ -1,0 +1,22 @@
+{
+  "code": "BACPRO-MV",
+  "metiers": "Le Bac pro Maintenance des véhicules (options voitures particulières, véhicules de transport routier, motocycles) forme des techniciens automobiles capables de diagnostiquer et réparer des systèmes mécaniques, électriques et électroniques. Il mène aux postes de technicien automobile, mécanicien confirmé, technicien diagnostic, préparateur ou technicien en centre auto, en concession, chez un agent de marque ou en garage indépendant. La fiche ROME de référence est I1604. L'ONISEP indique que le bac est le niveau minimum recherché pour le métier de technicien automobile.",
+  "missions": "Le technicien analyse les informations données par le conducteur, examine le véhicule et formule une hypothèse de panne, puis la confirme avec les outils de diagnostic (valise électronique, bancs de contrôle). Il établit la liste des travaux et des pièces, fait valider le devis, démonte, remplace ou remet en état les éléments et effectue les réglages constructeur. Il réalise les essais sur route, explique les travaux et commente la facture au client. Il assure aussi des tâches annexes : dépannage rapide, pré-contrôle technique, forfaits révision-entretien.",
+  "conditions": "Le travail se fait en atelier, parfois dans des positions inconfortables, au contact de graisses, solvants et huiles, avec port d'équipements de protection. Les horaires suivent l'activité du garage, avec parfois des samedis et des déplacements pour dépannages ou achats de pièces. Dans un petit garage, polyvalence et contact client sont la règle ; dans une concession ou un centre auto, l'outillage est plus sophistiqué et les tâches plus spécialisées. Le diagnostic électronique prend une place croissante avec l'électrification du parc.",
+  "salaire": "L'ONISEP situe le salaire débutant d'un technicien automobile à environ 1 867 € brut par mois, variable selon le lieu d'exercice et le statut (salarié ou artisan). L'évolution salariale dépend de l'échelon dans la convention collective des services de l'automobile, des certifications constructeur et de la maîtrise du diagnostic ; les sources consultées ne donnent pas de fourchette chiffrée pour un technicien confirmé. Les postes en concession et les spécialités électriques/hybrides sont en général mieux rémunérés.",
+  "evolution": "Après quelques années, le technicien peut devenir responsable d'équipe ou d'atelier, surtout dans les grandes structures, ou réceptionnaire et conseiller technique. La poursuite en BTS Maintenance des véhicules (bac+2) ou via une FCIL puis une licence professionnelle organisation et management des services de l'automobile ouvre l'encadrement. La spécialisation sur les véhicules électriques et hybrides est une voie porteuse. La création d'une entreprise artisanale est possible avec une formation en gestion.",
+  "sources": [
+    {
+      "titre": "ONISEP – Technicien / technicienne automobile",
+      "url": "https://www.onisep.fr/ressources/univers-metier/metiers/technicien-technicienne-automobile"
+    },
+    {
+      "titre": "ONISEP TV – Les métiers animés : technicien automobile",
+      "url": "https://oniseptv.onisep.fr/video/les-metiers-animes-technicien-automobile-technicienne-automobile"
+    },
+    {
+      "titre": "ONISEP – Mécatronicien / mécatronicienne (métier voisin)",
+      "url": "https://www.onisep.fr/ressources/univers-metier/metiers/mecatronicien-mecatronicienne"
+    }
+  ]
+}
