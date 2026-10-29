@@ -1,0 +1,26 @@
+{
+  "code": "BTS-BANQ",
+  "metiers": "Le BTS Banque prépare principalement au métier de conseiller ou chargé de clientèle particuliers en agence bancaire, référencé sous le code ROME C1206 (gestion de clientèle bancaire). Les diplômés peuvent aussi exercer en plateforme téléphonique de banque en ligne, dans un bureau de poste bancaire ou chez un organisme de crédit. Après quelques années, le périmètre s'élargit vers la clientèle des professionnels, puis des entreprises. France Travail indique qu'un diplôme bac+2 commercial ou bancaire est le niveau d'accès habituel, l'alternance étant très répandue dans le secteur.",
+  "missions": "Le conseiller clientèle accueille les clients, identifie leurs besoins financiers et leur propose les produits et services adaptés : comptes, moyens de paiement, épargne, crédits et assurances. Il instruit les demandes de prêt, suit les comptes et les justificatifs, et assure le service après-vente en répondant aux réclamations. Il doit respecter la réglementation bancaire et les procédures de conformité de l'établissement. Il informe régulièrement sa clientèle des nouvelles offres et se forme en continu aux évolutions produits et réglementaires.",
+  "conditions": "Le métier s'exerce en agence, en bureau de poste, chez un organisme de crédit ou sur plateforme téléphonique, avec des déplacements possibles. Le travail le samedi est fréquent dans la banque de détail. L'activité est rythmée par des objectifs commerciaux, ce qui génère une pression régulière, et le contact avec des clients mécontents fait partie du quotidien. En contrepartie, le travail est varié, les primes variables sont courantes et l'équilibre vie professionnelle/personnelle est généralement jugé correct.",
+  "salaire": "Selon la fiche métier Dogfinance, un conseiller clientèle particuliers débutant gagne entre 25 000 et 30 000 € brut par an, soit environ 2 100 à 2 500 € brut par mois, auxquels s'ajoute souvent une part variable. Avec 2 à 5 ans d'expérience, la fourchette monte à 30 000-40 000 € brut annuels (2 500 à 3 300 € par mois), et au-delà de 5 ans à 40 000-50 000 €. La grille Michael Page pour l'Île-de-France donne un salaire fixe annuel entre 32 000 € (bas) et 44 000 € (haut), pour une moyenne de 37 500 €. La fiche ROME de France Travail ne mentionne pas de salaire.",
+  "evolution": "France Travail cite comme évolutions naturelles les métiers de relation clients entreprises (C1203), de conseil en gestion de patrimoine (C1205) et de management en exploitation bancaire (C1207), c'est-à-dire directeur ou adjoint d'agence. Le passage vers la clientèle professionnelle ou entreprise demande souvent une expérience confirmée et une formation complémentaire, par exemple à l'Institut technique de banque. Des passerelles existent aussi vers le conseil en assurances et la gestion locative. La poursuite d'études en licence professionnelle banque-assurance est une voie fréquente pour accélérer ce parcours.",
+  "sources": [
+    {
+      "titre": "France Travail – Fiche ROME C1206 Gestion de clientèle bancaire",
+      "url": "https://www.francetravail.fr/files/live/sites/grand-est/files/Documents%20hors%20images/charge_clientele_bancaire.pdf"
+    },
+    {
+      "titre": "Dogfinance – Fiche métier Conseiller clientèle particuliers",
+      "url": "https://dogfinance.com/metier/conseiller-clientele-particuliers"
+    },
+    {
+      "titre": "Michael Page – Grille de salaires Conseiller clientèle particuliers banque",
+      "url": "https://www.michaelpage.fr/grilles-de-salaires/banque/banque-de-d%C3%A9tailen-ligne-conseiller-client%C3%A8le-particuliers-banque"
+    },
+    {
+      "titre": "Intercariforef – Certification BTS Banque option marché des particuliers",
+      "url": "https://www.intercariforef.org/formations/certification-18834.html"
+    }
+  ]
+}

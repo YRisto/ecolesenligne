@@ -1,0 +1,22 @@
+{
+  "code": "CAP-MVMO",
+  "metiers": "Le CAP Maintenance des véhicules option motocycles forme des mécaniciens moto, chargés de l'entretien et de la réparation des deux-roues motorisés. Selon l'ONISEP, le CAP prépare au poste de mécanicien, tandis que le bac pro ouvre celui de technicien, qui traite les diagnostics complexes. Les employeurs sont les concessions, les garages indépendants spécialisés, les ateliers de réseaux de distribution et, plus rarement, les équipes de compétition. L'activité est plus dense en région parisienne et dans le sud de la France.",
+  "missions": "Le mécanicien moto réalise les réparations, contrôles et réglages courants sur le moteur, la transmission, le freinage, les suspensions, le carénage et l'électronique. Sur deux-roues, on répare souvent plutôt que de remplacer, ce qui demande de la minutie. Il participe au diagnostic avec le technicien, prépare les devis simples et conseille la clientèle sur les accessoires et leur pose. Il peut aussi assurer des dépannages ou aller chercher des pièces.",
+  "conditions": "Le travail se fait debout, souvent penché au-dessus de la machine et parfois dans des positions inconfortables, au contact de graisses et de produits toxiques. Les ateliers sont petits (3 à 4 personnes au maximum), ce qui donne beaucoup d'autonomie. Les horaires sont réguliers, avec une ouverture fréquente le samedi matin et des déplacements possibles. La mobilité géographique facilite l'accès à l'emploi.",
+  "salaire": "L'ONISEP indique un salaire débutant à partir de 1 867 € brut par mois, variable selon le lieu d'exercice et le statut. Nous n'avons pas trouvé dans les sources consultées de fourchette officielle pour un mécanicien ou technicien moto confirmé. L'évolution vers les postes de technicien puis de chef d'atelier s'accompagne logiquement d'une revalorisation, sans chiffre officiel disponible ici.",
+  "evolution": "Après quelques années d'expérience et de formation continue, le mécanicien devient technicien de maintenance, puis éventuellement chef d'atelier. Dans les grandes structures, il peut évoluer vers les postes de réceptionnaire ou de conseiller technique. La création de sa propre entreprise est une voie fréquente dans ce secteur artisanal. Côté formation, le bac pro maintenance des véhicules option motocycles, la FCIL mécanicien moto de compétition ou le BTS maintenance des véhicules permettent de monter en qualification.",
+  "sources": [
+    {
+      "titre": "ONISEP – Fiche métier Mécanicien / technicien moto",
+      "url": "https://www.onisep.fr/ressources/univers-metier/metiers/mecanicien-mecanicienne-et-technicien-technicienne-moto/pdf"
+    },
+    {
+      "titre": "CIDJ – Fiche métier Mécanicien / mécanicienne motocycle",
+      "url": "https://www.cidj.com/s-orienter/metiers/mecanicien-mecanicienne-motocycle"
+    },
+    {
+      "titre": "CFA L'Atelier des Chefs – Débouchés du CAP Maintenance des véhicules motocycles",
+      "url": "https://formation.atelierdeschefs.fr/formations/mecanique/cap-maintenance-des-vehicules-motocycles/debouches/"
+    }
+  ]
+}

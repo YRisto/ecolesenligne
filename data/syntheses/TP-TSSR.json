@@ -1,0 +1,22 @@
+{
+  "code": "TP-TSSR",
+  "metiers": "Le titre professionnel Technicien supérieur systèmes et réseaux (niveau 5, bac+2) prépare aux métiers de technicien systèmes et réseaux, technicien d'exploitation, technicien support infrastructure et, avec l'expérience, d'administrateur systèmes et réseaux. L'ONISEP cite explicitement ce titre parmi les formations d'accès au métier de technicien télécoms et réseaux. Les employeurs sont les entreprises de services du numérique, les PME installatrices, les services informatiques internes et les opérateurs télécoms.",
+  "missions": "Le technicien met en service et entretient le réseau informatique : préparation des serveurs, routeurs et switchs, configuration des logiciels, mises à jour et maintenance préventive. Il installe les équipements chez le client ou en interne, assure le support aux utilisateurs et traite les incidents. Il surveille la performance du réseau, applique les règles de sécurité liées au Web, au cloud et aux appareils mobiles, et documente ses interventions. Il participe aux projets d'évolution de l'infrastructure sous la responsabilité d'un administrateur ou d'un ingénieur.",
+  "conditions": "Les installations se font sur site, tandis que la maintenance se fait de plus en plus à distance. Des permanences ou astreintes de nuit et de week-end sont parfois nécessaires, et la pression liée à la résolution rapide des incidents fait partie du métier. Le poste demande mobilité, autonomie, respect des délais et vigilance sur la sécurité. Les fonctions sont plus polyvalentes en PME qu'en grande entreprise.",
+  "salaire": "L'ONISEP indique pour un technicien télécoms et réseaux débutant un salaire de 1 867 à 2 160 € brut par mois selon le lieu d'exercice et le statut. Pour un administrateur de réseaux, poste accessible après quelques années, l'ONISEP annonce un salaire débutant à partir de 2 750 € brut par mois. Nous n'avons pas trouvé de donnée officielle spécifique aux titulaires du titre TSSR ; les recruteurs demandent souvent 1 à 5 ans d'expérience pour les postes d'administrateur.",
+  "evolution": "Après plusieurs formations continues, le technicien peut devenir responsable d'activités ou chef de section, souvent à l'occasion d'un changement d'entreprise. L'évolution naturelle est le poste d'administrateur systèmes et réseaux, puis responsable télécoms, architecte réseaux, consultant ou technico-commercial. Les certifications éditeurs (Microsoft, Cisco, VMware) et ITIL sont de plus en plus demandées. Le titre Administrateur d'infrastructures sécurisées (niveau 6) constitue la suite logique du parcours.",
+  "sources": [
+    {
+      "titre": "ONISEP – Fiche métier Technicien / Technicienne télécoms et réseaux",
+      "url": "https://www.onisep.fr/ressources/univers-metier/metiers/technicien-technicienne-telecoms-et-reseaux/pdf"
+    },
+    {
+      "titre": "ONISEP – Fiche métier Administrateur / Administratrice de réseaux",
+      "url": "https://www.onisep.fr/ressources/univers-metier/metiers/administrateur-administratrice-de-reseaux/pdf"
+    },
+    {
+      "titre": "WorldSkills France – Fiche métier Administration des systèmes et réseaux informatiques",
+      "url": "https://worldskills2024.com/wp-content/uploads/2023/08/ADMINISTRATION-DES-SYSTEMES-ET-DES-RESEAUX-INFORMATIQUES-FICHE-METIER.pdf"
+    }
+  ]
+}

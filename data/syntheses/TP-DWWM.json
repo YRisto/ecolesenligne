@@ -1,0 +1,26 @@
+{
+  "code": "TP-DWWM",
+  "metiers": "Le titre professionnel Développeur web et web mobile (niveau 5, bac+2) prépare aux métiers de développeur web, développeur front-end ou intégrateur web et, avec l'expérience, de développeur full stack. Ces métiers relèvent du code ROME M1805 (études et développement informatique). Les employeurs sont les agences web, les ESN, les start-up et les services informatiques des entreprises ; le statut de freelance est également répandu. Le titre est délivré par le ministère du Travail et accessible en formation continue, en alternance ou à distance.",
+  "missions": "Le développeur web analyse les besoins, participe à la rédaction du cahier des charges et code les sites et applications selon les fonctionnalités et la charte graphique définies. Il transforme les maquettes en pages HTML/CSS compatibles avec les différents navigateurs et écrans (responsive) et veille à l'accessibilité. Il réalise les tests, corrige les bugs, assure la maintenance corrective et évolutive et rédige la documentation technique. Une veille technologique permanente fait partie du métier.",
+  "conditions": "Dans les grandes structures, le développeur travaille sous la responsabilité d'un chef de projet et coordonne son activité avec les équipes graphiques et éditoriales ; dans les petites, il est souvent polyvalent. Les délais peuvent être serrés, avec des périodes chargées, ce qui demande une bonne résistance au stress. Le télétravail est largement répandu dans le secteur. En freelance, s'ajoutent la prospection commerciale et la gestion administrative.",
+  "salaire": "Selon le Cned, qui s'appuie sur Hellowork et l'ONISEP, un développeur web débutant gagne entre 30 000 et 38 000 € brut par an, soit environ 2 500 à 3 200 € brut par mois, avec des annonces allant jusqu'à 45 000 € selon les sections consultées. L'ONISEP indique de son côté 2 500 à 2 800 € brut mensuels pour un intégrateur web débutant. Un développeur confirmé se situe entre 40 000 et 60 000 € brut par an (3 300 à 5 000 € par mois), et les profils seniors dépassent 60 000 €. Les titulaires d'un titre professionnel sans expérience se placent plutôt dans le bas de ces fourchettes.",
+  "evolution": "Après quelques années, le développeur peut évoluer vers le full stack, puis vers des postes de lead développeur, chef de projet, architecte technique ou CTO. L'ONISEP mentionne aussi des évolutions vers l'ergonomie, le design d'interface ou le conseil. La spécialisation (mobile, DevOps, IA) est valorisée sur le marché. Le titre DWWM peut être complété par le titre Concepteur développeur d'applications (niveau 6) pour monter en qualification.",
+  "sources": [
+    {
+      "titre": "ONISEP – Fiche métier Intégrateur / Intégratrice web",
+      "url": "https://www.onisep.fr/ressources/univers-metier/metiers/integrateur-integratrice-web/pdf"
+    },
+    {
+      "titre": "Cned – Devenir développeur web : métier, formation, salaire",
+      "url": "https://www.cned.fr/metiers/devenir-developpeur-web-metier-formation-salaire"
+    },
+    {
+      "titre": "GRETA-CFA Aquitaine – Titre professionnel Développeur web et web mobile",
+      "url": "https://greta-cfa-aquitaine.fr/fiches/titre-professionnel-developpeur-web-et-web-mobile/?format=pdf"
+    },
+    {
+      "titre": "WorldSkills France – Fiche métier Web technologies",
+      "url": "https://worldskills2024.com/wp-content/uploads/2024/07/WEB-TECHNOLOGIES-FICHE-METIER.pdf"
+    }
+  ]
+}

@@ -1,0 +1,22 @@
+{
+  "code": "BTS-GPME",
+  "metiers": "Le BTS Gestion de la PME forme des assistants de gestion polyvalents, interlocuteurs directs du dirigeant dans les petites et moyennes entreprises. L'ONISEP cite ce BTS comme formation de référence pour le métier d'assistant de gestion en PME, et France Travail le rattache à l'assistanat technique et administratif (ROME M1605). On retrouve ces profils sous les intitulés assistant administratif, assistant de gestion, assistant commercial ou assistant de direction en TPE-PME. Le diplôme est reconnu au niveau bac+2 et s'obtient en formation initiale, en alternance ou à distance.",
+  "missions": "L'assistant de gestion prend en charge des tâches comptables, commerciales et administratives : gestion du courrier, facturation, relances d'impayés, préparation de la paie et des plannings. Il passe les commandes auprès des fournisseurs, compare les tarifs et participe à la prospection clients. Il tient la comptabilité à jour, l'analyse et alerte la direction sur les risques et opportunités. Selon France Travail, il peut aussi suivre des dossiers techniques, participer aux appels d'offres, rédiger des comptes rendus et contribuer au reporting budgétaire.",
+  "conditions": "Le poste s'exerce le plus souvent dans une PME de moins de 50 salariés ou une TPE, avec une autonomie limitée au départ qui s'élargit avec l'expérience. L'ONISEP signale des horaires parfois allongés, notamment pour les points de fin de journée, et une présence renforcée lors des pics d'activité. Le travail suppose organisation, réactivité, discrétion et sens du contact, ainsi qu'une bonne maîtrise des outils bureautiques. L'anglais est un atout dans les entreprises tournées vers l'export.",
+  "salaire": "L'ONISEP indique pour un assistant de gestion en PME débutant un salaire d'au moins 1 900 € brut par mois, pouvant atteindre 3 100 € brut selon le lieu d'exercice, la taille de l'entreprise et le statut. La fiche ROME M1605 de France Travail ne mentionne pas de salaire. Nous n'avons pas trouvé de fourchette officielle pour un profil confirmé ; les postes de responsable administratif vers lesquels le métier évolue sont logiquement mieux rémunérés, sans que nous puissions le chiffrer précisément ici.",
+  "evolution": "Avec l'expérience, l'assistant de gestion peut devenir responsable des services généraux ou responsable administratif dans une structure plus grande. France Travail cite aussi des évolutions vers les postes de technicien de gestion administrative et de secrétaire technique, ainsi que des passerelles vers l'assistanat commercial et l'assistanat de direction. Le métier s'exerce également dans les organismes publics, les associations, les cabinets de conseil ou les centres de gestion. Une poursuite d'études en licence professionnelle ou en BUT GEA est possible pour élargir les responsabilités.",
+  "sources": [
+    {
+      "titre": "ONISEP – Fiche métier Assistant / Assistante de gestion en PME",
+      "url": "https://www.onisep.fr/ressources/univers-metier/metiers/assistant-assistante-de-gestion-en-pme/pdf"
+    },
+    {
+      "titre": "France Travail – Fiche ROME M1605 Assistanat technique et administratif",
+      "url": "https://ent2d.ac-bordeaux.fr/disciplines/gestion-administration/wp-content/uploads/sites/51/2020/03/FICHE-METIER-ASSISTANTE-GESTION-DENTREPRISE-M1605-.pdf"
+    },
+    {
+      "titre": "Copeps – Débouchés professionnels après un BTS GPME",
+      "url": "https://copeps.fr/actualites/bts-gestion-pme-debouche-diplomeo/"
+    }
+  ]
+}
