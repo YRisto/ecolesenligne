@@ -3175,6 +3175,52 @@
   "specificites": "Garantie Diplômé ou 100 % remboursé ; examens blancs EP1/EP2 ; ateliers facultatifs"
  },
  {
+  "ecole": "clic-campus",
+  "formation": "LANG-ANG",
+  "intitule_ecole": "Cours particuliers d'anglais pour adultes en ligne – formule CPF « Progression orale » (20 h)",
+  "url": "https://clic-campus.fr/formation-anglais-en-ligne-cpf/cours-particuliers/",
+  "prix_total_eur": 1500,
+  "prix_detail": "1 500 € TTC = 20 h de cours particuliers + cours collectifs illimités + e-learning + certification ; CPF 90 % (1 350 €) + reste à charge 150 € ; formule CPF « Renforcement » 900 € (10 h, 3 mois, 83 % CPF) ; « Sur mesure » 30/40/50 h sur devis",
+  "mensualite_eur": null,
+  "financement": [
+   "CPF",
+   "OPCO",
+   "France Travail (AIF)",
+   "FIF-PL",
+   "abondement employeur"
+  ],
+  "duree_heures": 20,
+  "duree_acces": "6 mois (Renforcement : 3 mois) ; e-learning inclus pendant la formation",
+  "diplome": "Certification au choix incluse : TOEIC, Linguaskill, CLOE (RS6438) ou LILATE (codes RS TOEIC/Linguaskill/LILATE non indiqués sur le site)",
+  "rncp": "",
+  "stage": "aucun",
+  "taux_reussite": "non communiqué",
+  "specificites": "formateur dédié unique proposé sous 48-72 h, premier cours offert, cours d'1 h 1 à 3 fois/semaine, cours collectifs illimités, plateforme e-learning avec mode oral et tuteurs IA, prérequis CPF : A1 minimum + projet professionnel ; variantes intensives et anglais sur mesure disponibles"
+ },
+ {
+  "ecole": "clic-campus",
+  "formation": "LANG-FLE",
+  "intitule_ecole": "Formation au FLE en ligne, éligible CPF – Ultra-Personnalisée (formules Renforcement 10 h / Progression Orale 20 h)",
+  "url": "https://clic-campus.fr/formation-francais-fle-en-ligne-eligible-cpf/",
+  "prix_total_eur": 1500,
+  "prix_detail": "Progression Orale : 1 500 € = 20 h de cours particuliers sur 6 mois + cours collectifs illimités + e-learning + certification (CPF 90 %, reste à charge 150 €) ; Renforcement : 900 € = 10 h sur 3 mois (CPF 83 %) ; mêmes prix que l'anglais ; formules CB hors CPF 550 à 1 750 € (10 à 40 h)",
+  "mensualite_eur": null,
+  "financement": [
+   "CPF",
+   "OPCO",
+   "France Travail (AIF)",
+   "abondement employeur",
+   "paiement en plusieurs fois (hors CPF)"
+  ],
+  "duree_heures": 20,
+  "duree_acces": "6 mois (Renforcement : 3 mois) ; e-learning illimité pendant la formation",
+  "diplome": "Certification CLOE français (RS6438 ; A2 minimum pour la certification, A1 = attestation de passage) ou LILATE français ; TCF cité sur la page tarifs ; DELF/DALF/DCL/TEF non mentionnés",
+  "rncp": "RS6438",
+  "stage": "aucun",
+  "taux_reussite": "non communiqué",
+  "specificites": "prérequis : niveau A1 minimum, activité professionnelle ou recherche d'emploi, projet où le français est pertinent ; formateur dédié joignable 7h-22h 7j/7, coach linguistique, entretien préalable (rappel sous 2 h), premier cours offert, e-learning avec mode « Oral » (accents, mises en situation) ; incohérence de code RS sur la page (RS6438 vs RS7671)"
+ },
+ {
   "ecole": "les2rives",
   "formation": "VAE-BTSMCO",
   "intitule_ecole": "BTS – Management commercial opérationnel",
@@ -3473,6 +3519,54 @@
   "stage": "facultatif (4 semaines / 140 h recommandées)",
   "taux_reussite": "non communiqué",
   "specificites": "Garantie remboursement en cas d'échec sous conditions ; modules Figma, After Effects, HTML/CSS, WordPress, suite Adobe ; second passage 500 €"
+ },
+ {
+  "ecole": "linguaphone",
+  "formation": "LANG-ANG",
+  "intitule_ecole": "Formation anglais professionnel sur mesure – Level Up (A1→C2) / SkillExpress / Coaching – cours particuliers à distance (visio ou téléphone)",
+  "url": "https://www.linguaphone.fr/formations/anglais/",
+  "prix_total_eur": 590,
+  "prix_detail": "« à partir de 590 € » pour un pack anglais à distance éligible CPF (packs de 20 à 60 h selon formule, supports + plateforme + suivi formateur natif + examen de certification inclus, prix fixe sans supplément) ; présentiel à partir de 1 450 € ; tarif exact sur devis (réponse annoncée en 24-48 h) ; reste à charge CPF 150 € ; plafond CPF 1 500 €",
+  "mensualite_eur": null,
+  "financement": [
+   "CPF",
+   "OPCO",
+   "plan de développement des compétences",
+   "FNE-Formation",
+   "France Travail",
+   "AGEFICE"
+  ],
+  "duree_heures": null,
+  "duree_acces": "packs CPF de 20 à 60 h ; Level Up 30, 60 ou 90 h (≈ 1/3 de niveau CECRL par tranche, ~150 h pour un niveau) ; SkillExpress 12 h par compétence (6 modules de 2 h, 50 % autonomie / 50 % formateur) ; Boost your English 20 h sur 1 semaine (petit groupe) ; accès plateforme longue durée ; rythme ≥ 1 séance/semaine",
+  "diplome": "Certification au choix : TOEIC, Linguaskill, CLOE, English 360, DCL, Le Robert, JOBCERT (examen inclus dans l'offre CPF ; codes RS non indiqués sur le site)",
+  "rncp": "",
+  "stage": "aucun",
+  "taux_reussite": "non communiqué",
+  "specificites": "100 % cours individuels avec formateur natif/bilingue au choix (changement possible), classe inversée avec préparation sur plateforme, coach IA entre les cours, test de niveau écrit + oral gratuit, cours d'essai sur demande, horaires étendus 7h-23h, déclinaisons anglais métier et hôtellerie-restauration ; aucune formule 100 % e-learning seule"
+ },
+ {
+  "ecole": "linguaphone",
+  "formation": "LANG-FLE",
+  "intitule_ecole": "Formation Français langue étrangère (FLE) – parcours sur mesure A0→C2 (Level Up FLE, cours individuels à distance)",
+  "url": "https://www.linguaphone.fr/formations/francais/",
+  "prix_total_eur": null,
+  "prix_detail": "prix non affiché : « demander un devis CPF » (FLE absent de la grille « à partir de ») ; plafond CPF 1 500 € + participation obligatoire 150 €",
+  "mensualite_eur": null,
+  "financement": [
+   "CPF",
+   "OPCO",
+   "plan de développement des compétences",
+   "FNE-Formation",
+   "AGEFICE",
+   "FIF-PL"
+  ],
+  "duree_heures": null,
+  "duree_acces": "sur mesure ; Level Up 30, 60 ou 90 h ; accès longue durée à la plateforme",
+  "diplome": "Certification au choix : TEF / TEF Canada / TEF IRN (Linguaphone centre agréé TEF IRN à Mulhouse), DELF ; DCL cité dans l'offre CPF générale ; TCF/DALF non mentionnés (codes RS non indiqués)",
+  "rncp": "",
+  "stage": "aucun",
+  "taux_reussite": "non communiqué",
+  "specificites": "aucun prérequis ; objectifs : installation en France, emploi, naturalisation (niveau B1 oral requis par la loi du 26/01/2024), titre de séjour, immigration Canada, inscription universitaire ; visio, téléphone, centre (Paris, Mulhouse, Dijon) ou entreprise ; individuel ou petit groupe ; coach IA et plateforme digitale inclus ; existe aussi en français professionnel / français langue maternelle"
  },
  {
   "ecole": "minerve",
@@ -4537,5 +4631,47 @@
   "stage": "facultatif (recommandé)",
   "taux_reussite": "100 % (sondage élèves 2024)",
   "specificites": "Kit non inclus (liste de matériel, tarifs partenaires)"
+ },
+ {
+  "ecole": "cned",
+  "formation": "LANG-ANG",
+  "intitule_ecole": "Anglais : certifications TOEIC® – Préparation TOEIC® L&R ou 4 compétences / Pack « Progresser en anglais » + préparation TOEIC® + inscription au test",
+  "url": "https://www.cned.fr/langues/anglais-certification-toeic",
+  "prix_total_eur": null,
+  "prix_detail": "tarif non public (affiché après création d'un compte) ; abonnement 3, 6 ou 12 mois ; inscription au test TOEIC en option payante (incluse en FPC/CPF) ; séances d'oral en option ; -10 % sur sélection jusqu'au 05/11/2026",
+  "mensualite_eur": null,
+  "financement": [
+   "CPF",
+   "formation professionnelle continue (employeur/OPCO)",
+   "paiement en plusieurs fois"
+  ],
+  "duree_heures": null,
+  "duree_acces": "3, 6 ou 12 mois (préparation seule) ; 6 ou 12 mois (pack Progresser en anglais + TOEIC)",
+  "diplome": "Certification TOEIC® Listening and Reading ou TOEIC® 4 compétences (ETS, validité 2 ans) ; alternative : Linguaskill Business (Cambridge) ; codes RS non indiqués",
+  "rncp": "",
+  "stage": "aucun",
+  "taux_reussite": "non communiqué",
+  "specificites": "prérequis A2 ; 100 % e-learning en autonomie + tuteur ; pack Progresser en anglais A1→C1 (> 10 000 activités, test de niveau mensuel) ; séances de pratique de l'oral en visio 30 min (2, 5 ou 10 selon abonnement) ; inscription au test dans un centre ETS à tarif préférentiel ; formule « Progresser + TOEIC L&R » réservée à la FPC ; aussi « Apprendre l'anglais » (#JeVeuxParler) et préparations Cambridge B2 First/C1 Advanced"
+ },
+ {
+  "ecole": "cned",
+  "formation": "LANG-FLE",
+  "intitule_ecole": "Apprendre le français (#JeVeuxParler français, A1→C1) / Français : préparation au DELF B1, DELF B2, DALF C1 / Français : préparation au TCF®",
+  "url": "https://www.cned.fr/langues/apprendre-le-francais",
+  "prix_total_eur": null,
+  "prix_detail": "tarif non public (affiché après création d'un compte) ; abonnement 3, 6 ou 12 mois (TCF : 3 mois) ; formule « plateforme + oral » avec 3, 6 ou 12 séances visio de 30 min ; frais d'examen DELF/DALF/TCF non inclus ; -10 % sur sélection jusqu'au 05/11/2026",
+  "mensualite_eur": null,
+  "financement": [
+   "formation professionnelle continue (FPC)",
+   "CPF (bloc affiché, périmètre non détaillé)",
+   "paiement en plusieurs fois"
+  ],
+  "duree_heures": null,
+  "duree_acces": "3, 6 ou 12 mois (accès illimité à tous les niveaux A1-C1 pendant l'abonnement) ; TCF : 3 mois",
+  "diplome": "Préparation au DELF B1 / DELF B2 / DALF C1 (France Éducation International) et au TCF® ; examen non organisé ni inscrit par le CNED ; DCL non proposé",
+  "rncp": "",
+  "stage": "aucun",
+  "taux_reussite": "non communiqué",
+  "specificites": "aucun prérequis pour « Apprendre le français » (7 parcours thématiques, module de prononciation, tuteur sous 48 h) ; DELF : prérequis B1, 2 évaluations écrites + 2 à 4 orales corrigées individuellement, forum mensuel ; DALF C1 : autonomie seule (examens blancs) ; TCF : prérequis A2, examens blancs autocorrectifs ; URLs : https://www.cned.fr/langues/francais-preparation-au-delf-et-dalf et https://www.cned.fr/langues/francais-preparation-au-tcfr"
  }
 ]

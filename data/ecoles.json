@@ -223,6 +223,25 @@
   "taux_reussite": "CAP Fleuriste 92 % (2025, hors CFA) ; ACACED non communiqué ; formations qualifiantes : seuls des taux de satisfaction (91-99 %) sont publiés"
  },
  {
+  "slug": "clic-campus",
+  "nom": "Clic Campus",
+  "groupe": "",
+  "site": "https://clic-campus.fr",
+  "partenaire": false,
+  "avis": {
+   "source": "Google",
+   "note": 4.8,
+   "nombre": 400,
+   "url": "https://clic-campus.fr/avis-clic-campus/"
+  },
+  "garantie": "premier cours particulier offert sans engagement ; rétractation 14 jours à compter de la signature (formules avec cours particuliers) ; résiliation à tout moment par e-mail, seuls les cours réalisés sont facturés, trop-perçu remboursé sous 14 jours ; licence e-learning 12 mois non remboursable et sans rétractation une fois activée ; changement de formateur gratuit à tout moment ; CPF : CGV moncompteformation (annulation hors force majeure = perte des droits)",
+  "accompagnement": "entretien préalable avec conseiller pédagogique (rappel sous 2 h), test de niveau, formateur dédié et unique proposé sous 48-72 h (joignable 7h-22h 7j/7), coach linguistique (planning, suivi des progrès, imprévus), bilans de progression réguliers, support premium 6 j/7, cours annulables jusqu'au dernier moment",
+  "supports": "plateforme e-learning contextualisée (mises en situation, grammaire, prononciation, vocabulaire, mode « Oral », tuteurs IA), supports et exercices envoyés après chaque cours, cours collectifs illimités en visio, visio pour cours particuliers ; pas de livres papier",
+  "modalites": "100 % à distance ; cours particuliers d'1 h en visio avec formateur dédié (1 à 3 séances/semaine selon formule) + cours collectifs illimités + e-learning ; formules de 3 à 6 mois ; entrée permanente ; démarrage 14 jours après inscription (CPF) ; formule e-learning seule (START) 12 mois ; tarif identique quelle que soit la langue",
+  "preparation_examen": "certification passée en ligne, incluse dans les formules CPF (TOEIC, Linguaskill, CLOE RS6438, LILATE, English 360 selon langue) ; en option pour les formules carte bancaire (passage LILATE seul 180 € TTC) ; pas d'examen blanc décrit ; certification obligatoire en CPF",
+  "taux_reussite": "non communiqué (indicateurs satisfaction/recommandation affichés à 0 sur la fiche FLE, inexploitables)"
+ },
+ {
   "slug": "les2rives",
   "nom": "Les 2 Rives",
   "groupe": "Adecco",
@@ -254,6 +273,25 @@
   "modalites": "100 % à distance, à son rythme, inscription toute l'année (entrée permanente), démarrage ~10 jours après le premier échange, jusqu'à 36 mois d'accès ; alternance possible via le campus Skill & You",
   "preparation_examen": "Examens blancs pour les formations certifiantes, corrections par formateurs ; CAP/Bac pro : inscription en candidat libre à faire soi-même ; titres pro : présentation aux épreuves incluse (Montrouge ou centre partenaire), second passage 500 €",
   "taux_reussite": "Publié par formation (résultats 2025 hors CFA sur apprenants déclarés présents) ; pas de taux global école"
+ },
+ {
+  "slug": "linguaphone",
+  "nom": "Linguaphone",
+  "groupe": "",
+  "site": "https://www.linguaphone.fr",
+  "partenaire": false,
+  "avis": {
+   "source": "Avis Vérifiés",
+   "note": 4.7,
+   "nombre": 1989,
+   "url": "https://www.avis-verifies.com/avis-clients/linguaphone.fr"
+  },
+  "garantie": "aucune garantie commerciale ni satisfait/remboursé ; CGV : obligation de moyens, délai de rétractation non mentionné ; annulation/report d'un cours à distance sans frais jusqu'à 6 h avant ; cours d'essai sur demande ; parcours inactif > 3 mois clôturable ; dossier CPF clôturé après 30 jours d'inactivité injustifiée",
+  "accompagnement": "conseiller dédié (interlocuteur unique du diagnostic à la certification), test de positionnement écrit + oral puis entretien d'objectifs, formateur natif ou bilingue dédié (bac+3 min., 3 ans d'expérience pays cible), retour détaillé après chaque séance avec exercices, bilans de progression, coach IA pour pratiquer l'oral entre les cours, équipe de suivi/support, helpdesk en ligne via Teams (tickets 30 min), aide au montage du dossier de financement ; accueil 01 47 78 45 80",
+  "supports": "plateforme digitale Linguaphone Connect (7j/7, accès longue durée pour maintien du niveau), ressources e-learning de préparation aux séances (classe inversée), visio Zoom/Teams/Google Meet avec partage d'écran, coach IA conversationnel ; pas d'application mobile mentionnée ; supports de cours et examen de certification inclus dans les offres CPF",
+  "modalites": "cours individuels à distance (visio ou téléphone) avec formateur au choix, réservation semaine par semaine depuis l'espace apprenant (créneaux lun-dim 7h-23h selon pages, 7h30-22h lun-sam selon FAQ), réservation jusqu'à 10 min avant, report jusqu'à 6 h avant ; aussi présentiel (Paris, Mulhouse, Dijon), hybride, petits groupes (stages intensifs 20 h/semaine, ateliers 4 h), immersion à l'étranger ; inscriptions en continu ; démarrage CPF sous 11 jours ouvrés (3 semaines conseillées) ; séances de 1 h ou 2 h, ≥ 1 séance/semaine",
+  "preparation_examen": "certification obligatoire en fin de parcours CPF, choisie avec le conseiller ; examen de certification inclus dans l'offre CPF ; Linguaphone centre agréé TEF IRN à Mulhouse ; pas d'examens blancs décrits",
+  "taux_reussite": "non communiqué (le site évoque un « taux d'engagement et de réussite élevé », 93 % de satisfaction, NPS 81, +30 % d'efficacité annoncés sans source)"
  },
  {
   "slug": "minerve",

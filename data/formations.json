@@ -2141,7 +2141,43 @@
   "domaine": "Langues",
   "type": "Certification",
   "niveau": "Certification (TOEIC, Linguaskill…)",
-  "synthese": null
+  "synthese": {
+   "metiers": "Une formation d'anglais général et professionnel à distance ne prépare pas à un métier unique : elle renforce une compétence transversale exigée dans un nombre croissant de postes. Selon une analyse d'ETS Global sur les données Indeed France, environ 13 % des offres d'emploi publiées en 2024 mentionnaient l'anglais (une offre sur huit), contre environ 9 % en 2018. Les secteurs les plus demandeurs sont le commerce international et l'export, le tourisme et l'hôtellerie-restauration, le transport-logistique, l'informatique et le numérique, l'aéronautique, la finance, les achats, le marketing et l'assistanat de direction dans les groupes internationaux. Pour les cadres, l'anglais est devenu un prérequis implicite : l'enquête Cambridge English / Cadremploi de 2020 montre que 47 % des cadres déclarent un niveau B2 à C2, contre 31 % des autres catégories socioprofessionnelles, et que les salariés estiment qu'il faut au moins le niveau B2 pour réussir dans leur métier.",
+   "missions": "La formation vise à faire progresser l'apprenant sur les six niveaux du Cadre européen commun de référence pour les langues (CECRL) : A1 et A2 (utilisateur élémentaire), B1 et B2 (utilisateur indépendant), C1 et C2 (utilisateur expérimenté). Le niveau B1 permet de se débrouiller dans la plupart des situations courantes et professionnelles simples ; le B2 est le seuil généralement attendu des cadres et des postes en contact avec des interlocuteurs étrangers ; le C1 correspond à une aisance professionnelle complète. Le volet professionnel couvre les situations concrètes de l'entreprise : courriels et comptes rendus, réunions et visioconférences, appels téléphoniques, présentations, négociation, accueil de clients, vocabulaire spécifique au secteur. L'apprentissage à distance repose sur des cours en visioconférence individuels ou collectifs, des plateformes d'exercices et un travail régulier de compréhension et d'expression orales, avec un positionnement initial et un test de certification en fin de parcours.",
+   "conditions": "Pour être finançable par le compte personnel de formation (CPF), une formation en langue doit préparer à une certification enregistrée au répertoire spécifique de France Compétences et donner lieu au passage de l'examen. Le test TOEIC d'ETS Global est enregistré sous le numéro RS6151 (qui a remplacé la fiche RS5550) ; ETS Global a annoncé en juillet 2025 le renouvellement de l'enregistrement pour cinq ans sous l'intitulé « TOEIC 4 Compétences ». Le TOEIC Listening and Reading est noté de 10 à 990 points ; les seuils indicatifs de correspondance avec le CECRL sont d'environ 550 points pour le B1, 785 pour le B2 et 945 pour le C1. Le Linguaskill de Cambridge, test en ligne adaptatif qui évalue de A1 à C2 (score de 82 à 180), a été enregistré au répertoire spécifique sous le numéro RS5871 ; cette fiche est arrivée à échéance le 25 février 2024 et apparaît comme inactive, de sorte que l'éligibilité CPF d'un parcours Linguaskill doit être vérifiée au cas par cas auprès de l'organisme sur Mon Compte Formation. Depuis le 2 mai 2024, un reste à charge d'environ 100 € (indexé sur l'inflation) s'applique aux formations CPF, sauf pour les demandeurs d'emploi et en cas d'abondement de l'employeur.",
+   "salaire": "Aucune statistique publique (INSEE, APEC, France Travail) ne mesure directement l'écart de salaire lié au seul niveau d'anglais, et les écarts observés tiennent en partie au fait que les postes exigeant l'anglais sont souvent des postes de cadres ou à dimension internationale. La seule estimation chiffrée disponible provient d'une analyse d'offres d'emploi du site Adzuna (2017), selon laquelle les candidats maîtrisant l'anglais pouvaient prétendre à des salaires supérieurs d'environ 19 % à la moyenne ; cette donnée est ancienne et issue d'un acteur privé, elle doit donc être prise comme un ordre de grandeur. Les enquêtes d'opinion vont dans le même sens : dans l'enquête ABA English relayée par Lepetitjournal.com, 92 % des Français estiment qu'un bon niveau d'anglais procure des avantages professionnels importants (salaire ou conditions de travail) et 28 % déclarent avoir perdu des opportunités professionnelles faute d'un niveau suffisant. En pratique, la certification sert surtout à objectiver un niveau sur un CV et à débloquer l'accès à des postes mieux rémunérés plutôt qu'à obtenir une prime directe.",
+   "evolution": "Une certification d'anglais à jour (le TOEIC et le Linguaskill ont une validité recommandée de deux ans) facilite une mobilité interne vers des fonctions internationales, un changement d'employeur vers un groupe étranger, ou l'accès à des concours et formations qui exigent un niveau B2. Elle est également demandée pour certaines poursuites d'études (écoles de commerce et d'ingénieurs, masters) et pour les procédures d'expatriation ou de détachement. Les apprenants ayant atteint le B2 peuvent viser le C1 avec une formation ciblée sur un anglais de spécialité (juridique, financier, technique, médical). Enfin, la compétence linguistique se combine utilement avec une formation métier (commerce international, tourisme, assistanat de direction, logistique) pour accroître l'employabilité.",
+   "sources": [
+    {
+     "titre": "ETS Global – L'anglais, compétence clé : 1 offre d'emploi sur 8 en France (données Indeed 2024)",
+     "url": "https://www.etsglobal.org/bl/en/blog/news/english-key-skill-1-in-8-job-offers-france"
+    },
+    {
+     "titre": "Cambridge English / Cadremploi – Étude sur le niveau d'anglais des salariés français (2020)",
+     "url": "https://www.cambridgeenglish.org/fr/Images/586851-cp-salaries-etude-cambridge-le-figaro..pdf"
+    },
+    {
+     "titre": "France Compétences – Fiche RS5550 Tests TOEIC (remplacée par RS6151)",
+     "url": "https://www.francecompetences.fr/recherche/rs/5550/"
+    },
+    {
+     "titre": "France Compétences – Fiche RS5871 Certificat Linguaskill from Cambridge",
+     "url": "https://www.francecompetences.fr/recherche/rs/5871/"
+    },
+    {
+     "titre": "ETS Global – Renouvellement de l'enregistrement CPF des tests TOEIC (2025)",
+     "url": "https://etsglobal.org/fr/en/blog/news/renewal-toeic-tests-cpf"
+    },
+    {
+     "titre": "Culture RH – Être bilingue en anglais, quels impacts sur une carrière ? (étude Adzuna 2017)",
+     "url": "https://culture-rh.com/impact-bilingue-carriere"
+    },
+    {
+     "titre": "digiSchool – Financer son TOEIC avec le CPF et correspondance scores/CECRL",
+     "url": "https://www.digischool.fr/articles/toeic/financer-toeic-avec-cpf/"
+    }
+   ]
+  }
  },
  {
   "code": "LANG-FLE",
@@ -2150,6 +2186,42 @@
   "domaine": "Langues",
   "type": "Certification",
   "niveau": "Certification (DELF, TCF, DCL…)",
-  "synthese": null
+  "synthese": {
+   "metiers": "Une formation de français langue étrangère (FLE) s'adresse d'abord aux personnes non francophones installées ou arrivant en France : salariés étrangers, conjoints de Français, étudiants internationaux, réfugiés et bénéficiaires d'une protection, signataires du contrat d'intégration républicaine (CIR). Pour ce public, le français n'est pas un métier mais la condition d'accès à la plupart des emplois, aux démarches administratives, à la formation professionnelle et à la vie sociale. Les secteurs qui recrutent des personnes allophones (bâtiment, hôtellerie-restauration, logistique, aide à la personne, nettoyage, agriculture) exigent au minimum une compréhension orale fonctionnelle et, de plus en plus, un niveau A2 à B1 écrit pour les consignes de sécurité et les démarches. Un second public, plus restreint, est celui des personnes qui souhaitent enseigner le français aux étrangers : le métier de formateur ou professeur de FLE relève de la fiche ROME K2111 (formation professionnelle) et s'exerce en organisme de formation, association, université, Alliance française ou institut culturel.",
+   "missions": "Depuis le 1er janvier 2026, en application de la loi n° 2024-42 du 26 janvier 2024 et du décret du 15 juillet 2025, les niveaux de français exigés ont été relevés : A2 pour la première carte de séjour pluriannuelle (aucun niveau n'était requis auparavant), B1 pour la carte de résident (contre A2) et B2 à l'oral comme à l'écrit pour la naturalisation par décret ou par mariage (contre B1). Le niveau se prouve par un diplôme français (brevet, CAP ou diplôme de niveau 3 et plus), un diplôme de langue (DELF/DALF) ou une attestation de test TCF ou TEF datant de moins de deux ans. Un examen civique sous forme de QCM (40 questions, 80 % de bonnes réponses requises) s'ajoute depuis 2026 pour la carte pluriannuelle, la carte de résident et la naturalisation. Une formation FLE prépare donc concrètement ces échéances : travail des quatre compétences (compréhension et expression orales et écrites), entraînement aux formats du TCF IRN, du TEF et du DELF, et français à visée professionnelle (CV, entretien, vocabulaire du poste). Pour le futur formateur FLE, la formation apporte les bases de la didactique des langues, de la phonétique, de l'évaluation selon le CECRL et de l'animation de groupes hétérogènes.",
+   "conditions": "L'apprentissage du français par les adultes étrangers se fait souvent en parallèle d'un emploi ou d'un parcours d'insertion, ce qui rend le format à distance ou hybride particulièrement adapté. Les signataires du CIR bénéficient d'une formation linguistique de l'OFII devenue obligatoire en 2025 : jusqu'à 600 heures en présentiel pour les personnes peu ou pas scolarisées, et l'accès à une plateforme en ligne pendant un an pour les autres, complétée par 24 heures de formation civique. Au-delà de ce socle, l'atteinte du B1 ou du B2 demande généralement plusieurs centaines d'heures supplémentaires, que l'apprenant doit financer (CPF pour les salariés, aides de France Travail, cours associatifs). Côté enseignants, le métier de formateur FLE s'exerce le plus souvent à temps partiel, en CDD, en vacations ou en auto-entrepreneur auprès de plusieurs structures ; le CIDJ qualifie ce statut de « souvent précaire », et le métier est exercé à environ 80 % par des femmes selon L'Étudiant. Le master FLE est devenu la norme pour les postes stables, le DAEFLE (Alliance française / CNED, 250 heures) ou un diplôme universitaire FLE constituant la voie d'entrée pour les reconversions.",
+   "salaire": "Pour les apprenants, aucune source publique ne chiffre directement le gain salarial lié au niveau de français ; les données disponibles portent sur l'accès à l'emploi. L'INSEE observe par exemple en Auvergne-Rhône-Alpes (recensement 2020) un taux d'emploi de 57 % chez les immigrés de 15 à 64 ans contre 67 % chez les non-immigrés, et un taux de chômage de 14 % contre 7 %, la maîtrise de la langue figurant parmi les freins identifiés. Les offres accessibles avec un faible niveau de français sont majoritairement rémunérées au SMIC ; l'accès au B1-B2 ouvre les métiers qualifiés et la reconnaissance des diplômes étrangers. Pour le formateur FLE, L'Étudiant indique un salaire débutant au niveau du SMIC (environ 1 800 € brut mensuels pour un temps plein en 2025) pouvant atteindre 2 500 € brut avec l'expérience en France, et jusqu'à 4 000 € à l'étranger dans certains postes expatriés ; Trouverecole situe les débuts entre 1 800 et 2 500 € brut selon l'employeur et la région. Les sources consultées ne donnent pas de grille horaire pour les vacations ; le cumul de contrats partiels, fréquent dans ce métier, ne garantit pas un revenu mensuel équivalent à un temps plein.",
+   "evolution": "Pour l'apprenant étranger, chaque palier du CECRL ouvre des droits et des possibilités : le A2 sécurise le titre pluriannuel, le B1 permet la carte de résident de dix ans et l'accès à la plupart des formations qualifiantes, le B2 conditionne la naturalisation et l'entrée à l'université ou dans les concours de la fonction publique. Le DELF a une validité illimitée, ce qui en fait un investissement durable, alors que les attestations TCF et TEF doivent être renouvelées tous les deux ans. Pour le formateur FLE, les évolutions passent par la coordination pédagogique, la formation de formateurs, l'ingénierie de formation ou la conception de ressources, ainsi que par la spécialisation (français professionnel, français sur objectifs spécifiques, alphabétisation, préparation aux examens). Le réseau des Alliances françaises et des instituts français offre des carrières à l'international, et les concours de l'Éducation nationale (CAPES de lettres) restent une passerelle pour ceux qui souhaitent enseigner en établissement scolaire.",
+   "sources": [
+    {
+     "titre": "Service-public.fr – Nationalité française : comment justifier de son niveau en français ?",
+     "url": "https://www.service-public.gouv.fr/particuliers/vosdroits/F11926"
+    },
+    {
+     "titre": "Fédération des acteurs de la solidarité – Fiche juridique : évolutions du parcours d'intégration et du droit au séjour (2025)",
+     "url": "https://www.federationsolidarite.org/wp-content/uploads/2025/11/2025-FAS-Fiche-juridique-evolutions-parcours-integration-droit-sejour.pdf"
+    },
+    {
+     "titre": "digiSchool – Quel niveau de français pour la naturalisation en 2026 ?",
+     "url": "https://www.digischool.fr/articles/fle/niveau-de-francais-naturalisation-2026/"
+    },
+    {
+     "titre": "INSEE Analyses Auvergne-Rhône-Alpes n° 169 – Immigrés en emploi (2023)",
+     "url": "https://www.insee.fr/fr/statistiques/fichier/7711064/ar_ina_169.pdf"
+    },
+    {
+     "titre": "L'Étudiant – Professeur de FLE : missions, formation, salaire",
+     "url": "https://www.letudiant.fr/metiers/secteur/langues/professeur-de-fle-francais-langue-etrangere.html"
+    },
+    {
+     "titre": "CIDJ – Professeur / Professeure de français langue étrangère",
+     "url": "https://www.cidj.com/s-orienter/metiers/professeur-professeure-de-francais-langue-etrangere"
+    },
+    {
+     "titre": "Observatoire AKTO – Fiche métier Formateur en organisme de formation (ROME K2111)",
+     "url": "https://observatoire.akto.fr/content/uploads/sites/3/2026/04/Fiche-Metier-Organismes-de-formation-Formateur.pdf"
+    }
+   ]
+  }
  }
 ]
