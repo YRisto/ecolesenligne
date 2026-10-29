@@ -1,0 +1,38 @@
+{
+  "code": "LANG-ANG",
+  "metiers": "Une formation d'anglais général et professionnel à distance ne prépare pas à un métier unique : elle renforce une compétence transversale exigée dans un nombre croissant de postes. Selon une analyse d'ETS Global sur les données Indeed France, environ 13 % des offres d'emploi publiées en 2024 mentionnaient l'anglais (une offre sur huit), contre environ 9 % en 2018. Les secteurs les plus demandeurs sont le commerce international et l'export, le tourisme et l'hôtellerie-restauration, le transport-logistique, l'informatique et le numérique, l'aéronautique, la finance, les achats, le marketing et l'assistanat de direction dans les groupes internationaux. Pour les cadres, l'anglais est devenu un prérequis implicite : l'enquête Cambridge English / Cadremploi de 2020 montre que 47 % des cadres déclarent un niveau B2 à C2, contre 31 % des autres catégories socioprofessionnelles, et que les salariés estiment qu'il faut au moins le niveau B2 pour réussir dans leur métier.",
+  "missions": "La formation vise à faire progresser l'apprenant sur les six niveaux du Cadre européen commun de référence pour les langues (CECRL) : A1 et A2 (utilisateur élémentaire), B1 et B2 (utilisateur indépendant), C1 et C2 (utilisateur expérimenté). Le niveau B1 permet de se débrouiller dans la plupart des situations courantes et professionnelles simples ; le B2 est le seuil généralement attendu des cadres et des postes en contact avec des interlocuteurs étrangers ; le C1 correspond à une aisance professionnelle complète. Le volet professionnel couvre les situations concrètes de l'entreprise : courriels et comptes rendus, réunions et visioconférences, appels téléphoniques, présentations, négociation, accueil de clients, vocabulaire spécifique au secteur. L'apprentissage à distance repose sur des cours en visioconférence individuels ou collectifs, des plateformes d'exercices et un travail régulier de compréhension et d'expression orales, avec un positionnement initial et un test de certification en fin de parcours.",
+  "conditions": "Pour être finançable par le compte personnel de formation (CPF), une formation en langue doit préparer à une certification enregistrée au répertoire spécifique de France Compétences et donner lieu au passage de l'examen. Le test TOEIC d'ETS Global est enregistré sous le numéro RS6151 (qui a remplacé la fiche RS5550) ; ETS Global a annoncé en juillet 2025 le renouvellement de l'enregistrement pour cinq ans sous l'intitulé « TOEIC 4 Compétences ». Le TOEIC Listening and Reading est noté de 10 à 990 points ; les seuils indicatifs de correspondance avec le CECRL sont d'environ 550 points pour le B1, 785 pour le B2 et 945 pour le C1. Le Linguaskill de Cambridge, test en ligne adaptatif qui évalue de A1 à C2 (score de 82 à 180), a été enregistré au répertoire spécifique sous le numéro RS5871 ; cette fiche est arrivée à échéance le 25 février 2024 et apparaît comme inactive, de sorte que l'éligibilité CPF d'un parcours Linguaskill doit être vérifiée au cas par cas auprès de l'organisme sur Mon Compte Formation. Depuis le 2 mai 2024, un reste à charge d'environ 100 € (indexé sur l'inflation) s'applique aux formations CPF, sauf pour les demandeurs d'emploi et en cas d'abondement de l'employeur.",
+  "salaire": "Aucune statistique publique (INSEE, APEC, France Travail) ne mesure directement l'écart de salaire lié au seul niveau d'anglais, et les écarts observés tiennent en partie au fait que les postes exigeant l'anglais sont souvent des postes de cadres ou à dimension internationale. La seule estimation chiffrée disponible provient d'une analyse d'offres d'emploi du site Adzuna (2017), selon laquelle les candidats maîtrisant l'anglais pouvaient prétendre à des salaires supérieurs d'environ 19 % à la moyenne ; cette donnée est ancienne et issue d'un acteur privé, elle doit donc être prise comme un ordre de grandeur. Les enquêtes d'opinion vont dans le même sens : dans l'enquête ABA English relayée par Lepetitjournal.com, 92 % des Français estiment qu'un bon niveau d'anglais procure des avantages professionnels importants (salaire ou conditions de travail) et 28 % déclarent avoir perdu des opportunités professionnelles faute d'un niveau suffisant. En pratique, la certification sert surtout à objectiver un niveau sur un CV et à débloquer l'accès à des postes mieux rémunérés plutôt qu'à obtenir une prime directe.",
+  "evolution": "Une certification d'anglais à jour (le TOEIC et le Linguaskill ont une validité recommandée de deux ans) facilite une mobilité interne vers des fonctions internationales, un changement d'employeur vers un groupe étranger, ou l'accès à des concours et formations qui exigent un niveau B2. Elle est également demandée pour certaines poursuites d'études (écoles de commerce et d'ingénieurs, masters) et pour les procédures d'expatriation ou de détachement. Les apprenants ayant atteint le B2 peuvent viser le C1 avec une formation ciblée sur un anglais de spécialité (juridique, financier, technique, médical). Enfin, la compétence linguistique se combine utilement avec une formation métier (commerce international, tourisme, assistanat de direction, logistique) pour accroître l'employabilité.",
+  "sources": [
+    {
+      "titre": "ETS Global – L'anglais, compétence clé : 1 offre d'emploi sur 8 en France (données Indeed 2024)",
+      "url": "https://www.etsglobal.org/bl/en/blog/news/english-key-skill-1-in-8-job-offers-france"
+    },
+    {
+      "titre": "Cambridge English / Cadremploi – Étude sur le niveau d'anglais des salariés français (2020)",
+      "url": "https://www.cambridgeenglish.org/fr/Images/586851-cp-salaries-etude-cambridge-le-figaro..pdf"
+    },
+    {
+      "titre": "France Compétences – Fiche RS5550 Tests TOEIC (remplacée par RS6151)",
+      "url": "https://www.francecompetences.fr/recherche/rs/5550/"
+    },
+    {
+      "titre": "France Compétences – Fiche RS5871 Certificat Linguaskill from Cambridge",
+      "url": "https://www.francecompetences.fr/recherche/rs/5871/"
+    },
+    {
+      "titre": "ETS Global – Renouvellement de l'enregistrement CPF des tests TOEIC (2025)",
+      "url": "https://etsglobal.org/fr/en/blog/news/renewal-toeic-tests-cpf"
+    },
+    {
+      "titre": "Culture RH – Être bilingue en anglais, quels impacts sur une carrière ? (étude Adzuna 2017)",
+      "url": "https://culture-rh.com/impact-bilingue-carriere"
+    },
+    {
+      "titre": "digiSchool – Financer son TOEIC avec le CPF et correspondance scores/CECRL",
+      "url": "https://www.digischool.fr/articles/toeic/financer-toeic-avec-cpf/"
+    }
+  ]
+}
