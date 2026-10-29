@@ -51,7 +51,7 @@ table.compare th:first-child { background:#f0f3f9; width:140px; }
 .prose h2 { font-size:1.15rem; }
 @media (max-width: 640px) { .form .row { grid-template-columns:1fr; } .site-header nav a:not(.btn-sm) { display:none; } }
 .table-wrap { overflow-x:auto; margin-top:20px; border:1px solid var(--border); border-radius:12px; background:#fff; }
-table.cmp { border-collapse:collapse; font-size:.85rem; min-width:1500px; }
+table.cmp { border-collapse:collapse; font-size:.82rem; min-width:1900px; }
 table.cmp th, table.cmp td { padding:10px 12px; border-bottom:1px solid var(--border); vertical-align:top; text-align:left; }
 table.cmp thead th { background:#f0f3f9; font-size:.78rem; text-transform:uppercase; letter-spacing:.02em; color:var(--muted); position:sticky; top:0; }
 table.cmp tbody th { position:sticky; left:0; background:#fff; min-width:170px; font-weight:700; box-shadow: 2px 0 0 var(--border); }
@@ -66,3 +66,11 @@ table.cmp tbody th a { color:var(--fg); text-decoration:none; }
 .etoiles strong { margin-left:6px; font-size:.95rem; }
 .detail-note { font-size:.75rem; margin-top:4px; } .detail-note ul { margin:4px 0 0; padding-left:14px; }
 .synthese h3 { font-size:1rem; margin:18px 0 4px; }
+
+table.cmp td { max-width:220px; }
+.clamp summary { list-style:none; cursor:pointer; display:-webkit-box; -webkit-line-clamp:4; -webkit-box-orient:vertical; overflow:hidden; }
+.clamp summary::-webkit-details-marker { display:none; }
+.clamp[open] summary { display:none; }
+.clamp div { white-space:normal; }
+.clamp::after { content:"voir plus"; color:var(--accent); font-size:.72rem; cursor:pointer; }
+.clamp[open]::after { content:"réduire"; }
