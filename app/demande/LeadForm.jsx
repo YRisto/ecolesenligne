@@ -2,11 +2,13 @@
 import { useState } from "react";
 import { useSearchParams } from "next/navigation";
 
-export default function LeadForm({ formations, ecoles }) {
+export default function LeadForm({ formations, ecoles, offres }) {
   const params = useSearchParams();
   const preset = formations.find((f) => f.slug === params.get("formation"));
   const [formation, setFormation] = useState(preset?.slug || "");
-  const [ecole, setEcole] = useState(preset?.ecole || "");
+  const [ecole, setEcole] = useState(params.get("ecole") || "");
+  const fObj = formations.find((f) => f.slug === formation);
+  const ecolesDispo = fObj ? ecoles.filter((e) => offres.some((o) => o.formation === fObj.code && o.ecole === e.slug)) : ecoles;
   const [autres, setAutres] = useState(false);
   const [cgu, setCgu] = useState(false);
   const [state, setState] = useState({ status: "idle" });
@@ -26,12 +28,12 @@ export default function LeadForm({ formations, ecoles }) {
   return (
     <form className="form" onSubmit={submit}>
       <label>Formation qui vous intéresse
-        <select value={formation} onChange={(e) => { setFormation(e.target.value); const f = formations.find((x) => x.slug === e.target.value); if (f) setEcole(f.ecole); }}>
-          <option value="">— Choisir —</option>{formations.map((f) => <option key={f.slug} value={f.slug}>{f.intitule} ({f.ecoleObj?.nom})</option>)}
+        <select value={formation} onChange={(e) => { setFormation(e.target.value); setEcole(""); }}>
+          <option value="">— Choisir —</option>{formations.map((f) => <option key={f.slug} value={f.slug}>{f.intitule}</option>)}
         </select></label>
       <label>École qui a votre préférence *
         <select required value={ecole} onChange={(e) => setEcole(e.target.value)}>
-          <option value="">— Choisir —</option>{ecoles.map((x) => <option key={x.slug} value={x.slug}>{x.nom}</option>)}
+          <option value="">— Choisir —</option>{ecolesDispo.map((x) => <option key={x.slug} value={x.slug}>{x.nom}</option>)}
         </select></label>
       <div className="row"><label>Prénom *<input name="prenom" required autoComplete="given-name" /></label><label>Nom *<input name="nom" required autoComplete="family-name" /></label></div>
       <div className="row"><label>E-mail *<input name="email" type="email" required autoComplete="email" /></label><label>Téléphone *<input name="telephone" type="tel" required autoComplete="tel" /></label></div>

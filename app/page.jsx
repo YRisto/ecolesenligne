@@ -9,7 +9,7 @@ export default function Home() {
       <span className="chip">Comparateur indépendant</span>
       <h1>Comparez les formations 100 % à distance</h1>
       <p className="lead">BTS, Bachelors, titres professionnels, CAP, VAE : les formations en ligne des grandes écoles à distance, comparées sur les mêmes critères. Prix, durée, reconnaissance RNCP, financement CPF.</p>
-      <p><Link href="/formations" className="btn">Voir toutes les formations</Link> <Link href="/comparer" className="btn btn-outline">Comparer</Link></p>
+      <p><Link href="/formations" className="btn">Voir toutes les formations</Link></p>
       <h2>Par domaine</h2>
       <div className="grid">
         {DOMAINES.map((d) => {
@@ -22,8 +22,8 @@ export default function Home() {
           );
         })}
       </div>
-      <h2>Dernières formations ajoutées</h2>
-      <div className="grid">{formations.slice(0, 6).map((f) => <FormationCard key={f.slug} f={f} />)}</div>
+      <h2>Formations les plus comparées</h2>
+      <div className="grid">{[...formations].sort((a,b)=>b.nbEcoles-a.nbEcoles).slice(0, 6).map((f) => <FormationCard key={f.slug} f={f} />)}</div>
     </>
   );
 }
