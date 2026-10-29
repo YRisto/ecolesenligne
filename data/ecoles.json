@@ -76,6 +76,63 @@
   "taux_reussite": "CAP AEPE : 84 % des inscrits ont obtenu le CAP (baromètre CNED 2022, déclaré par l'école) ; BTS MCO (Parcoursup) : 84,7 % de passage en 2e année, 50,4 % de réussite en 2 ou 3 ans ; autres : non communiqué"
  },
  {
+  "slug": "ecolechezsoi",
+  "nom": "École Chez Soi",
+  "groupe": "Skill&You",
+  "site": "https://www.ecolechezsoi.com",
+  "partenaire": true,
+  "avis": {
+   "source": "Avis Vérifiés",
+   "note": 4.3,
+   "nombre": 4269,
+   "url": "https://www.avis-verifies.com/avis-clients/skillandyou.com"
+  },
+  "garantie": "« Garantie Diplômé ou 100 % remboursé » pour les diplômes d'État (CAP, Bac pro, BTS) : remboursement du coût de la préparation (options exclues) en cas d'échec sous conditions (préinscription signalée sous 1 mois, tous les devoirs faits et refaits si demandé, stages requis effectués, dossiers d'examen envoyés 2 mois avant, présence à toutes les épreuves, pas de fraude) ; pas de mention satisfait ou remboursé / délai de rétractation sur les pages consultées",
+  "accompagnement": "Conseiller d'études (rappel sous 48 h), formateurs joignables par mail/téléphone/messagerie avec permanence téléphonique et rappel sur rendez-vous, corrections des devoirs, option coaching, coachs/tuteurs pour la recherche de stage (CV, entretien), référent handicap ; tél. 01 46 00 69 01 (horaires non précisés)",
+  "supports": "Espace élève en ligne (cours numériques, exercices, évaluations, podcasts), classes virtuelles, logiciels métier au programme (REVIT, Arche, Photoshop, SketchUp selon formation) ; ateliers et option print/coaching payants ; aucun matériel professionnel fourni",
+  "modalites": "100 % à distance, à son rythme, inscription toute l'année, démarrage ~10 jours après le premier échange, jusqu'à 36 mois d'accès ; alternance possible via le campus Skill & You",
+  "preparation_examen": "Examens blancs par épreuve, corrections par formateurs ; inscription à l'examen en candidat libre auprès de l'académie à faire soi-même (l'école accompagne les dossiers pour la garantie)",
+  "taux_reussite": "Publié par formation (résultats 2025 hors CFA) : BTS Bâtiment 69 %, CAP Électricien 94 % ; pas de taux global école"
+ },
+ {
+  "slug": "edaa",
+  "nom": "EDAA",
+  "groupe": "Skill&You",
+  "site": "https://www.edaa.fr",
+  "partenaire": true,
+  "avis": {
+   "source": "Avis internes du site (témoignages « certifiés »)",
+   "note": 4.5,
+   "nombre": 962,
+   "url": "https://www.edaa.fr/Page/L-ecole/Avis-et-temoignages-20.html"
+  },
+  "garantie": "aucune mention (ni satisfait ou remboursé, ni délai de rétractation, ni garantie diplômé) sur les pages consultées",
+  "accompagnement": "Référents pédagogiques professionnels en activité, suivi individuel personnalisé pendant 3 ans, équipe joignable par mail / messagerie / téléphone du lundi au vendredi 9h-18h (tél. 03 26 05 34 99), corrections détaillées des devoirs + relectures non notées de travaux en cours, lives/masterclasses, rencontres entre élèves, école « à taille humaine » (effectifs limités)",
+  "supports": "Plateforme e-learning accessible 24/7 (cours texte + images, vidéos sous-titrées, tutoriels, quiz, exercices, corrigés types), masterclasses en direct ; logiciels Adobe/SketchUp au programme (licences non précisées) ; pas de kit ni de livres mentionnés",
+  "modalites": "100 % à distance, à son rythme sans échéance imposée, inscription toute l'année, formations métiers ~10-12 mois indicatifs, accès aux cours et suivi 3 ans ; formations logiciels 1 à 3 mois",
+  "preparation_examen": "Contrôle continu, attestation de formation + bilan pédagogique en fin de parcours (formations métiers) ; certification TOSA incluse pour Photoshop/Illustrator/InDesign ; Prépa artistique prépare aux concours d'écoles d'art",
+  "taux_reussite": "non communiqué (enquête insertion 2025 : 36,7 % création d'activité/freelance, 5,6 % nouvel emploi ; 86,2 % des indépendants et 72,5 % des salariés en lien direct avec la formation)"
+ },
+ {
+  "slug": "educatel",
+  "nom": "Educatel",
+  "groupe": "Skill&You",
+  "site": "https://www.educatel.fr",
+  "partenaire": true,
+  "avis": {
+   "source": "Avis Vérifiés",
+   "note": 4.3,
+   "nombre": 4269,
+   "url": "https://www.avis-verifies.com/avis-clients/skillandyou.com"
+  },
+  "garantie": "« Garantie Diplômé ou 100% remboursé » affichée sur certaines fiches diplômantes (BTS NDRC, BTS Professions immobilières) sans conditions détaillées ; aucune mention de satisfait ou remboursé ni de délai de rétractation sur les pages consultées",
+  "accompagnement": "Formateurs experts (corrections personnalisées, rendez-vous téléphoniques), coaching personnalisé tout au long du parcours, aide individualisée à la rédaction du rapport de stage / dossier professionnel, module recherche de stage et d'emploi, référent handicap, bilan d'orientation ; tél. 01 46 00 68 98 (horaires non précisés)",
+  "supports": "Espace numérique de travail (ENT myskillandyou) accessible 24/7, cours e-learning, vidéos, podcasts, exercices auto-corrigés, classes virtuelles, mags métiers ; option « print » (cours papier) et option « ateliers » présentiels payantes ; aucun matériel professionnel fourni (à acheter séparément)",
+  "modalites": "100 % à distance, inscription toute l'année (entrée permanente), à son rythme, jusqu'à 36 mois d'accès ; classes virtuelles ; formules Standard (paiement échelonné), CPF, alternance (contrat d'apprentissage/professionnalisation via campus Skill & You)",
+  "preparation_examen": "Examens blancs par épreuve, mises en situation professionnelle corrigées par des formateurs, aide au dossier professionnel ; pour les diplômes d'État (CAP, Bac pro, BTS) inscription en candidat libre à faire soi-même auprès du rectorat ; pour les titres pro, présentation aux épreuves incluse (centre de Montrouge ou partenaire), second passage 500 €",
+  "taux_reussite": "Publié formation par formation (résultats 2025 hors CFA, calculés sur les apprenants ayant déclaré s'être présentés, taux de présentation souvent 20-70 %) ; pas de taux global école"
+ },
+ {
   "slug": "enaco",
   "nom": "ENACO",
   "groupe": "",
@@ -147,6 +204,25 @@
   "taux_reussite": "Non communiqué globalement ; par formation (2024-2025, déclaré école) : Gestionnaire comptable et fiscal 86 % (100 % apprentis sur 3), SAMA 80 % (10 présentés ; 67 % apprentis sur 3) ; DWWM et Comptable assistant : 'non significatif' (ouvertures 2025/2026)."
  },
  {
+  "slug": "ifsa",
+  "nom": "IFSA",
+  "groupe": "Skill&You",
+  "site": "https://www.ifsa-nature.fr",
+  "partenaire": true,
+  "avis": {
+   "source": "Avis Vérifiés",
+   "note": 4.5,
+   "nombre": 1317,
+   "url": "https://www.ifsa-nature.fr/ecole/avis"
+  },
+  "garantie": "« Garantie Diplômé ou 100 % remboursé » réservée aux élèves préparant un diplôme d'État (CAP Fleuriste) : remboursement du coût de la préparation (options exclues) en cas d'échec, sous conditions (préinscription signalée sous 1 mois, tous les devoirs faits, dossiers envoyés 2 mois avant, présence à toutes les épreuves, pas de fraude) ; pas de garantie pour les formations qualifiantes animalières ; pas de mention satisfait ou remboursé / rétractation sur les pages consultées",
+  "accompagnement": "Conseiller d'études (rappel sous 48 h), formateurs joignables par mail/téléphone/messagerie avec rendez-vous téléphoniques, corrections personnalisées des devoirs, coaching, tuteurs/coachs pour la recherche de stage (CV, entretien), référent handicap ; tél. 01 46 00 68 86 (horaires non précisés)",
+  "supports": "Espace élèves en ligne 24/7 (cours numériques, exercices, évaluations, podcasts, vidéos), classes virtuelles, mags « Soins animaliers » ; ateliers présentiels facultatifs payants, options coaching / print payantes ; aucun matériel professionnel fourni",
+  "modalites": "100 % à distance, à son rythme, inscription toute l'année, démarrage ~10 jours après le premier échange, jusqu'à 36 mois d'accès",
+  "preparation_examen": "CAP Fleuriste : examens blancs EP1/EP2, inscription en candidat libre à faire soi-même ; ACACED : QCM en ligne surveillé, 2 présentations incluses (2 tentatives chacune) ; formations qualifiantes : évaluations + rapport de stage + oral, attestation si moyenne ≥ 10/20",
+  "taux_reussite": "CAP Fleuriste 92 % (2025, hors CFA) ; ACACED non communiqué ; formations qualifiantes : seuls des taux de satisfaction (91-99 %) sont publiés"
+ },
+ {
   "slug": "les2rives",
   "nom": "Les 2 Rives",
   "groupe": "Adecco",
@@ -159,6 +235,44 @@
   "modalites": "100 % à distance (ou hybride/présentiel partout en France) ; entrées permanentes ; rythme adapté ; parcours 8 à 12 mois ; accessible aux personnes en situation de handicap",
   "preparation_examen": "préparation méthodologique à l'oral, simulation de jury ; relecture du dossier de validation",
   "taux_reussite": "93 % de réussite devant un jury VAE (site, 2025, déclaré) ; 90 % + <10 % d'abandon (TopFormation/MaFormation) ; taux de validation totale non communiqué (PDF indicateurs non lisible) ; 15 000 candidats accompagnés depuis 2002, 2 500 en 2025"
+ },
+ {
+  "slug": "lignes",
+  "nom": "Lignes et Formations",
+  "groupe": "Skill&You",
+  "site": "https://www.lignes-formations.com",
+  "partenaire": true,
+  "avis": {
+   "source": "Avis Vérifiés",
+   "note": 4.3,
+   "nombre": 4269,
+   "url": "https://www.avis-verifies.com/avis-clients/skillandyou.com"
+  },
+  "garantie": "« Garantie Diplômé ou 100 % remboursé » pour les formations certifiantes/diplômantes (remboursement en cas d'échec à l'examen sous conditions : inscription signalée, tous les devoirs rendus et refaits si insuffisants, dossiers d'examen envoyés 5 mois avant, présence à toutes les épreuves, pas de fraude) ; pas de mention de satisfait ou remboursé ni de délai de rétractation sur les pages consultées",
+  "accompagnement": "Conseiller d'études (rappel sous 48 h), formateurs joignables par messagerie, rendez-vous téléphoniques, permanence téléphonique (horaires non précisés), devoirs notés /20 avec corrections détaillées, coaching personnalisé, aide à la recherche de stage (CV, entretien, convention), référent handicap",
+  "supports": "Espace élèves 24h/24 (cours téléchargeables, vidéos, quiz, exercices, suivi de progression), classes virtuelles en direct (certaines enregistrées), tutoriels et outils interactifs ; options payantes coaching / ateliers présentiels / print ; matériel professionnel non fourni",
+  "modalites": "100 % à distance, à son rythme, inscription toute l'année (entrée permanente), démarrage ~10 jours après le premier échange, jusqu'à 36 mois d'accès ; alternance possible via le campus Skill & You",
+  "preparation_examen": "Examens blancs pour les formations certifiantes, corrections par formateurs ; CAP/Bac pro : inscription en candidat libre à faire soi-même ; titres pro : présentation aux épreuves incluse (Montrouge ou centre partenaire), second passage 500 €",
+  "taux_reussite": "Publié par formation (résultats 2025 hors CFA sur apprenants déclarés présents) ; pas de taux global école"
+ },
+ {
+  "slug": "minerve",
+  "nom": "Cours Minerve",
+  "groupe": "Skill&You",
+  "site": "https://www.skillandyou.com/fr/ecole/cours-minerve",
+  "partenaire": true,
+  "avis": {
+   "source": "Avis Vérifiés",
+   "note": 4.3,
+   "nombre": 4269,
+   "url": "https://www.avis-verifies.com/avis-clients/skillandyou.com"
+  },
+  "garantie": "« Garantie Diplômé ou remboursé » affichée sur les fiches diplômantes (CAP AEPE) ; conditions du groupe Skill & You (réservée aux diplômes d'État, remboursement du coût de la préparation hors options en cas d'échec, sous conditions d'assiduité, devoirs rendus, inscription à l'examen signalée, présence à toutes les épreuves) ; pas de mention satisfait ou remboursé / rétractation sur les pages consultées",
+  "accompagnement": "Formateurs experts santé/social joignables par message et téléphone, coachs dédiés (coaching personnalisé et renforcé), rendez-vous illimités avec les formateurs, lives collectifs animés par un formateur, accompagnement préparation concours, retours personnalisés, double tutorat (pédagogique + entreprise) en alternance ; horaires de permanence non précisés",
+  "supports": "Plateforme e-learning accessible 24h/24 et 7j/7, vidéos pédagogiques d'experts, classes virtuelles interactives, mises en situation et exercices pratiques, ateliers en présentiel (option) ; module « Bébé signe » (LSF petite enfance, 5 h) offert avec le CAP AEPE",
+  "modalites": "100 % à distance, à son rythme, inscription toute l'année, simulateur de durée selon heures/semaine ; stage obligatoire sur les parcours diplômants ; alternance possible via le CFA Skill & You (CAP AEPE, SAMA, ADVF, Bac pro ASSP) ; financement CPF, alternance ou paiement en plusieurs fois sans frais",
+  "preparation_examen": "Examens blancs et corrections personnalisées ; CAP AEPE en candidat libre (inscription auprès du rectorat, accompagnement aux démarches) ; titres pro : présentation aux épreuves organisée par Skill & You (centre de Montrouge ou partenaire)",
+  "taux_reussite": "Publié par formation : CAP AEPE 94 % réussite / 91 % satisfaction ; Secrétaire médicale (TP SAMA) 83 % réussite / 93 % satisfaction ; ADVF 100 % réussite / 92 % satisfaction (résultats 2025 hors CFA, sur apprenants déclarés présents)"
  },
  {
   "slug": "studi",
