@@ -1,0 +1,22 @@
+{
+  "code": "CAP-MODE",
+  "metiers": "Le CAP Métiers de la mode, vêtement flou (niveau 3) forme des couturiers et couturières capables de réaliser des vêtements souples (robes, chemisiers, jupes, lingerie) en atelier de confection ou chez un artisan. L'ONISEP le cite comme formation d'accès minimale aux métiers de couturier industriel et de tailleur-couturier. Les débouchés se situent dans l'industrie textile et habillement, les ateliers de retouche, les maisons de couture et de luxe, les ateliers de costumes de spectacle et l'artisanat. La retouche offre davantage d'opportunités que la création sur mesure, secteur restreint.",
+  "missions": "Le titulaire prépare la coupe, assemble et monte les pièces par piqûre, pose les finitions et contrôle la qualité à chaque étape. En industrie, il réalise une ou plusieurs opérations sur des machines spécialisées, parfois programmables, dont il assure l'entretien courant. En atelier artisanal, il prend des mensurations, adapte un patron, réalise les essayages et les retouches. Il respecte les délais, les consignes de sécurité et les exigences de qualité propres à chaque collection.",
+  "conditions": "Le travail se fait en atelier, en position assise prolongée devant la machine ou debout à la table de coupe, dans un environnement parfois bruyant. Dans l'industrie, les horaires peuvent être postés (2x8) et les tâches répétitives, avec des pièces qui changent selon les saisons. Dans l'artisanat et la couture, les délais serrés et les pics d'activité imposent des horaires irréguliers. La minutie, la patience et la bonne vue sont essentielles.",
+  "salaire": "L'ONISEP indique un salaire débutant à partir de 1 867 € brut mensuels pour un couturier industriel et de 1 868 à 2 200 € brut pour un tailleur-couturier, selon le lieu et le statut. Les salaires confirmés dépendent de la spécialisation : le haut de gamme et le luxe rémunèrent mieux que la confection courante, sans que nous ayons trouvé de statistique officielle consolidée. Les artisans à leur compte ont des revenus très variables selon leur clientèle. Le secteur reste globalement proche du SMIC en début de carrière.",
+  "evolution": "La poursuite d'études vers le Bac pro Métiers de la couture et de la confection, le BP Vêtement sur mesure ou le BTS Métiers de la mode permet d'accéder à des postes de modéliste, de chef d'atelier ou de technicien produit. Dans l'industrie, l'évolution passe par la polyvalence sur plusieurs machines, l'encadrement d'équipe, la formation des apprentis ou le contrôle qualité. Le luxe et la haute couture recherchent des mains qualifiées pour la couture haute fabrication. L'installation à son compte en retouche ou en création est une voie fréquente après quelques années.",
+  "sources": [
+    {
+      "titre": "ONISEP – Fiche métier Tailleur-couturier / Tailleuse-couturière",
+      "url": "https://www.onisep.fr/ressources/univers-metier/metiers/tailleur-couturier-tailleuse-couturiere/pdf"
+    },
+    {
+      "titre": "ONISEP – Fiche métier Couturier industriel / Couturière industrielle",
+      "url": "https://www.onisep.fr/ressources/univers-metier/metiers/couturier-industriel-couturiere-industrielle/pdf"
+    },
+    {
+      "titre": "Certif Info – CAP métiers de la mode, vêtement flou",
+      "url": "https://www.intercariforef.org/formations/details/certification-74733.html"
+    }
+  ]
+}

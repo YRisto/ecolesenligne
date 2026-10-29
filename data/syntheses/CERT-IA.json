@@ -1,0 +1,22 @@
+{
+  "code": "CERT-IA",
+  "metiers": "Cette formation courte ne prépare pas à un métier unique : elle apporte une compétence transversale utile dans la plupart des fonctions tertiaires (marketing, communication, RH, gestion, assistanat, vente, formation) et chez les indépendants. Selon l'étude Apec « Les cadres et l'IA 2026 », environ la moitié des cadres utilisent déjà l'IA générative au moins une fois par semaine, et deux tiers estiment que la maîtrise de ces outils sera une compétence importante à l'avenir. Des métiers émergents comme prompt engineer ou chef de projet IA existent mais restent rares et exigent généralement un bagage technique ou métier solide. L'objectif réaliste de la formation est de renforcer l'employabilité dans un poste existant.",
+  "missions": "Le stagiaire apprend à formuler des requêtes efficaces (prompts) auprès des assistants d'IA générative pour rédiger, résumer, traduire, analyser des données ou produire des visuels. Il découvre les principaux outils (texte, image, audio), leurs limites (erreurs, biais, confidentialité) et les règles d'usage responsable en entreprise. Il apprend à intégrer ces outils dans des processus concrets : préparation de réunions, création de contenus, automatisation de tâches répétitives. Une sensibilisation au cadre juridique (RGPD, droit d'auteur, AI Act) fait généralement partie du programme.",
+  "conditions": "La formation se suit à distance, à son rythme, avec des exercices pratiques sur des outils accessibles en ligne. Elle ne requiert aucun prérequis technique au-delà d'une aisance bureautique courante. Les usages réels dépendent ensuite de la politique de l'employeur : les grandes entreprises encouragent davantage ces pratiques (70 %) que les PME (53 %) et les TPE (45 %) d'après l'Apec. Le domaine évolue vite, ce qui impose une veille régulière après la formation.",
+  "salaire": "Cette certification ne débouche pas sur un salaire propre : la rémunération reste celle du métier exercé. Aucune statistique française fiable ne permet de chiffrer une prime salariale liée à la seule maîtrise de l'IA générative, et les montants spectaculaires parfois évoqués pour les « prompt engineers » concernent des profils techniques très spécialisés, souvent à l'étranger. Les fiches de sites spécialisés comme 75secondes.fr avancent des fourchettes de l'ordre de 3 000 à 5 000 € brut mensuels pour un prompt engineer en France, sans source officielle. Nous recommandons de considérer la formation comme un levier d'évolution dans son métier plutôt que comme un accès direct à un nouveau niveau de rémunération.",
+  "evolution": "La compétence acquise facilite l'accès à des missions de référent IA ou d'ambassadeur des usages numériques au sein d'un service. Elle constitue un socle pour des formations plus poussées : automatisation (no-code), data, marketing digital ou gestion de projet IA. L'Apec note que seuls 29 % des cadres déclarent avoir été formés à l'IA en 2026, ce qui donne un avantage relatif aux personnes formées. Pour les indépendants et créateurs de contenu, elle permet de gagner en productivité et d'élargir l'offre de services.",
+  "sources": [
+    {
+      "titre": "Le Monde Informatique – Un cadre sur deux utilise régulièrement la GenAI (étude Apec 2026)",
+      "url": "https://www.lemondeinformatique.fr/actualites/lireamp-un-cadre-sur-deux-utilise-regulierement-la-genai-100234.html"
+    },
+    {
+      "titre": "Le Journal des Entreprises – 73 % des salariés utilisent l'IA générative au travail (Greenworking / Ipsos BVA)",
+      "url": "https://www.lejournaldesentreprises.com/article/selon-greenworking-et-ipsos-bva-73-des-salaries-interroges-utilisent-lia-generative-au-travail-2147908"
+    },
+    {
+      "titre": "75secondes.fr – Fiche métier Prompt engineer",
+      "url": "https://www.75secondes.fr/metiers/informatique/prompt-engineer"
+    }
+  ]
+}

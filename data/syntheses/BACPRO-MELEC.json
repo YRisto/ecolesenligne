@@ -1,0 +1,22 @@
+{
+  "code": "BACPRO-MELEC",
+  "metiers": "Le Bac pro Métiers de l'électricité et de ses environnements connectés (niveau 4) forme des électriciens installateurs, des monteurs-câbleurs, des électromécaniciens, des techniciens de maintenance, des installateurs en télécoms ou en domotique et des ascensoristes. Les employeurs sont les entreprises d'installation électrique du bâtiment, l'industrie, les gestionnaires de réseaux d'énergie, les ascensoristes et les sociétés de maintenance. Le diplôme couvre les installations basse tension dans les secteurs du bâtiment, de l'industrie, des réseaux et des infrastructures. C'est l'un des bacs professionnels industriels les plus recherchés par les employeurs.",
+  "missions": "Le titulaire prépare, installe et met en service des équipements électriques : tableaux, câblages, éclairage, chauffage, automatismes et systèmes communicants. Il réalise les opérations de maintenance préventive et corrective, diagnostique les pannes et remplace les éléments défectueux. Il travaille à partir de schémas et de plans, applique les normes en vigueur (NF C 15-100) et les habilitations électriques. Il peut intervenir sur les réseaux de communication, la domotique, les bornes de recharge ou les installations photovoltaïques.",
+  "conditions": "Le travail s'exerce sur chantier, en atelier ou chez le client, souvent debout, en hauteur ou dans des espaces exigus, avec des déplacements fréquents. Les risques électriques imposent le respect strict des consignes de sécurité et le port d'équipements de protection. Les horaires sont généralement réguliers dans le bâtiment, mais des astreintes existent en maintenance industrielle ou chez les gestionnaires de réseaux. Le métier demande rigueur, autonomie et capacité à lire des documents techniques.",
+  "salaire": "Selon aufutur.fr, un électricien installateur débute entre 1 500 et 1 800 € net mensuels, soit environ 1 900 à 2 300 € brut ; un électromécanicien ou un technicien de maintenance industrielle entre 1 600 et 2 000 € net, et un chef de chantier en installations électriques entre 1 800 et 2 200 € net. Ces montants progressent avec l'ancienneté, les habilitations et les astreintes, sans que la source donne de fourchette pour les profils confirmés. Les conventions collectives du bâtiment prévoient des minima par niveau de qualification ainsi que des indemnités de déplacement et de panier. Les chiffres cités sont indicatifs et varient selon la région et le type d'employeur.",
+  "evolution": "La poursuite d'études en BTS Électrotechnique, Fluides-énergies-domotique, Maintenance des systèmes ou Conception et réalisation de systèmes automatiques est fréquente, ainsi que les mentions complémentaires (ascensoriste, réseaux électriques, énergies renouvelables). Sur le terrain, l'électricien évolue vers chef d'équipe, chef de chantier puis conducteur de travaux. Les spécialisations porteuses concernent les énergies renouvelables, les bornes de recharge, la domotique et la maintenance ferroviaire. La création d'une entreprise artisanale d'électricité est une voie répandue après plusieurs années d'expérience.",
+  "sources": [
+    {
+      "titre": "aufutur.fr – Bac pro MELEC : programme, débouchés et salaires",
+      "url": "https://aufutur.fr/etudes-superieures/bac-pro-melec-matieres-options-debouches-salaires/"
+    },
+    {
+      "titre": "CIO Grenoble – Fiche Bac pro MELEC",
+      "url": "https://cio.web.ac-grenoble.fr/sites/default/files/inline-images/biLdJN7wtYCvxd4AnacubCzFtj4g43CcG2vGPv2q4IRph8bdx0.pdf"
+    },
+    {
+      "titre": "Lycée Paul Langevin (Beauvais) – Fiche formation Bac pro MELEC",
+      "url": "https://paul-langevin-beauvais.ac-amiens.fr/images/formations/apprentissage/Formation_UFA_Bac_pro_Melec.pdf"
+    }
+  ]
+}

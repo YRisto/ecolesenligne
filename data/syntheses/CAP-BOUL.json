@@ -1,0 +1,26 @@
+{
+  "code": "CAP-BOUL",
+  "metiers": "Le CAP Boulanger (niveau 3) est le diplôme de référence pour exercer comme boulanger ouvrier en boulangerie artisanale, en terminal de cuisson, en grande distribution ou en industrie agroalimentaire. Le métier correspond au code ROME D1102 (boulangerie-viennoiserie). La Confédération nationale de la boulangerie-pâtisserie décrit un métier artisanal qui valorise le fait maison et exige des connaissances techniques et une grande régularité. Le diplôme est également exigé pour s'installer à son compte en tant qu'artisan.",
+  "missions": "Le boulanger pétrit, façonne, conduit la fermentation et cuit pains et viennoiseries, avec une première fournée vers 4 heures du matin. Il contrôle la qualité des matières premières et des produits finis, réceptionne et stocke les livraisons et planifie la production. Il prépare souvent des produits de snacking (sandwichs, quiches, pizzas) pour le déjeuner et renforce la vente aux heures d'affluence. L'entretien du poste de travail et le respect strict des règles d'hygiène et de traçabilité font partie du quotidien.",
+  "conditions": "Le travail se fait debout, dans la chaleur et l'humidité du fournil, avec des horaires très matinaux (lever entre 4 h et 6 h, parfois plus tôt) et un travail fréquent le week-end et les jours fériés. Les équipements modernes (pétrin, chambre de fermentation contrôlée, four automatique) allègent une partie de la pénibilité. Le métier reste physique et demande organisation, méthode et un vrai sens du produit. Les débouchés sont réels tant dans l'artisanat que dans la distribution, l'emploi étant décrit comme stable par la CMA Grand Est.",
+  "salaire": "Un boulanger débutant titulaire du CAP est rémunéré au niveau du SMIC ou du minimum conventionnel de la boulangerie-pâtisserie (IDCC 843) : environ 1 740 à 1 800 € brut mensuels aux premiers coefficients selon la grille relayée par YouSchool. Un ouvrier confirmé se situe autour de 1 880 à 2 300 € brut, et un chef boulanger ou responsable de fabrication entre 2 000 et 3 000 € brut selon l'expérience et l'établissement. L'artisan installé à son compte dégage des revenus très variables, de 2 600 à plus de 4 000 € par mois selon le chiffre d'affaires et l'emplacement. Ces montants sont indicatifs et varient selon la région (majorations en Île-de-France).",
+  "evolution": "Après le CAP, la mention complémentaire ou le BP Boulanger puis le Brevet de maîtrise permettent de se spécialiser et d'accéder aux fonctions de chef d'équipe ou de responsable de fabrication. L'installation à son compte, par création ou reprise d'une boulangerie, est l'évolution la plus courante dans l'artisanat. Des spécialisations en viennoiserie, pâtisserie ou boulangerie-restauration ainsi que des opportunités à l'international existent. Le concours de Meilleur ouvrier de France constitue la distinction la plus haute du métier.",
+  "sources": [
+    {
+      "titre": "Confédération nationale de la boulangerie-pâtisserie – Fiche métier Boulanger (2025)",
+      "url": "https://boulangerie.org/wp-content/uploads/Fiche-metier-Boulanger.pdf"
+    },
+    {
+      "titre": "CMA Grand Est – Fiche métier Boulanger (2025)",
+      "url": "https://www.cma-alsace-moselle-grandest.fr/sites/default/files/2025-08/FM%20Boulanger%20V6%20062025.pdf"
+    },
+    {
+      "titre": "YouSchool – Grille de salaires boulangerie (IDCC 843)",
+      "url": "https://www.youschool.fr/metiers-de-bouche/boulanger/salaire-boulangerie/"
+    },
+    {
+      "titre": "OPCO – Fiche métier ROME D1102 Boulanger",
+      "url": "https://opcodirect.fr/metier/boulanger"
+    }
+  ]
+}

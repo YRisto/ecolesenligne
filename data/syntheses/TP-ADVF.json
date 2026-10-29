@@ -1,0 +1,22 @@
+{
+  "code": "TP-ADVF",
+  "metiers": "Le titre professionnel Assistant de vie aux familles (RNCP 35506, niveau 3) du ministère du Travail prépare aux métiers d'assistant de vie, auxiliaire de vie à domicile, aide à domicile et garde d'enfants à domicile. Il couvre les codes ROME K1302 (assistance auprès d'adultes), K1303 (assistance auprès d'enfants), K1304 (services domestiques) et K1305 (intervention sociale et familiale). Les employeurs sont les associations et entreprises d'aide à domicile (mode prestataire), les particuliers employeurs (emploi direct ou mandataire) et parfois les structures collectives. Le secteur de l'aide à domicile recrute massivement sous l'effet du vieillissement de la population.",
+  "missions": "L'ADVF entretient le logement et le linge des particuliers et accompagne les personnes âgées, malades ou en situation de handicap dans les actes du quotidien : aide à la toilette, à l'habillage, aux déplacements, aux courses et aux repas. Il contribue au maintien du lien social, prévient les risques et sait réagir en situation d'urgence. Le troisième bloc du titre porte sur la garde d'enfants à domicile : sécurité, accompagnement des apprentissages, gestes courants (repas, toilette, coucher). Il travaille en lien avec la famille et les autres intervenants (infirmiers, aides-soignants, services sociaux).",
+  "conditions": "Le métier s'exerce au domicile de plusieurs personnes dans la journée, ce qui implique des déplacements fréquents et une mobilité indispensable. Les horaires sont fractionnés, souvent tôt le matin, en soirée, le week-end et les jours fériés, et le temps partiel est répandu. Le travail est physiquement et émotionnellement exigeant (port de charges, accompagnement de personnes dépendantes). Les qualités requises sont l'écoute, la patience, la discrétion et l'autonomie.",
+  "salaire": "Dans la branche de l'aide à domicile (IDCC 2941), le salaire minimum à temps plein correspond au SMIC, soit 1 867 € brut mensuels en 2026, avec un complément d'environ 63 € brut pour un diplôme de niveau 3 reconnu par la branche selon salerya.fr. L'ancienneté dans la branche ajoute quelques pourcents, de sorte qu'un profil confirmé reste généralement entre 1 900 et 2 100 € brut à temps plein ; les majorations de 45 % pour dimanches et jours fériés complètent ce socle. Chez un particulier employeur (IDCC 3239), la rémunération se calcule à l'heure, à partir d'environ 12,90 € brut. Le temps partiel, très fréquent, réduit d'autant la rémunération mensuelle effective.",
+  "evolution": "Le titre ADVF, obtenu en totalité ou bloc par bloc, ouvre des passerelles vers le DEAES (accompagnant éducatif et social) avec allègements, puis vers le DEAS (aide-soignant). Avec l'expérience, l'ADVF peut devenir responsable de secteur ou coordinateur dans un service d'aide à domicile. Une spécialisation vers la garde d'enfants (CAP AEPE) ou l'accompagnement du handicap est possible. Le titre est fréquemment obtenu par VAE par des salariés déjà en poste.",
+  "sources": [
+    {
+      "titre": "France Compétences – TP Assistant de vie aux familles (fiche RNCP 4821, remplacée par RNCP 35506)",
+      "url": "https://www.francecompetences.fr/recherche/RNCP/4821"
+    },
+    {
+      "titre": "LADAPT – Plaquette Titre professionnel ADVF 2024",
+      "url": "https://www.ladapt.net/sites/default/files/atoms/document/plaquette_titre_professionnel_assistante_de_vie_aux_familles_2024.pdf"
+    },
+    {
+      "titre": "Salerya – Salaire d'une auxiliaire de vie (grilles IDCC 2941 et 3239)",
+      "url": "https://salerya.fr/metiers/sante/auxiliaire-de-vie/"
+    }
+  ]
+}

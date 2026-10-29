@@ -1,0 +1,22 @@
+{
+  "code": "TP-GRAPH",
+  "metiers": "Le titre professionnel Graphiste (RNCP 39532, niveau 5) du ministère du Travail prépare aux métiers de graphiste, infographiste, maquettiste, designer graphique, webdesigner, illustrateur ou motion designer. France Compétences le rattache aux codes ROME E1103 (communication), E1104 et E1205 (conception et réalisation de contenus multimédias), E1305 et E1306 (édition et prépresse). Les employeurs sont les agences de communication et de publicité, les studios graphiques, les services communication des entreprises et institutions, l'édition et l'imprimerie. Une part importante des graphistes exerce en freelance.",
+  "missions": "Le graphiste conçoit et réalise des compositions graphiques : mise en page, illustration, identité visuelle, affiches, packaging, PLV et signalétique. Il décline ces créations sur les supports numériques (réseaux sociaux, bannières, visuels web) et peut produire du motion design ou de la vidéo. Il recueille le besoin du client, propose des pistes créatives, coordonne les prestataires (imprimeurs, développeurs) et suit la qualité technique jusqu'à la livraison. Il assure une veille créative et technologique, notamment sur les outils d'IA générative qui déplacent la valeur du métier vers le concept et la direction artistique.",
+  "conditions": "Le travail s'effectue sur poste informatique avec les suites Adobe et Figma, en agence, en entreprise ou à domicile pour les indépendants. Les délais de livraison et les allers-retours avec les clients génèrent des pics d'activité et parfois des horaires étendus. Les freelances doivent consacrer du temps à la prospection et à la gestion administrative. Un portfolio de cinq à dix projets documentés compte souvent autant que le diplôme à l'embauche.",
+  "salaire": "Selon l'enquête emploi 2026 citée par meilleurs-masters.com, la majorité des offres pour un graphiste print et digital se situent entre 25 000 et 42 000 € brut annuels, soit environ 2 100 à 3 500 € brut mensuels, avec une moyenne autour de 33 000 € par an. Les débutants démarrent proches du SMIC, soit environ 1 870 à 2 000 € brut mensuels. Un webdesigner confirmé se situe autour de 2 900 € brut mensuels et un directeur artistique autour de 3 700 €. Les revenus des freelances varient fortement selon le portefeuille clients et les tarifs journaliers pratiqués.",
+  "evolution": "Avec l'expérience, le graphiste évolue vers la direction artistique, la direction de création ou le pilotage de projets de communication visuelle. Des spécialisations en motion design, UX/UI design, packaging ou illustration permettent de se différencier. La poursuite d'études vers un bachelor ou un DN MADE, ou un titre de concepteur designer UI, est possible. L'installation en freelance ou la création d'un studio est une trajectoire courante.",
+  "sources": [
+    {
+      "titre": "Certif Info / France Compétences – TP Graphiste (RNCP 39532)",
+      "url": "https://www.intercariforef.org/formations/details/certification-117467.html"
+    },
+    {
+      "titre": "ONISEP – TP graphiste",
+      "url": "https://www.onisep.fr/ressources/univers-formation/formations/post-bac/tp-graphiste"
+    },
+    {
+      "titre": "Meilleurs Masters – Fiche métier Graphiste print et digital (salaires 2026)",
+      "url": "https://www.meilleurs-masters.com/metiers/graphiste-print-digital"
+    }
+  ]
+}
