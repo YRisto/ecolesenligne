@@ -15,7 +15,31 @@
   "domaine": "Commerce & Marketing",
   "type": "BTS",
   "niveau": "Bac+2 (niveau 5)",
-  "synthese": null
+  "synthese": {
+   "metiers": "Le BTS Banque prépare principalement au métier de conseiller ou chargé de clientèle particuliers en agence bancaire, référencé sous le code ROME C1206 (gestion de clientèle bancaire). Les diplômés peuvent aussi exercer en plateforme téléphonique de banque en ligne, dans un bureau de poste bancaire ou chez un organisme de crédit. Après quelques années, le périmètre s'élargit vers la clientèle des professionnels, puis des entreprises. France Travail indique qu'un diplôme bac+2 commercial ou bancaire est le niveau d'accès habituel, l'alternance étant très répandue dans le secteur.",
+   "missions": "Le conseiller clientèle accueille les clients, identifie leurs besoins financiers et leur propose les produits et services adaptés : comptes, moyens de paiement, épargne, crédits et assurances. Il instruit les demandes de prêt, suit les comptes et les justificatifs, et assure le service après-vente en répondant aux réclamations. Il doit respecter la réglementation bancaire et les procédures de conformité de l'établissement. Il informe régulièrement sa clientèle des nouvelles offres et se forme en continu aux évolutions produits et réglementaires.",
+   "conditions": "Le métier s'exerce en agence, en bureau de poste, chez un organisme de crédit ou sur plateforme téléphonique, avec des déplacements possibles. Le travail le samedi est fréquent dans la banque de détail. L'activité est rythmée par des objectifs commerciaux, ce qui génère une pression régulière, et le contact avec des clients mécontents fait partie du quotidien. En contrepartie, le travail est varié, les primes variables sont courantes et l'équilibre vie professionnelle/personnelle est généralement jugé correct.",
+   "salaire": "Selon la fiche métier Dogfinance, un conseiller clientèle particuliers débutant gagne entre 25 000 et 30 000 € brut par an, soit environ 2 100 à 2 500 € brut par mois, auxquels s'ajoute souvent une part variable. Avec 2 à 5 ans d'expérience, la fourchette monte à 30 000-40 000 € brut annuels (2 500 à 3 300 € par mois), et au-delà de 5 ans à 40 000-50 000 €. La grille Michael Page pour l'Île-de-France donne un salaire fixe annuel entre 32 000 € (bas) et 44 000 € (haut), pour une moyenne de 37 500 €. La fiche ROME de France Travail ne mentionne pas de salaire.",
+   "evolution": "France Travail cite comme évolutions naturelles les métiers de relation clients entreprises (C1203), de conseil en gestion de patrimoine (C1205) et de management en exploitation bancaire (C1207), c'est-à-dire directeur ou adjoint d'agence. Le passage vers la clientèle professionnelle ou entreprise demande souvent une expérience confirmée et une formation complémentaire, par exemple à l'Institut technique de banque. Des passerelles existent aussi vers le conseil en assurances et la gestion locative. La poursuite d'études en licence professionnelle banque-assurance est une voie fréquente pour accélérer ce parcours.",
+   "sources": [
+    {
+     "titre": "France Travail – Fiche ROME C1206 Gestion de clientèle bancaire",
+     "url": "https://www.francetravail.fr/files/live/sites/grand-est/files/Documents%20hors%20images/charge_clientele_bancaire.pdf"
+    },
+    {
+     "titre": "Dogfinance – Fiche métier Conseiller clientèle particuliers",
+     "url": "https://dogfinance.com/metier/conseiller-clientele-particuliers"
+    },
+    {
+     "titre": "Michael Page – Grille de salaires Conseiller clientèle particuliers banque",
+     "url": "https://www.michaelpage.fr/grilles-de-salaires/banque/banque-de-d%C3%A9tailen-ligne-conseiller-client%C3%A8le-particuliers-banque"
+    },
+    {
+     "titre": "Intercariforef – Certification BTS Banque option marché des particuliers",
+     "url": "https://www.intercariforef.org/formations/certification-18834.html"
+    }
+   ]
+  }
  },
  {
   "code": "BTS-CI",
@@ -51,7 +75,27 @@
   "domaine": "Gestion & RH",
   "type": "BTS",
   "niveau": "Bac+2 (niveau 5)",
-  "synthese": null
+  "synthese": {
+   "metiers": "Le BTS Gestion de la PME forme des assistants de gestion polyvalents, interlocuteurs directs du dirigeant dans les petites et moyennes entreprises. L'ONISEP cite ce BTS comme formation de référence pour le métier d'assistant de gestion en PME, et France Travail le rattache à l'assistanat technique et administratif (ROME M1605). On retrouve ces profils sous les intitulés assistant administratif, assistant de gestion, assistant commercial ou assistant de direction en TPE-PME. Le diplôme est reconnu au niveau bac+2 et s'obtient en formation initiale, en alternance ou à distance.",
+   "missions": "L'assistant de gestion prend en charge des tâches comptables, commerciales et administratives : gestion du courrier, facturation, relances d'impayés, préparation de la paie et des plannings. Il passe les commandes auprès des fournisseurs, compare les tarifs et participe à la prospection clients. Il tient la comptabilité à jour, l'analyse et alerte la direction sur les risques et opportunités. Selon France Travail, il peut aussi suivre des dossiers techniques, participer aux appels d'offres, rédiger des comptes rendus et contribuer au reporting budgétaire.",
+   "conditions": "Le poste s'exerce le plus souvent dans une PME de moins de 50 salariés ou une TPE, avec une autonomie limitée au départ qui s'élargit avec l'expérience. L'ONISEP signale des horaires parfois allongés, notamment pour les points de fin de journée, et une présence renforcée lors des pics d'activité. Le travail suppose organisation, réactivité, discrétion et sens du contact, ainsi qu'une bonne maîtrise des outils bureautiques. L'anglais est un atout dans les entreprises tournées vers l'export.",
+   "salaire": "L'ONISEP indique pour un assistant de gestion en PME débutant un salaire d'au moins 1 900 € brut par mois, pouvant atteindre 3 100 € brut selon le lieu d'exercice, la taille de l'entreprise et le statut. La fiche ROME M1605 de France Travail ne mentionne pas de salaire. Nous n'avons pas trouvé de fourchette officielle pour un profil confirmé ; les postes de responsable administratif vers lesquels le métier évolue sont logiquement mieux rémunérés, sans que nous puissions le chiffrer précisément ici.",
+   "evolution": "Avec l'expérience, l'assistant de gestion peut devenir responsable des services généraux ou responsable administratif dans une structure plus grande. France Travail cite aussi des évolutions vers les postes de technicien de gestion administrative et de secrétaire technique, ainsi que des passerelles vers l'assistanat commercial et l'assistanat de direction. Le métier s'exerce également dans les organismes publics, les associations, les cabinets de conseil ou les centres de gestion. Une poursuite d'études en licence professionnelle ou en BUT GEA est possible pour élargir les responsabilités.",
+   "sources": [
+    {
+     "titre": "ONISEP – Fiche métier Assistant / Assistante de gestion en PME",
+     "url": "https://www.onisep.fr/ressources/univers-metier/metiers/assistant-assistante-de-gestion-en-pme/pdf"
+    },
+    {
+     "titre": "France Travail – Fiche ROME M1605 Assistanat technique et administratif",
+     "url": "https://ent2d.ac-bordeaux.fr/disciplines/gestion-administration/wp-content/uploads/sites/51/2020/03/FICHE-METIER-ASSISTANTE-GESTION-DENTREPRISE-M1605-.pdf"
+    },
+    {
+     "titre": "Copeps – Débouchés professionnels après un BTS GPME",
+     "url": "https://copeps.fr/actualites/bts-gestion-pme-debouche-diplomeo/"
+    }
+   ]
+  }
  },
  {
   "code": "BTS-MCO",
@@ -87,7 +131,27 @@
   "domaine": "Gestion & RH",
   "type": "BTS",
   "niveau": "Bac+2 (niveau 5)",
-  "synthese": null
+  "synthese": {
+   "metiers": "Le BTS Support à l'action managériale prépare au métier d'assistant de direction, aussi appelé assistant manager ou office manager, que l'ONISEP présente comme un poste à responsabilités. France Travail le classe dans l'assistanat de direction (ROME M1604). Le métier s'exerce dans tous les secteurs : commerce, services, industrie, BTP, énergie, mais aussi dans les administrations et associations. Le BTS SAM est cité par l'ONISEP comme l'une des principales formations d'accès, au niveau bac+2.",
+   "missions": "L'assistant de direction seconde un ou plusieurs dirigeants : gestion de l'agenda et des rendez-vous, organisation des déplacements, préparation des réunions et séminaires. Il rédige les comptes rendus, filtre les appels et le courrier, et représente la direction auprès des clients et partenaires. Il peut suivre des dossiers transverses, coordonner le travail de secrétaires et contribuer à la communication interne. Des compétences juridiques, commerciales ou financières sont de plus en plus recherchées, de même que la maîtrise d'une ou deux langues étrangères.",
+   "conditions": "L'ONISEP décrit avant tout un métier de contact qui demande amabilité, disponibilité, sens de l'organisation, initiative, adaptabilité et discrétion. Le rythme suit celui de la direction, avec des pics d'activité avant les échéances importantes, même si la fiche ne détaille pas les horaires. Selon la taille de la structure, l'assistant travaille seul ou encadre une petite équipe administrative. La maîtrise des outils bureautiques et collaboratifs est indispensable.",
+   "salaire": "L'ONISEP indique un salaire débutant d'au moins 2 200 € brut par mois, variable selon le lieu d'exercice et le statut. La fiche métier consultée ne donne pas de fourchette pour un profil confirmé, et nous n'avons pas trouvé de donnée officielle récente sur ce point. Les offres d'emploi publiées sur France Travail pour des assistants de direction expérimentés en Île-de-France peuvent servir de repère complémentaire, sans constituer une statistique.",
+   "evolution": "La fiche ONISEP ne décrit pas de parcours d'évolution formalisé. Dans la pratique, les évolutions passent par l'assistanat de direction générale, l'office management ou la responsabilité d'un service administratif. France Travail signale des passerelles entre l'assistanat de direction et l'assistanat technique, commercial ou la gestion administrative. Une spécialisation (juridique, RH, communication) ou une poursuite d'études en licence professionnelle permet d'élargir les responsabilités.",
+   "sources": [
+    {
+     "titre": "ONISEP – Fiche métier Assistant / Assistante de direction",
+     "url": "https://www.onisep.fr/ressources/univers-metier/metiers/assistant-assistante-de-direction/pdf"
+    },
+    {
+     "titre": "France Travail – Fiche ROME M1605 (passerelles avec l'assistanat de direction M1604)",
+     "url": "https://ent2d.ac-bordeaux.fr/disciplines/gestion-administration/wp-content/uploads/sites/51/2020/03/FICHE-METIER-ASSISTANTE-GESTION-DENTREPRISE-M1605-.pdf"
+    },
+    {
+     "titre": "Trouver École – Fiche métier Assistant de direction (ROME M1604)",
+     "url": "https://trouverecole.fr/metiers/assistant-assistante-de-direction/"
+    }
+   ]
+  }
  },
  {
   "code": "BTS-TOUR",
@@ -123,7 +187,31 @@
   "domaine": "Petite enfance & Social",
   "type": "CAP",
   "niveau": "Niveau 3",
-  "synthese": null
+  "synthese": {
+   "metiers": "Le CAP Accompagnant éducatif petite enfance ouvre les métiers de l'accueil des enfants de 0 à 6 ans : agent de crèche ou aide auxiliaire de puériculture en structure collective, animateur petite enfance, auxiliaire parentale ou garde d'enfants à domicile (ROME K1303). Il est le diplôme indispensable pour passer le concours d'ATSEM (agent territorial spécialisé des écoles maternelles) et il est vivement recommandé pour obtenir l'agrément d'assistant maternel. L'ONISEP et France Travail le citent comme diplôme de référence de niveau CAP pour ce secteur.",
+   "missions": "Le titulaire accueille et encadre les enfants pendant les soins du quotidien (change, toilette, repas) et les temps de jeu. Il favorise l'autonomie de l'enfant, identifie ses besoins et met en place des activités d'éveil adaptées. Il prépare et sert collations et repas, entretient les locaux et le matériel et sécurise les espaces de vie. En école maternelle, l'ATSEM assiste l'enseignant, prépare les ateliers et surveille la cantine et la cour ; à domicile, le garde d'enfants peut aussi gérer les horaires de sommeil et aider aux devoirs.",
+   "conditions": "En structure collective (crèche, halte-garderie, multi-accueil), le travail se fait en équipe pluridisciplinaire avec puéricultrices, auxiliaires de puériculture et éducateurs de jeunes enfants. À domicile, l'ONISEP décrit des journées chargées de 8 h à 19 h, des horaires fixés par contrat avec les parents et une vigilance constante face aux risques d'accident. France Travail signale pour la garde d'enfants des horaires décalés et du travail pendant les vacances scolaires. Le métier demande une bonne condition physique et de la patience.",
+   "salaire": "Nous n'avons pas trouvé de fourchette officielle de salaire brut mensuel pour les postes en crèche dans les sources consultées ; les offres publiées sur France Travail pour ces postes se situent généralement autour du SMIC (environ 1 800 € brut mensuels en 2025). Pour les assistants maternels, l'ONISEP indique un minimum de 3,64 € brut par heure et par enfant selon la convention collective des particuliers employeurs. Les ATSEM sont des fonctionnaires territoriaux de catégorie C, rémunérés selon la grille indiciaire. En formation par alternance, la rémunération va de 25 % à 100 % du SMIC selon l'âge et le contrat.",
+   "evolution": "Le CAP AEPE permet de préparer le concours d'ATSEM, puis d'être titularisé après un an de stage. Il ouvre aussi l'accès aux sélections d'entrée en formation d'auxiliaire de puériculture, d'aide-soignant ou d'accompagnant éducatif et social. France Travail cite comme évolutions possibles les métiers d'éducateur de jeunes enfants, d'auxiliaire de puériculture, de moniteur-éducateur ou d'assistant maternel agréé. La poursuite en bac pro ASSP ou SAPAT est également possible.",
+   "sources": [
+    {
+     "titre": "Mission Locale de Paris – Fiche CAP Accompagnant éducatif petite enfance",
+     "url": "https://www.missionlocale.paris/wp-content/uploads/2020/06/FT-CAPAEPE-2020.pdf"
+    },
+    {
+     "titre": "ONISEP – Fiche métier ATSEM",
+     "url": "https://www.onisep.fr/ressources/univers-metier/metiers/agent-territorial-specialise-agente-territoriale-specialisee-des-ecoles-maternelles/pdf"
+    },
+    {
+     "titre": "ONISEP – Fiche métier Assistant maternel / Assistante maternelle",
+     "url": "https://www.onisep.fr/ressources/univers-metier/metiers/assistant-maternel-assistante-maternelle/pdf"
+    },
+    {
+     "titre": "Fiche ROME K1303 Assistance auprès d'enfants (OPCO Direct)",
+     "url": "https://opcodirect.fr/metier/garde-d-enfant"
+    }
+   ]
+  }
  },
  {
   "code": "CAP-BOUL",
@@ -159,7 +247,27 @@
   "domaine": "Santé & Bien-être",
   "type": "CAP",
   "niveau": "Niveau 3",
-  "synthese": null
+  "synthese": {
+   "metiers": "Le CAP Esthétique cosmétique parfumerie est le diplôme d'entrée du métier d'esthéticien-cosméticien, que l'ONISEP présente comme accessible dès le niveau CAP. Les diplômés travaillent en institut de beauté, en parfumerie, en salon de coiffure, en parapharmacie, en centre de thalassothérapie ou à domicile. Le secteur recherche particulièrement les profils polyvalents (manucure, maquillage, soins) et mobiles. Le CAP peut être complété par un brevet professionnel ou un bac pro pour accéder à des postes plus techniques.",
+   "missions": "L'esthéticienne réalise des soins du visage (nettoyage, modelage, masques) adaptés au type de peau et conseille en maquillage. Elle pratique des soins du corps : épilations, manucures, enveloppements, balnéo-esthétique ou aromathérapie. Elle conseille et vend des produits cosmétiques et participe au réassortiment du magasin. Dans certains contextes (maternité, maison de retraite, hôpital), elle intervient à domicile ou en établissement auprès de publics fragiles.",
+   "conditions": "Le métier implique un contact direct et permanent avec la clientèle, qui exige amabilité, écoute et présentation soignée. Le travail se fait majoritairement debout, ce qui demande une bonne résistance physique. Les horaires et les responsabilités varient selon que l'on est salarié ou chef d'entreprise, avec des ouvertures le samedi fréquentes en institut. Des déplacements sont possibles pour les prestations à domicile ou les postes commerciaux.",
+   "salaire": "L'ONISEP indique un salaire débutant à partir de 1 867 € brut par mois, soit un niveau proche du SMIC, variable selon le lieu d'exercice et le statut. Nous n'avons pas trouvé de donnée officielle sur le salaire d'une esthéticienne confirmée ; l'ONISEP note en revanche que les postes commerciaux (démonstrateur, représentant de grandes marques) sont généralement bien rémunérés. Les indépendantes à leur compte ont des revenus qui dépendent de leur clientèle et de leurs charges.",
+   "evolution": "Les débuts se font généralement en tant que salarié, avant une éventuelle installation à son compte en ouvrant un institut ou un point de vente. L'ONISEP mentionne des évolutions vers des postes commerciaux chez les grandes marques de cosmétiques. Les fonctions d'encadrement (responsable d'institut, formatrice) sont accessibles avec un BTS Métiers de l'esthétique-cosmétique-parfumerie. La spécialisation (onglerie, maquillage, spa) est une autre voie de développement.",
+   "sources": [
+    {
+     "titre": "ONISEP – Fiche métier Esthéticien-cosméticien / Esthéticienne-cosméticienne",
+     "url": "https://www.onisep.fr/ressources/univers-metier/metiers/estheticien-cosmeticien-estheticienne-cosmeticienne/pdf"
+    },
+    {
+     "titre": "WorldSkills France – Fiche métier Soins esthétiques",
+     "url": "https://worldskills2024.com/wp-content/uploads/2024/07/SOINS-ESTHETIQUES-FICHE-METIER.pdf"
+    },
+    {
+     "titre": "CMA Formation Bretagne – BP Esthétique cosmétique parfumerie (poursuite d'études)",
+     "url": "https://www.cma-formation-bretagne.fr/wp-content/uploads/sites/2/2023/09/BP-ESTHETIQUE-COSMETIQUE-PARFUMERIE-1.pdf"
+    }
+   ]
+  }
  },
  {
   "code": "CAP-FLEU",
@@ -195,7 +303,27 @@
   "domaine": "Bâtiment & Technique",
   "type": "CAP",
   "niveau": "Niveau 3",
-  "synthese": null
+  "synthese": {
+   "metiers": "Le CAP Maintenance des véhicules option motocycles forme des mécaniciens moto, chargés de l'entretien et de la réparation des deux-roues motorisés. Selon l'ONISEP, le CAP prépare au poste de mécanicien, tandis que le bac pro ouvre celui de technicien, qui traite les diagnostics complexes. Les employeurs sont les concessions, les garages indépendants spécialisés, les ateliers de réseaux de distribution et, plus rarement, les équipes de compétition. L'activité est plus dense en région parisienne et dans le sud de la France.",
+   "missions": "Le mécanicien moto réalise les réparations, contrôles et réglages courants sur le moteur, la transmission, le freinage, les suspensions, le carénage et l'électronique. Sur deux-roues, on répare souvent plutôt que de remplacer, ce qui demande de la minutie. Il participe au diagnostic avec le technicien, prépare les devis simples et conseille la clientèle sur les accessoires et leur pose. Il peut aussi assurer des dépannages ou aller chercher des pièces.",
+   "conditions": "Le travail se fait debout, souvent penché au-dessus de la machine et parfois dans des positions inconfortables, au contact de graisses et de produits toxiques. Les ateliers sont petits (3 à 4 personnes au maximum), ce qui donne beaucoup d'autonomie. Les horaires sont réguliers, avec une ouverture fréquente le samedi matin et des déplacements possibles. La mobilité géographique facilite l'accès à l'emploi.",
+   "salaire": "L'ONISEP indique un salaire débutant à partir de 1 867 € brut par mois, variable selon le lieu d'exercice et le statut. Nous n'avons pas trouvé dans les sources consultées de fourchette officielle pour un mécanicien ou technicien moto confirmé. L'évolution vers les postes de technicien puis de chef d'atelier s'accompagne logiquement d'une revalorisation, sans chiffre officiel disponible ici.",
+   "evolution": "Après quelques années d'expérience et de formation continue, le mécanicien devient technicien de maintenance, puis éventuellement chef d'atelier. Dans les grandes structures, il peut évoluer vers les postes de réceptionnaire ou de conseiller technique. La création de sa propre entreprise est une voie fréquente dans ce secteur artisanal. Côté formation, le bac pro maintenance des véhicules option motocycles, la FCIL mécanicien moto de compétition ou le BTS maintenance des véhicules permettent de monter en qualification.",
+   "sources": [
+    {
+     "titre": "ONISEP – Fiche métier Mécanicien / technicien moto",
+     "url": "https://www.onisep.fr/ressources/univers-metier/metiers/mecanicien-mecanicienne-et-technicien-technicienne-moto/pdf"
+    },
+    {
+     "titre": "CIDJ – Fiche métier Mécanicien / mécanicienne motocycle",
+     "url": "https://www.cidj.com/s-orienter/metiers/mecanicien-mecanicienne-motocycle"
+    },
+    {
+     "titre": "CFA L'Atelier des Chefs – Débouchés du CAP Maintenance des véhicules motocycles",
+     "url": "https://formation.atelierdeschefs.fr/formations/mecanique/cap-maintenance-des-vehicules-motocycles/debouches/"
+    }
+   ]
+  }
  },
  {
   "code": "CAP-MODE",
@@ -231,7 +359,23 @@
   "domaine": "Création & Mode",
   "type": "Bac pro",
   "niveau": "Niveau 4",
-  "synthese": null
+  "synthese": {
+   "metiers": "Le bac pro Métiers de la couture et de la confection prépare aux métiers de couturier industriel en atelier de confection et de tailleur-couturier en atelier de mesure ou de retouche. L'ONISEP cite ce bac pro comme voie d'accès à ces deux métiers, aux côtés du CAP Métiers de la mode. Les employeurs sont les ateliers de confection (vêtements, uniformes, linge de maison, ameublement), les maisons de couture, les ateliers de retouche et les costumiers de spectacle. Le secteur de la couture compte environ 200 maisons employant près de 7 000 salariés, avec une forte présence en Île-de-France et en Auvergne-Rhône-Alpes.",
+   "missions": "Le couturier industriel réalise des opérations de piqûre, de montage et d'assemblage sur machines, les entretient et contrôle la qualité à chaque étape dans le respect des délais. Le tailleur-couturier conseille sur la coupe et le tissu, prend les mensurations, dessine le patron, réalise le vêtement puis assure les essayages et les retouches. Dans les deux cas, il faut lire une fiche technique, régler les machines et adapter les gestes aux matières. Les pièces varient avec les saisons et les collections.",
+   "conditions": "En atelier industriel, le travail se fait en équipe sous la responsabilité d'un chef d'atelier, avec des machines bruyantes, parfois en horaires 2x8 et des tâches répétitives. En atelier de mesure, le travail assis ou debout de façon prolongée et la manipulation de fers à repasser pouvant peser jusqu'à 10 kg sont signalés par l'ONISEP. Les horaires peuvent être irréguliers lors des pics de livraison. La rigueur, la précision et la résistance aux rythmes soutenus sont indispensables.",
+   "salaire": "L'ONISEP indique un salaire débutant de 1 867 € brut par mois pour un couturier industriel et de 1 868 à 2 200 € brut par mois pour un tailleur-couturier, selon le lieu d'exercice et le statut. Nous n'avons pas trouvé de donnée officielle sur les salaires confirmés dans les sources consultées. Les artisans installés à leur compte ont des revenus qui dépendent de leur clientèle et de leur positionnement (retouche, demi-mesure, haut de gamme).",
+   "evolution": "En industrie, le couturier peut se former sur de nouvelles machines, encadrer une équipe, devenir contrôleur qualité ou se diriger vers la haute fabrication. En atelier de mesure, l'installation à son compte est possible après plusieurs années, avec une diversification vers la demi-mesure ou le prêt-à-porter. Des spécialisations existent (coupeur, culottier, giletier, boutonniériste) ainsi que des postes dans la haute couture, l'opéra ou le costume de spectacle. Une poursuite en BTS Métiers de la mode-vêtements ou en BP Vêtement sur mesure est envisageable.",
+   "sources": [
+    {
+     "titre": "ONISEP – Fiche métier Couturier industriel / Couturière industrielle",
+     "url": "https://www.onisep.fr/ressources/univers-metier/metiers/couturier-industriel-couturiere-industrielle/pdf"
+    },
+    {
+     "titre": "ONISEP – Fiche métier Tailleur-couturier / Tailleuse-couturière",
+     "url": "https://www.onisep.fr/ressources/univers-metier/metiers/tailleur-couturier-tailleuse-couturiere/pdf"
+    }
+   ]
+  }
  },
  {
   "code": "BACPRO-MELEC",
@@ -267,7 +411,31 @@
   "domaine": "Informatique & Réseaux",
   "type": "Titre professionnel",
   "niveau": "Niveau 5",
-  "synthese": null
+  "synthese": {
+   "metiers": "Le titre professionnel Développeur web et web mobile (niveau 5, bac+2) prépare aux métiers de développeur web, développeur front-end ou intégrateur web et, avec l'expérience, de développeur full stack. Ces métiers relèvent du code ROME M1805 (études et développement informatique). Les employeurs sont les agences web, les ESN, les start-up et les services informatiques des entreprises ; le statut de freelance est également répandu. Le titre est délivré par le ministère du Travail et accessible en formation continue, en alternance ou à distance.",
+   "missions": "Le développeur web analyse les besoins, participe à la rédaction du cahier des charges et code les sites et applications selon les fonctionnalités et la charte graphique définies. Il transforme les maquettes en pages HTML/CSS compatibles avec les différents navigateurs et écrans (responsive) et veille à l'accessibilité. Il réalise les tests, corrige les bugs, assure la maintenance corrective et évolutive et rédige la documentation technique. Une veille technologique permanente fait partie du métier.",
+   "conditions": "Dans les grandes structures, le développeur travaille sous la responsabilité d'un chef de projet et coordonne son activité avec les équipes graphiques et éditoriales ; dans les petites, il est souvent polyvalent. Les délais peuvent être serrés, avec des périodes chargées, ce qui demande une bonne résistance au stress. Le télétravail est largement répandu dans le secteur. En freelance, s'ajoutent la prospection commerciale et la gestion administrative.",
+   "salaire": "Selon le Cned, qui s'appuie sur Hellowork et l'ONISEP, un développeur web débutant gagne entre 30 000 et 38 000 € brut par an, soit environ 2 500 à 3 200 € brut par mois, avec des annonces allant jusqu'à 45 000 € selon les sections consultées. L'ONISEP indique de son côté 2 500 à 2 800 € brut mensuels pour un intégrateur web débutant. Un développeur confirmé se situe entre 40 000 et 60 000 € brut par an (3 300 à 5 000 € par mois), et les profils seniors dépassent 60 000 €. Les titulaires d'un titre professionnel sans expérience se placent plutôt dans le bas de ces fourchettes.",
+   "evolution": "Après quelques années, le développeur peut évoluer vers le full stack, puis vers des postes de lead développeur, chef de projet, architecte technique ou CTO. L'ONISEP mentionne aussi des évolutions vers l'ergonomie, le design d'interface ou le conseil. La spécialisation (mobile, DevOps, IA) est valorisée sur le marché. Le titre DWWM peut être complété par le titre Concepteur développeur d'applications (niveau 6) pour monter en qualification.",
+   "sources": [
+    {
+     "titre": "ONISEP – Fiche métier Intégrateur / Intégratrice web",
+     "url": "https://www.onisep.fr/ressources/univers-metier/metiers/integrateur-integratrice-web/pdf"
+    },
+    {
+     "titre": "Cned – Devenir développeur web : métier, formation, salaire",
+     "url": "https://www.cned.fr/metiers/devenir-developpeur-web-metier-formation-salaire"
+    },
+    {
+     "titre": "GRETA-CFA Aquitaine – Titre professionnel Développeur web et web mobile",
+     "url": "https://greta-cfa-aquitaine.fr/fiches/titre-professionnel-developpeur-web-et-web-mobile/?format=pdf"
+    },
+    {
+     "titre": "WorldSkills France – Fiche métier Web technologies",
+     "url": "https://worldskills2024.com/wp-content/uploads/2024/07/WEB-TECHNOLOGIES-FICHE-METIER.pdf"
+    }
+   ]
+  }
  },
  {
   "code": "TP-GCF",
@@ -303,7 +471,27 @@
   "domaine": "Gestion & RH",
   "type": "Titre professionnel",
   "niveau": "Niveau 4",
-  "synthese": null
+  "synthese": {
+   "metiers": "Le titre professionnel Secrétaire comptable (niveau 4, bac) prépare à un métier polyvalent à la frontière du secrétariat et de la comptabilité. Le secrétaire comptable exerce en PME, en cabinet d'expertise comptable, en association, en collectivité ou en établissement public, dans tous les secteurs d'activité. Il est souvent rattaché au service administratif et financier ou directement au dirigeant dans les petites structures. Le titre est délivré par le ministère du Travail et accessible en formation continue ou à distance.",
+   "missions": "Côté administratif, il assure l'accueil, le traitement du courrier, la rédaction de documents, le classement et l'archivage. Côté comptable, il saisit les écritures, suit le livre comptable, établit les factures, effectue les relances clients et fournisseurs et réalise les rapprochements bancaires. Il participe à la préparation des déclarations fiscales et sociales, au suivi des stocks et des commandes et peut établir des feuilles de paie. Il alimente les tableaux de bord utiles au dirigeant.",
+   "conditions": "Le travail s'effectue en bureau, avec des outils de bureautique et des logiciels comptables dont la maîtrise est attendue. Dogfinance signale des heures supplémentaires possibles lors des clôtures comptables et une pression liée aux échéances déclaratives. Les tâches peuvent être répétitives, mais la polyvalence du poste apporte de la variété. Rigueur, organisation, discrétion et autonomie sont les qualités attendues.",
+   "salaire": "L'Étudiant indique qu'un secrétaire comptable débute autour du SMIC (environ 1 800 € brut mensuels en 2025) et peut atteindre 2 500 € brut par mois une fois confirmé. Dogfinance donne une fourchette de 22 000 à 26 000 € brut par an pour un débutant (1 800 à 2 200 € par mois), 26 000 à 35 000 € pour un profil intermédiaire et 35 000 à 45 000 € pour un profil expérimenté. Dans la fonction publique, un adjoint administratif démarre autour de 1 800 € brut par mois. La rémunération varie selon la taille de l'entreprise et la région.",
+   "evolution": "Les évolutions les plus courantes sont le poste de comptable ou d'assistant de gestion, après une formation complémentaire (titre Comptable assistant, BTS Comptabilité et gestion) ou par l'expérience. Le secrétaire comptable peut aussi évoluer vers l'assistanat de direction ou la gestion de la paie. La poursuite vers le titre Gestionnaire comptable et fiscal (niveau 5) est une voie logique. Une spécialisation en ressources humaines est également possible.",
+   "sources": [
+    {
+     "titre": "L'Étudiant – Fiche métier Secrétaire comptable",
+     "url": "https://www.letudiant.fr/metiers/secteur/secretariat/secretaire-comptable.html"
+    },
+    {
+     "titre": "Dogfinance – Fiche métier Secrétaire comptable",
+     "url": "https://dogfinance.com/metier/secretaire-comptable"
+    },
+    {
+     "titre": "Randstad – En quoi consiste le métier de secrétaire comptable",
+     "url": "https://www.randstad.fr/metiers/secretaire-comptable/"
+    }
+   ]
+  }
  },
  {
   "code": "TP-ADVF",
@@ -339,7 +527,27 @@
   "domaine": "Informatique & Réseaux",
   "type": "Titre professionnel",
   "niveau": "Niveau 5",
-  "synthese": null
+  "synthese": {
+   "metiers": "Le titre professionnel Technicien supérieur systèmes et réseaux (niveau 5, bac+2) prépare aux métiers de technicien systèmes et réseaux, technicien d'exploitation, technicien support infrastructure et, avec l'expérience, d'administrateur systèmes et réseaux. L'ONISEP cite explicitement ce titre parmi les formations d'accès au métier de technicien télécoms et réseaux. Les employeurs sont les entreprises de services du numérique, les PME installatrices, les services informatiques internes et les opérateurs télécoms.",
+   "missions": "Le technicien met en service et entretient le réseau informatique : préparation des serveurs, routeurs et switchs, configuration des logiciels, mises à jour et maintenance préventive. Il installe les équipements chez le client ou en interne, assure le support aux utilisateurs et traite les incidents. Il surveille la performance du réseau, applique les règles de sécurité liées au Web, au cloud et aux appareils mobiles, et documente ses interventions. Il participe aux projets d'évolution de l'infrastructure sous la responsabilité d'un administrateur ou d'un ingénieur.",
+   "conditions": "Les installations se font sur site, tandis que la maintenance se fait de plus en plus à distance. Des permanences ou astreintes de nuit et de week-end sont parfois nécessaires, et la pression liée à la résolution rapide des incidents fait partie du métier. Le poste demande mobilité, autonomie, respect des délais et vigilance sur la sécurité. Les fonctions sont plus polyvalentes en PME qu'en grande entreprise.",
+   "salaire": "L'ONISEP indique pour un technicien télécoms et réseaux débutant un salaire de 1 867 à 2 160 € brut par mois selon le lieu d'exercice et le statut. Pour un administrateur de réseaux, poste accessible après quelques années, l'ONISEP annonce un salaire débutant à partir de 2 750 € brut par mois. Nous n'avons pas trouvé de donnée officielle spécifique aux titulaires du titre TSSR ; les recruteurs demandent souvent 1 à 5 ans d'expérience pour les postes d'administrateur.",
+   "evolution": "Après plusieurs formations continues, le technicien peut devenir responsable d'activités ou chef de section, souvent à l'occasion d'un changement d'entreprise. L'évolution naturelle est le poste d'administrateur systèmes et réseaux, puis responsable télécoms, architecte réseaux, consultant ou technico-commercial. Les certifications éditeurs (Microsoft, Cisco, VMware) et ITIL sont de plus en plus demandées. Le titre Administrateur d'infrastructures sécurisées (niveau 6) constitue la suite logique du parcours.",
+   "sources": [
+    {
+     "titre": "ONISEP – Fiche métier Technicien / Technicienne télécoms et réseaux",
+     "url": "https://www.onisep.fr/ressources/univers-metier/metiers/technicien-technicienne-telecoms-et-reseaux/pdf"
+    },
+    {
+     "titre": "ONISEP – Fiche métier Administrateur / Administratrice de réseaux",
+     "url": "https://www.onisep.fr/ressources/univers-metier/metiers/administrateur-administratrice-de-reseaux/pdf"
+    },
+    {
+     "titre": "WorldSkills France – Fiche métier Administration des systèmes et réseaux informatiques",
+     "url": "https://worldskills2024.com/wp-content/uploads/2023/08/ADMINISTRATION-DES-SYSTEMES-ET-DES-RESEAUX-INFORMATIQUES-FICHE-METIER.pdf"
+    }
+   ]
+  }
  },
  {
   "code": "TP-GRAPH",

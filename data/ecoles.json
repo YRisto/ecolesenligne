@@ -1,1 +1,201 @@
-[]
+[
+ {
+  "slug": "ascor",
+  "nom": "ASCOR",
+  "groupe": "",
+  "site": "https://www.ascor.fr",
+  "partenaire": false,
+  "avis": {
+   "source": "Avis Vérifiés",
+   "note": 4.7,
+   "nombre": 1062,
+   "url": "https://www.avis-verifies.com/avis-clients/ascor.fr"
+  },
+  "garantie": "aucune mention sur le site ; renvoi aux CGV (non accessibles) ; prolongation d'accès possible sur demande (sous 1 mois après fin de période, ≥ 80 % de progression, sans incident de paiement)",
+  "accompagnement": "formateur/formatrice référent(e) + conseillère pédagogique, appel d'accueil, suivi téléphonique régulier, rendez-vous téléphoniques à la demande (illimités en formule Accompagné+), cours en direct hebdomadaires avec replay, training class, live coaching, bilan pédagogique mensuel (Accompagné+), forum, hotline gratuite ; assistance technique lun-jeu 9h-19h, ven 9h-18h ; accueil 02 52 56 87 02 lun-jeu 9h-18h, ven 9h-17h ; référent handicap",
+  "supports": "plateforme e-learning 24h/24, vidéos tutorielles sous-titrées, cours en direct + replays, QCM, carnet de bord, manuels papier ou numériques, bibliothèque de contenus complémentaires ; kits matériel en option payante (non inclus)",
+  "modalites": "100 % à distance, à son rythme, places non limitées, accès jusqu'à la prochaine session d'examen (durée indicative 9 à 36 mois pour les CAP, 12 mois pour les TP) ; formules Essentielle / Accompagné / Accompagné+ sur certains CAP ; alternance possible via le CFA Ascor (formation prise en charge avec un contrat)",
+  "preparation_examen": "examens blancs / CAP blancs, évaluations sommatives corrigées, inscription en candidat libre auprès de l'académie (Cyclades, oct.-déc.) accompagnée ; seules les épreuves professionnelles sont préparées (option épreuves générales séparée) ; validation interne si 100 % du parcours suivi et moyenne > 10/20",
+  "taux_reussite": "93 % de réussite au CAP (toutes formations, déclaré par l'école, renvoi CGV) ; par formation : CAP AEPE 99 %, CAP Esthétique 88 %, CAP Cuisine 100 % (08/2026), CAP Pâtisserie 95 %, CAP Boulanger 91 %, CAP Fleuriste 90 %, CAP Mode 93 %, Prothésie ongulaire 94 %"
+ },
+ {
+  "slug": "atelierdeschefs",
+  "nom": "L'Atelier des Chefs",
+  "groupe": "",
+  "site": "https://formation.atelierdeschefs.fr",
+  "partenaire": false,
+  "avis": {
+   "source": "Avis Vérifiés",
+   "note": 4.5,
+   "nombre": 343,
+   "url": "https://www.avis-verifies.com/avis-clients/atelierdeschefs.fr"
+  },
+  "garantie": "Aucune garantie 'diplômé ou remboursé' ; délai de rétractation de 14 jours après l'entrée en formation (page avis : 10 jours, premier règlement limité à 30 % du total après rétractation). Organisme certifié Qualiopi.",
+  "accompagnement": "Un expert du métier (chef, boulanger, électricien…) répond aux questions techniques et corrige les exercices pratiques, sur rendez-vous ; un coach personnel pour la motivation et les appels réguliers ; un conseiller pédagogique pour l'inscription et le financement ; lives/masterclass ; tchat et communauté d'entraide apprenants-enseignants ; aide aux démarches administratives (inscription examen).",
+  "supports": "Plateforme e-learning (mobile, ordinateur, tablette) : vidéos techniques, fiches techniques, exercices pratiques corrigés par un expert ou auto-corrigés, PDF imprimables, modules bonus offerts. Pas de kit matériel ni de livres inclus (matériel à prévoir ~250 € ; carte Métro/Rungis, codes promo partenaires).",
+  "modalites": "100 % à distance, à son rythme, démarrage à tout moment (accès envoyés sous 30 min après finalisation), rythme libre (ex. CAP Cuisine 9 mois standard, 6 mois si déjà diplômé ; CAP Fleuriste 6 mois à 2 ans). Formation également possible en alternance (0 € pour l'alternant).",
+  "preparation_examen": "Préparation en candidat libre : inscription à l'examen en octobre-novembre pour la session de juin, accompagnée par l'école ; conventions de stage fournies gratuitement ; examens blancs non mentionnés en ligne (un 'sprint final' avec sujets blancs cité en témoignage ; stage présentiel payant 'Examen blanc CAP Électricien' 2 jours proposé séparément) ; re-présentation non mentionnée.",
+  "taux_reussite": "96 % sur l'ensemble des formations (déclaré par l'école, sans année/effectif). Par CAP : Cuisine 98 % (2025, 769 candidats), MV option VL 98 % (2026, 451), Boulanger 97 % (2026, 69), Électricien 97 % (2026, 555), Pâtissier 93 % (2026, 94), MV motocycles 93 % (2026, 322), Couture 93 % (2026, 43), Fleuriste 92 % (2026, 117)."
+ },
+ {
+  "slug": "cef",
+  "nom": "Centre Européen de Formation",
+  "groupe": "",
+  "site": "https://www.centre-europeen-formation.fr",
+  "partenaire": true,
+  "avis": {
+   "source": "Trustpilot",
+   "note": 4.2,
+   "nombre": 2670,
+   "url": "https://www.trustpilot.com/review/www.centre-europeen-formation.fr"
+  },
+  "garantie": "« Diplômé(e) ou remboursé(e) » : remboursement de la formation si le diplôme/titre n'est pas obtenu après avoir suivi la formation complète (affiché sur les CAP et plusieurs titres pro ; conditions détaillées non publiées). Pas de « satisfait ou remboursé » ; rétractation légale non mentionnée.",
+  "accompagnement": "Coach personnel dédié attribué à l'inscription (même coach tout le parcours, inclus 18 mois par défaut, prolongeable jusqu'à 3 ans), visio de lancement puis ~10 RDV individuels ; professeurs référents joignables par tél./mail/CEF Learning (devoirs corrigés sous ~12 h) ; service élèves (conventions de stage, colis) ; accueil lun 8h30-18h, mar-jeu 9h-18h, ven 9h-17h ; tél. 03 66 06 02 01.",
+  "supports": "Cours papier illustrés envoyés à domicile + plateforme e-learning CEF Learning (cours numériques, quiz, devoirs autocorrigés, suivi de progression), tutoriels vidéo, webinaires ; logiciels/licences offerts selon formation (Odoo, SketchUp Pro, Percipio/Skillsoft).",
+  "modalites": "100 % à distance, à son rythme (3 rythmes au choix, 4 à 18 mois), inscription toute l'année, dès 16 ans sans prérequis, inscription valable 3 ans, pas de cours en direct obligatoire ; possible en alternance pour certains CAP/TP.",
+  "preparation_examen": "Examen passé en candidat libre (CAP dans un lycée proche du domicile, TP dans un centre agréé) ; frais d'inscription à l'examen (350 €) offerts sur certains TP ; dispense d'épreuves générales possible ; examens blancs non mentionnés ; certificats école validés par contrôle continu (moyenne > 10/20).",
+  "taux_reussite": "93 % de réussite au CAP, session 2025 (étude sur 777 candidats, déclaré par l'école) ; taux par formation ci-dessous."
+ },
+ {
+  "slug": "cned",
+  "nom": "CNED",
+  "groupe": "",
+  "site": "https://www.cned.fr",
+  "partenaire": false,
+  "avis": {
+   "source": "Diplomeo",
+   "note": 1.7,
+   "nombre": 102,
+   "url": "https://diplomeo.com/avis-cned-6847"
+  },
+  "garantie": "aucune mention sur les fiches ; renvoi aux CGV/CGU 2026 (PDF non accessible)",
+  "accompagnement": "tutorat individualisé par discipline (enseignants de l'Éducation nationale), corrections personnalisées, forum/chats entre inscrits, classes virtuelles sur certaines formations, enseignant référent pendant le stage ; suivi principalement par messagerie",
+  "supports": "plateforme e-learning sécurisée 24h/24, cours, vidéos, exercices auto-correctifs, évaluations avec corrigés types, fascicules papier envoyés par voie postale (CAP), kit matériel non fourni (CAP esthétique : mallette à se procurer)",
+  "modalites": "100 % à distance, à son rythme, inscription toute l'année (CAP, formation continue) ou via Parcoursup (BTS voie scolaire) ; BTS en année complète (1re puis 2e année) ou par blocs d'enseignement ; CAP en préparation complète ou par épreuves",
+  "preparation_examen": "entraînements aux épreuves avec correction personnalisée ; le CNED n'organise pas l'examen : inscription en candidat libre auprès du rectorat/académie (Cyclades) ; dispense d'EPS possible",
+  "taux_reussite": "CAP AEPE : 84 % des inscrits ont obtenu le CAP (baromètre CNED 2022, déclaré par l'école) ; BTS MCO (Parcoursup) : 84,7 % de passage en 2e année, 50,4 % de réussite en 2 ou 3 ans ; autres : non communiqué"
+ },
+ {
+  "slug": "enaco",
+  "nom": "ENACO",
+  "groupe": "",
+  "site": "https://www.enaco.fr",
+  "partenaire": true,
+  "avis": {
+   "source": "Trustpilot",
+   "note": 4.1,
+   "nombre": 514,
+   "url": "https://www.trustpilot.com/review/enaco.fr"
+  },
+  "garantie": "Aucune garantie satisfait ou remboursé ; rétractation 7 jours francs après signature du dossier d'inscription (FAQ) ; « 3 ans d'inscription garantis » avec accès au campus (hors CPF, alternance, financements région/France Travail).",
+  "accompagnement": "Entretien pédagogique personnalisé et coach pédagogique (planning, motivation) ; professeurs issus du milieu professionnel joignables par messagerie, e-mail et visio sur RDV, classes virtuelles ; forum/messagerie entre étudiants ; service carrière, aide à l'alternance, générateur de CV ; conseillers lun-ven 9h-19h, tél. 03 20 30 93 30.",
+  "supports": "Campus numérique eTrotter (web + appli iOS/Android, cours hors ligne) : cours en ligne enrichis de vidéos, podcasts, infographies ; devoirs, QCM et examen blanc après chaque séquence ; classes virtuelles et replays ; Office 365, Google Workspace, Google Ateliers Numériques, abonnement Le Figaro.",
+  "modalites": "100 % à distance, entrée permanente (inscription toute l'année), à son rythme ; possible en alternance (apprentissage/professionnalisation) ; formation initiale ou continue.",
+  "preparation_examen": "Examens blancs et cas pratiques en ligne ; ENACO accompagne la pré-inscription à l'examen du BTS auprès de l'inspection académique (épreuves en juin dans l'académie de résidence) ; Bachelors FEDE : examens en ligne (janv./juin/oct.), oraux en visio ; re-présentation non mentionnée.",
+  "taux_reussite": "83 % taux de réussite global 2024 (déclaré par l'école) ; taux par formation ci-dessous."
+ },
+ {
+  "slug": "entheor",
+  "nom": "Entheor",
+  "groupe": "",
+  "site": "https://entheor.com",
+  "partenaire": true,
+  "avis": null,
+  "garantie": "aucune mention (diagnostic initial gratuit & sans engagement ; prolongation possible de l'accompagnement si la durée initiale est insuffisante)",
+  "accompagnement": "consultant/accompagnateur unique dédié par projet ; premier échange sous 24-48 h, RDV d'accueil gratuit sous 7 jours ; accompagnement 15 à 24 h en RDV de 1 à 2 h (source MaFormation.fr) ; diagnostic, coaching livret 2, oraux blancs, relectures ; équipe de 50+ consultants ; aide au montage du dossier de financement",
+  "supports": "non précisé (accompagnement individuel en rendez-vous)",
+  "modalites": "100 % à distance (page Particuliers : « 100% de notre accompagnement se fait en distanciel ») ; les fiches indiquent « en centre ou à distance » ; pendant ou hors temps de travail ; ouvert aux expatriés ; durée définie avec le candidat selon financement et autonomie ; 20+ implantations ; siège Lyon",
+  "preparation_examen": "oraux blancs (simulation jury), relecture des livrets",
+  "taux_reussite": "« Réussite > 95 % » (page d'accueil, déclaré) ; 1 200 diplômés/an ; page Résultats VAE 2024 en images non lisibles ; taux de validation totale non communiqué"
+ },
+ {
+  "slug": "hippocratus",
+  "nom": "Hippocratus",
+  "groupe": "",
+  "site": "https://www.hippocratus.com",
+  "partenaire": true,
+  "avis": {
+   "source": "Google",
+   "note": 4.6,
+   "nombre": 1210,
+   "url": "https://share.google/u1AI5NX3sYAQnvoo3"
+  },
+  "garantie": "Aucune garantie satisfait ou remboursé ; rétractation légale 14 jours (consommateurs, formulaire dédié ; accès déjà consommé facturable) ; tutorat non utilisé non remboursable (CGV).",
+  "accompagnement": "Tuteur pédagogique attitré (messagerie privée, RDV téléphonique via la plateforme), entretien téléphonique initial, suivi mensuel personnalisé (mail/visio), classes virtuelles enregistrées, bilan de fin de formation ; conseillers lun 8h30-18h, mar-ven 9h-17h (ou 9h30-17h30 selon section), réponse sous 48 h ; tél. 04 12 26 12 12.",
+  "supports": "Plateforme en ligne (PC/tablette/mobile, 24/7) : cours PDF téléchargeables, diaporamas, vidéos, podcasts, fiches récapitulatives, flashcards/cartes mentales, cas pratiques, QCM par module ; contenus validés par un comité scientifique ; pas de livres papier mentionnés.",
+  "modalites": "100 % en ligne, à son rythme, entrée permanente ; chaque module validé par QCM avant le suivant ; classes virtuelles (enregistrées) pour les formations métiers, dont au moins 12 en direct obligatoires pour le naturopathe ; contenu accessible à vie après la fin du tutorat.",
+  "preparation_examen": "Évaluations finales en ligne (QCM/cas pratiques) à passer pendant le tutorat ; formations métiers : rapport d'expérience + mémoire avec soutenance orale ; outils de révision inclus ; examens blancs non mentionnés ; frais de rattrapage payants (CGV).",
+  "taux_reussite": "non communiqué"
+ },
+ {
+  "slug": "iacademie",
+  "nom": "Icademie",
+  "groupe": "Eureka Education",
+  "site": "https://www.icademie.com",
+  "partenaire": false,
+  "avis": {
+   "source": "Google",
+   "note": 4.9,
+   "nombre": 1849,
+   "url": ""
+  },
+  "garantie": "aucune mention (CGV non consultables lors de la collecte)",
+  "accompagnement": "Suivi individualisé : conseiller en formation (60 conseillers), référent pédagogique, tuteur, formateurs, référent examens ; rendez-vous réguliers ; accompagnement avant et pendant les épreuves.",
+  "supports": "Plateforme e-learning accessible 24h/24 et 7j/7, contenus interactifs, classes virtuelles, travaux pratiques, conférences en live. Pas de kit ni de livres mentionnés.",
+  "modalites": "100 % à distance (ou alternance), inscription à tout moment de l'année, délai d'accès ~14 jours après validation du dossier, à son rythme ; examens à distance (visioconférence) pour la plupart des formations, sessions d'examen fixes (2 par an selon titre).",
+  "preparation_examen": "Référents examens dédiés avant et pendant les épreuves ; dossier professionnel, mise en situation, entretiens technique et final ; examens blancs non mentionnés ; re-présentation non mentionnée.",
+  "taux_reussite": "Non communiqué globalement ; par formation (2024-2025, déclaré école) : Gestionnaire comptable et fiscal 86 % (100 % apprentis sur 3), SAMA 80 % (10 présentés ; 67 % apprentis sur 3) ; DWWM et Comptable assistant : 'non significatif' (ouvertures 2025/2026)."
+ },
+ {
+  "slug": "les2rives",
+  "nom": "Les 2 Rives",
+  "groupe": "Adecco",
+  "site": "https://les2rives.fr",
+  "partenaire": false,
+  "avis": null,
+  "garantie": "aucune mention ; certificat de réalisation délivré en fin d'accompagnement ; entretien post-jury 1 h en cas de validation partielle",
+  "accompagnement": "accompagnateur VAE dédié ; RDV individuels en visioconférence d'env. 1 h tous les 10-15 jours ; formules 10 h / 16 h / 24 h individuelles (phases : diagnostic, recevabilité ≤3 h, rédaction dossier ≤18 h, préparation oral ≤3 h) ; classes virtuelles thématiques de 1h30 (méthodologie, bureautique) en accès illimité ; points d'étape et comptes rendus ; 150 à 250 consultants ; formules VAE individuelle, collective, inversée/AFEST, renforcée, hybride (partenariat CNED pour blocs de compétences)",
+  "supports": "plateforme et application « VAE Online » de suivi du parcours ; classes virtuelles",
+  "modalites": "100 % à distance (ou hybride/présentiel partout en France) ; entrées permanentes ; rythme adapté ; parcours 8 à 12 mois ; accessible aux personnes en situation de handicap",
+  "preparation_examen": "préparation méthodologique à l'oral, simulation de jury ; relecture du dossier de validation",
+  "taux_reussite": "93 % de réussite devant un jury VAE (site, 2025, déclaré) ; 90 % + <10 % d'abandon (TopFormation/MaFormation) ; taux de validation totale non communiqué (PDF indicateurs non lisible) ; 15 000 candidats accompagnés depuis 2002, 2 500 en 2025"
+ },
+ {
+  "slug": "studi",
+  "nom": "Studi",
+  "groupe": "Galileo Global Education",
+  "site": "https://www.studi.com",
+  "partenaire": false,
+  "avis": {
+   "source": "Trustpilot",
+   "note": 4.5,
+   "nombre": 9573,
+   "url": "https://www.trustpilot.com/review/studi.com"
+  },
+  "garantie": "Rétractation : 14 jours (Code conso) + 10 jours supplémentaires à compter de la signature du contrat, remboursement intégral (CGV art. 10). « Garantie Diplômé ou Remboursé » (formules Plus et Premium, formations certifiantes éligibles, uniquement en cas d'échec à la 1re session, sous conditions : paiements à jour, devoirs rendus, stages effectués, dossier pro envoyé 2 mois avant l'examen, demande sous 30 jours après résultats). « Garantie Embauché ou Remboursé » (Premium uniquement : remboursement si aucun emploi dans le secteur dans les 12 mois après les résultats, ~5 candidatures/mois et reporting mensuel exigés). Essai gratuit 7 jours sans engagement (Parcours Découverte). Pas de « satisfait ou remboursé » au-delà de la rétractation.",
+  "accompagnement": "3 formules : Essentiel / Plus / Premium (même diplôme, même contenu). Toutes : soutien pédagogique des formateurs lun-ven (questions + corrections illimitées), assistance pédagogique et technique 5j/7, assistant pédagogique IA 24h/24 7j/7, chargés Relation Apprenant, conseiller pédagogique à l'inscription, classes virtuelles (+10 000/an, live ou replay), lives de coaching, communauté de 59 000 apprenants. Plus : + 20 séances individuelles 30 min en visio avec un formateur expert (crédits), Pack Compétences 360 / coaching carrière (parcours employabilité 40 h, LinkedIn, jobboards), garantie Diplômé ou Remboursé. Premium : 40 à 50 séances individuelles (~1/semaine), bilan pédagogique mensuel avec référent, accompagnement emploi personnalisé (CV, simulations d'entretien, négociation salariale), garantie Embauché ou Remboursé. Alternance : 1 séance individuelle/mois. Horaires précis de permanence téléphonique non communiqués.",
+  "supports": "Plateforme e-learning accessible 24h/24 sur tous écrans (en ligne et hors ligne), cours écrits + vidéos à la demande, modules interactifs, ressources téléchargeables, TD/TP corrigés, évaluations d'entraînement, classes virtuelles live et replays, webinaires, ateliers thématiques en petits groupes, assistant IA, + de 400 fiches métiers. Logiciels inclus selon formation (Pennylane, Sage, licence Adobe Creative Cloud 1 an en design). Pas de supports papier ni de kit matériel mentionnés.",
+  "modalites": "100 % en ligne, démarrage à tout moment de l'année (entrée permanente), rythme libre avec planning modulable, accès plateforme sous 14 jours en moyenne après signature, contrat de 36 mois (CGV) ; accès prolongé 3 ans (Essentiel/Plus) ou 10 ans (Premium). Formations également proposées en alternance (CFA Studi) pour la plupart des diplômes. Examens en présentiel (centre d'examen de l'académie pour BTS/CAP ; Paris, Montpellier, Bordeaux, Lyon pour les titres pro) ou en ligne (titres ESG : mars/juin/sept/déc). Certifié Qualiopi (formation + apprentissage).",
+  "preparation_examen": "Préparation à la certification incluse avec inscription et passage de l'examen pris en charge (hors diplômes d'État où Studi accompagne l'inscription en candidat libre et fournit les conventions de stage). 1er passage gratuit et 1er rattrapage gratuit, puis 150 € par passage supplémentaire (CGV). Évaluations d'entraînement corrigées, classes virtuelles de préparation, validation possible bloc par bloc. Garantie Diplômé ou Remboursé (Plus/Premium) en cas d'échec à la 1re session. Examens blancs : non mentionnés explicitement.",
+  "taux_reussite": "Non communiqué au niveau école (seul un taux d'emploi global à 6 mois de 83 % est affiché). Taux publiés par formation (toutes promotions confondues, déclarés par Studi) : voir chaque offre (de 50 % à 100 %)."
+ },
+ {
+  "slug": "youschool",
+  "nom": "YouSchool",
+  "groupe": "",
+  "site": "https://www.youschool.fr",
+  "partenaire": false,
+  "avis": {
+   "source": "Avis Vérifiés",
+   "note": 4.8,
+   "nombre": 529,
+   "url": "https://www.avis-verifies.com/avis-clients/youschool.fr"
+  },
+  "garantie": "Garantie 'Diplômé ou 100 % remboursé' (page tarifs) : conditions strictes (inscription avant la préinscription examen, suivi de tous les cours et quiz, moyenne > 70 %, présentation à toutes les épreuves et rattrapages, 3 échecs successifs, demande par LRAR sous 30 jours). Exclusions selon la page : ACACED, Métiers animaliers, ATSEM, Barbier, Décorateur d'intérieur (incohérence entre accueil et section détaillée). La page CAP AEPE mentionne aussi 'Embauché ou Remboursé' sans détail. Rétractation légale non précisée.",
+  "accompagnement": "Professeurs professionnels du secteur (présentés comme membres de jury) qui corrigent les exercices ; coachs e-learning (plan de formation, démarches, conventions de stage) ; coaching téléphonique personnalisé ; conseillers pédagogiques/admission ; communauté 'Community Learning' ; permanences quotidiennes (CAP Fleuriste) ; module gratuit d'aide à la recherche d'emploi en fin de formation.",
+  "supports": "Plateforme e-learning 24h/24 7j/7 (ordinateur, tablette, application mobile), cours vidéo + versions retranscrites consultables hors connexion, quiz/exercices interactifs, lives/visios et replays, modules bonus selon formation. Pas de kit matériel ni de livres papier inclus (listes de matériel fournies, tarifs partenaires : Valrhona, Métro, Kenwood…).",
+  "modalites": "100 % à distance, à son rythme (rythme indicatif 5 h/semaine), entrée permanente (rentrée toute l'année), durée indicative 6 à 12 mois pour 400 h ; accès aux contenus 1 an (mentionné sur CAP Cuisine/Pâtissier/Boulanger/Esthétique/Électricien), 'illimité' sur CAP AEPE. Alternance possible sur certains CAP/TP. Organisme certifié Qualiopi, déclaré préfecture de Paris.",
+  "preparation_examen": "Préparation au passage en candidat libre : préinscription à l'examen auprès de l'académie (oct.-nov. pour session mai-juin) accompagnée par les coachs ; conventions de stage fournies ; examens blancs non mentionnés ; re-présentation non mentionnée (la garantie exige 3 présentations). TP : examen en centre partenaire devant jury.",
+  "taux_reussite": "Non communiqué globalement (page avis affiche '0 %' = erreur d'affichage). Taux par formation issus de 'sondages élèves' (non officiels) : CAP Cuisine 94 % (2024), CAP AEPE 91 % (2023), CAP Esthétique 87 % (2022), CAP Boulanger 86 % (2022), CAP Électricien 85 % (2024), CAP Pâtissier 83 % (2023), Décorateur d'intérieur 71 % (2023), Prothésiste ongulaire 100 % (2024). Insertion professionnelle 92 % (diplômés 2021-2023, enquête école)."
+ }
+]
