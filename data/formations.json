@@ -2133,5 +2133,23 @@
     }
    ]
   }
+ },
+ {
+  "code": "LANG-ANG",
+  "slug": "anglais-general-et-professionnel",
+  "intitule": "Anglais général et professionnel",
+  "domaine": "Langues",
+  "type": "Certification",
+  "niveau": "Certification (TOEIC, Linguaskill…)",
+  "synthese": null
+ },
+ {
+  "code": "LANG-FLE",
+  "slug": "francais-langue-etrangere-fle",
+  "intitule": "Français langue étrangère (FLE)",
+  "domaine": "Langues",
+  "type": "Certification",
+  "niveau": "Certification (DELF, TCF, DCL…)",
+  "synthese": null
  }
 ]
