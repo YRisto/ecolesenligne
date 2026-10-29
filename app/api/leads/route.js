@@ -22,7 +22,7 @@ export async function POST(req) {
 
   const url = process.env.SUPABASE_URL, key = process.env.SUPABASE_SERVICE_ROLE_KEY;
   if (url && key) {
-    const r = await fetch(`${url}/rest/v1/leads_inbox`, { method: "POST", headers: { apikey: key, Authorization: `Bearer ${key}`, "Content-Type": "application/json", Prefer: "return=minimal" }, body: JSON.stringify(lead) });
+    const r = await fetch(`${url}/rest/v1/leads_inbox`, { method: "POST", headers: { apikey: key, ...(key.startsWith("eyJ") ? { Authorization: `Bearer ${key}` } : {}), "Content-Type": "application/json", Prefer: "return=minimal" }, body: JSON.stringify(lead) });
     if (!r.ok) { console.error("supabase", r.status, await r.text()); return NextResponse.json({ error: "Enregistrement impossible, réessayez." }, { status: 500 }); }
   } else {
     console.log("LEAD (Supabase non configuré)", JSON.stringify(lead));
