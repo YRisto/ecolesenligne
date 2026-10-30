@@ -829,7 +829,7 @@ function renderGame(){
     <div class="budget" id="budget"></div>
   </div>`;
   $('#reset').addEventListener('click',()=>modal(`<h3>Recommencer la série ?</h3><p class="mt">La partie en cours sera perdue.</p><div class="mf"><button class="lnk" id="mc">Annuler</button><button class="rbtn" id="mo">Recommencer</button></div>`,'gold'));
-  document.getElementById('modal').addEventListener('click',e=>{ if(e.target.id==='mc') closeModal(); if(e.target.id==='mo'){closeModal();newGame(S.sc);S.screen='scenario';render();} });
+  document.getElementById('modal').addEventListener('click',e=>{ if(e.target.id==='mc') closeModal(); if(e.target.id==='mo'){closeModal();newGame(S.sc);S.screen='intro';render();} });
   renderBudget();
   if(S.tuto<TUTO_T().length&&S.yi===0&&S.phase===0) return renderTuto();
   renderPhase();
@@ -1182,7 +1182,7 @@ function renderFinal(){
     ${bilanHtml()}
     <p class="hint">Mesures en vigueur : ${S.active.map(i=>MEASURES[i].n).join(' · ')||'aucune'}.</p>
     <div style="display:flex;justify-content:center;gap:10px;flex-wrap:wrap" id="b"></div></div></div>`;
-  $('#b').appendChild(btn('↺ Rejouer la série',()=>{newGame(S.sc);S.screen='scenario';render();}));
+  $('#b').appendChild(btn('↺ Rejouer la série',()=>{newGame(S.sc);S.screen='intro';render();}));
   $('#b').appendChild(btn('🏆 Hall of Fame',()=>{S.hofBack='final';S.screen='hof';render();},'sbtn'));
   $('#b').appendChild(btn('📣 Partager mon score',()=>shareScore(verdict),'sbtn'));
 }
@@ -1212,6 +1212,7 @@ function start(data){
   if(loaded&&loaded.screen&&loaded.g&&loaded.used&&loaded.media&&loaded.sc!==undefined) S=loaded; else newGame(0);
   if(!S.pid){const t=S; newGame(); t.pid=S.pid; S=t;}
   if(S.screen==='title') S.screen='game';
+  if(S.screen==='scenario'||S.screen==='profile') S.screen='intro';
   render();
 }
 try{ window.claude?.hot?.snapshot?.(()=>({S})); }catch(e){}
