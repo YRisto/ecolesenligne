@@ -13,11 +13,11 @@ export default function Listing({ formations, domaines }) {
   return (
     <>
       <div className="filters">
-        <input placeholder="Rechercher une formation…" value={q} onChange={(e) => setQ(e.target.value)} />
-        <select value={domaine} onChange={(e) => setDomaine(e.target.value)}><option value="">Tous les domaines</option>{domaines.map((d) => <option key={d}>{d}</option>)}</select>
-        <select value={type} onChange={(e) => setType(e.target.value)}><option value="">Tous les diplômes</option>{types.map((t) => <option key={t}>{t}</option>)}</select>
+        <input aria-label="Rechercher une formation" placeholder="Rechercher une formation : comptable, CAP, BTS…" value={q} onChange={(e) => setQ(e.target.value)} />
+        <select aria-label="Domaine" value={domaine} onChange={(e) => setDomaine(e.target.value)}><option value="">Tous les domaines</option>{domaines.map((d) => <option key={d}>{d}</option>)}</select>
+        <select aria-label="Diplôme" value={type} onChange={(e) => setType(e.target.value)}><option value="">Tous les diplômes</option>{types.map((t) => <option key={t}>{t}</option>)}</select>
       </div>
-      <p className="muted">{list.length} formation{list.length > 1 ? "s" : ""}</p>
+      <p className="count">{list.length} formation{list.length > 1 ? "s" : ""}</p>
       <div className="grid">{list.map((f) => <FormationCard key={f.code} f={f} />)}</div>
     </>
   );

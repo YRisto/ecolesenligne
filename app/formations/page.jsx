@@ -1,13 +1,14 @@
 import { Suspense } from "react";
 import Listing from "./Listing";
+import PageHero from "../../components/PageHero";
 import { getFormations, DOMAINES } from "../../lib/catalogue";
 export const metadata = { title: "Toutes les formations à distance" };
 export default function Page() {
+  const n = getFormations().length;
   return (
     <>
-      <h1>Toutes les formations à distance</h1>
-      <p className="lead">Filtrez par domaine, type de diplôme, école ou financement CPF.</p>
-      <Suspense><Listing formations={getFormations()} domaines={DOMAINES} /></Suspense>
+      <PageHero titre="Toutes les formations à distance" sous={`${n} formations comparées école par école : prix, diplôme, financement, avis. Filtrez, ouvrez une fiche, comparez.`} />
+      <section className="sec sec-white sec-tight"><div className="sec-in"><Suspense><Listing formations={getFormations()} domaines={DOMAINES} /></Suspense></div></section>
     </>
   );
 }

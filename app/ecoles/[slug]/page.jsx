@@ -1,28 +1,45 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getEcoles, getEcole, getOffresByEcole, eur } from "../../../lib/catalogue";
+import PageHero from "../../../components/PageHero";
 export function generateStaticParams() { return getEcoles().map((e) => ({ slug: e.slug })); }
 export async function generateMetadata({ params }) { const { slug } = await params; const e = getEcole(slug); return { title: e ? `${e.nom} : avis, prix et formations à distance` : "École" }; }
 export default async function Page({ params }) {
   const { slug } = await params; const e = getEcole(slug); if (!e) notFound();
   const offres = getOffresByEcole(slug);
+  const nc = (v) => v || "non communiqué";
+  const faits = [["Garantie", e.garantie], ["Accompagnement", e.accompagnement], ["Supports", e.supports], ["Modalités", e.modalites], ["Préparation examen", e.preparation_examen]];
   return (
     <>
-      <h1>{e.nom}</h1>
-      <p className="lead">{e.groupe ? `Marque du groupe ${e.groupe}. ` : ""}{offres.length} formation{offres.length > 1 ? "s" : ""} référencée{offres.length > 1 ? "s" : ""} sur ecolesenligne.fr.</p>
-      <div className="card" style={{ maxWidth: 720 }}>
-        <dl className="facts" style={{ gridTemplateColumns: "repeat(2,1fr)" }}>
-          <div><dt>Avis</dt><dd>{e.avis?.note ? `${e.avis.note}/5 (${e.avis.nombre} avis ${e.avis.source})` : "non communiqué"}</dd></div>
-          <div><dt>Garantie</dt><dd>{e.garantie || "non communiqué"}</dd></div>
-          <div><dt>Accompagnement</dt><dd>{e.accompagnement || "non communiqué"}</dd></div>
-          <div><dt>Supports</dt><dd>{e.supports || "non communiqué"}</dd></div>
-          <div><dt>Modalités</dt><dd>{e.modalites || "non communiqué"}</dd></div>
-          <div><dt>Préparation examen</dt><dd>{e.preparation_examen || "non communiqué"}</dd></div>
-        </dl>
-      </div>
-      <h2>Formations</h2>
-      <table className="compare"><thead><tr><th>Formation</th><th>Prix total</th><th>Durée</th><th>Diplôme</th><th></th></tr></thead>
-        <tbody>{offres.map((o) => <tr key={o.formation}><td><Link href={`/formations/${o.formationObj?.slug}`}>{o.formationObj?.intitule}</Link></td><td>{eur(o.prix_total_eur)}</td><td>{o.duree_heures ? `${o.duree_heures} h` : ""} {o.duree_acces}</td><td>{o.diplome || "—"}</td><td><Link href={`/formations/${o.formationObj?.slug}`} className="btn btn-sm">Comparer</Link></td></tr>)}</tbody></table>
+      <PageHero
+        crumbs={[{ label: "Formations", href: "/formations" }, { label: "École" }]}
+        titre={e.nom}
+        sous={`${e.groupe ? `Marque du groupe ${e.groupe}. ` : ""}${offres.length} formation${offres.length > 1 ? "s" : ""} référencée${offres.length > 1 ? "s" : ""} sur ecolesenligne.fr.`}
+        aside={e.avis?.note ? <ul className="phero-stats"><li><strong>{String(e.avis.note).replace(".", ",")}/5</strong><span>{e.avis.nombre} avis {e.avis.source}</span></li><li><strong>{offres.length}</strong><span>formations comparées</span></li></ul> : <ul className="phero-stats"><li><strong>{offres.length}</strong><span>formations comparées</span></li></ul>}
+      />
+      <section className="sec sec-white sec-tight">
+        <div className="sec-in">
+          <h2 className="display h-dark">L'école en bref</h2>
+          <dl className="bigfacts">{faits.map(([k, v]) => <div key={k}><dt>{k}</dt><dd>{nc(v)}</dd></div>)}</dl>
+        </div>
+      </section>
+      <section className="sec sec-gris sec-tight">
+        <div className="sec-in">
+          <h2 className="display h-dark">Ses formations</h2>
+          <ul className="rows">
+            {offres.map((o) => (
+              <li key={o.formation}><Link href={`/formations/${o.formationObj?.slug}`}>
+                <span className="r-t">{o.formationObj?.intitule}</span>
+                <span className="r-m">{o.duree_heures ? `${o.duree_heures} h` : ""} {o.diplome || ""}</span>
+                <span className="r-p">{o.prix_total_eur ? eur(o.prix_total_eur) : "sur demande"}</span>
+              </Link></li>
+            ))}
+          </ul>
+        </div>
+      </section>
+      <section className="sec sec-or sec-tight">
+        <div className="sec-in cta-f"><h2 className="display h-dark">Envie d'en savoir plus ?</h2><Link href={`/demande?ecole=${e.slug}`} className="btn-noir">Demander des infos</Link></div>
+      </section>
     </>
   );
 }
