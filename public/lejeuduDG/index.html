@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="description" content="La Bataille du DG : quatre écoles en ligne à diriger de 2026 à 2030.">
+<meta name="description" content="La Bataille du DG : cinq écoles en ligne à diriger de 2026 à 2030.">
 <title>La Bataille du DG</title>
 <style>
 /* Layout: série politique — en-tête + bandeau d'épisodes, jauges collantes, carte d'épisode à cadre doré, panneau budget. Thème unique sombre, choisi délibérément. */
@@ -292,6 +292,11 @@ const SCENARIOS=[
   base:{students:24000,price:2500,organic:2600,payrollOther:24000,payrollCom:6000,marketing:9000,platform:3000,other:6000,debt:0,rate:0.04,cash:8000,staff:700,com:150}, start:20, target:15, growth:1.5, bank:-15000, unit:'étudiants', mediaTitle:'Plan médias', mediaWord:'médias', leadWord:'leads', lead1:'lead', churn:0.34, sat:9000, eff:0.72, varc:0.49,
   media:scaleMedia(MEDIA_XYN,2),
   mission:"relancer la croissance d'un leader installé : +50 % de chiffre d'affaires en cinq ans, sans descendre sous +15 %", pitch:"Le CNF est rentable, connu, et immobile : chaque année les inscriptions remplacent tout juste les départs. Le conseil veut 90 M€ en 2030 avec au moins +15 % de résultat. Le marché est mûr : chaque étudiant de plus coûtera plus cher."},
+ {id:'asclepia',name:"Asclépia",ic:"🌿",tag:"La startup du bien-être qui brûle du cash",
+  desc:"1 M€ de chiffre d'affaires, 670 étudiants, 12 salariés, −50 % de résultat : la startup des formations bien-être perd 500 k€ par an. Les investisseurs veulent ×5 (5 M€) et +30 % de résultat fin 2030.",
+  base:{students:670,price:1500,organic:150,payrollOther:720,payrollCom:180,marketing:300,platform:120,other:180,debt:0,rate:0.06,cash:400,staff:12,com:3}, start:-50, target:30, growth:5, bank:-800, unit:'étudiants', mediaTitle:'Plan médias', mediaWord:'médias', leadWord:'leads', lead1:'lead', churn:0.37, sat:5200, eff:1.32, varc:0.28,
+  media:scaleMedia(MEDIA_XYN,0.067),
+  mission:"passer d'une startup qui brûle du cash à une pépite rentable : ×5 et +30 %", pitch:"Asclépia a un produit que ses étudiants adorent, une petite équipe, et 400 k€ en banque. À ce rythme, il reste dix mois. Les investisseurs ne remettront pas au pot sans une trajectoire vers 5 M€ et +30 %."},
 ];
 function applyScenario(i){
   SC=SCENARIOS[i]; BASE={...SC.base}; MEDIA=JSON.parse(JSON.stringify(SC.media)); N.ecole=SC.name;
@@ -731,7 +736,7 @@ function renderIntro(){
     <h1 class="serif title">LA BATAILLE DU DG</h1>
     <div style="text-align:center;color:var(--gold);font-size:13px;margin-top:-8px">2026-2030</div>
     <div class="speech"><div class="avatar">${PRES}</div><div>
-      <p>« Je suis ${N.president}. J'investis dans des écoles en ligne, et j'ai besoin d'un directeur général pour chacune. Quatre écoles, quatre situations : une à redresser, une à faire tripler, une à relancer, un leader à remettre en mouvement. »</p>
+      <p>« Je suis ${N.president}. J'investis dans des écoles en ligne, et j'ai besoin d'un directeur général pour chacune. Cinq écoles, cinq situations : une à redresser, une à faire tripler, une à relancer, un leader à remettre en mouvement, une startup à sauver. »</p>
       <p>« Vous avez cinq exercices, de 2026 à 2030. Le conseil d'administration, les étudiants, les commerciaux et le CSE vous jugeront chaque année. Choisissez votre école. »</p>
     </div></div>
     <div class="tiles">
