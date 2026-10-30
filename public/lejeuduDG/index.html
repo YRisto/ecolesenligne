@@ -270,10 +270,10 @@ const MEDIA_XYN={
 };
 const scaleMedia=(m,f)=>Object.fromEntries(Object.entries(m).map(([k,v])=>[k,{...v,base:Math.round(v.base*f)}]));
 const SCENARIOS=[
- {id:'xyn',name:"Xyn and You",ic:"🎓",tag:"L'école généraliste, tous secteurs, en perte lourde",
-  desc:"30 M€ de chiffre d'affaires, 12 000 étudiants, 400 salariés dont 100 commerciaux, −20 % de résultat net. Redresser les comptes et atteindre +20 % fin 2030.",
+ {id:'xyn',name:"Xyn and You",ic:"🎓",tag:"La grande école en ligne, tous secteurs, une marque forte à remettre sur les rails",
+  desc:"30 M€ de chiffre d'affaires, 12 000 étudiants dans toutes les filières, 400 salariés dont 100 commerciaux, une notoriété nationale et une équipe soudée. Les comptes affichent −20 % : tout le reste est là pour atteindre +20 % fin 2030.",
   base:BASE_XYN, media:MEDIA_XYN, start:-20, target:20, growth:null, bank:-10000, unit:'étudiants', mediaTitle:'Plan médias', mediaWord:'médias', leadWord:'leads', lead1:'lead', churn:0.33, sat:14000, eff:1.25, varc:0.38,
-  mission:"faire adopter le plan de redressement 2026 et les suivants", pitch:"Sans effort supplémentaire, l'école perdrait 6 M€ par an, soit −20 % du chiffre d'affaires. La banque, les actionnaires, 12 000 étudiants et 400 salariés vous regardent."},
+  mission:"faire adopter le plan de redressement 2026 et les suivants", pitch:"Xyn and You a tout pour réussir : la marque la plus connue du secteur, 12 000 étudiants, un catalogue qui couvre tous les métiers et des équipes qui tiennent à leur école. Il reste à faire ce que personne n'a encore fait : transformer cette force en résultats, de −20 % à +20 %."},
  {id:'linguia',name:"LinguIA",ic:"🗣️",tag:"Le spécialiste des langues en B2B, dopé à l'IA",
   desc:"7 M€ de chiffre d'affaires, 3 500 apprenants en entreprise, 60 salariés, +5 % de résultat. Un agent IA exceptionnel vient de transformer le produit : le conseil veut tripler de taille en cinq ans, en tenant +20 %.",
   base:{students:3500,price:2000,organic:300,payrollOther:3250,payrollCom:600,marketing:500,platform:600,other:1700,debt:1000,rate:0.045,cash:800,staff:60,com:15}, start:5, target:20, growth:3, bank:-3000, unit:'apprenants', mediaTitle:'Plan commercial', mediaWord:'commercial', leadWord:'opportunités', lead1:'opportunité', churn:0.36, sat:7000, eff:0.66, varc:0.65,
