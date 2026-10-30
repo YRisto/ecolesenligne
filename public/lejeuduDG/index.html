@@ -273,11 +273,11 @@ const scaleMedia=(m,f)=>Object.fromEntries(Object.entries(m).map(([k,v])=>[k,{..
 const SCENARIOS=[
  {id:'xyn',name:"Xyn and You",ic:"🎓",tag:"La grande école en ligne, tous secteurs, une marque forte à remettre sur les rails",
   desc:"30 M€ de chiffre d'affaires, 12 000 étudiants dans toutes les filières, 400 salariés dont 100 commerciaux, une notoriété nationale et une équipe soudée. Les comptes affichent −20 % : tout le reste est là pour atteindre +20 % fin 2030.",
-  base:BASE_XYN, media:MEDIA_XYN, start:-20, target:20, growth:null, bank:-10000, unit:'étudiants', mediaTitle:'Plan médias', mediaWord:'médias', leadWord:'leads', lead1:'lead', churn:0.33, sat:14000, eff:1.25, varc:0.38,
+  base:BASE_XYN, media:MEDIA_XYN, start:-20, target:20, growth:null, bank:-10000, unit:'étudiants', mediaTitle:'Plan médias', mediaWord:'médias', leadWord:'leads', lead1:'lead', churn:0.33, sat:14000, eff:1.18, varc:0.4,
   mission:"faire adopter le plan de redressement 2026 et les suivants", pitch:"Xyn and You a tout pour réussir : la marque la plus connue du secteur, 12 000 étudiants, un catalogue qui couvre tous les métiers et des équipes qui tiennent à leur école. Il reste à faire ce que personne n'a encore fait : transformer cette force en résultats, de −20 % à +20 %."},
  {id:'linguia',name:"LinguIA",ic:"🗣️",tag:"Le spécialiste des langues en entreprise, et son agent IA qui change la donne",
   desc:"7 M€ de chiffre d'affaires, 3 500 apprenants dans les plus belles entreprises, 60 salariés passionnés, +5 % de résultat et vingt ans de réputation. L'agent IA maison vient de faire sauter le plafond du produit : le conseil veut en profiter pour tripler de taille d'ici 2030, à +20 % de résultat.",
-  base:{students:3500,price:2000,organic:300,payrollOther:3250,payrollCom:600,marketing:500,platform:600,other:1700,debt:1000,rate:0.045,cash:800,staff:60,com:15}, start:5, target:20, growth:3, bank:-3000, unit:'apprenants', mediaTitle:'Plan commercial', mediaWord:'commercial', leadWord:'opportunités', lead1:'opportunité', churn:0.36, sat:7000, eff:0.66, varc:0.65,
+  base:{students:3500,price:2000,organic:300,payrollOther:3250,payrollCom:600,marketing:500,platform:600,other:1700,debt:1000,rate:0.045,cash:800,staff:60,com:15}, start:5, target:20, growth:3, bank:-3000, unit:'apprenants', mediaTitle:'Plan commercial', mediaWord:'commercial', leadWord:'opportunités', lead1:'opportunité', churn:0.36, sat:7000, eff:0.62, varc:0.66,
   media:{farm:{n:"Farming grands comptes",ic:"🌱",d:"Développer les clients existants : nouvelles langues, nouveaux services, montée en gamme avec l'agent IA. Le levier le plus rentable.",cpl:350,conv:0.35,per:4,churn:0,base:200},
          hunt:{n:"Hunting nouveaux comptes",ic:"🎯",d:"Prospection sortante vers les DRH. Long et cher, mais c'est là que se joue le triplement.",cpl:900,conv:0.12,per:8,churn:1,base:150},
          opco:{n:"Partenariats OPCO et branches",ic:"🤝",d:"Référencements auprès des financeurs. Volume régulier, marges serrées.",cpl:600,conv:0.2,per:4,churn:0,base:100},
@@ -285,17 +285,17 @@ const SCENARIOS=[
   mission:"transformer un spécialiste rentable en leader : tripler le chiffre d'affaires sans sacrifier la marge", pitch:"LinguIA est rentable, respectée, et vient de se doter d'un produit que personne ne sait copier. C'est le moment d'accélérer : passer de 7 à 21 M€ en cinq ans à +20 % de résultat. Pas de médias ici : la croissance se gagne compte par compte, chez les clients fidèles et dans les DRH qu'il reste à convaincre."},
  {id:'enacto',name:"ENACTO Business School",ic:"🏫",tag:"La jolie école de commerce qui repart, avec sa fondatrice et un nouvel actionnaire",
   desc:"10 M€ de chiffre d'affaires, 4 000 étudiants attachés à leur école, 130 salariés, et l'équilibre retrouvé après des années difficiles. Bernard Bugatti vient d'entrer au capital aux côtés de la fondatrice Hélène Bellavenir : les moyens sont là, l'âme aussi. Doubler et atteindre +20 % fin 2030.",
-  base:{students:4000,price:2500,organic:300,payrollOther:4300,payrollCom:1200,marketing:1600,platform:800,other:2100,debt:3000,rate:0.05,cash:600,staff:130,com:30}, start:0, target:20, growth:2, bank:-4000, unit:'étudiants', mediaTitle:'Plan médias', mediaWord:'médias', leadWord:'leads', lead1:'lead', churn:0.32, sat:6000, eff:1.2, varc:0.4, founder:true,
+  base:{students:4000,price:2500,organic:300,payrollOther:4300,payrollCom:1200,marketing:1600,platform:800,other:2100,debt:3000,rate:0.05,cash:600,staff:130,com:30}, start:0, target:20, growth:2, bank:-4000, unit:'étudiants', mediaTitle:'Plan médias', mediaWord:'médias', leadWord:'leads', lead1:'lead', churn:0.32, sat:6000, eff:1.0, varc:0.44, founder:true,
   media:scaleMedia(MEDIA_XYN,0.36),
   mission:"doubler l'école en cinq ans et atteindre +20 % de résultat, sans trahir son âme", pitch:"ENACTO a traversé la tempête et en est sortie debout, avec des diplômés fidèles et une pédagogie que ses concurrents lui envient. Mon entrée au capital lui donne les moyens de ses ambitions ; Hélène Bellavenir, sa fondatrice, siège au conseil et veillera à ce que la croissance ne trahisse pas l'école. Objectif : 20 M€ et +20 % fin 2030."},
  {id:'cnf',name:"Centre National de Formation",ic:"🏛️",tag:"Le leader du secteur, solide, rentable, prêt pour un nouveau chapitre",
   desc:"60 M€ de chiffre d'affaires, 24 000 étudiants, 700 salariés, +20 % de résultat et la première place du secteur. Après trois années stables, le conseil veut rouvrir le chapitre de la croissance : +50 % de chiffre d'affaires d'ici 2030, en gardant au moins +15 %.",
-  base:{students:24000,price:2500,organic:2600,payrollOther:24000,payrollCom:6000,marketing:9000,platform:3000,other:6000,debt:0,rate:0.04,cash:8000,staff:700,com:150}, start:20, target:15, growth:1.5, bank:-15000, unit:'étudiants', mediaTitle:'Plan médias', mediaWord:'médias', leadWord:'leads', lead1:'lead', churn:0.34, sat:9000, eff:0.72, varc:0.49,
+  base:{students:24000,price:2500,organic:2600,payrollOther:24000,payrollCom:6000,marketing:9000,platform:3000,other:6000,debt:0,rate:0.04,cash:8000,staff:700,com:150}, start:20, target:15, growth:1.5, bank:-15000, unit:'étudiants', mediaTitle:'Plan médias', mediaWord:'médias', leadWord:'leads', lead1:'lead', churn:0.35, sat:8000, eff:0.56, varc:0.6, capMod:-15,
   media:scaleMedia(MEDIA_XYN,2),
   mission:"relancer la croissance d'un leader installé : +50 % de chiffre d'affaires en cinq ans, sans descendre sous +15 %", pitch:"Le CNF est la référence : rentable, connu de tous, avec des équipes qui savent faire. Depuis trois ans, les inscriptions remplacent exactement les départs ; c'est confortable, ce n'est pas assez. Le conseil veut 90 M€ en 2030 avec au moins +15 % de résultat, sur un marché mûr où chaque étudiant de plus se gagne."},
  {id:'hippocampus',name:"Hippocampus",ic:"🌿",tag:"La startup du bien-être ultra premium, un produit adoré, une trajectoire à construire",
   desc:"1 M€ de chiffre d'affaires, 170 étudiants à 6 000 € qui recommandent l'école les yeux fermés, 12 salariés, un positionnement ultra premium unique sur le marché. La startup investit encore (−50 % de résultat) ; les investisseurs y croient et veulent ×5 (5 M€) et +30 % de résultat fin 2030.",
-  base:{students:167,price:6000,organic:40,payrollOther:720,payrollCom:180,marketing:300,platform:120,other:180,debt:0,rate:0.06,cash:400,staff:12,com:3}, start:-50, target:30, growth:5, bank:-800, unit:'étudiants', mediaTitle:'Plan médias', mediaWord:'médias', leadWord:'leads', lead1:'lead', churn:0.26, sat:1700, eff:1.4, varc:0.27,
+  base:{students:167,price:6000,organic:40,payrollOther:720,payrollCom:180,marketing:300,platform:120,other:180,debt:0,rate:0.06,cash:400,staff:12,com:3}, start:-50, target:30, growth:5, bank:-800, unit:'étudiants', mediaTitle:'Plan médias', mediaWord:'médias', leadWord:'leads', lead1:'lead', churn:0.25, sat:2000, eff:1.7, varc:0.22,
   media:{google:{n:"Google Ads",ic:"🔍",d:"Recherche payante sur des mots-clés chers. Des prospects aisés, rares, exigeants.",cpl:380,conv:0.06,churn:0,base:100},
          hello:{n:"HelloFormation",ic:"🤝",d:"Broker généraliste : beaucoup de curieux, peu de clients à 6 000 €.",cpl:280,conv:0.03,churn:1,base:67},
          diplo:{n:"Diplomomo",ic:"🎓",d:"Broker diplômant, un peu mieux ciblé.",cpl:330,conv:0.045,churn:0,base:53},
@@ -781,7 +781,7 @@ function renderProfile(){
   </div></div>`;
   const pf=$('#pf');
   const draw=()=>{pf.innerHTML='';PROFILES.forEach((p,i)=>{const d=btn(`<span class="ic">${p[0]}</span><b>${p[1]}</b><span>${p[2]}</span><span>${Object.entries(p[3]).map(([k,v])=>`<span class="chip ${k==='ca'?'cap':''}">${v} ${GN[k]}</span>`).join('')}</span>`,()=>{S.profile=i;draw();upd();},'prof'+(S.profile===i?' sel':''));pf.appendChild(d);});};
-  const go=btn('▶ Entrer en scène',()=>{S.g={...PROFILES[S.profile][3]};S.screen='title';render();});
+  const go=btn('▶ Entrer en scène',()=>{S.g={...PROFILES[S.profile][3]};S.g.ca=clamp(S.g.ca+(SC.capMod||0),10,100);S.screen='title';render();});
   const upd=()=>{S.name=$('#nm').value.trim();go.disabled=!(S.name&&S.profile!==null);$('#hint').textContent=go.disabled?'Choisissez un nom et un profil pour continuer.':'';save();};
   $('#nm').addEventListener('input',upd); $('#b').appendChild(go); draw(); upd();
 }
@@ -952,7 +952,8 @@ function phMesures(){
   if(!S.offer[S.year]){
     const pool=MEASURES.filter(m=>!S.active.includes(m.id)&&!(S.mode==='univ'&&m.price>0));
     const take=(cat,n)=>{const l=pool.filter(m=>m.cat===cat).sort(()=>Math.random()-0.5);return l.slice(0,n).map(m=>m.id);};
-    S.offer[S.year]=[...take('rec',7),...take('dep',6),...take('str',5),...take('fou',2)];
+    const Q=[[4,4,3,1],[5,5,4,1],[6,6,4,2],[7,6,5,2],[7,6,5,2]][Math.min(S.yi,4)];
+    S.offer[S.year]=[...take('rec',Q[0]),...take('dep',Q[1]),...take('str',Q[2]),...take('fou',Q[3])];
   }
   const avail=S.offer[S.year].map(i=>MEASURES[i]).filter(m=>!S.active.includes(m.id));
   const cats=[['rec','Recettes nouvelles','var(--green)'],['dep','Économies et coupes','var(--gold)'],['str','Réformes de structure','var(--violet)'],['fou','Coups de poker — effets massifs, capital massif','var(--rose)']];
