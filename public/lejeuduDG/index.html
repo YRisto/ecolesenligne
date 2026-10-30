@@ -238,7 +238,7 @@ const N={
  daf:"Guillaume Norgeat", dafRole:"Directeur administratif et financier",
  peda:"Eva Duchene", com:"Delphine Engels", dsi:"Bechir Flechel", mkt:"Kim Lemaire", support:"Hector Morel", business:"Perrine Teintagel", qualite:"Nadia Ferreira", rh:"Anne-Sophie Marrasco", comm:"Arthur Fortatos",
  cse:"Noemie Dosmot", comSenior:"Mariya Unika", etuF:"Inès Benkacem", etuM:"Mehdi Lauret", filiere:"Léa Fabre",
- adminEtu:"Hugo Simon", adminEns:"Isabelle Caron", actionnaire:"Jean-Luc Manouquian", adminIndep:"Hélène Belleavenir", banquier:"Henri Largenté", banque:"Banque Rhône-Atlantique",
+ adminEtu:"Hugo Simon", adminEns:"Claude Allegre", actionnaire:"Jean-Luc Amanoutian", adminIndep:"Hélène Bellavenir", banquier:"Henri Largenté", banque:"Banque Rhône-Atlantique",
  cac:"cabinet BDA", qualiopi:"Certif'Form", star:"Matthieu Levertueux",
  fil1:"Marketing digital", fil2:"Petite Enfance", fil3:"Santé Naturelle", mba:"MBA Business en ligne",
 };
@@ -395,7 +395,7 @@ const AUDITIONS=[
 
 const AMENDEMENTS=[
  {who:N.adminEtu,role:"Administrateur représentant les étudiants",ic:"👨‍🎓",ask:"Amendement : maintien du tutorat individuel pour toutes les filières, quel qu'en soit le coût.",y:{cost:400,g:{etu:5,ca:-2}},n:{g:{etu:-4}}},
- {who:N.adminEns,role:"Administratrice représentant les enseignants",ic:"👩‍🏫",ask:"Amendement : aucune correction entièrement automatisée sans relecture humaine.",y:{cost:250,g:{cse:5,ca:-1}},n:{g:{cse:-5}}},
+ {who:N.adminEns,role:"Représentant les enseignants au conseil",ic:"🧑‍🏫",ask:"Amendement : aucune correction entièrement automatisée sans relecture humaine.",y:{cost:250,g:{cse:5,ca:-1}},n:{g:{cse:-5}}},
  {who:N.actionnaire,role:"Actionnaire minoritaire",ic:"🕴️",ask:"Amendement : objectif de résultat relevé de 2 points cette année, ou gel des recrutements.",y:{g:{ca:6,cse:-4}},n:{g:{ca:-6}}},
  {who:N.com,role:"Directrice commerciale, invitée au conseil",ic:COM,ask:"Amendement : aucune hausse de prix sans augmentation équivalente du budget médias.",y:{mk:400,g:{com:6,ca:-2}},n:{g:{com:-6}}},
  {who:N.adminIndep,role:"Administratrice indépendante",ic:"🧓",ask:"Amendement : publication trimestrielle des indicateurs de satisfaction étudiante au conseil.",y:{cost:60,g:{ca:4,etu:2}},n:{g:{ca:-2}}},
@@ -405,25 +405,43 @@ const AMENDEMENTS=[
 ];
 
 const EVENTS=[
- {ic:"💥",n:"Panne majeure de la plateforme pendant les examens",t:"Trois jours sans accès en pleine session. Les réseaux sociaux s'en donnent à cœur joie.",fx:{g:{etu:-8,ca:-3},once:-200},w:s=>s.flags.vieux_lms?3:(s.flags.new_lms?0.2:1)},
- {ic:"🔓",n:"Cyberattaque et fuite de données étudiantes",t:"Rançongiciel. La CNIL est prévenue, les étudiants aussi.",fx:{g:{etu:-10,ca:-6,cse:-3},once:-600},w:s=>s.flags.risque_cyber?4:(s.flags.secu?0.2:0.8)},
- {ic:"🆓",n:"Un géant du MOOC lance une offre gratuite diplômante",t:"Vos prospects comparent. Vos commerciaux aussi.",fx:{stuY:0.92,g:{com:-5}},w:()=>1},
- {ic:"📜",n:"Réforme du CPF : reste à charge et filtrage des formations",t:"Un décret restreint les financements publics. Les dossiers s'effondrent.",fx:{revY:-900,g:{com:-6,ca:-2}},w:s=>s.flags.cpf?3:0.8},
- {ic:"⭐",n:"Polémique sur de faux avis en ligne",t:"Un article de presse accuse "+N.ecole+" d'avoir acheté des avis. Vrai ou faux, le mal est fait.",fx:{g:{etu:-6,ca:-3},stuY:0.95},w:()=>1},
- {ic:"🤖",n:"Vague d'IA générative : les devoirs rendus sont écrits par machine",t:"Vos enseignants ne savent plus ce qu'ils corrigent. Il faut repenser l'évaluation.",fx:{cost:250,g:{cse:-4}},w:()=>1.2},
- {ic:"🚪",n:"Départ de "+N.star+", enseignant star, vers un concurrent",t:"Il emmène sa communauté et ses 40 000 abonnés.",fx:{stuY:0.96,g:{etu:-4,cse:-3}},w:s=>s.g.cse<40?2:0.8},
- {ic:"📺",n:"Reportage télévisé très favorable",t:"Vingt minutes sur une diplômée devenue cheffe d'entreprise. Le standard explose.",fx:{stuY:1.08,g:{ca:3,com:4,etu:2}},w:s=>s.g.etu>55?1.5:0.6},
- {ic:"🔍",n:"Contrôle de France Compétences",t:"Les inspecteurs vérifient la conformité des certifications.",fx:s=>s.flags.risque_qualiopi?{g:{ca:-8,etu:-5},revY:-1200,txt:"Sans mise en conformité, deux certifications sont suspendues. Les financements associés tombent."}:{g:{ca:2},txt:"Rapport sans réserve. Le conseil respire."},w:()=>1},
- {ic:"✊",n:"Grève des tuteurs pendant une semaine",t:"Le CSE appelle à cesser le travail. Les étudiants attendent leurs corrections.",fx:{g:{etu:-5,cse:3,ca:-3}},w:s=>s.g.cse<35?3:0.2},
+ {ic:"💥",n:"Panne majeure de la plateforme pendant les examens",t:"Trois jours sans accès en pleine session. Les réseaux sociaux s'en donnent à cœur joie.",fx:{g:{etu:-11,ca:-4},once:-280},w:s=>s.flags.vieux_lms?3:(s.flags.new_lms?0.2:1)},
+ {ic:"🔓",n:"Cyberattaque et fuite de données étudiantes",t:"Rançongiciel. La CNIL est prévenue, les étudiants aussi.",fx:{g:{etu:-14,ca:-8,cse:-4},once:-840},w:s=>s.flags.risque_cyber?4:(s.flags.secu?0.2:0.8)},
+ {ic:"🆓",n:"Un géant du MOOC lance une offre gratuite diplômante",t:"Vos prospects comparent. Vos commerciaux aussi.",fx:{stuY:0.89,g:{com:-7}},w:()=>1},
+ {ic:"📜",n:"Réforme du CPF : reste à charge et filtrage des formations",t:"Un décret restreint les financements publics. Les dossiers s'effondrent.",fx:{revY:-1260,g:{com:-8,ca:-3}},w:s=>s.flags.cpf?3:0.8},
+ {ic:"⭐",n:"Polémique sur de faux avis en ligne",t:"Un article de presse accuse "+N.ecole+" d'avoir acheté des avis. Vrai ou faux, le mal est fait.",fx:{g:{etu:-8,ca:-4},stuY:0.93},w:()=>1},
+ {ic:"🤖",n:"Vague d'IA générative : les devoirs rendus sont écrits par machine",t:"Vos enseignants ne savent plus ce qu'ils corrigent. Il faut repenser l'évaluation.",fx:{cost:350,g:{cse:-6}},w:()=>1.2},
+ {ic:"🚪",n:"Départ de "+N.star+", enseignant star, vers un concurrent",t:"Il emmène sa communauté et ses 40 000 abonnés.",fx:{stuY:0.94,g:{etu:-6,cse:-4}},w:s=>s.g.cse<40?2:0.8},
+ {pos:true,ic:"📺",n:"Reportage télévisé très favorable",t:"Vingt minutes sur une diplômée devenue cheffe d'entreprise. Le standard explose.",fx:{stuY:1.11,g:{ca:4,com:6,etu:3}},w:s=>s.g.etu>55?1.5:0.6},
+ {ic:"🔍",n:"Contrôle de France Compétences",t:"Les inspecteurs vérifient la conformité des certifications.",fx:s=>s.flags.risque_qualiopi?{g:{ca:-11,etu:-7},revY:-1680,txt:"Sans mise en conformité, deux certifications sont suspendues. Les financements associés tombent."}:{g:{ca:3},txt:"Rapport sans réserve. Le conseil respire."},w:()=>1},
+ {ic:"✊",n:"Grève des tuteurs pendant une semaine",t:"Le CSE appelle à cesser le travail. Les étudiants attendent leurs corrections.",fx:{g:{etu:-7,cse:4,ca:-4}},w:s=>s.g.cse<35?3:0.2},
  {ic:"📈",n:"Hausse générale des taux d'intérêt",t:"La BCE resserre. La "+N.banque+" suit.",fx:{rate:0.01,g:{ca:-1}},w:()=>0.8},
- {ic:"💶",n:"Inflation : les salariés demandent un rattrapage",t:"Le CSE réclame 4 % pour tout le monde.",fx:s=>s.flags.gel?{g:{cse:-8},txt:"Avec le gel des salaires, la demande tourne à la colère."}:{cost:500,g:{cse:2},txt:"Vous accordez 2,5 %. Ni satisfait, ni révolté."},w:()=>1},
- {ic:"🔍",n:"Mise à jour de l'algorithme Google",t:"Vos campagnes perdent leur position. Le coût par lead Google bondit de 40 % cette année.",fx:{media:{google:1.4},g:{com:-3}},w:s=>s.media.google>1800?1.6:0.9},
- {ic:"🤝",n:"HelloFormation double ses tarifs",t:"Le broker, en position de force, renégocie : +60 % sur le coût du lead.",fx:{media:{hello:1.6},g:{com:-4}},w:s=>s.media.hello>1200?1.8:0.8},
- {ic:"🎓",n:"Diplomomo en redressement judiciaire",t:"Le broker ne livre plus de leads pendant six mois. Vos commerciaux attendent.",fx:{media:{diplo:2.5},g:{com:-5}},w:s=>s.media.diplo>900?1.5:0.7},
- {ic:"📱",n:"Compte publicitaire Meta suspendu",t:"Une campagne jugée trompeuse bloque le compte pendant deux mois.",fx:{media:{meta:1.5},g:{etu:-2,com:-3}},w:s=>s.media.meta>1500?1.6:0.8},
- {ic:"🎯",n:"Nouveau format publicitaire Google très performant",t:"Vos campagnes profitent d'un format en avant-première. Le coût par lead baisse de 25 %.",fx:{media:{google:0.75},g:{com:3}},w:()=>0.7},
-];
+ {ic:"💶",n:"Inflation : les salariés demandent un rattrapage",t:"Le CSE réclame 4 % pour tout le monde.",fx:s=>s.flags.gel?{g:{cse:-11},txt:"Avec le gel des salaires, la demande tourne à la colère."}:{cost:700,g:{cse:3},txt:"Vous accordez 2,5 %. Ni satisfait, ni révolté."},w:()=>1},
+ {ic:"🔍",n:"Mise à jour de l'algorithme Google",t:"Vos campagnes perdent leur position. Le coût par lead Google bondit de 40 % cette année.",fx:{media:{google:1.4},g:{com:-4}},w:s=>s.media.google>1800?1.6:0.9},
+ {ic:"🤝",n:"HelloFormation double ses tarifs",t:"Le broker, en position de force, renégocie : +60 % sur le coût du lead.",fx:{media:{hello:1.6},g:{com:-6}},w:s=>s.media.hello>1200?1.8:0.8},
+ {ic:"🎓",n:"Diplomomo en redressement judiciaire",t:"Le broker ne livre plus de leads pendant six mois. Vos commerciaux attendent.",fx:{media:{diplo:2.5},g:{com:-7}},w:s=>s.media.diplo>900?1.5:0.7},
+ {ic:"📱",n:"Compte publicitaire Meta suspendu",t:"Une campagne jugée trompeuse bloque le compte pendant deux mois.",fx:{media:{meta:1.5},g:{etu:-3,com:-4}},w:s=>s.media.meta>1500?1.6:0.8},
+ {pos:true,ic:"🎯",n:"Nouveau format publicitaire Google très performant",t:"Vos campagnes profitent d'un format en avant-première. Le coût par lead baisse de 25 %.",fx:{media:{google:0.75},g:{com:4}},w:()=>0.7},
 
+ {ic:"📜",n:"Le CPF change ses règles : reste à charge de 20 % et formations filtrées",t:"Du jour au lendemain, un dossier sur trois ne passe plus. Les commerciaux rappellent des prospects qui ne peuvent plus payer.",fx:{revY:-1800,stuY:0.9,g:{com:-9,ca:-3}},w:s=>s.flags.cpf?3:1.1},
+ {ic:"🏃",n:"Cinq commerciaux partent chez un concurrent, avec le fichier",t:"La meilleure équipe de vente a signé ailleurs. Les prospects chauds sont rappelés par la concurrence.",fx:{stuY:0.88,g:{com:-16,cse:-4}},w:s=>s.g.com<45?2.5:0.9},
+ {ic:"💸",n:"Un concurrent baisse ses prix de 30 %",t:"Même formation, trois fois moins cher. Vos commerciaux passent leurs journées à justifier le tarif.",fx:{stuY:0.86,g:{com:-8,etu:-3}},w:s=>s.price>2700?2:1},
+ {ic:"⭐",n:"Un avis vidéo à une étoile devient viral",t:"Deux millions de vues pour une diplômée furieuse. Le standard reçoit plus de journalistes que de prospects.",fx:{stuY:0.9,g:{etu:-10,ca:-5}},w:s=>s.g.etu<45?2.2:0.8},
+ {ic:"🧾",n:"Redressement URSSAF sur les vacataires",t:"Les contrats de prestation sont requalifiés en salariat. Rappel de cotisations sur trois ans.",fx:{once:-1100,g:{ca:-6,cse:-4}},w:s=>s.active.some(i=>/vacataires/.test(MEASURES[i].n))?3:0.6},
+ {ic:"☁️",n:"Explosion des coûts cloud et IA",t:"Les fournisseurs doublent leurs tarifs. La plateforme coûte plus cher chaque mois.",fx:{cost:600,g:{ca:-2}},w:s=>s.flags.ia?2:0.9},
+ {ic:"🏦",n:"France Compétences retire une certification",t:"Une filière entière perd son enregistrement. Les financements publics tombent, les étudiants inscrits s'inquiètent.",fx:{revY:-1400,g:{etu:-8,ca:-6,com:-5}},w:s=>s.flags.risque_qualiopi?3:0.7},
+ {ic:"✊",n:"Plainte collective d'étudiants pour pratiques commerciales trompeuses",t:"Une association de consommateurs regroupe 300 dossiers. La presse suit.",fx:{once:-700,stuY:0.92,g:{etu:-9,ca:-5,com:-6}},w:s=>s.g.com>70&&s.g.etu<50?2.5:0.7},
+ {pos:true,ic:"🚰",n:"Le CPF rouvre les vannes",t:"Nouveau décret, financements élargis aux reconversions. Les dossiers affluent.",fx:{revY:1800,stuY:1.1,g:{com:8,ca:3}},w:s=>s.flags.cpf?2:1},
+ {pos:true,ic:"🎖️",n:"Vos diplômes reconnus au niveau 7 par l'État",t:"La reconnaissance tant attendue. Les prospects hésitent moins, les étudiants sont fiers.",fx:{stuY:1.15,g:{etu:11,com:6,ca:5}},w:s=>s.flags.qualite?2.5:0.7},
+ {pos:true,ic:"🤳",n:"Une influenceuse à deux millions d'abonnés recommande l'école",t:"Sans contrat, sans facture. Le site tombe sous la charge pendant une heure.",fx:{stuY:1.12,g:{com:7,etu:4}},w:s=>s.g.etu>55?1.6:0.6},
+ {pos:true,ic:"🏛️",n:"Subvention régionale pour la formation à distance",t:"Un plan régional finance les écoles en ligne. Un chèque, et une visite officielle.",fx:{once:1500,g:{ca:5,cse:3}},w:()=>0.9},
+ {pos:true,ic:"🤝",n:"Accord-cadre avec un grand OPCO",t:"Trois ans de formations financées pour une branche entière.",fx:{revY:1500,rev:600,g:{com:9,ca:4}},w:s=>s.active.some(i=>/B2B|OPCO/.test(MEASURES[i].n))?2.5:0.6},
+ {pos:true,ic:"📉",n:"Baisse des taux : la banque renégocie d'elle-même",t:"Henri Largenté propose un taux révisé. Il ne le fait jamais sans arrière-pensée.",fx:{rate:-0.012,g:{ca:3}},w:s=>s.cash>0?1.2:0.3},
+ {pos:true,ic:"🏆",n:"Prix de l'innovation pédagogique",t:"Un jury national distingue l'école. Deux pages dans la presse spécialisée.",fx:{g:{ca:8,etu:6,cse:5},stuY:1.05},w:s=>s.flags.new_lms||s.flags.qualite?2:0.6},
+ {pos:true,ic:"🚪",n:"Un concurrent ferme ses portes",t:"Ses étudiants cherchent où finir leur formation. Vos commerciaux ont leurs numéros.",fx:{stuY:1.14,g:{com:8}},w:()=>0.8},
+ {pos:true,ic:"📱",n:"Le coût du lead Meta s'effondre",t:"Un nouvel algorithme publicitaire adore vos contenus. Deux fois plus de leads pour le même budget.",fx:{media:{meta:0.55},g:{com:4}},w:s=>s.media.meta>1000?1.4:0.5},
+ {pos:true,ic:"🌟",n:"Recrutement d'une star du secteur comme enseignant",t:"Un nom qui fait venir les étudiants et rassure les équipes.",fx:{cost:250,stuY:1.06,g:{etu:7,cse:6}},w:s=>s.g.cse>50?1.3:0.5},
+];
 const SHAREHOLDER={t:N.president+" vend. Trois repreneurs se présentent, et le conseil vous demande votre préférence. Chacun réécrit les règles du jeu.",
  c:[["🏦","Un fonds d'investissement","Objectif +20 % maintenu, prêt refinancé à bas taux, mais tolérance zéro : chaque année en perte coûtera cher en capital.",{rate:-0.015,g:{ca:10,cse:-8},mode:"fonds"}],
     ["🏛️","Une université publique","La dette est reprise, l'objectif tombe à +8 %, mais les frais sont gelés et toute hausse de prix devient impossible.",{debt:0,g:{ca:5,cse:8,com:-6,etu:6},mode:"univ"}],
@@ -456,9 +474,9 @@ function pick(pool,key){
   const i=src[Math.floor(Math.random()*src.length)];
   S.used[key].push(i); return i;
 }
-function pickEvent(){
-  const ws=EVENTS.map((e,i)=>S.used.evt.includes(i)?0:e.w(S));
-  let tot=ws.reduce((a,b)=>a+b,0); if(tot<=0){S.used.evt=[];return pickEvent();}
+function pickEvent(kind){
+  const ws=EVENTS.map((e,i)=>(S.used.evt.includes(i)||(kind==='pos'&&!e.pos)||(kind==='neg'&&e.pos))?0:e.w(S));
+  let tot=ws.reduce((a,b)=>a+b,0); if(tot<=0){S.used.evt=[];return pickEvent(kind);}
   let r=Math.random()*tot;
   for(let i=0;i<EVENTS.length;i++){r-=ws[i]; if(r<=0){S.used.evt.push(i);return i;}}
   return 0;
@@ -853,7 +871,8 @@ function phMedias(){
 }
 
 function phEnveloppes(){
-  if(S.sub===0&&!S.tmp){ S.tmp={list:[pick(ENVELOPPES,'env'),pick(ENVELOPPES,'env')]}; }
+  if(S.sub===0&&!S.tmp){ S.tmp={list:[pick(ENVELOPPES,'env'),pick(ENVELOPPES,'env')],spring:pickEvent(),springDone:false}; }
+  if(!S.tmp.springDone){ const ev=EVENTS[S.tmp.spring]; const fx=eventFx(ev); S.tmp.springFx=fx; sceneShell(`<div class="resbox ${isBad(fx)?'bad':''}"><b>${ev.ic} ${ev.n}</b>${ev.t}${fx.txt?`<div style="margin-top:4px">${fx.txt}</div>`:''}<div>${chips(fx)}</div></div>`,{title:'Imprévu de printemps',tag:'Les directeurs attendent à la porte. Mais d\'abord, une nouvelle.'}); eventModal(ev,fx,'Imprévu de printemps',()=>{S.tmp.springDone=true;save();renderBudget();renderGame();}); return; }
   const e=ENVELOPPES[S.tmp.list[S.sub]];
   sceneShell(dlg(e.ic,e.who,e.role,e.ask)+`<div class="prompt">Arbitrage ${S.sub+1}/2 :</div><div id="c"></div>`,{title:'La guerre des enveloppes',tag:'Chaque directeur défend son budget, menace de partir, et ira voir '+N.president+' si vous dites non.',onNext:()=>{S.sub++; if(S.sub>=2) nextPhase(); else {S.decided=false;renderGame();}}});
   choices($('#c'),e.c.map(([l,fx,out])=>[l,fx,out]),null,e.who);
@@ -896,9 +915,10 @@ function boardVotes(chance,pend){
   const members=[
    {who:pres[0],role:pres[1],mod:(S.g.ca-50)*0.5,p:S.g.ca>=60?'Fait confiance à la direction.':'Soutient le plan, par devoir plus que par conviction.',c:S.g.ca<40?'Ne fait plus confiance à la direction.':'Attend un plan plus convaincant.'},
    {who:N.adminEtu,role:'Représentant des étudiants',mod:sum('etu')*1.2,p:sum('etu')>0?'Le plan améliore la vie étudiante.':'Le plan épargne les étudiants.',c:sum('etu')<0?'Le plan fait payer les étudiants.':'N\'y voit rien pour les étudiants.'},
-   {who:N.adminEns,role:'Représentante des enseignants',mod:sum('cse')*1.0,p:sum('cse')>0?'Les équipes y gagnent.':'Les équipes sont préservées.',c:sum('cse')<0?'Les équipes trinquent.':'Rien pour les équipes dans ce plan.'},
+   {who:N.adminEns,role:'Représente les enseignants',mod:sum('cse')*1.0,p:sum('cse')>0?'Les équipes y gagnent.':'Les équipes sont préservées.',c:sum('cse')<0?'Les équipes trinquent.':'Rien pour les équipes dans ce plan.'},
    {who:N.actionnaire,role:'Actionnaire minoritaire',mod:delta*2-(S.cash<0?8:0),p:'Le résultat projeté s\'améliore.',c:delta<2?'Pas assez d\'effet sur le résultat.':'Doute des chiffres annoncés.'},
    {who:N.adminIndep,role:'Administratrice indépendante',mod:-pend.length*1.5-cap*0.2+(methode?12:0),p:methode?'Salue la transparence et la méthode.':'Plan raisonnable dans son périmètre.',c:pend.length>5?'Trop de chantiers à la fois.':'Manque de méthode et d\'indicateurs.'},
+   {who:N.daf,role:'DAF et actionnaire',mod:delta*1.5+(S.cash<-1000?-10:S.cash>0?5:0)+(pend.length>6?-6:0),p:delta>2?'Les comptes y gagnent, il signe.':'Un plan qu\'il peut financer.',c:S.cash<-1000?'Ne sait pas comment financer le plan.':'Les chiffres ne tiennent pas à ses yeux.'},
    {who:N.banquier,role:'Censeur · '+N.banque,mod:(S.cash<-2000?-15:S.cash<0?-5:5)+once/200,p:'La trésorerie reste sous contrôle.',c:S.cash<-2000?'La trésorerie est hors des clauses du prêt.':once<-1000?'S\'inquiète des sorties de trésorerie immédiates.':'Juge le plan trop risqué pour la banque.'},
   ];
   const list=members.map(m=>{const a=amd[m.who]; const am=a===true?20:a===false?-25:0; const pr=clamp(chance+m.mod+am,5,95); const pour=Math.random()*100<pr;
@@ -943,19 +963,20 @@ function phVote(){
   $('#c').appendChild(box);
 }
 
-function phEvent(silent){
-  if(S.tmp===null) S.tmp={e:pickEvent()};
-  const e=EVENTS[S.tmp.e];
-  if(!S.decided&&!S.tmp.fx){ S.tmp.fx=typeof e.fx==='function'?e.fx(S):e.fx; }
-  const fx=S.tmp.fx;
-  const bad=(fx.g&&Object.values(fx.g).some(v=>v<0))||(fx.once&&fx.once<0)||(fx.stuY&&fx.stuY<1)||fx.rate>0||fx.revY<0||fx.cost>0||(fx.media&&Object.values(fx.media).some(v=>v>1));
-  sceneShell(`<div class="resbox ${bad?'bad':''}"><b>${e.ic} ${e.n}</b>${e.t}${fx.txt?`<div style="margin-top:4px">${fx.txt}</div>`:''}<div>${chips(fx)}</div></div>`,{title:'L\'imprévu',tag:'Il y a toujours un imprévu. Il tombe toujours en septembre.',ready:S.decided});
-  if(!S.decided&&!silent){
-    modal(`<div class="ic">${e.ic}</div><div class="ml">Imprévu de la rentrée</div><div class="mt">${e.n}. ${e.t}</div><div class="eff">${fx.txt||''}</div><div>${chips(fx)}</div><div class="ms">Un aléa imprévu affecte l'exercice en cours.</div><div style="margin-top:8px"><button class="mbtn" id="ack">Prendre acte</button></div>`,bad?'bad':'');
-    document.getElementById('ack').onclick=()=>{closeModal();apply(fx,e.n);S.decided=true;save();renderBudget();ready();};
-  }
+function eventFx(e){ return typeof e.fx==='function'?e.fx(S):e.fx; }
+function isBad(fx){ return (fx.g&&Object.values(fx.g).some(v=>v<0))||(fx.once&&fx.once<0)||(fx.stuY&&fx.stuY<1)||fx.rate>0||fx.revY<0||fx.cost>0||(fx.media&&Object.values(fx.media).some(v=>v>1)); }
+function eventModal(e,fx,label,cb){
+  modal(`<div class="ic">${e.ic}</div><div class="ml">${label}</div><div class="mt">${e.n}. ${e.t}</div><div class="eff">${fx.txt||''}</div><div>${chips(fx)}</div><div class="ms">Un aléa imprévu affecte l'exercice en cours.</div><div style="margin-top:8px"><button class="mbtn" id="ack">Prendre acte</button></div>`,isBad(fx)?'bad':'');
+  document.getElementById('ack').onclick=()=>{closeModal();apply(fx,e.n);cb();};
 }
-
+function phEvent(silent){
+  if(S.tmp===null){ const a=pickEvent('neg'), b=pickEvent('pos'); S.tmp={list:Math.random()<0.5?[a,b]:[b,a],fx:[null,null],done:0}; }
+  const T=S.tmp; const i=Math.min(T.done,1); const e=EVENTS[T.list[i]];
+  if(!T.fx[i]) T.fx[i]=eventFx(e);
+  const boxes=T.list.map((ei,k)=>{const ev=EVENTS[ei]; const fx=T.fx[k]; if(!fx) return ''; return `<div class="resbox ${isBad(fx)?'bad':''}"><b>${ev.ic} ${ev.n}</b>${ev.t}${fx.txt?`<div style="margin-top:4px">${fx.txt}</div>`:''}<div>${chips(fx)}</div></div>`;}).join('');
+  sceneShell(`<p class="muted">Deux imprévus cette rentrée, ${T.done}/2 pris en compte.</p><div class="opts">${boxes}</div>`,{title:'Les imprévus',tag:'Il y a toujours des imprévus. Ils tombent toujours en septembre.',ready:T.done>=2});
+  if(T.done<2&&!silent){ eventModal(e,T.fx[i],'Imprévu de la rentrée · '+(T.done+1)+'/2',()=>{T.done++;save();renderBudget();renderGauges();if(T.done>=2) S.decided=true; phEvent();}); }
+}
 function phResultats(){
   if(!S.decided){ S.tmp={y:simulate()}; S.decided=true; save(); renderGauges(); renderBudget(); postScore('saison',{}); }
   const y=S.tmp.y; const ins=y.ins;
