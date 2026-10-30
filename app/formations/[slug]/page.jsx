@@ -23,6 +23,7 @@ export default async function Page({ params }) {
   return (
     <>
       <PageHero
+        domaine={f.domaine}
         crumbs={[{ label: "Formations", href: "/formations" }, { label: f.domaine }]}
         chips={[{ label: f.type }, f.niveau && { label: f.niveau, tone: "muted" }].filter(Boolean)}
         titre={<>{f.intitule}<span className="or"> à distance</span></>}

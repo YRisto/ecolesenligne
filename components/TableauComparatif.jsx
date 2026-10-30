@@ -18,7 +18,7 @@ export default function TableauComparatif({ offres, formation }) {
         <tbody>
           {offres.map((o) => { const e = o.ecoleObj || {}; return (
             <tr key={o.ecole}>
-              <th scope="row"><Link href={`/ecoles/${o.ecole}`}>{e.nom}</Link>{e.partenaire && <span className="chip chip-ok">Partenaire</span>}{o.intitule_ecole && <div className="muted small">{o.intitule_ecole}</div>}</th>
+              <th scope="row"><Link href={`/ecoles/${o.ecole}`}>{e.nom}</Link>{o.intitule_ecole && <div className="muted small">{o.intitule_ecole}</div>}</th>
               <td className="note-cell"><Etoiles note={o.note} />
                 <details className="detail-note"><summary>détail</summary>
                   <ul>{Object.entries(conf.poids).map(([k, p]) => <li key={k}>{LIBELLES[k]} ({p} %) : {o.criteres[k] == null ? "n.c." : Math.round(o.criteres[k] * 10) + "/10"}</li>)}</ul>

@@ -330,3 +330,41 @@ table.cmp tbody th a { font-weight:800; }
 .form .consent input { width:20px; }
 .form .row { grid-template-columns:repeat(2,minmax(0,1fr)); }
 @media (max-width: 640px) { .form .row { grid-template-columns:minmax(0,1fr); } }
+
+/* ===== Rappel du design sur les pages filles ===== */
+.illu { display:block; --i1:#ffc629; --i2:#fff; }
+.tile { position:relative; overflow:hidden; min-height:190px; }
+.tile-illu { position:absolute; right:-6px; top:-6px; width:112px; height:112px; opacity:.95; transition:transform .25s; }
+.tile:hover .tile-illu, .tile:focus-visible .tile-illu { --i1:#000; --i2:#000; transform:rotate(-6deg) scale(1.08); }
+.fcard { position:relative; overflow:hidden; }
+.fcard-illu { position:absolute; right:-8px; top:-8px; width:92px; height:92px; opacity:.28; transition:opacity .2s; }
+.fcard:hover .fcard-illu, .fcard:focus-visible .fcard-illu { --i1:#000; --i2:#000; opacity:.5; }
+.fcard-body { position:relative; z-index:1; max-width:85%; }
+.phero { border-bottom:0; }
+.phero .hero-chart { position:absolute; inset:0; width:100%; height:100%; opacity:.5; pointer-events:none; }
+.phero .hero-chart polyline { fill:none; stroke:var(--or); stroke-width:2; stroke-opacity:.35; vector-effect:non-scaling-stroke; stroke-dasharray:2600; stroke-dashoffset:2600; animation:trace 2.4s .2s cubic-bezier(.3,.6,.2,1) forwards; }
+.phero-illu { position:absolute; right:clamp(8px,6vw,90px); top:50%; transform:translateY(-50%) rotate(-8deg); width:clamp(220px,32vw,420px); height:auto; opacity:.16; pointer-events:none; }
+.phero h1.display { font-size:clamp(2.6rem,7vw,5.6rem); line-height:.97; }
+.phero h1.display::after { content:""; display:block; width:clamp(72px,10vw,140px); height:8px; background:var(--or); margin-top:22px; }
+.ticker { background:var(--or); color:#000; overflow:hidden; white-space:nowrap; border-bottom:2px solid #000; }
+.ticker-t { display:inline-flex; animation:tick 28s linear infinite; }
+.ticker span { display:inline-flex; }
+.ticker b { font-family:"Anton",Impact,sans-serif; font-weight:400; text-transform:uppercase; font-size:1.05rem; letter-spacing:.04em; padding:9px 0; }
+.ticker i { font-style:normal; margin:0 22px; font-size:.8rem; }
+@keyframes tick { to { transform:translateX(-50%); } }
+.sec-white h2.display::before, .sec-gris h2.display::before { content:""; display:block; width:56px; height:7px; background:var(--or); margin-bottom:16px; }
+.sec-gris { background:#efeff1; }
+.sec h2.display { font-size:clamp(2.2rem,5vw,3.8rem); }
+.sec-black h2.display { color:#fff; }
+.sec-black h2.display::before { content:""; display:block; width:56px; height:7px; background:var(--or); margin-bottom:16px; }
+.video-frame { box-shadow:12px 12px 0 var(--or); }
+.table-wrap { box-shadow:8px 8px 0 #000; border-color:#000; }
+.bigfacts div { border-top-color:var(--or); border-top-width:6px; }
+.notice { border-left-width:8px; border-left-color:var(--or); }
+.form input, .form select, .form textarea { border-width:2px; box-shadow:4px 4px 0 #000; }
+.form input:focus, .form select:focus, .form textarea:focus { box-shadow:4px 4px 0 var(--or); outline:2px solid #000; }
+.form .consent input { box-shadow:none; }
+.filters input, .filters select { box-shadow:4px 4px 0 #000; }
+.prose h2 { border-top:6px solid var(--or); padding-top:14px; }
+@media (prefers-reduced-motion: reduce) { .ticker-t { animation:none; } .phero .hero-chart polyline { animation:none; stroke-dashoffset:0; } }
+@media (max-width:860px) { .phero-illu { opacity:.1; width:240px; right:-30px; top:30%; } }
