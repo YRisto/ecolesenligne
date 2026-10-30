@@ -5,111 +5,217 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="description" content="Le jeu du DG : redressez une école à distance de 12 000 étudiants avant la rentrée 2032.">
 <title>La Bataille de l'École</title>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=Source+Sans+3:ital,wght@0,400;0,600;0,700;1,400&display=swap">
 <style>
-/* Layout: a fixed "tableau de bord" strip (jauges + chiffres) above a single scene card, like a ministry briefing binder. */
+/* Layout: série politique — en-tête + bandeau d'épisodes, jauges collantes, carte d'épisode à cadre doré, panneau budget. Thème unique sombre, choisi délibérément. */
 :root{
-  --bg:#f3f1ec; --paper:#ffffff; --fg:#1d2430; --muted:#5e6673; --line:#d8d4cb;
-  --accent:#2a4d8f; --accent-fg:#ffffff; --tint:#e6ecf7;
-  --good:#2f7d4f; --warn:#b7791f; --crit:#b33a3a;
-  --display:"Bricolage Grotesque","Avenir Next",Arial,sans-serif;
-  --body:"Source Sans 3","Segoe UI",Helvetica,Arial,sans-serif;
+  --bg:#0b1020; --card:#111831; --card2:#0f1730; --line:#232d4a; --line2:#1e2740;
+  --fg:#eef2fb; --cream:#f4f1e8; --muted:#9aa4c8; --muted2:#6b7498;
+  --gold:#c9a24a; --gold-dark:#a5843a; --gold-ink:#1a1408; --gold-hi:#e8c15a;
+  --red:#c22020; --rose:#ff6b7a; --green:#7ee0a0; --green-deep:#2f8f46; --green-bg:#13291d; --green-line:#2f8f46;
+  --orange:#f0a24b; --cyan:#3ec8d6; --blue:#7fa3e6; --violet:#b48be6;
+  --serif:Georgia,"Times New Roman",serif;
+  --sans:Marianne,"Segoe UI",system-ui,-apple-system,Roboto,sans-serif;
+  color-scheme:dark;
 }
-@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){
-  --bg:#151a22; --paper:#1e2531; --fg:#e8e9ec; --muted:#9aa3b2; --line:#303a49;
-  --accent:#7fa3e6; --accent-fg:#101722; --tint:#263247;
-  --good:#5fbf86; --warn:#e0a84a; --crit:#e2706d; color-scheme:dark } }
-:root[data-theme="dark"]{
-  --bg:#151a22; --paper:#1e2531; --fg:#e8e9ec; --muted:#9aa3b2; --line:#303a49;
-  --accent:#7fa3e6; --accent-fg:#101722; --tint:#263247;
-  --good:#5fbf86; --warn:#e0a84a; --crit:#e2706d; color-scheme:dark }
 *{box-sizing:border-box}
 html,body{height:100%}
-body{margin:0;background:var(--bg);color:var(--fg);font-family:var(--body);font-size:16px;line-height:1.5;
-  padding-block:0 32px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
-h1,h2,h3{font-family:var(--display);text-wrap:balance;margin:0;line-height:1.15}
-h1{font-size:1.6rem;font-weight:800}
-h2{font-size:1.35rem;font-weight:700}
-h3{font-size:1.05rem;font-weight:700}
+body{margin:0;background:var(--bg) radial-gradient(ellipse 60% 40% at 50% 30%,#141c3a 0%,transparent 70%);background-attachment:fixed;color:var(--fg);font-family:var(--sans);font-size:14px;line-height:1.5;
+  padding-block:0 40px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--bg)}
+h1,h2,h3{margin:0;line-height:1.15;text-wrap:balance}
 p{margin:0}
-.wrap{max-width:980px;margin:0 auto;display:grid;gap:16px}
-header{display:flex;flex-wrap:wrap;align-items:baseline;justify-content:space-between;gap:8px 16px;padding-block:18px 4px;border-bottom:2px solid var(--fg)}
-header .yr{font-family:var(--display);font-weight:800;font-size:1.6rem;font-variant-numeric:tabular-nums}
-header .sub{color:var(--muted);font-size:.95rem;width:100%}
-.dash{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
-.g{background:var(--paper);border:1px solid var(--line);padding:10px 12px;display:grid;gap:4px;min-width:0}
-.g .lab{font-size:.72rem;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);font-weight:600}
-.g .val{font-family:var(--display);font-weight:700;font-size:1.3rem;font-variant-numeric:tabular-nums;display:flex;justify-content:space-between;align-items:baseline}
-.g .val small{font-size:.8rem;color:var(--muted);font-family:var(--body);font-weight:600}
-.bar{height:8px;background:var(--line);border-radius:4px;overflow:hidden}
-.bar i{display:block;height:100%;background:var(--accent);transition:width .4s}
-.bar.good i{background:var(--good)} .bar.warn i{background:var(--warn)} .bar.crit i{background:var(--crit)}
-.kpi .val.neg{color:var(--crit)} .kpi .val.pos{color:var(--good)}
-.steps{display:flex;flex-wrap:wrap;gap:6px;font-size:.78rem}
-.steps span{padding:3px 9px;border:1px solid var(--line);border-radius:999px;color:var(--muted);background:var(--paper)}
-.steps span.on{background:var(--accent);color:var(--accent-fg);border-color:var(--accent);font-weight:600}
-.steps span.done{text-decoration:line-through;opacity:.6}
-.scene{background:var(--paper);border:1px solid var(--line);padding:22px;display:grid;gap:14px}
-.kicker{font-size:.75rem;text-transform:uppercase;letter-spacing:.08em;color:var(--accent);font-weight:700}
-.scene p.lead{font-size:1.05rem;max-width:65ch}
-.quote{border-left:3px solid var(--accent);padding:6px 14px;font-style:italic;max-width:65ch;background:var(--tint)}
-.choices{display:grid;gap:8px}
-button{font:inherit;cursor:pointer;border:1px solid var(--line);background:var(--bg);color:var(--fg);padding:10px 14px;text-align:left;border-radius:6px}
-button:hover{border-color:var(--accent)} button:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
-button.primary{background:var(--accent);color:var(--accent-fg);border-color:var(--accent);font-weight:700;text-align:center}
-button:disabled{opacity:.45;cursor:not-allowed}
-.choice b{display:block;font-weight:700}
-.choice small{color:var(--muted)}
-.fx{display:flex;flex-wrap:wrap;gap:6px;margin-top:4px}
-.fx span{font-size:.74rem;padding:1px 7px;border-radius:4px;background:var(--tint);font-variant-numeric:tabular-nums;font-weight:600}
-.fx span.neg{color:var(--crit)} .fx span.pos{color:var(--good)}
-.result{border:1px dashed var(--line);padding:12px 14px;background:var(--tint);display:grid;gap:6px}
-.cat{display:grid;gap:14px}
-.cat .tabs{display:flex;flex-wrap:wrap;gap:6px}
-.cat .tabs button{padding:6px 12px;border-radius:999px;font-size:.9rem}
-.cat .tabs button.on{background:var(--fg);color:var(--bg);border-color:var(--fg)}
-.mlist{display:grid;gap:8px;max-height:52vh;overflow:auto;padding-right:4px}
-.m{display:grid;grid-template-columns:auto 1fr;gap:10px;align-items:start;border:1px solid var(--line);padding:10px 12px;border-radius:6px;background:var(--bg)}
-.m.sel{border-color:var(--accent);background:var(--tint)}
-.m input{margin-top:4px;width:18px;height:18px}
-.m b{font-weight:700} .m small{color:var(--muted);display:block}
-.m label{cursor:pointer;display:block}
-.tally{display:flex;flex-wrap:wrap;gap:8px 18px;font-size:.9rem;font-variant-numeric:tabular-nums;align-items:center;justify-content:space-between}
-.tally b{font-family:var(--display)}
-table{border-collapse:collapse;width:100%;font-variant-numeric:tabular-nums;font-size:.95rem}
-td,th{padding:5px 8px;border-bottom:1px solid var(--line);text-align:right}
-td:first-child,th:first-child{text-align:left}
-th{font-size:.75rem;text-transform:uppercase;letter-spacing:.05em;color:var(--muted)}
+button{font:inherit;cursor:pointer;color:inherit}
+button:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
+.serif{font-family:var(--serif);font-weight:900;letter-spacing:-.02em;color:var(--cream)}
+.kicker{font-size:10px;font-weight:900;letter-spacing:.2em;text-transform:uppercase;color:var(--gold)}
+.muted{color:var(--muted)}
+.num{font-variant-numeric:tabular-nums}
+.mbtn{background:var(--gold);color:var(--gold-ink);border:1px solid var(--gold-dark);border-radius:8px;font-weight:800;padding:11px 22px;box-shadow:0 2px 0 var(--gold-dark)}
+.mbtn:hover{background:var(--gold-hi)}
+.mbtn:disabled{background:#1b2440;color:#55608a;border-color:#1b2440;box-shadow:none;cursor:not-allowed}
+.sbtn{background:#141c36;color:var(--fg);border:1px solid var(--line);border-radius:8px;font-weight:700;padding:11px 18px}
+.sbtn:hover{border-color:var(--gold)}
+.sbtn:disabled{opacity:.4;cursor:not-allowed}
+.rbtn{background:var(--red);color:#fff;border:0;border-radius:8px;font-weight:800;padding:11px 22px}
+.hidden{display:none!important}
+
+/* ---- écrans centrés (intro, profil, aléas) ---- */
+.center{min-height:100%;display:flex;align-items:center;justify-content:center;padding-block:24px}
+.panel{background:var(--card);border:2px solid var(--gold);border-radius:16px;padding:28px;max-width:680px;width:100%;display:grid;gap:14px}
+.panel.wide{max-width:800px}
+.panel .title{font-size:28px;text-align:center}
+.flag{display:flex;justify-content:center;gap:0;margin-bottom:4px}
+.flag i{display:block;width:18px;height:10px}
+.tiles{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.tile{background:var(--card2);border:1px solid var(--line);border-left:3px solid var(--gold);border-radius:10px;padding:12px 14px;font-size:13px;color:var(--muted)}
+.tile b{display:block;color:var(--fg);margin-bottom:3px;font-size:13.5px}
+.tile.rose{border-left-color:var(--rose)} .tile.violet{border-left-color:var(--violet)} .tile.green{border-left-color:var(--green)} .tile.cyan{border-left-color:var(--cyan)}
+.avatar{width:84px;height:84px;border-radius:50%;background:radial-gradient(circle at 40% 35%,#3a3f6a,#1a1f3d);border:3px solid var(--gold);display:flex;align-items:center;justify-content:center;font-size:40px;flex:none;box-shadow:0 0 0 3px #0b1020}
+.avatar.sm{width:56px;height:56px;font-size:26px;border-width:2px}
+.speech{display:flex;gap:16px;align-items:flex-start}
+.speech p{margin-bottom:8px;font-size:14.5px}
+.opts{display:grid;gap:8px}
+.opt{display:block;width:100%;text-align:left;background:var(--card2);border:1px solid var(--line);border-radius:10px;padding:12px 16px;font-weight:700;font-size:14px;color:var(--fg)}
+.opt small{display:block;font-weight:400;color:var(--muted);font-size:12.5px;margin-top:2px}
+.opt:hover{border-color:var(--gold)}
+.opt.sel{border-color:var(--green);background:#0f2a1a}
+.opt:disabled{opacity:.5;cursor:default}
+.opt:disabled.sel{opacity:1}
+.badge{display:inline-block;font-size:9px;font-weight:900;letter-spacing:.08em;text-transform:uppercase;padding:2px 7px;border-radius:999px;background:var(--gold);color:var(--gold-ink);vertical-align:middle;margin-left:6px}
+.chip{display:inline-block;font-size:11px;font-weight:700;padding:2px 8px;border-radius:6px;background:#1b2440;color:var(--muted);margin:2px 2px 0 0}
+.chip.pos{background:#13291d;color:var(--green)} .chip.neg{background:#2e1420;color:var(--rose)}
+label.lab{display:block;font-size:10px;font-weight:900;letter-spacing:.12em;text-transform:uppercase;color:var(--gold);margin-bottom:6px}
+input[type=text]{width:100%;background:var(--card2);border:1px solid var(--line);border-radius:10px;padding:12px 14px;color:var(--fg);font:inherit;font-size:15px}
+input[type=text]:focus{outline:none;border-color:var(--gold)}
+.profiles{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.prof{background:var(--card2);border:1px solid var(--line);border-radius:12px;padding:14px 10px;text-align:center;display:grid;gap:6px;justify-items:center;color:var(--muted);font-size:12.5px}
+.prof b{color:var(--fg);font-size:13.5px}
+.prof .ic{font-size:30px}
+.prof.sel{border-color:var(--gold);background:#1a1a2e}
+.credit{text-align:center;font-size:10px;color:var(--muted2)}
+
+/* ---- générique ---- */
+.titlecard{position:fixed;inset:0;background:var(--bg) radial-gradient(ellipse 40% 30% at 50% 45%,#182448,transparent 70%);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;z-index:50;animation:fadein .6s}
+.titlecard .big{font-family:var(--serif);font-weight:900;font-size:clamp(28px,6vw,56px);color:#e01b22;text-shadow:0 0 30px rgba(224,27,34,.5);letter-spacing:.02em;text-align:center;padding-inline:16px}
+.titlecard .rule{width:280px;max-width:60vw;height:2px;background:#e01b22}
+.titlecard .sub{font-size:14px;letter-spacing:.35em;color:var(--gold);text-transform:uppercase;font-weight:700}
+@keyframes fadein{from{opacity:0}to{opacity:1}}
+
+/* ---- tableau de bord ---- */
+.game{max-width:1480px;margin:0 auto;display:grid;gap:14px;padding-top:14px}
+.top{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.brand{display:flex;align-items:center;gap:10px}
+.brand .logo{width:34px;height:24px;border-radius:4px;background:linear-gradient(90deg,var(--gold) 0 33%,#eef2fb 33% 66%,var(--red) 66%);flex:none;opacity:.9}
+.brand .t{font-size:13px;font-weight:900;letter-spacing:.14em;color:var(--gold)}
+.brand .s{font-size:11px;color:var(--muted)}
+.pill{background:#16203c;border:1px solid var(--cyan);color:var(--cyan);font-size:12.5px;font-weight:700;padding:6px 12px;border-radius:10px}
+.pill.warn{border-color:var(--orange);color:var(--orange)} .pill.bad{border-color:var(--rose);color:var(--rose)}
+.icons{display:flex;gap:6px}
+.icons button{width:38px;height:34px;border-radius:8px;border:1px solid var(--line);background:#141c36;font-size:15px}
+.episodes{display:grid;grid-template-columns:repeat(10,minmax(0,1fr));gap:6px}
+.ep{background:var(--card);border:1px solid var(--line);border-radius:8px;padding:7px 8px;min-width:0;display:grid;gap:1px;opacity:.55;position:relative}
+.ep .m{font-size:9px;font-weight:900;letter-spacing:.08em;color:var(--muted);text-transform:uppercase;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ep .n{font-size:10px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ep .ic{font-size:14px}
+.ep .st{position:absolute;right:6px;top:5px;font-size:10px;color:var(--muted2)}
+.ep.done{opacity:.8} .ep.done .st{color:var(--green)}
+.ep.on{opacity:1;border-color:var(--gold);background:linear-gradient(160deg,#3a2d12,#241a08)} .ep.on .m,.ep.on .n{color:var(--gold)} .ep.on .st{color:var(--gold)}
+.gauges{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:8px;background:var(--bg);padding-block:6px}
+.gauge{background:var(--card);border:.8px solid var(--line);border-radius:12px;padding:10px 12px;min-width:0;transition:box-shadow .3s}
+.gauge .l{font-size:10px;font-weight:900;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.gauge .v{font-size:19px;font-weight:900;color:var(--cream);white-space:nowrap;margin:2px 0 4px}
+.gauge .v small{font-size:11px;font-weight:700;color:var(--muted)}
+.gauge .bar{height:5px;border-radius:3px;background:#1b2440;overflow:hidden}
+.gauge .bar i{display:block;height:100%;border-radius:3px;transition:width .5s}
+.gauge.flash{box-shadow:0 0 0 2px var(--gold),0 0 24px rgba(201,162,74,.5)}
+.c-res i{background:var(--rose)} .c-cash i{background:var(--orange)} .c-rate i{background:var(--cyan)} .c-ca i{background:var(--gold)} .c-etu i{background:#4ade80} .c-com i{background:var(--blue)} .c-cse i{background:var(--violet)}
+.toasts{position:fixed;left:50%;transform:translateX(-50%);top:calc(env(safe-area-inset-top,0px) + 232px);z-index:40;display:grid;gap:6px;pointer-events:none}
+.toast{background:var(--card);border:1.5px solid var(--green);border-radius:10px;padding:6px 14px;text-align:center;box-shadow:0 8px 30px rgba(0,0,0,.5);animation:toast 3.2s forwards;min-width:200px}
+.toast.neg{border-color:var(--rose)}
+.toast b{display:block;font-size:13px;color:var(--green)} .toast.neg b{color:var(--rose)}
+.toast small{font-size:11px;color:var(--muted)}
+@keyframes toast{0%{opacity:0;transform:translateY(-6px)}10%{opacity:1;transform:none}80%{opacity:1}100%{opacity:0}}
+
+.scene{background:var(--card2);border:1.5px solid var(--gold);border-radius:14px;padding:18px 18px 16px;display:grid;gap:12px;position:relative;overflow:hidden}
+.scene .k{display:flex;justify-content:space-between;align-items:baseline;gap:10px;flex-wrap:wrap}
+.scene h2{font-size:24px}
+.scene .tag{font-style:italic;color:var(--muted);font-family:var(--serif);font-weight:400;font-size:13.5px}
+.ticker{margin-inline:-18px;background:var(--red);color:#fff;font-weight:700;font-size:13px;display:flex;align-items:center;overflow:hidden;height:30px}
+.ticker .d{background:#fff;color:var(--red);font-size:10px;font-weight:900;padding:2px 8px;border-radius:4px;margin:0 10px 0 16px;flex:none;letter-spacing:.06em}
+.ticker .tk{white-space:nowrap;flex:1;overflow:hidden}
+.ticker .tk span{display:inline-block;padding-left:100%;animation:tick 40s linear infinite}
+@keyframes tick{to{transform:translateX(-100%)}}
+@media (prefers-reduced-motion:reduce){.ticker .tk span{animation:none;padding-left:0}}
+.dlg{display:flex;gap:14px;align-items:flex-start}
+.dlg .who>b{display:block;font-size:15px} .dlg .who small{color:var(--muted);font-size:12px;display:block;margin-bottom:6px}
+.dlg .who p{font-size:14.5px;max-width:110ch}
+.prompt{color:var(--gold);font-weight:700;font-size:13.5px}
+.note{background:#101a33;border:1px solid var(--line);border-radius:10px;padding:12px 14px;font-size:13px;color:var(--fg)}
+.note .h{color:var(--blue);font-weight:700;margin-bottom:4px}
+.note ul{margin:6px 0 0 16px;padding:0;color:var(--muted)} .note li{margin:2px 0}
+.resbox{background:#0f2a1a;border:1px solid var(--green-line);border-radius:10px;padding:12px 14px}
+.resbox.bad{background:#2a0f14;border-color:#b33a3a} .resbox.neu{background:#1a1a2e;border-color:var(--line)}
+.resbox b{display:block;font-size:15px;margin-bottom:2px}
+.foot{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-top:4px}
+.cards3{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.card3{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px;display:grid;gap:4px;justify-items:center;text-align:center;font-size:12.5px;color:var(--muted)}
+.card3 b{color:var(--fg)} .card3.sel{border-color:var(--gold);background:#1a1a2e}
+
+/* catalogue */
+.hint{font-size:12px;color:var(--muted)}
+.cath{display:flex;align-items:center;gap:8px;font-size:12px;font-weight:700;color:var(--muted);margin-top:6px}
+.cath i{width:9px;height:9px;border-radius:50%;display:inline-block}
+.mrows{display:grid;gap:6px}
+.mrow{display:grid;grid-template-columns:auto 1fr auto;gap:10px;align-items:center;background:var(--card);border:.8px solid #2a3458;border-radius:8px;padding:7px 12px;font-size:13px;position:relative;cursor:pointer}
+.mrow:hover{border-color:var(--gold)}
+.mrow.sel{border-color:var(--green);background:#0f2a1a}
+.mrow input{width:14px;height:14px;margin:0;accent-color:var(--green)}
+.mrow .amt{font-weight:800;font-size:12.5px;white-space:nowrap}
+.mrow .amt.pos{color:var(--green-deep)} .mrow .amt.neg{color:var(--rose)} .mrow .amt.zero{color:var(--muted2)}
+.mrow .tip{display:none;position:absolute;left:50%;top:-8px;transform:translate(-50%,-100%);background:#1b2440;border:1px solid var(--line);border-radius:8px;padding:6px 10px;font-size:11px;white-space:normal;width:max-content;max-width:min(360px,80vw);z-index:6;box-shadow:0 6px 20px rgba(0,0,0,.5);color:var(--fg)}
+.mrow:hover .tip,.mrow:focus-within .tip{display:block}
+.mrow .tip .d{color:var(--muted);display:block;margin-bottom:3px}
+.budget{background:var(--card2);border:1.5px solid var(--gold);border-radius:14px;padding:16px 18px;display:grid;gap:12px}
+.budget .bh{display:flex;justify-content:space-between;align-items:center;font-weight:700;font-size:13.5px}
+.btiles{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px}
+.btile{border-radius:10px;padding:12px;text-align:center}
+.btile .l{font-size:9px;font-weight:900;letter-spacing:.12em;text-transform:uppercase}
+.btile .v{font-size:22px;font-weight:900;margin:2px 0}
+.btile .s{font-size:10px;color:var(--muted)}
+.btile.g{background:var(--green-bg)} .btile.g .l,.btile.g .v{color:var(--green)}
+.btile.o{background:#2a2410} .btile.o .l,.btile.o .v{color:var(--gold-hi)}
+.btile.b{background:var(--card);border:1px solid var(--blue)} .btile.b .l,.btile.b .v{color:var(--blue)}
+.blines{background:var(--card);border-radius:10px;padding:8px 12px;font-size:12.5px;display:grid;gap:3px}
+.blines div{display:flex;justify-content:space-between;gap:10px}
+.blines .tot{font-weight:700;border-top:1px solid var(--line);padding-top:5px;margin-top:3px}
+.proj{font-size:13px;color:var(--muted)} .proj b{font-size:20px;color:var(--cream);margin-left:6px}
 .tw{overflow-x:auto}
-.final{display:grid;gap:10px}
-.final .verdict{font-family:var(--display);font-size:2rem;font-weight:800}
-.hist{display:grid;grid-template-columns:repeat(6,1fr);gap:4px;align-items:end;height:90px;border-bottom:1px solid var(--line)}
-.hist div{background:var(--accent);min-height:2px;position:relative;font-size:.7rem;text-align:center}
-.hist div.neg{background:var(--crit)} .hist div.pos{background:var(--good)}
-.hist div span{position:absolute;left:0;right:0;top:-18px;font-weight:600;font-variant-numeric:tabular-nums}
-.note{font-size:.85rem;color:var(--muted)}
-@media (max-width:720px){ .dash{grid-template-columns:repeat(2,1fr)} .scene{padding:16px} }
-@media (prefers-reduced-motion:reduce){ .bar i{transition:none} }
+table{border-collapse:collapse;width:100%;font-size:13px;font-variant-numeric:tabular-nums}
+td,th{padding:6px 8px;border-bottom:1px solid var(--line2);text-align:right}
+td:first-child,th:first-child{text-align:left}
+th{font-size:10px;font-weight:900;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
+.hist{display:grid;grid-template-columns:repeat(6,1fr);gap:6px;align-items:end;height:100px;border-bottom:1px solid var(--line);padding-top:18px}
+.hist div{background:var(--blue);min-height:2px;position:relative;font-size:10px;text-align:center;border-radius:3px 3px 0 0}
+.hist div.neg{background:var(--rose)} .hist div.pos{background:#4ade80}
+.hist div span{position:absolute;left:0;right:0;top:-17px;font-weight:700;color:var(--fg)}
+.hist div em{position:absolute;left:0;right:0;bottom:-18px;font-style:normal;color:var(--muted)}
+
+/* modale */
+.overlay{position:fixed;inset:0;background:rgba(5,8,18,.75);display:flex;align-items:center;justify-content:center;z-index:60;padding:16px}
+.modal{background:#151a2e;border:1.5px solid var(--green);border-radius:14px;padding:26px 28px;max-width:460px;width:100%;text-align:center;display:grid;gap:8px;justify-items:center;box-shadow:0 20px 60px rgba(0,0,0,.6)}
+.modal.bad{border-color:var(--rose)} .modal.gold{border-color:var(--gold);text-align:left;justify-items:stretch}
+.modal .ic{font-size:36px}
+.modal .ml{font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);font-weight:700}
+.modal .mt{font-size:15px;color:var(--fg);max-width:40ch}
+.modal .eff{font-weight:800;color:var(--green);font-size:14px} .modal.bad .eff{color:var(--rose)}
+.modal .ms{font-size:11px;color:var(--muted)}
+.modal h3{font-family:var(--serif);font-size:22px;color:var(--cream)}
+.modal .mf{display:flex;justify-content:space-between;align-items:center;width:100%;margin-top:6px}
+.modal .lnk{background:none;border:0;color:var(--muted);font-weight:600;padding:8px 0}
+
+@media (max-width:1100px){.gauges{grid-template-columns:repeat(4,minmax(0,1fr))}.episodes{grid-template-columns:repeat(5,minmax(0,1fr))}}
+@media (max-width:720px){.gauges{grid-template-columns:repeat(2,minmax(0,1fr))}.episodes{grid-template-columns:repeat(2,minmax(0,1fr))}.tiles,.profiles,.cards3,.btiles{grid-template-columns:1fr}.panel{padding:18px}.scene{padding:14px}.ticker{margin-inline:-14px}.scene h2{font-size:20px}.toasts{top:auto;bottom:16px}}
 </style>
 
 </head>
 <body>
-<div class="wrap">
-  <header>
-    <div><h1>La Bataille de l'École</h1><p class="sub">Vous dirigez une école à distance de 12 000 étudiants. Ramenez le résultat net à +10 % du chiffre d'affaires avant la rentrée 2032, sans perdre le conseil d'administration, les étudiants, les commerciaux ni le CSE.</p></div>
-    <div class="yr" id="year">2026</div>
-  </header>
-  <div class="dash" id="dash"></div>
-  <div class="steps" id="steps"></div>
-  <div class="scene" id="scene"></div>
-</div>
+<div id="app"></div>
+<div class="toasts" id="toasts"></div>
+<div id="modal"></div>
 
 <script>
 // ---------- Données de base (k€) ----------
 const BASE = {students:12000, price:2500, newBase:4200, payrollOther:15600, payrollCom:4800, marketing:4500, platform:2200, other:6100, debt:9000, rate:0.045, cash:500, staff:400, com:100};
 const YEARS=[2026,2027,2028,2029,2030,2031];
-const PHASES=["Cadrage","Mesures","Enveloppes","Gardiens","Audition","Vote du CA","Événement","Résultats","Grand show","Bilan"];
+const EPISODES=[
+ ["Janvier","Cadrage","🏛️"],["Février","Les mesures","📋"],["Mars","Guerre des enveloppes","⚔️"],["Mai","Les gardiens","🔎"],["Juin","Audition","🎙️"],
+ ["Juillet","Vote du CA","🗳️"],["Septembre","Imprévu","⚡"],["Novembre","Résultats","📊"],["Décembre","Grand show","🎤"],["Bilan","Fin de saison","🏁"]];
 const MAXM=8;
+const PROFILES=[
+ ["🎓","Pédagogue réputé·e","Ancien·ne directeur·rice des études. Les équipes vous font confiance, le CA attend des preuves.",{ca:50,etu:62,com:45,cse:60}],
+ ["💼","Gestionnaire aguerri·e","Venu·e d'un groupe de formation. Le CA adore, les équipes se méfient.",{ca:70,etu:50,com:50,cse:42}],
+ ["📈","Ancien·ne directeur·rice commercial·e","Vous connaissez la machine à inscriptions. Les commerciaux sont avec vous.",{ca:58,etu:48,com:68,cse:46}],
+];
 
 // Mesures : cat rec/dep/str ; rev,cost en k€/an ; mk = variation du budget marketing ; price % ; stu = multiplicateur nouveaux inscrits ; churn en points ; once = cash immédiat ; g = effets jauges ; hc = effectifs
 const MEASURES=[
@@ -128,7 +234,7 @@ const MEASURES=[
  ["rec","Partenariats entreprises (filières sponsorisées)","Des entreprises financent des filières contre visibilité.",{rev:700,cost:100,g:{ca:2}}],
  ["rec","Campagne grands médias","TV, radio, affichage. Visibilité immédiate, facture aussi.",{mk:900,stu:1.10,g:{com:5,ca:-1}}],
  ["rec","Programme de parrainage étudiants","Les étudiants recrutent leurs proches contre une remise.",{cost:200,stu:1.05,g:{etu:3}}],
- ["dep","Gel des salaires","Aucune augmentation cette année. Le CSE le prendra mal.",{cost:-700,g:{cse:-10,com:-5,ca:2}}],
+ ["dep","Gel des salaires","Aucune augmentation cette année. Le CSE le prendra mal.",{cost:-700,g:{cse:-10,com:-5,ca:2},flag:"gel"}],
  ["dep","Plan de départs volontaires (30 postes)","Indemnités la première année, économies ensuite.",{cost:-1500,once:-900,hc:-30,g:{cse:-12,ca:4,etu:-2}}],
  ["dep","Licenciement économique (60 postes)","Le plan social. Rapide sur les comptes, lourd sur tout le reste.",{cost:-3000,once:-1800,hc:-60,g:{cse:-25,ca:6,etu:-5,com:-4}}],
  ["dep","Réduire le marketing de 30 %","Moins de prospection, moins d'inscriptions l'an prochain.",{mk:-1350,g:{com:-8,ca:2}}],
@@ -165,146 +271,151 @@ const MEASURES=[
  ["str","Nouvelle direction commerciale","Changer la tête de la force de vente. Turbulences, puis relance.",{once:-300,stu:1.08,g:{com:-4,ca:2}}],
 ].map((m,i)=>({id:i,cat:m[0],n:m[1],d:m[2],...m[3]}));
 
-// Guerre des enveloppes
 const ENVELOPPES=[
- {who:"La directrice pédagogique",ask:"« Il me faut 15 tuteurs de plus. Nos promos de 80 étudiants par tuteur ne tiennent plus, le taux d'abandon le prouve. »",
+ {who:"La directrice pédagogique",role:"Direction des études",ic:"👩‍🏫",ask:"« Il me faut 15 tuteurs de plus. Nos promos de 80 étudiants par tuteur ne tiennent plus, le taux d'abandon le prouve. »",
   c:[["Accorder les 15 postes",{cost:750,hc:15,churn:-2,g:{etu:4,cse:4,ca:-2}},"Elle repart soulagée. Le DAF, moins."],
      ["Refuser",{g:{cse:-5,etu:-2}},"« Alors ne venez pas vous plaindre des abandons. »"],
      ["Compromis : 5 postes",{cost:250,hc:5,churn:-1,g:{etu:1,cse:1}},"Elle accepte, sans enthousiasme."]]},
- {who:"Le directeur commercial",ask:"« Avec 20 % de budget prospection en plus, je vous signe 300 inscriptions supplémentaires. Sans, je ne garantis plus les objectifs. »",
+ {who:"Le directeur commercial",role:"Direction des ventes",ic:"👨‍💼",ask:"« Avec 20 % de budget prospection en plus, je vous signe 300 inscriptions supplémentaires. Sans, je ne garantis plus les objectifs. »",
   c:[["Accorder les 20 %",{mk:900,stu:1.06,g:{com:8,ca:-2}},"Il promet des résultats. On verra à la rentrée."],
      ["Refuser",{g:{com:-8}},"« Vous me demandez de faire des briques sans paille. »"],
      ["Compromis : 10 %, conditionnés aux résultats",{mk:400,stu:1.03,g:{com:2}},"Il grimace mais signe."]]},
- {who:"Le DSI",ask:"« La plateforme tourne sur une infrastructure de 2017. Sans migration et sans budget sécurité, je ne réponds plus de rien. »",
+ {who:"Le DSI",role:"Direction des systèmes d'information",ic:"🧑‍💻",ask:"« La plateforme tourne sur une infrastructure de 2017. Sans migration et sans budget sécurité, je ne réponds plus de rien. »",
   c:[["Financer la migration",{cost:500,once:-400,flag:"secu"},"La migration démarre cet été."],
      ["Refuser",{g:{cse:-2},flag:"risque_cyber"},"Il note la décision par écrit. Ce n'est jamais bon signe."],
      ["Compromis : sécurité seulement",{cost:250,flag:"secu"},"Les correctifs critiques sont financés, le reste attendra."]]},
- {who:"La directrice marketing",ask:"« Notre site date, notre référencement s'effondre. Une refonte, c'est 350 k€ et quatre points d'inscriptions. »",
+ {who:"La directrice marketing",role:"Direction marketing",ic:"👩‍🎨",ask:"« Notre site date, notre référencement s'effondre. Une refonte, c'est 350 k€ et quatre points d'inscriptions. »",
   c:[["Financer la refonte",{cost:350,stu:1.04,g:{com:3}},"Nouveau site à la rentrée."],
      ["Refuser",{g:{com:-3}},"« Les concurrents nous dépassent sur Google, je vous aurai prévenu. »"],
      ["Compromis : optimisations seulement",{cost:120,stu:1.015},"Quelques pages refaites, le gros chantier attendra."]]},
- {who:"Le responsable du support étudiant",ask:"« Nous répondons en 6 jours au lieu de 48 h. Il me faut 10 conseillers, ou les avis en ligne vont nous tuer. »",
+ {who:"Le responsable du support étudiant",role:"Relation étudiants",ic:"🧑‍🎧",ask:"« Nous répondons en 6 jours au lieu de 48 h. Il me faut 10 conseillers, ou les avis en ligne vont nous tuer. »",
   c:[["Recruter 10 conseillers",{cost:450,hc:10,g:{etu:5,cse:3,ca:-1}},"Le délai de réponse redescend à deux jours."],
      ["Refuser",{g:{etu:-4,cse:-4}},"Les avis une étoile continuent de tomber."],
      ["Compromis : 4 conseillers et une FAQ",{cost:200,hc:4,g:{etu:2}},"Un mieux, pas une solution."]]},
- {who:"Le DAF",ask:"« Nous avons trois litiges étudiants en cours. Je veux provisionner 300 k€ maintenant plutôt que de surprendre le CA plus tard. »",
+ {who:"Le DAF",role:"Direction financière",ic:"🧮",ask:"« Nous avons trois litiges étudiants en cours. Je veux provisionner 300 k€ maintenant plutôt que de surprendre le CA plus tard. »",
   c:[["Provisionner",{once:-300,g:{ca:3}},"Le CA apprécie la prudence."],
      ["Refuser",{g:{ca:-2},flag:"litiges"},"Le DAF soupire. Les litiges, eux, continuent."]]},
- {who:"Le responsable de la filière Business",ask:"« Un MBA en ligne à 6 000 €. Cent inscrits la première année, c'est 600 k€ de marge dès la deuxième. »",
+ {who:"Le responsable de la filière Business",role:"Responsable de filière",ic:"🧑‍🏫",ask:"« Un MBA en ligne à 6 000 €. Cent inscrits la première année, c'est 600 k€ de marge dès la deuxième. »",
   c:[["Lancer le MBA",{rev:1100,cost:800,g:{ca:1,com:4}},"Le programme ouvre en janvier."],
      ["Refuser",{g:{com:-2}},"Il ira peut-être le proposer ailleurs."],
      ["Compromis : lancement test à 30 places",{rev:400,cost:300,g:{com:1}},"Un pilote, pour voir."]]},
- {who:"La directrice qualité",ask:"« L'audit de renouvellement Qualiopi est dans huit mois. Sans 200 k€ de mise en conformité, je ne garantis pas la certification. »",
+ {who:"La directrice qualité",role:"Qualité et certification",ic:"👩‍🔬",ask:"« L'audit de renouvellement Qualiopi est dans huit mois. Sans 200 k€ de mise en conformité, je ne garantis pas la certification. »",
   c:[["Financer la mise en conformité",{cost:200,g:{ca:2},flag:"qualite"},"Les processus sont remis d'équerre."],
      ["Refuser",{flag:"risque_qualiopi"},"« Je ne signerai pas le rapport d'auto-évaluation, dans ce cas. »"]]},
- {who:"Le responsable RH",ask:"« Les salaires des tuteurs sont 12 % sous le marché. On perd nos meilleurs éléments chaque trimestre. »",
+ {who:"Le responsable RH",role:"Ressources humaines",ic:"🧑‍💼",ask:"« Les salaires des tuteurs sont 12 % sous le marché. On perd nos meilleurs éléments chaque trimestre. »",
   c:[["Rattrapage salarial",{cost:600,g:{cse:8,etu:2,ca:-2}},"Les départs se calment."],
      ["Refuser",{g:{cse:-6,etu:-2}},"Les démissions continuent."],
      ["Compromis : prime de fidélisation",{cost:250,g:{cse:3}},"Un geste, pas une réponse."]]},
 ];
 
-// Auditions : town hall salariés et amphi étudiants
 const AUDITIONS=[
- {kicker:"Town hall, 400 salariés en visio",q:"Un tuteur prend la parole : « Est-ce qu'il y aura des licenciements cette année ? Oui ou non ? »",
+ {kicker:"Town hall · 400 salariés en visio",who:"Un tuteur",role:"Prend la parole dans le chat",ic:"🧑‍🏫",q:"« Est-ce qu'il y aura des licenciements cette année ? Oui ou non ? »",
   c:[["« Non. »",{g:{cse:8,ca:-4}},"Soulagement dans le chat. Le CA vous rappelle que vous venez de vous lier les mains."],
      ["« Je ne peux rien exclure, mais ce n'est pas le plan. »",{g:{cse:-2,ca:2}},"Langue de bois détectée. Personne n'est rassuré, personne n'est trahi."],
      ["« Si nous ne redressons pas les comptes, oui. Voici les chiffres. »",{g:{cse:-5,ca:5,com:2}},"Silence, puis des questions précises. La transparence a un prix immédiat."]]},
- {kicker:"Amphi virtuel, 2 000 étudiants connectés",q:"Une étudiante : « Pourquoi payer plus cher si c'est pour avoir moins de tuteurs ? Vous allez faire quoi, concrètement ? »",
+ {kicker:"Amphi virtuel · 2 000 étudiants connectés",who:"Une étudiante",role:"Filière Marketing digital",ic:"👩‍🎓",q:"« Pourquoi payer plus cher si c'est pour avoir moins de tuteurs ? Vous allez faire quoi, concrètement ? »",
   c:[["Promettre un délai de réponse de 48 h garanti",{cost:200,g:{etu:6,cse:-2}},"Applaudissements. Le support devra tenir."],
      ["Expliquer les contraintes financières",{g:{etu:-3,ca:2}},"Les étudiants comprennent, sans être contents."],
      ["Annoncer une remise de 100 € pour les réinscriptions",{rev:-400,churn:-2,g:{etu:5,ca:-3}},"Un geste commercial qui coûte."]]},
- {kicker:"Town hall, équipe commerciale",q:"Une commerciale senior : « On nous demande de vendre un produit dont on supprime les tuteurs. Vous nous prenez pour quoi ? »",
+ {kicker:"Town hall · équipe commerciale",who:"Une commerciale senior",role:"12 ans de maison",ic:"👩‍💼",q:"« On nous demande de vendre un produit dont on supprime les tuteurs. Vous nous prenez pour quoi ? »",
   c:[["Reconnaître le problème et promettre un plan qualité",{cost:150,g:{com:5,etu:2}},"La salle se détend un peu."],
      ["Rappeler les objectifs et les primes",{g:{com:-6,ca:2}},"Froid polaire. Le directeur commercial baisse les yeux."],
      ["Proposer un atelier commun commerciaux / pédagogie",{g:{com:3,cse:3}},"Quelques sourires. Reste à le faire."]]},
- {kicker:"Réunion CSE extraordinaire",q:"Le secrétaire du CSE : « Nous demandons une expertise indépendante sur la situation économique. Vous la financez ? »",
+ {kicker:"Réunion CSE extraordinaire",who:"Le secrétaire du CSE",role:"Élu du personnel",ic:"🧔",q:"« Nous demandons une expertise indépendante sur la situation économique. Vous la financez ? »",
   c:[["Accepter l'expertise",{once:-80,g:{cse:6,ca:-1}},"L'expert confirmera vos chiffres. Ou pas."],
      ["Refuser",{g:{cse:-8}},"Le CSE saisira l'inspection du travail."],
      ["Proposer une présentation détaillée des comptes à la place",{g:{cse:2,ca:1}},"Accepté du bout des lèvres."]]},
- {kicker:"Amphi virtuel, filière Informatique",q:"Un étudiant : « Vos corrections, c'est une IA maintenant ? J'ai eu la même remarque que trois camarades. »",
+ {kicker:"Amphi virtuel · filière Informatique",who:"Un étudiant",role:"Deuxième année",ic:"👨‍🎓",q:"« Vos corrections, c'est une IA maintenant ? J'ai eu la même remarque que trois camarades. »",
   c:[["Assumer et expliquer la relecture humaine",{g:{etu:-2,ca:2}},"Réactions partagées, mais vous n'avez pas menti."],
      ["Nier",{g:{etu:-6,cse:-4}},"La capture d'écran circule dans l'heure."],
      ["Promettre une relecture humaine systématique",{cost:300,g:{etu:4,cse:2}},"Rassurant, et coûteux."]]},
- {kicker:"Town hall, fin de trimestre",q:"Une responsable de filière : « Les chiffres que vous nous montrez sont-ils ceux du CA, ou une version adoucie ? »",
+ {kicker:"Town hall · fin de trimestre",who:"Une responsable de filière",role:"Filière Gestion",ic:"👩‍🏫",q:"« Les chiffres que vous nous montrez sont-ils ceux du CA, ou une version adoucie ? »",
   c:[["Montrer les mêmes chiffres qu'au CA",{g:{cse:5,ca:3,com:-2}},"Crédibilité acquise, quelques visages blêmes."],
      ["Montrer une version simplifiée",{g:{cse:-3}},"Quelqu'un fera le rapprochement."]]},
 ];
 
-// Amendements au vote du CA
 const AMENDEMENTS=[
- {who:"L'administrateur représentant les étudiants",ask:"Amendement : maintien du tutorat individuel pour toutes les filières, quel qu'en soit le coût.",y:{cost:400,g:{etu:5,ca:-2}},n:{g:{etu:-4}}},
- {who:"L'administratrice représentant les enseignants",ask:"Amendement : aucune correction entièrement automatisée sans relecture humaine.",y:{cost:250,g:{cse:5,ca:-1}},n:{g:{cse:-5}}},
- {who:"L'actionnaire principal",ask:"Amendement : objectif de résultat relevé de 2 points cette année, ou gel des recrutements.",y:{g:{ca:6,cse:-4}},n:{g:{ca:-6}}},
- {who:"Le représentant des commerciaux",ask:"Amendement : aucune hausse de prix sans augmentation équivalente du budget prospection.",y:{mk:400,g:{com:6,ca:-2}},n:{g:{com:-6}}},
- {who:"L'administrateur indépendant",ask:"Amendement : publication trimestrielle des indicateurs de satisfaction étudiante au CA.",y:{cost:60,g:{ca:4,etu:2}},n:{g:{ca:-2}}},
- {who:"La représentante de la banque (censeur)",ask:"Amendement : plafonnement du découvert et plan de trésorerie mensuel.",y:{g:{ca:3,cse:-1},flag:"plan_treso"},n:{g:{ca:-3},rate:0.005}},
- {who:"Le fondateur historique",ask:"Amendement : conserver le nom et la mission d'origine de l'école dans toute offre B2B.",y:{g:{ca:2,cse:3,com:-2}},n:{g:{ca:-3}}},
- {who:"L'administrateur représentant les étudiants",ask:"Amendement : rétablissement d'un fonds de bourses de 300 k€.",y:{cost:300,g:{etu:6,ca:-2}},n:{g:{etu:-3}}},
+ {who:"L'administrateur représentant les étudiants",ic:"👨‍🎓",ask:"Amendement : maintien du tutorat individuel pour toutes les filières, quel qu'en soit le coût.",y:{cost:400,g:{etu:5,ca:-2}},n:{g:{etu:-4}}},
+ {who:"L'administratrice représentant les enseignants",ic:"👩‍🏫",ask:"Amendement : aucune correction entièrement automatisée sans relecture humaine.",y:{cost:250,g:{cse:5,ca:-1}},n:{g:{cse:-5}}},
+ {who:"L'actionnaire principal",ic:"🕴️",ask:"Amendement : objectif de résultat relevé de 2 points cette année, ou gel des recrutements.",y:{g:{ca:6,cse:-4}},n:{g:{ca:-6}}},
+ {who:"Le représentant des commerciaux",ic:"👨‍💼",ask:"Amendement : aucune hausse de prix sans augmentation équivalente du budget prospection.",y:{mk:400,g:{com:6,ca:-2}},n:{g:{com:-6}}},
+ {who:"L'administrateur indépendant",ic:"🧓",ask:"Amendement : publication trimestrielle des indicateurs de satisfaction étudiante au CA.",y:{cost:60,g:{ca:4,etu:2}},n:{g:{ca:-2}}},
+ {who:"La représentante de la banque (censeur)",ic:"🏦",ask:"Amendement : plafonnement du découvert et plan de trésorerie mensuel.",y:{g:{ca:3,cse:-1},flag:"plan_treso"},n:{g:{ca:-3},rate:0.005}},
+ {who:"Le fondateur historique",ic:"👴",ask:"Amendement : conserver le nom et la mission d'origine de l'école dans toute offre B2B.",y:{g:{ca:2,cse:3,com:-2}},n:{g:{ca:-3}}},
+ {who:"L'administrateur représentant les étudiants",ic:"👨‍🎓",ask:"Amendement : rétablissement d'un fonds de bourses de 300 k€.",y:{cost:300,g:{etu:6,ca:-2}},n:{g:{etu:-3}}},
 ];
 
-// Événements
 const EVENTS=[
- {n:"Panne majeure de la plateforme pendant les examens",t:"Trois jours sans accès en pleine session. Les réseaux sociaux s'en donnent à cœur joie.",fx:{g:{etu:-8,ca:-3},once:-200},w:s=>s.flags.vieux_lms?3:(s.flags.new_lms?0.2:1)},
- {n:"Cyberattaque et fuite de données étudiantes",t:"Rançongiciel. La CNIL est prévenue, les étudiants aussi.",fx:{g:{etu:-10,ca:-6,cse:-3},once:-600},w:s=>s.flags.risque_cyber?4:(s.flags.secu?0.2:0.8)},
- {n:"Un géant du MOOC lance une offre gratuite diplômante",t:"Vos prospects comparent. Vos commerciaux aussi.",fx:{stuY:0.92,g:{com:-5}},w:()=>1},
- {n:"Réforme du CPF : reste à charge et filtrage des formations",t:"Un décret restreint les financements publics. Les dossiers s'effondrent.",fx:{revY:-900,g:{com:-6,ca:-2}},w:s=>s.flags.cpf?3:0.8},
- {n:"Polémique sur de faux avis en ligne",t:"Un article de presse accuse l'école d'avoir acheté des avis. Vrai ou faux, le mal est fait.",fx:{g:{etu:-6,ca:-3},stuY:0.95},w:()=>1},
- {n:"Vague d'IA générative : les étudiants rendent des devoirs écrits par machine",t:"Vos enseignants ne savent plus ce qu'ils corrigent. Il faut repenser l'évaluation.",fx:{cost:250,g:{cse:-4}},w:()=>1.2},
- {n:"Départ d'un enseignant star vers un concurrent",t:"Il emmène sa communauté et ses 40 000 abonnés.",fx:{stuY:0.96,g:{etu:-4,cse:-3}},w:s=>s.g.cse<40?2:0.8},
- {n:"Reportage télévisé très favorable",t:"Vingt minutes sur une diplômée devenue cheffe d'entreprise. Le standard explose.",fx:{stuY:1.08,g:{ca:3,com:4,etu:2}},w:s=>s.g.etu>55?1.5:0.6},
- {n:"Contrôle de France Compétences",t:"Les inspecteurs vérifient la conformité des certifications.",fx:s=>s.flags.risque_qualiopi?{g:{ca:-8,etu:-5},revY:-1200,txt:"Sans mise en conformité, deux certifications sont suspendues. Les financements associés tombent."}:{g:{ca:2},txt:"Rapport sans réserve. Le CA respire."},w:()=>1},
- {n:"Grève des tuteurs pendant une semaine",t:"Le CSE appelle à cesser le travail. Les étudiants attendent leurs corrections.",fx:{g:{etu:-5,cse:3,ca:-3}},w:s=>s.g.cse<35?3:0.2},
- {n:"Hausse générale des taux d'intérêt",t:"La BCE resserre. Votre banque suit.",fx:{rate:0.01,g:{ca:-1}},w:()=>0.8},
- {n:"Inflation : les salariés demandent un rattrapage",t:"Le CSE réclame 4 % pour tout le monde.",fx:s=>s.flags.gel?{g:{cse:-8},txt:"Avec le gel des salaires, la demande tourne à la colère."}:{cost:500,g:{cse:2},txt:"Vous accordez 2,5 %. Ni satisfait, ni révolté."},w:()=>1},
+ {ic:"💥",n:"Panne majeure de la plateforme pendant les examens",t:"Trois jours sans accès en pleine session. Les réseaux sociaux s'en donnent à cœur joie.",fx:{g:{etu:-8,ca:-3},once:-200},w:s=>s.flags.vieux_lms?3:(s.flags.new_lms?0.2:1)},
+ {ic:"🔓",n:"Cyberattaque et fuite de données étudiantes",t:"Rançongiciel. La CNIL est prévenue, les étudiants aussi.",fx:{g:{etu:-10,ca:-6,cse:-3},once:-600},w:s=>s.flags.risque_cyber?4:(s.flags.secu?0.2:0.8)},
+ {ic:"🆓",n:"Un géant du MOOC lance une offre gratuite diplômante",t:"Vos prospects comparent. Vos commerciaux aussi.",fx:{stuY:0.92,g:{com:-5}},w:()=>1},
+ {ic:"📜",n:"Réforme du CPF : reste à charge et filtrage des formations",t:"Un décret restreint les financements publics. Les dossiers s'effondrent.",fx:{revY:-900,g:{com:-6,ca:-2}},w:s=>s.flags.cpf?3:0.8},
+ {ic:"⭐",n:"Polémique sur de faux avis en ligne",t:"Un article de presse accuse l'école d'avoir acheté des avis. Vrai ou faux, le mal est fait.",fx:{g:{etu:-6,ca:-3},stuY:0.95},w:()=>1},
+ {ic:"🤖",n:"Vague d'IA générative : les devoirs rendus sont écrits par machine",t:"Vos enseignants ne savent plus ce qu'ils corrigent. Il faut repenser l'évaluation.",fx:{cost:250,g:{cse:-4}},w:()=>1.2},
+ {ic:"🚪",n:"Départ d'un enseignant star vers un concurrent",t:"Il emmène sa communauté et ses 40 000 abonnés.",fx:{stuY:0.96,g:{etu:-4,cse:-3}},w:s=>s.g.cse<40?2:0.8},
+ {ic:"📺",n:"Reportage télévisé très favorable",t:"Vingt minutes sur une diplômée devenue cheffe d'entreprise. Le standard explose.",fx:{stuY:1.08,g:{ca:3,com:4,etu:2}},w:s=>s.g.etu>55?1.5:0.6},
+ {ic:"🔍",n:"Contrôle de France Compétences",t:"Les inspecteurs vérifient la conformité des certifications.",fx:s=>s.flags.risque_qualiopi?{g:{ca:-8,etu:-5},revY:-1200,txt:"Sans mise en conformité, deux certifications sont suspendues. Les financements associés tombent."}:{g:{ca:2},txt:"Rapport sans réserve. Le CA respire."},w:()=>1},
+ {ic:"✊",n:"Grève des tuteurs pendant une semaine",t:"Le CSE appelle à cesser le travail. Les étudiants attendent leurs corrections.",fx:{g:{etu:-5,cse:3,ca:-3}},w:s=>s.g.cse<35?3:0.2},
+ {ic:"📈",n:"Hausse générale des taux d'intérêt",t:"La BCE resserre. Votre banque suit.",fx:{rate:0.01,g:{ca:-1}},w:()=>0.8},
+ {ic:"💶",n:"Inflation : les salariés demandent un rattrapage",t:"Le CSE réclame 4 % pour tout le monde.",fx:s=>s.flags.gel?{g:{cse:-8},txt:"Avec le gel des salaires, la demande tourne à la colère."}:{cost:500,g:{cse:2},txt:"Vous accordez 2,5 %. Ni satisfait, ni révolté."},w:()=>1},
 ];
 
-// Actionnaire 2028
-const SHAREHOLDER={kicker:"2028 : changement d'actionnaire",t:"Le fondateur vend. Trois repreneurs se présentent, et le CA vous demande votre préférence. Chacun réécrit les règles du jeu.",
- c:[["Un fonds d'investissement","Objectif +10 % maintenu, prêt refinancé à bas taux, mais tolérance zéro : chaque année en perte coûtera cher au CA.",{rate:-0.015,g:{ca:10,cse:-8},mode:"fonds"}],
-    ["Une université publique","La dette est reprise, l'objectif tombe à +3 %, mais les frais sont gelés et toute hausse de prix devient impossible.",{debt:0,g:{ca:5,cse:8,com:-6,etu:6},mode:"univ"}],
-    ["Un groupe edtech","5 M€ injectés immédiatement, mais le groupe exige +10 % d'étudiants par an, sous peine de sanctions.",{once:5000,g:{ca:5,com:8,cse:-5},mode:"edtech"}]]};
+const SHAREHOLDER={t:"Le fondateur vend. Trois repreneurs se présentent, et le CA vous demande votre préférence. Chacun réécrit les règles du jeu.",
+ c:[["🏦","Un fonds d'investissement","Objectif +10 % maintenu, prêt refinancé à bas taux, mais tolérance zéro : chaque année en perte coûtera cher au CA.",{rate:-0.015,g:{ca:10,cse:-8},mode:"fonds"}],
+    ["🏛️","Une université publique","La dette est reprise, l'objectif tombe à +3 %, mais les frais sont gelés et toute hausse de prix devient impossible.",{debt:0,g:{ca:5,cse:8,com:-6,etu:6},mode:"univ"}],
+    ["🚀","Un groupe edtech","5 M€ injectés immédiatement, mais le groupe exige +10 % d'étudiants par an, sous peine de sanctions.",{once:5000,g:{ca:5,com:8,cse:-5},mode:"edtech"}]]};
+
+const TUTO=[["Le résultat net","C'est l'indicateur central : le résultat de l'exercice en pourcentage du chiffre d'affaires. Il part de −12 %. Votre objectif : +10 % avant la rentrée 2032. Chaque mesure, chaque négociation et chaque imprévu le fait bouger.","res"],
+ ["Les quatre capitaux","Conseil d'administration, étudiants, commerciaux et CSE : quatre jauges sur 100. Si le CA, les étudiants ou le CSE tombent à zéro, la partie s'arrête. Beaucoup de mesures plaisent aux uns et déplaisent aux autres.","ca"],
+ ["La trésorerie et la banque","La trésorerie absorbe les pertes et les dépenses exceptionnelles. Sous zéro, la banque facture des agios et relève le taux ; sous −6 M€, elle coupe la ligne de crédit et l'école dépose le bilan.","cash"]];
 
 // ---------- État ----------
 let S;
 function newGame(){
-  S={year:2026,yi:0,phase:0,g:{ca:60,etu:55,com:50,cse:50},students:BASE.students,price:BASE.price,marketing:BASE.marketing,
+  S={screen:'intro',name:'',profile:null,year:2026,yi:0,phase:0,g:{ca:60,etu:55,com:50,cse:50},students:BASE.students,price:BASE.price,marketing:BASE.marketing,
      rev:0,cost:0,churn:0,stuMult:1,staff:BASE.staff,debt:BASE.debt,cash:BASE.cash,rate:BASE.rate,active:[],pending:[],flags:{},
-     used:{env:[],aud:[],amd:[],evt:[]},history:[],lastResult:null,lastNew:4200,yearFx:{stuY:1,revY:0,once:0},target:10,mode:null,sub:0,tmp:null,over:null};
-  // année 0 : résultat de référence 2025
-  S.lastResult={pct:-12,rev:30000,res:-3605};
+     used:{env:[],aud:[],amd:[],evt:[]},history:[],lastResult:{pct:-12,rev:30000,res:-3605},lastNew:4200,yearFx:{stuY:1,revY:0,once:0},target:10,mode:null,sub:0,tmp:null,over:null,tuto:0,decided:false,log:[]};
 }
 const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
 const fmt=n=>new Intl.NumberFormat('fr-FR').format(Math.round(n));
 const kE=n=>(n>=0?'+':'−')+fmt(Math.abs(n))+' k€';
-const pct=n=>(n>=0?'+':'−')+Math.abs(n).toFixed(1)+' %';
+const mE=n=>(n>=0?'+':'−')+(Math.abs(n)/1000).toFixed(1).replace('.',',')+' M€';
+const pct=n=>(n>=0?'+':'−')+Math.abs(n).toFixed(1).replace('.',',')+' %';
+const GN={ca:'CA',etu:'Étudiants',com:'Commerciaux',cse:'CSE'};
 function pick(pool,key){
   const avail=pool.map((x,i)=>i).filter(i=>!S.used[key].includes(i));
   const src=avail.length?avail:pool.map((x,i)=>i);
   const i=src[Math.floor(Math.random()*src.length)];
-  S.used[key].push(i); return pool[i];
+  S.used[key].push(i); return i;
 }
 function pickEvent(){
   const ws=EVENTS.map((e,i)=>S.used.evt.includes(i)?0:e.w(S));
   let tot=ws.reduce((a,b)=>a+b,0); if(tot<=0){S.used.evt=[];return pickEvent();}
   let r=Math.random()*tot;
-  for(let i=0;i<EVENTS.length;i++){r-=ws[i]; if(r<=0){S.used.evt.push(i);return EVENTS[i];}}
-  return EVENTS[0];
+  for(let i=0;i<EVENTS.length;i++){r-=ws[i]; if(r<=0){S.used.evt.push(i);return i;}}
+  return 0;
 }
-// Applique un paquet d'effets (immédiats + récurrents)
-function apply(fx){
+function apply(fx,label){
   if(!fx) return;
-  if(fx.g) for(const k in fx.g){S.g[k]=clamp(S.g[k]+fx.g[k],0,100);}
+  if(fx.g) for(const k in fx.g){S.g[k]=clamp(S.g[k]+fx.g[k],0,100); toast(fx.g[k],GN[k],label);}
   if(fx.rev) S.rev+=fx.rev; if(fx.cost) S.cost+=fx.cost; if(fx.mk) S.marketing=Math.max(500,S.marketing+fx.mk);
-  if(fx.price){ if(S.mode==='univ'&&fx.price>0){} else S.price=Math.round(S.price*(1+fx.price/100)); }
+  if(fx.price){ if(!(S.mode==='univ'&&fx.price>0)) S.price=Math.round(S.price*(1+fx.price/100)); }
   if(fx.stu) S.stuMult*=fx.stu; if(fx.churn) S.churn+=fx.churn; if(fx.hc) S.staff+=fx.hc;
   if(fx.once){S.cash+=fx.once; S.yearFx.once+=fx.once;} if(fx.debt!==undefined){ if(fx.debt===0) S.debt=0; else S.debt+=fx.debt; }
   if(fx.rate) S.rate=clamp(S.rate+fx.rate,0.01,0.15);
   if(fx.stuY) S.yearFx.stuY*=fx.stuY; if(fx.revY) S.yearFx.revY+=fx.revY;
   if(fx.flag) S.flags[fx.flag]=true; if(fx.mode) S.mode=fx.mode;
+  renderGauges();
 }
-function fxChips(fx){
+function toast(v,name,label){
+  if(!v) return;
+  const t=document.createElement('div'); t.className='toast'+(v<0?' neg':'');
+  t.innerHTML=`<b>${v>0?'+':'−'}${Math.abs(v)} ${name}</b><small>${label||''}</small>`;
+  const box=document.getElementById('toasts'); while(box.children.length>=4) box.firstChild.remove(); box.appendChild(t); setTimeout(()=>t.remove(),3300);
+}
+function chips(fx){
   if(!fx) return '';
-  const names={ca:'CA',etu:'Étudiants',com:'Commerciaux',cse:'CSE'}; const out=[];
+  const out=[];
   if(fx.rev) out.push(['Recettes '+kE(fx.rev)+'/an',fx.rev>0]);
   if(fx.cost) out.push(['Coûts '+kE(fx.cost)+'/an',fx.cost<0]);
   if(fx.mk) out.push(['Marketing '+kE(fx.mk)+'/an',fx.mk<0]);
@@ -316,9 +427,11 @@ function fxChips(fx){
   if(fx.revY) out.push(['CA cette année '+kE(fx.revY),fx.revY>0]);
   if(fx.hc) out.push(['Effectifs '+(fx.hc>0?'+':'')+fx.hc,fx.hc>0]);
   if(fx.rate) out.push(['Taux '+(fx.rate>0?'+':'')+(fx.rate*100).toFixed(1)+' pt',fx.rate<0]);
-  if(fx.g) for(const k in fx.g) out.push([names[k]+' '+(fx.g[k]>0?'+':'')+fx.g[k],fx.g[k]>0]);
-  return '<div class="fx">'+out.map(([t,p])=>`<span class="${p?'pos':'neg'}">${t}</span>`).join('')+'</div>';
+  if(fx.g) for(const k in fx.g) out.push([GN[k]+' '+(fx.g[k]>0?'+':'')+fx.g[k],fx.g[k]>0]);
+  return out.map(([t,p])=>`<span class="chip ${p?'pos':'neg'}">${t}</span>`).join('');
 }
+// effet annuel d'une mesure sur le résultat (k€)
+function yearly(m){ return (m.rev||0)-(m.cost||0)-(m.mk||0)+(m.price?S.students*S.price*m.price/100/1000:0)+(m.stu?(m.stu-1)*4200*S.price/1000:0); }
 
 // ---------- Simulation annuelle ----------
 function simulate(){
@@ -333,14 +446,13 @@ function simulate(){
   const students=Math.max(0,S.students-left+newS);
   const tuition=students*S.price/1000;
   const revenue=tuition+S.rev+S.yearFx.revY;
-  const payroll=BASE.payrollOther+BASE.payrollCom; // ajustés via cost
+  const payroll=BASE.payrollOther+BASE.payrollCom;
   const overdraft=Math.max(0,-S.cash);
   const interest=(S.debt+overdraft)*S.rate;
   const costs=payroll+S.marketing+BASE.platform+BASE.other+S.cost+interest;
   const res=revenue-costs; const pc=revenue>0?res/revenue*100:-100;
   const y={year:S.year,newS,left,churn,students,revenue,costs,interest,res,pct:pc,once:S.yearFx.once,cashBefore:S.cash};
   S.cash+=res; y.cash=S.cash;
-  // Dérive des jauges
   const prev=S.lastResult;
   let dca=clamp((pc-prev.pct)*0.8,-8,8)+(pc>=0?2:-3);
   if(S.mode==='fonds'&&pc<0) dca-=6;
@@ -356,6 +468,14 @@ function simulate(){
   S.yearFx={stuY:1,revY:0,once:0};
   return y;
 }
+function projected(){
+  // projection grossière du résultat avec les mesures en vigueur + en attente
+  const pend=S.pending.map(i=>MEASURES[i]);
+  const extra=pend.reduce((a,m)=>a+yearly(m),0);
+  const rev=S.students*S.price/1000+S.rev+S.yearFx.revY;
+  const costs=BASE.payrollOther+BASE.payrollCom+S.marketing+BASE.platform+BASE.other+S.cost+(S.debt+Math.max(0,-S.cash))*S.rate;
+  const res=rev-costs+extra; return {res,pct:rev>0?res/rev*100:-100,extra};
+}
 function checkOver(){
   if(S.g.ca<=0) return "Le conseil d'administration vous a révoqué·e. Un cabinet de redressement prend la direction.";
   if(S.cash<-6000) return "La banque a coupé la ligne de crédit. L'école dépose le bilan.";
@@ -366,229 +486,354 @@ function checkOver(){
 
 // ---------- Rendu ----------
 const $=s=>document.querySelector(s);
-function gaugeClass(v){return v<25?'crit':v<45?'warn':v>=65?'good':''}
-function renderDash(){
-  $('#year').textContent=S.over?'Fin':S.year;
-  const lr=S.lastResult;
-  const gauges=[['Conseil d\'administration','ca'],['Étudiants','etu'],['Commerciaux','com'],['CSE / salariés','cse']];
-  let h=gauges.map(([n,k])=>`<div class="g"><div class="lab">${n}</div><div class="val">${Math.round(S.g[k])}<small>/100</small></div><div class="bar ${gaugeClass(S.g[k])}"><i style="width:${S.g[k]}%"></i></div></div>`).join('');
-  h+=`<div class="g kpi"><div class="lab">Résultat net (dernier exercice)</div><div class="val ${lr.pct<0?'neg':'pos'}">${pct(lr.pct)}</div><div class="note">Objectif : +${S.target} %</div></div>`;
-  h+=`<div class="g kpi"><div class="lab">Trésorerie</div><div class="val ${S.cash<0?'neg':''}">${fmt(S.cash/1000*10)/10} M€</div><div class="note">Dette ${fmt(S.debt/1000*10)/10} M€ à ${(S.rate*100).toFixed(1)} %</div></div>`;
-  h+=`<div class="g kpi"><div class="lab">Étudiants</div><div class="val">${fmt(S.students)}</div><div class="note">Frais ${fmt(S.price)} € / an</div></div>`;
-  h+=`<div class="g kpi"><div class="lab">Salariés</div><div class="val">${fmt(S.staff)}</div><div class="note">dont ${BASE.com} commerciaux</div></div>`;
-  $('#dash').innerHTML=h;
-  $('#steps').innerHTML=PHASES.map((p,i)=>`<span class="${i===S.phase?'on':(i<S.phase?'done':'')}">${p}</span>`).join('');
-}
-function scene(html){ $('#scene').innerHTML=html; renderDash(); $('#scene').scrollIntoView({block:'nearest'}); save(); }
-function next(){ S.phase++; S.sub=0; S.tmp=null; render(); }
-function btn(label,fn,cls){ const b=document.createElement('button'); b.innerHTML=label; if(cls) b.className=cls; b.addEventListener('click',fn); return b; }
-function choiceScene(kicker,title,text,choices,after){
-  // choices: [label, fx, outcomeText, sub]
-  scene(`<div class="kicker">${kicker}</div><h2>${title}</h2>${text?`<div class="quote">${text}</div>`:''}<div class="choices" id="ch"></div><div id="out"></div>`);
-  const ch=$('#ch');
-  choices.forEach(([label,fx,out,sub])=>{
-    const b=btn(`<span class="choice"><b>${label}</b>${sub?`<small>${sub}</small>`:''}</span>${fxChips(typeof fx==='function'?null:fx)}`,()=>{
-      const f=typeof fx==='function'?fx():fx; apply(f);
-      ch.querySelectorAll('button').forEach(x=>x.disabled=true);
-      $('#out').innerHTML=`<div class="result"><p>${(f&&f.txt)||out}</p>${typeof fx==='function'?fxChips(f):''}</div>`;
-      $('#out').appendChild(btn('Continuer',after||next,'primary')); renderDash(); save();
-    });
-    ch.appendChild(b);
-  });
-}
+const app=()=>document.getElementById('app');
+function save(){ try{localStorage.setItem('bde-save',JSON.stringify(S));}catch(e){} }
+function btn(label,fn,cls){ const b=document.createElement('button'); b.innerHTML=label; b.className=cls||'mbtn'; b.addEventListener('click',fn); return b; }
+function modal(html,cls){ document.getElementById('modal').innerHTML=`<div class="overlay"><div class="modal ${cls||''}">${html}</div></div>`; }
+function closeModal(){ document.getElementById('modal').innerHTML=''; }
+const titre=()=>S.profile===null?'':(S.name||'Direction générale');
 
 function render(){
+  save();
+  if(S.screen==='intro') return renderIntro();
+  if(S.screen==='profile') return renderProfile();
+  if(S.screen==='title') return renderTitle();
   if(S.over) return renderFinal();
+  renderGame();
+}
+
+function renderIntro(){
+  app().innerHTML=`<div class="center"><div class="panel">
+    <div class="flag"><i style="background:var(--gold)"></i><i style="background:#eef2fb"></i><i style="background:var(--red)"></i></div>
+    <div class="kicker" style="text-align:center">Votre série de direction</div>
+    <h1 class="serif title">LA BATAILLE DE L'ÉCOLE</h1>
+    <div style="text-align:center;color:var(--gold);font-size:13px;margin-top:-8px">2026-2032</div>
+    <div class="speech"><div class="avatar">🧮</div><div>
+      <p>« Bienvenue à la direction générale. Votre mission : faire adopter le plan de redressement 2026 et les suivants. »</p>
+      <p>« Sans effort supplémentaire, l'école perdrait <b style="color:var(--rose)">3,6 M€ par an, soit −12 % du chiffre d'affaires</b>. La banque, les actionnaires, 12 000 étudiants et 400 salariés vous regardent. »</p>
+    </div></div>
+    <div class="tiles">
+      <div class="tile rose"><b>🎯 Votre objectif</b>Ramener le résultat net à +10 % du chiffre d'affaires avant la rentrée 2032, sans vous faire révoquer.</div>
+      <div class="tile"><b>⚖️ Vos leviers</b>Frais, nouvelles offres, coûts, IA ; négociations avec les directeurs, la banque, le CSE et le conseil d'administration.</div>
+      <div class="tile violet"><b>📊 Vos jauges</b>Conseil d'administration, étudiants, commerciaux et CSE : si l'une tombe à zéro, la série s'arrête.</div>
+      <div class="tile green"><b>📅 Chaque année</b>10 épisodes : cadrage, mesures, guerre des enveloppes, gardiens, audition, vote du CA, imprévu, résultats, grand show de fin d'année, bilan.</div>
+    </div>
+    <div style="display:flex;justify-content:center" id="b"></div>
+    <div class="credit">Un jeu École en ligne · inspiré de La Bataille du Budget</div>
+  </div></div>`;
+  $('#b').appendChild(btn('▶ Lancer la saison 1',()=>{S.screen='profile';render();}));
+}
+
+function renderProfile(){
+  app().innerHTML=`<div class="center"><div class="panel wide">
+    <div class="kicker" style="text-align:center">Prégénérique</div>
+    <h1 class="serif" style="font-size:24px;text-align:center">La série dont vous êtes l'héroïne ou le héros</h1>
+    <p class="muted" style="text-align:center;margin-top:-6px">Avant que le conseil d'administration n'appelle, composez votre personnage.</p>
+    <div><label class="lab" for="nm">Nom de la directrice ou du directeur</label><input type="text" id="nm" placeholder="Saisissez un nom…" value="${S.name.replace(/"/g,'&quot;')}"></div>
+    <div><label class="lab">Profil de départ</label><div class="profiles" id="pf"></div></div>
+    <div style="display:flex;justify-content:center" id="b"></div>
+    <p class="credit" id="hint">Choisissez un nom et un profil pour continuer.</p>
+  </div></div>`;
+  const pf=$('#pf');
+  const draw=()=>{pf.innerHTML='';PROFILES.forEach((p,i)=>{const d=btn(`<span class="ic">${p[0]}</span><b>${p[1]}</b><span>${p[2]}</span><span>${Object.entries(p[3]).map(([k,v])=>`<span class="chip">${v} ${GN[k]}</span>`).join('')}</span>`,()=>{S.profile=i;draw();upd();},'prof'+(S.profile===i?' sel':''));pf.appendChild(d);});};
+  const go=btn('▶ Entrer en scène',()=>{S.g={...PROFILES[S.profile][3]};S.screen='title';render();});
+  const upd=()=>{S.name=$('#nm').value.trim();go.disabled=!(S.name&&S.profile!==null);$('#hint').textContent=go.disabled?'Choisissez un nom et un profil pour continuer.':'';save();};
+  $('#nm').addEventListener('input',upd); $('#b').appendChild(go); draw(); upd();
+}
+
+function renderTitle(){
+  app().innerHTML=`<div class="titlecard"><div class="big">LA BATAILLE DE L'ÉCOLE</div><div class="rule"></div><div class="sub">Saison ${S.yi+1} · Exercice ${S.year}</div></div>`;
+  setTimeout(()=>{S.screen='game';render();},2600);
+}
+
+function gaugeHtml(){
+  const lr=S.lastResult; const pj=projected();
+  const resW=clamp((lr.pct+20)/40*100,2,100);
+  const cashW=clamp((S.cash+6000)/16000*100,2,100);
+  const conj=S.cash<-2000?['bad','🔥 Trésorerie sous tension']:S.lastResult.pct<-5?['warn','😬 Comptes dans le rouge']:S.lastResult.pct<S.target?['','😐 Redressement en cours']:['','😀 Objectif en vue'];
+  const G=(cls,ic,l,v,w,sub)=>`<div class="gauge ${cls}" data-g="${cls.slice(2)}"><div class="l">${ic} ${l}</div><div class="v num">${v}${sub?`<small> · ${sub}</small>`:''}</div><div class="bar"><i style="width:${w}%"></i></div></div>`;
+  return {conj,html:
+   G('c-res','📉','Résultat net',pct(lr.pct),resW,`cible +${S.target} %`)+
+   G('c-cash','🏦','Trésorerie',mE(S.cash),cashW,`dette ${(S.debt/1000).toFixed(0)} M€`)+
+   G('c-rate','📈','Taux · banque',(S.rate*100).toFixed(1).replace('.',',')+' %',clamp(100-S.rate*800,5,100),S.rate<0.045?'AA':S.rate<0.065?'BBB':'B')+
+   G('c-ca','⚡','Conseil d\'admin.',Math.round(S.g.ca)+' pts',S.g.ca)+
+   G('c-etu','🎓','Étudiants',Math.round(S.g.etu)+' %',S.g.etu,fmt(S.students))+
+   G('c-com','💼','Commerciaux',Math.round(S.g.com)+' %',S.g.com)+
+   G('c-cse','🤝','CSE · salariés',Math.round(S.g.cse)+' %',S.g.cse,fmt(S.staff))};
+}
+function renderGauges(){ const el=$('#gauges'); if(!el) return; const g=gaugeHtml(); el.innerHTML=g.html; const p=$('#conj'); if(p){p.className='pill '+g.conj[0];p.textContent=g.conj[1];} }
+function flashGauge(k){ const el=document.querySelector(`.gauge[data-g="${k}"]`); if(el){el.classList.add('flash');setTimeout(()=>el.classList.remove('flash'),2500);} }
+
+function headlines(){
+  const lr=S.lastResult; const h=[];
+  h.push(lr.pct<0?`Comptes ${S.year-1} : l'école a perdu ${(Math.abs(lr.res)/1000).toFixed(1).replace('.',',')} M€`:`Comptes ${S.year-1} : l'école dégage ${(lr.res/1000).toFixed(1).replace('.',',')} M€`);
+  h.push(`${S.name} ${S.yi===0?'prend la direction générale':'entame sa saison '+(S.yi+1)} de l'école`);
+  h.push(S.cash<0?`La banque surveille le découvert de ${mE(S.cash)}`:`Trésorerie à ${mE(S.cash)}, la banque reste calme`);
+  h.push(S.g.cse<40?'Le CSE menace d\'une alerte sociale':'Les équipes attendent le plan de la direction');
+  h.push(S.g.com<40?'Les commerciaux dénoncent des objectifs intenables':'Les commerciaux visent '+fmt(S.lastNew)+' inscriptions');
+  h.push(S.active.length?`${S.active.length} mesure${S.active.length>1?'s':''} déjà en vigueur`:'Aucune mesure structurelle en vigueur à ce jour');
+  return h;
+}
+
+function renderGame(){
+  const g=gaugeHtml();
+  app().innerHTML=`<div class="game">
+    <div class="top"><div class="brand"><div class="logo"></div><div><div class="t">LA BATAILLE DE L'ÉCOLE</div><div class="s">Saison ${S.yi+1} · Exercice ${S.year}</div></div><span class="pill ${g.conj[0]}" id="conj" style="margin-left:8px">${g.conj[1]}</span></div>
+      <div class="icons"><button title="Recommencer" id="reset">↺</button><button title="Partie sauvegardée automatiquement">💾</button></div></div>
+    <div class="episodes">${EPISODES.map((e,i)=>`<div class="ep ${i===S.phase?'on':(i<S.phase?'done':'')}"><span class="st">${i<S.phase?'✓':i===S.phase?'▶':'🔒'}</span><span class="ic">${e[2]}</span><span class="m">E${i+1} · ${e[0]}</span><span class="n">${e[1]}</span></div>`).join('')}</div>
+    <div class="gauges" id="gauges">${g.html}</div>
+    <div class="scene" id="scene"></div>
+    <div class="budget" id="budget"></div>
+  </div>`;
+  $('#reset').addEventListener('click',()=>modal(`<h3>Recommencer la série ?</h3><p class="mt">La partie en cours sera perdue.</p><div class="mf"><button class="lnk" id="mc">Annuler</button><button class="rbtn" id="mo">Recommencer</button></div>`,'gold'));
+  document.getElementById('modal').addEventListener('click',e=>{ if(e.target.id==='mc') closeModal(); if(e.target.id==='mo'){closeModal();newGame();render();} });
+  renderBudget();
+  if(S.tuto<TUTO.length&&S.yi===0&&S.phase===0) return renderTuto();
+  renderPhase();
+}
+function renderTuto(){
+  const [t,d,k]=TUTO[S.tuto]; flashGauge(k);
+  modal(`<div class="kicker">Découverte · ${S.tuto+1}/${TUTO.length}</div><h3>${t}</h3><p class="mt" style="max-width:none">${d}</p><div class="mf"><button class="lnk" id="tp">Passer</button><button class="mbtn" id="tn">Suivant ▸</button></div>`,'gold');
+  document.getElementById('tp').onclick=()=>{S.tuto=TUTO.length;closeModal();renderPhase();};
+  document.getElementById('tn').onclick=()=>{S.tuto++;closeModal();if(S.tuto<TUTO.length)renderTuto();else renderPhase();};
+  renderPhase(true);
+}
+function renderBudget(){
+  const pend=S.pending.map(i=>MEASURES[i]); const act=S.active.map(i=>MEASURES[i]);
+  const all=[...act,...pend];
+  const rec=all.reduce((a,m)=>a+(m.rev||0)+(m.price?Math.max(0,S.students*S.price*m.price/100/1000):0)+(m.stu&&m.stu>1?(m.stu-1)*4200*S.price/1000:0),0);
+  const eco=all.reduce((a,m)=>a+Math.max(0,-(m.cost||0)-(m.mk||0)),0);
+  const dep=all.reduce((a,m)=>a+Math.max(0,(m.cost||0)+(m.mk||0))+(m.price&&m.price<0?Math.abs(S.students*S.price*m.price/100/1000):0),0);
+  const once=pend.reduce((a,m)=>a+(m.once||0),0);
+  const pj=projected();
+  $('#budget').innerHTML=`<div class="bh"><span>📒 Votre plan en cours — ${all.length} mesure${all.length>1?'s':''}${pend.length?` <span class="muted">(dont ${pend.length} à voter)</span>`:''}</span><span class="muted" style="font-weight:400;font-size:12px">${all.length?'':'Aucune mesure retenue.'}</span></div>
+   <div class="btiles"><div class="btile g"><div class="l">Recettes nouvelles</div><div class="v num">${(rec/1000).toFixed(1).replace('.',',')}</div><div class="s">M€ · par an</div></div>
+   <div class="btile o"><div class="l">Économies</div><div class="v num">${(eco/1000).toFixed(1).replace('.',',')}</div><div class="s">M€ · par an</div></div>
+   <div class="btile b"><div class="l">Effort net</div><div class="v num">${((rec+eco-dep)/1000).toFixed(1).replace('.',',')}</div><div class="s">M€ d'amélioration du résultat</div></div></div>
+   <div class="blines"><div><span>Dépenses nouvelles engagées</span><span class="num" style="color:var(--rose)">${kE(-dep)}</span></div><div><span>Mouvements de trésorerie immédiats (mesures à voter)</span><span class="num">${kE(once)}</span></div><div class="tot"><span>Résultat projeté pour ${S.year}</span><span class="num" style="color:${pj.pct<0?'var(--rose)':'var(--green)'}">${mE(pj.res)} · ${pct(pj.pct)}</span></div></div>
+   <div class="proj">Cible <b class="num">+${S.target} %</b> <span style="margin-left:12px">Frais annuels <b class="num" style="font-size:15px">${fmt(S.price)} €</b></span> <span style="margin-left:12px">Étudiants <b class="num" style="font-size:15px">${fmt(S.students)}</b></span></div>`;
+}
+
+// Carte d'épisode générique
+function sceneShell(body,opts){
+  const e=EPISODES[S.phase]; opts=opts||{};
+  const hl=headlines(); const tk=hl.concat(hl).join(' • ');
+  $('#scene').innerHTML=`<div class="k"><div><div class="kicker">Saison ${S.yi+1} · Exercice ${S.year} · Épisode ${S.phase+1}</div><h2 class="serif">${e[0]} — ${opts.title||e[1]}</h2></div></div>
+   ${opts.tag?`<div class="tag">« ${opts.tag} »</div>`:''}
+   <div class="ticker"><span class="d">● DIRECT</span><div class="tk"><span>${tk} • </span></div></div>
+   <div id="body">${body}</div>
+   <div class="foot"><button class="sbtn" disabled>↩ Retour</button><button class="mbtn" id="nextBtn" ${opts.ready?'':'disabled'}>▶ Épisode suivant</button></div>`;
+  $('#nextBtn').addEventListener('click',()=>{ if(opts.onNext) opts.onNext(); else nextPhase(); });
+}
+function dlg(ic,who,role,text){ return `<div class="dlg"><div class="avatar sm">${ic}</div><div class="who"><b>${who}</b><small>${role}</small><p>${text}</p></div></div>`; }
+function ready(){ const b=$('#nextBtn'); if(b) b.disabled=false; S.decided=true; save(); }
+function nextPhase(){ S.phase++; S.sub=0; S.tmp=null; S.decided=false; renderGame(); }
+
+// Choix avec résultat
+function choices(container,list,after,label){
+  // list: [label, fx, outcome, sub]
+  const box=document.createElement('div'); box.className='opts';
+  list.forEach(([l,fx,out,sub])=>{
+    const b=btn(`${l}${sub?`<small>${sub}</small>`:''}${(typeof fx!=='function'&&fx)?`<small>${chips(fx)}</small>`:''}`,()=>{
+      const f=typeof fx==='function'?fx():fx; apply(f,label);
+      box.querySelectorAll('button').forEach(x=>{x.disabled=true;}); b.classList.add('sel');
+      const r=document.createElement('div'); r.className='resbox'+(f&&f.g&&Object.values(f.g).some(v=>v<0)&&!Object.values(f.g).some(v=>v>0)?' bad':'');
+      r.innerHTML=`<b>${(f&&f.txt)||out}</b>${typeof fx==='function'?chips(f):''}`;
+      box.after(r); renderBudget(); if(after) after(); else ready();
+    },'opt'); box.appendChild(b);
+  });
+  container.appendChild(box);
+}
+
+function renderPhase(silent){
   switch(S.phase){
-    case 0: return renderCadrage();
-    case 1: return renderMesures();
-    case 2: return renderEnveloppes();
-    case 3: return renderGardiens();
-    case 4: return renderAudition();
-    case 5: return renderVote();
-    case 6: return renderEvent();
-    case 7: return renderResultats();
-    case 8: return renderShow();
-    case 9: return renderBilan();
+    case 0: return phCadrage();
+    case 1: return phMesures();
+    case 2: return phEnveloppes();
+    case 3: return phGardiens();
+    case 4: return phAudition();
+    case 5: return phVote();
+    case 6: return phEvent(silent);
+    case 7: return phResultats();
+    case 8: return phShow();
+    case 9: return phBilan();
   }
 }
 
-function renderCadrage(){
+function phCadrage(){
+  const first=S.yi===0; const lr=S.lastResult;
   if(S.year===2028&&S.sub===0){
-    S.sub=1;
-    return choiceScene(SHAREHOLDER.kicker,"Qui rachète l'école ?",SHAREHOLDER.t,SHAREHOLDER.c.map(([l,sub,fx])=>[l,fx,"Le CA suit votre avis. Les règles changent dès cette année.",sub]),()=>{ if(S.mode==='univ') S.target=3; S.sub=2; render(); });
+    sceneShell(dlg('👴','Le fondateur','Actionnaire majoritaire sortant',SHAREHOLDER.t)+`<div class="prompt">Qui doit racheter l'école ?</div><div id="c"></div>`,{title:'Changement d\'actionnaire',tag:'Le fondateur vend. La suite de la série se joue maintenant.',onNext:()=>{S.sub=1;renderGame();}});
+    choices($('#c'),SHAREHOLDER.c.map(([ic,l,sub,fx])=>[ic+' '+l,fx,'Le CA suit votre avis. Les règles changent dès cette année.',sub]),()=>{ if(S.mode==='univ') S.target=3; ready(); },'Rachat de l\'école');
+    return;
   }
-  const first=S.year===2026;
-  const lr=S.lastResult;
-  const letter=first?
-   `<p class="lead">Vous prenez la direction générale de l'école le 2 janvier 2026. Le DAF vous tend les comptes 2025 : 30 M€ de chiffre d'affaires, 12 000 étudiants, 400 salariés dont 100 commerciaux, et une perte de 3,6 M€, soit <b>−12 % de résultat net</b>. La trésorerie tient encore deux mois, le prêt bancaire de 9 M€ court à 4,5 %.</p>
-    <div class="quote">« Le conseil d'administration vous donne six exercices. À la rentrée 2032, nous voulons un résultat net de +10 % du chiffre d'affaires. Nous ne voulons ni scandale, ni grève, ni exode des étudiants. Bonne chance. »</div>
-    <p>Chaque année se joue en neuf temps : vos mesures, la guerre des enveloppes avec les directeurs de service, l'avis des gardiens (commissaire aux comptes, banque, auditeurs qualité), une audition devant salariés ou étudiants, le vote du conseil d'administration et ses amendements, un événement imprévu, les résultats de l'exercice, le grand show de fin d'année devant les 400 salariés, puis le bilan.</p>
-    <p class="note">Quatre jauges à surveiller : si le conseil d'administration, les étudiants ou le CSE tombent à zéro, la partie s'arrête. Si la trésorerie passe sous −6 M€, l'école dépose le bilan.</p>`
-  : `<p class="lead">Lettre de cadrage ${S.year}. Le conseil d'administration prend acte d'un résultat ${lr.pct>=0?'positif':'négatif'} de ${pct(lr.pct)} sur l'exercice précédent. ${lr.pct>=S.target?'L\'objectif est atteint, il s\'agit maintenant de le tenir.':`Il reste ${(S.target-lr.pct).toFixed(1)} points à gagner avant 2032.`}</p>
-    <div class="quote">${S.g.ca<35?'« Nous ne cachons pas notre inquiétude. Cette année est celle de la dernière chance. »':S.g.ca>65?'« Le conseil renouvelle sa confiance. Continuez. »':'« Le conseil attend des résultats mesurables cette année. »'}</div>
-    ${S.cash<0?'<p>La trésorerie est négative : les intérêts de découvert pèsent sur les comptes et la banque surveille chaque mouvement.</p>':''}
-    ${S.mode==='edtech'?'<p>Le groupe edtech rappelle son exigence : +10 % d\'étudiants cette année.</p>':''}${S.mode==='fonds'?'<p>Le fonds rappelle qu\'une année en perte ne sera pas tolérée.</p>':''}${S.mode==='univ'?'<p>L\'université rappelle le gel des frais de scolarité.</p>':''}`;
-  scene(`<div class="kicker">Cadrage · ${S.year}</div><h2>${first?'Prise de fonction':'La lettre du conseil'}</h2>${letter}<div id="b"></div>`);
-  $('#b').appendChild(btn(first?'Commencer l\'exercice 2026':'Préparer les mesures '+S.year,next,'primary'));
+  const quote=first?'« Le conseil d\'administration vous donne six exercices. À la rentrée 2032, nous voulons un résultat net de +10 % du chiffre d\'affaires. Ni scandale, ni grève, ni exode des étudiants. Bonne chance. »'
+    :(S.g.ca<35?'« Nous ne cachons pas notre inquiétude. Cette année est celle de la dernière chance. »':S.g.ca>65?'« Le conseil renouvelle sa confiance. Continuez. »':'« Le conseil attend des résultats mesurables cette année. »');
+  const extra=[S.cash<0?'La trésorerie est négative : les agios pèsent et la banque surveille chaque mouvement.':'',S.mode==='edtech'?'Le groupe edtech rappelle son exigence : +10 % d\'étudiants cette année.':'',S.mode==='fonds'?'Le fonds rappelle qu\'une année en perte ne sera pas tolérée.':'',S.mode==='univ'?'L\'université rappelle le gel des frais de scolarité.':''].filter(Boolean);
+  const body=dlg('👩‍⚖️','Présidente du conseil d\'administration','Vous reçoit dans son bureau',(first?`« Bonjour ${S.name}. Le DAF vous a remis les comptes 2025 : 30 M€ de chiffre d'affaires, 12 000 étudiants, 400 salariés dont 100 commerciaux, et une perte de 3,6 M€, soit <b style="color:var(--rose)">−12 % de résultat net</b>. La trésorerie tient deux mois. »<br>`:`« Résultat ${S.year-1} : <b style="color:${lr.pct<0?'var(--rose)':'var(--green)'}">${pct(lr.pct)}</b>. ${lr.pct>=S.target?'L\'objectif est atteint, il s\'agit de le tenir.':`Il reste ${(S.target-lr.pct).toFixed(1).replace('.',',')} points à gagner avant 2032.`} »<br>`)+quote)+
+   (extra.length?`<div class="note">${extra.map(x=>`<div>${x}</div>`).join('')}</div>`:'')+
+   `<div class="prompt">Votre discours de prise de fonction — fixez le cap :</div><div id="c"></div>`;
+  sceneShell(body,{title:first?'Mission : Impossible':'La lettre du conseil',tag:first?'On vous confie une école qui perd 300 000 € par mois. Le CA attend un cap, les équipes guettent vos premiers mots.':'Nouvelle saison, mêmes contraintes. Le conseil a relu les comptes.'});
+  choices($('#c'),[
+    ["« La rigueur : je tiendrai les coûts. »",{g:{ca:3,cse:-2}},"Cap fixé. Le CA approuve, le CSE prend note."],
+    ["« La qualité : je miserai sur les étudiants. »",{g:{etu:3,ca:-1}},"Cap fixé. Les étudiants apprécient, le CA attend les chiffres."],
+    ["« La croissance : je relancerai les ventes. »",{g:{com:3,ca:-1}},"Cap fixé. Les commerciaux applaudissent."]],null,'Discours de cadrage');
 }
 
-function renderMesures(){
+function phMesures(){
   const avail=MEASURES.filter(m=>!S.active.includes(m.id)&&!(S.mode==='univ'&&m.price>0));
-  let cat='rec';
-  scene(`<div class="kicker">Mesures · ${S.year}</div><h2>Le catalogue des mesures</h2><p class="lead">Choisissez jusqu'à ${MAXM} mesures. Les effets financiers s'appliquent chaque année à partir de celle-ci ; les réactions des jauges s'appliquent au moment du vote. Une mesure adoptée reste en vigueur.</p>
-  <div class="cat"><div class="tabs" id="tabs"></div><div class="mlist" id="ml"></div><div class="tally" id="tally"></div><div id="b"></div></div>`);
-  const tabs=[['rec','Recettes'],['dep','Dépenses'],['str','Structurel']];
-  function draw(){
-    $('#tabs').innerHTML=''; tabs.forEach(([k,n])=>$('#tabs').appendChild(btn(n+' ('+avail.filter(m=>m.cat===k).length+')',()=>{cat=k;draw();},k===cat?'on':'')));
-    const ml=$('#ml'); ml.innerHTML='';
-    avail.filter(m=>m.cat===cat).forEach(m=>{
-      const sel=S.pending.includes(m.id);
-      const d=document.createElement('div'); d.className='m'+(sel?' sel':'');
-      d.innerHTML=`<input type="checkbox" id="m${m.id}" ${sel?'checked':''} ${(!sel&&S.pending.length>=MAXM)?'disabled':''}><label for="m${m.id}"><b>${m.n}</b><small>${m.d}</small>${fxChips(m)}</label>`;
-      d.querySelector('input').addEventListener('change',e=>{ if(e.target.checked) S.pending.push(m.id); else S.pending=S.pending.filter(x=>x!==m.id); draw(); save(); });
-      ml.appendChild(d);
-    });
-    const sum={rev:0,cost:0,once:0}; S.pending.forEach(id=>{const m=MEASURES[id]; sum.rev+=m.rev||0; sum.cost+=(m.cost||0)+(m.mk||0); sum.once+=m.once||0;});
-    $('#tally').innerHTML=`<span><b>${S.pending.length}</b> / ${MAXM} mesures</span><span>Recettes ${kE(sum.rev)}/an</span><span>Coûts ${kE(sum.cost)}/an</span><span>Trésorerie ${kE(sum.once)}</span>`;
-    $('#b').innerHTML=''; $('#b').appendChild(btn(S.pending.length?'Soumettre ces '+S.pending.length+' mesures':'Continuer sans nouvelle mesure',next,'primary'));
-  }
+  const cats=[['rec','Recettes nouvelles','var(--green)'],['dep','Économies et coupes','var(--gold)'],['str','Réformes de structure','var(--violet)']];
+  const body=dlg('🧮','Le DAF','Directeur administratif et financier',`« Dessinons l'esquisse du plan : les mesures que vous porterez au conseil. Jusqu'à ${MAXM} cette année. Une mesure adoptée reste en vigueur les années suivantes. »`)+
+   `<div class="note"><div class="h">📗 Note du DAF — pourquoi l'école perd de l'argent</div>Sans mesure nouvelle, le résultat ${S.year} serait de <b style="color:var(--rose)">${pct(projected().pct)}</b>. Trois moteurs l'expliquent :<ul><li><b>Les abandons.</b> Un tiers des étudiants ne va pas au bout : chaque départ est un chiffre d'affaires perdu.</li><li><b>La masse salariale.</b> 400 salariés pour 30 M€, dont 100 commerciaux : le ratio est lourd pour une école en ligne.</li><li><b>La dette.</b> 9 M€ à ${(S.rate*100).toFixed(1).replace('.',',')} % ; chaque euro de découvert coûte plus cher.</li></ul></div>
+   <div class="hint">💡 Le chiffre à droite est l'<b>effet estimé sur le résultat annuel, en k€</b>. Survolez une mesure pour voir son coût en capital, étudiants, commerciaux et CSE.</div>
+   <div id="cat"></div><div class="hint" id="tally"></div>`;
+  sceneShell(body,{title:'Il faut sauver l\'école',tag:'Seul·e face à la page blanche du plan. Chaque ligne cochée fera un mécontent, et un titre dans la presse.'});
+  const draw=()=>{
+    $('#cat').innerHTML=cats.map(([k,n,col])=>`<div class="cath"><i style="background:${col}"></i>${n}</div><div class="mrows">${avail.filter(m=>m.cat===k).map(m=>{const y=yearly(m);const sel=S.pending.includes(m.id);return `<label class="mrow ${sel?'sel':''}"><input type="checkbox" data-id="${m.id}" ${sel?'checked':''} ${(!sel&&S.pending.length>=MAXM)?'disabled':''}><span>${m.n}</span><span class="amt num ${y>50?'pos':y<-50?'neg':'zero'}">${y>50||y<-50?kE(y):'±0'}</span><span class="tip"><span class="d">${m.d}</span>${chips({...m,rev:undefined,cost:undefined,mk:undefined,price:undefined,stu:undefined})||'<span class="chip">Aucun effet sur les jauges</span>'}${m.once?chips({once:m.once}):''}</span></label>`;}).join('')}</div>`).join('');
+    $('#cat').querySelectorAll('input').forEach(i=>i.addEventListener('change',e=>{const id=+e.target.dataset.id; if(e.target.checked) S.pending.push(id); else S.pending=S.pending.filter(x=>x!==id); draw(); renderBudget(); save();}));
+    $('#tally').innerHTML=`<b>${S.pending.length}</b> / ${MAXM} mesures retenues. ${S.pending.length?'Elles seront soumises au vote du conseil en juillet.':'Vous pouvez aussi continuer sans nouvelle mesure.'}`;
+    ready();
+  };
   draw();
 }
 
-function renderEnveloppes(){
-  if(S.sub===0){ S.tmp={list:[pick(ENVELOPPES,'env'),pick(ENVELOPPES,'env')]}; }
-  const e=S.tmp.list[S.sub];
-  const after=()=>{ S.sub++; if(S.sub>=2) next(); else renderEnveloppes(); };
-  choiceScene(`Guerre des enveloppes · ${S.sub+1}/2`,e.who+' demande à vous voir',e.ask,e.c.map(([l,fx,out])=>[l,fx,out]),after);
+function phEnveloppes(){
+  if(S.sub===0&&!S.tmp){ S.tmp={list:[pick(ENVELOPPES,'env'),pick(ENVELOPPES,'env')]}; }
+  const e=ENVELOPPES[S.tmp.list[S.sub]];
+  const body=dlg(e.ic,e.who,e.role,e.ask)+`<div class="prompt">Arbitrage ${S.sub+1}/2 :</div><div id="c"></div>`;
+  sceneShell(body,{title:'La guerre des enveloppes',tag:'Chaque directeur défend son budget, menace de partir, et ira voir le fondateur si vous dites non.',onNext:()=>{S.sub++; if(S.sub>=2) nextPhase(); else {S.decided=false;renderGame();}}});
+  choices($('#c'),e.c.map(([l,fx,out])=>[l,fx,out]),null,e.who);
 }
 
-function renderGardiens(){
+function phGardiens(){
   const items=[];
-  // Commissaire aux comptes
-  if(S.cash<-2000){items.push(["Le commissaire aux comptes","déclenche une procédure d'alerte : la continuité d'exploitation n'est plus assurée sans mesures fortes.",{g:{ca:-5,cse:-3}}]);}
-  else if(S.cash<0){items.push(["Le commissaire aux comptes","signale une trésorerie négative et demande un plan de financement.",{g:{ca:-2}}]);}
-  else items.push(["Le commissaire aux comptes","certifie les comptes sans réserve.",{g:{ca:1}}]);
-  // Banque
-  if(S.cash<-3000){items.push(["La banque","invoque les clauses du prêt et relève le taux. Elle exige un plan de trésorerie mensuel.",{rate:0.01,g:{ca:-4}}]);}
-  else if(S.cash<0){items.push(["La banque","tolère le découvert, mais facture des agios.",{rate:0.005}]);}
-  else if(S.lastResult.pct>5){items.push(["La banque","salue le redressement et propose un taux révisé.",{rate:-0.005,g:{ca:2}}]);}
-  else items.push(["La banque","maintient ses conditions.",{}]);
-  // Qualité
-  if(S.flags.risque_qualiopi){items.push(["L'auditeur Qualiopi","émet des non-conformités majeures. Sans correction, la certification sera retirée.",{g:{ca:-3,etu:-3}}]);}
-  else if(S.g.etu<35){items.push(["La commission pédagogique indépendante","alerte sur le taux d'abandon et la satisfaction. Son rapport est transmis au CA.",{g:{ca:-3,etu:-2}}]);}
-  else if(S.flags.qualite){items.push(["L'auditeur Qualiopi","renouvelle la certification et cite l'école en exemple.",{g:{ca:2,etu:2}}]);}
-  else items.push(["La commission pédagogique","rend un avis neutre : rien d'alarmant, rien de remarquable.",{}]);
-  // Prudence sur les mesures en attente
-  const pend=S.pending.map(i=>MEASURES[i]); const cuts=pend.filter(m=>m.cat==='dep'&&(m.hc||0)<0).length;
-  if(cuts>=2) items.push(["L'inspection du travail","note l'accumulation de suppressions de postes et demande à être associée au calendrier.",{g:{cse:-3}}]);
-  items.forEach(i=>apply(i[2]));
-  scene(`<div class="kicker">Les gardiens · ${S.year}</div><h2>Avis et surveillance</h2><p class="lead">Avant le vote, les contrôleurs extérieurs se prononcent sur la situation de l'école.</p>
-  <div class="choices">${items.map(i=>`<div class="result"><p><b>${i[0]}</b> ${i[1]}</p>${fxChips(i[2])}</div>`).join('')}</div><div id="b"></div>`);
-  $('#b').appendChild(btn('Passer à l\'audition',next,'primary'));
+  if(S.cash<-2000) items.push(["🧾","Le commissaire aux comptes","déclenche une procédure d'alerte : la continuité d'exploitation n'est plus assurée sans mesures fortes.",{g:{ca:-5,cse:-3}}]);
+  else if(S.cash<0) items.push(["🧾","Le commissaire aux comptes","signale une trésorerie négative et demande un plan de financement.",{g:{ca:-2}}]);
+  else items.push(["🧾","Le commissaire aux comptes","certifie les comptes sans réserve.",{g:{ca:1}}]);
+  if(S.cash<-3000) items.push(["🏦","La banque","invoque les clauses du prêt et relève le taux. Elle exige un plan de trésorerie mensuel.",{rate:0.01,g:{ca:-4}}]);
+  else if(S.cash<0) items.push(["🏦","La banque","tolère le découvert, mais facture des agios.",{rate:0.005}]);
+  else if(S.lastResult.pct>5) items.push(["🏦","La banque","salue le redressement et propose un taux révisé.",{rate:-0.005,g:{ca:2}}]);
+  else items.push(["🏦","La banque","maintient ses conditions.",{}]);
+  if(S.flags.risque_qualiopi) items.push(["🔎","L'auditeur Qualiopi","émet des non-conformités majeures. Sans correction, la certification sera retirée.",{g:{ca:-3,etu:-3}}]);
+  else if(S.g.etu<35) items.push(["🔎","La commission pédagogique indépendante","alerte sur le taux d'abandon et la satisfaction. Son rapport est transmis au CA.",{g:{ca:-3,etu:-2}}]);
+  else if(S.flags.qualite) items.push(["🔎","L'auditeur Qualiopi","renouvelle la certification et cite l'école en exemple.",{g:{ca:2,etu:2}}]);
+  else items.push(["🔎","La commission pédagogique","rend un avis neutre : rien d'alarmant, rien de remarquable.",{}]);
+  const cuts=S.pending.map(i=>MEASURES[i]).filter(m=>m.cat==='dep'&&(m.hc||0)<0).length;
+  if(cuts>=2) items.push(["⚖️","L'inspection du travail","note l'accumulation de suppressions de postes et demande à être associée au calendrier.",{g:{cse:-3}}]);
+  if(!S.decided){ items.forEach(i=>apply(i[3],i[1])); }
+  sceneShell(`<p class="muted">Avant le vote, les contrôleurs extérieurs se prononcent sur la situation de l'école.</p><div class="opts">${items.map(i=>`<div class="resbox ${Object.values(i[3].g||{}).some(v=>v<0)||i[3].rate>0?'bad':Object.keys(i[3]).length?'':'neu'}"><b>${i[0]} ${i[1]}</b>${i[2]}<div>${chips(i[3])}</div></div>`).join('')}</div>`,{title:'Les gardiens',tag:'Commissaire aux comptes, banque, auditeurs : ils ne votent pas, mais le conseil les écoute.',ready:true});
+  S.decided=true; save();
 }
 
-function renderAudition(){
-  const a=pick(AUDITIONS,'aud');
-  choiceScene(a.kicker,'Audition',a.q,a.c.map(([l,fx,out])=>[l,fx,out]));
+function phAudition(){
+  if(S.tmp===null) S.tmp={a:pick(AUDITIONS,'aud')};
+  const a=AUDITIONS[S.tmp.a];
+  sceneShell(`<div class="kicker" style="color:var(--muted)">${a.kicker}</div>`+dlg(a.ic,a.who,a.role,a.q)+`<div class="prompt">Votre réponse :</div><div id="c"></div>`,{title:'L\'audition',tag:'Vérité ou langue de bois : chaque mot sera retenu contre vous.'});
+  choices($('#c'),a.c.map(([l,fx,out])=>[l,fx,out]),null,'Audition');
 }
 
-function renderVote(){
+function phVote(){
   if(S.sub<2){
-    if(S.sub===0) S.tmp={list:[pick(AMENDEMENTS,'amd'),pick(AMENDEMENTS,'amd')],bonus:0};
-    const a=S.tmp.list[S.sub];
-    const after=()=>{S.sub++; renderVote();};
-    return choiceScene(`Vote du CA · amendement ${S.sub+1}/2`,a.who+' dépose un amendement',a.ask,
-      [["Accepter l'amendement",()=>{S.tmp.bonus+=12;return a.y;},"L'amendement est intégré au plan."],
-       ["Rejeter l'amendement",()=>{S.tmp.bonus-=5;return a.n;},"Rejeté. Son auteur s'en souviendra au moment du vote."]],after);
+    if(S.sub===0&&!S.tmp) S.tmp={list:[pick(AMENDEMENTS,'amd'),pick(AMENDEMENTS,'amd')],bonus:0};
+    const a=AMENDEMENTS[S.tmp.list[S.sub]];
+    sceneShell(dlg(a.ic,a.who,'Dépose un amendement',a.ask)+`<div class="prompt">Amendement ${S.sub+1}/2 :</div><div id="c"></div>`,{title:'La grande bidouille',tag:'Avant le vote, chacun négocie sa ligne. Rejeter un amendement, c\'est perdre une voix.',onNext:()=>{S.sub++;S.decided=false;renderGame();}});
+    choices($('#c'),[["✓ Accepter l'amendement",()=>{S.tmp.bonus+=12;return a.y;},"L'amendement est intégré au plan."],["✗ Rejeter l'amendement",()=>{S.tmp.bonus-=5;return a.n;},"Rejeté. Son auteur s'en souviendra au moment du vote."]],null,a.who);
+    return;
   }
   const pend=S.pending.map(i=>MEASURES[i]);
   const polit=pend.reduce((a,m)=>a+Math.min(0,(m.g&&m.g.ca)||0)*2+Math.min(0,(m.g&&m.g.cse)||0)*0.5,0);
   const chance=clamp(S.g.ca+S.tmp.bonus+polit+(pend.length?-pend.length*2:30),5,97);
   if(S.sub===2){
-    scene(`<div class="kicker">La grande bidouille · ${S.year}</div><h2>Le vote du conseil d'administration</h2>
-    <p class="lead">${pend.length?`Votre plan comporte ${pend.length} mesure${pend.length>1?'s':''}.`:'Vous ne soumettez aucune nouvelle mesure cette année.'} Le CA se prononce à main levée. Chance d'adoption estimée : <b>${Math.round(chance)} %</b>.</p>
-    <div class="tw"><table><tr><th>Mesure</th><th>Recettes</th><th>Coûts</th><th>CA</th></tr>${pend.map(m=>`<tr><td>${m.n}</td><td>${m.rev?kE(m.rev):'–'}</td><td>${(m.cost||m.mk)?kE((m.cost||0)+(m.mk||0)):'–'}</td><td>${(m.g&&m.g.ca)||0}</td></tr>`).join('')}</table></div><div id="b"></div>`);
-    $('#b').appendChild(btn('Appeler au vote',()=>{S.sub=3;S.tmp.roll=Math.random()*100;renderVote();},'primary'));
+    sceneShell(dlg('👩‍⚖️','Présidente du conseil d\'administration','Ouvre le vote',`« ${pend.length?`Le plan comporte ${pend.length} mesure${pend.length>1?'s':''}.`:'Aucune nouvelle mesure n\'est soumise.'} Le conseil se prononce à main levée. »`)+
+     `<div class="tw"><table><tr><th>Mesure</th><th>Effet annuel</th><th>CA</th><th>CSE</th></tr>${pend.map(m=>`<tr><td>${m.n}</td><td class="num">${kE(yearly(m))}</td><td class="num">${(m.g&&m.g.ca)||0}</td><td class="num">${(m.g&&m.g.cse)||0}</td></tr>`).join('')||'<tr><td colspan="4" class="muted">Aucune mesure</td></tr>'}</table></div>
+     <div class="note">Chance d'adoption estimée : <b style="font-size:18px;color:var(--gold)">${Math.round(chance)} %</b> <span class="muted">(capital CA ${Math.round(S.g.ca)}, amendements ${S.tmp.bonus>=0?'+':''}${S.tmp.bonus}, mesures contestées ${Math.round(polit)})</span></div><div id="c" style="display:flex;justify-content:center"></div>`,{title:'Le vote du conseil',tag:'La grande bidouille se termine. Le conseil tranche.'});
+    $('#c').appendChild(btn('🗳️ Appeler au vote',()=>{S.sub=3;S.tmp.roll=Math.random()*100;renderGame();}));
     return;
   }
-  const ok=S.tmp.roll<chance;
-  if(ok||S.tmp.forced){
-    pend.forEach(m=>{apply({g:m.g,rev:m.rev,cost:m.cost,mk:m.mk,price:m.price,stu:m.stu,churn:m.churn,hc:m.hc,once:m.once,debt:m.debt,rate:m.rate,flag:m.flag}); S.active.push(m.id); if(m.n.startsWith('Gel')) S.flags.gel=true;});
-    S.pending=[];
-    scene(`<div class="kicker">La grande bidouille · ${S.year}</div><h2>${S.tmp.forced?'Plan imposé':'Plan adopté'}</h2><p class="lead">${S.tmp.forced?'Vous avez usé de votre pouvoir de direction. Le plan s\'applique, mais le CA et le CSE s\'en souviendront.':'Le conseil adopte le plan. Les mesures entrent en vigueur immédiatement.'}</p><div id="b"></div>`);
-    $('#b').appendChild(btn('Continuer',next,'primary'));
+  const ok=S.tmp.roll<chance||S.tmp.forced;
+  if(ok){
+    if(!S.decided){ pend.forEach(m=>{apply({g:m.g,rev:m.rev,cost:m.cost,mk:m.mk,price:m.price,stu:m.stu,churn:m.churn,hc:m.hc,once:m.once,debt:m.debt,rate:m.rate,flag:m.flag},m.n); S.active.push(m.id);}); S.pending=[]; S.decided=true; save(); renderBudget(); }
+    sceneShell(`<div class="resbox ${S.tmp.forced?'bad':''}"><b>${S.tmp.forced?'Plan imposé':'Plan adopté'}</b>${S.tmp.forced?'Vous avez usé de votre pouvoir de direction. Le plan s\'applique, mais le CA et le CSE s\'en souviendront.':'Le conseil adopte le plan. Les mesures entrent en vigueur immédiatement.'}</div>`,{title:S.tmp.forced?'Le passage en force':'Le plan est adopté',tag:'Les mesures entrent en vigueur. Reste à les faire vivre.',ready:true});
     return;
   }
-  // rejet
   const worst=pend.slice().sort((a,b)=>((a.g&&a.g.ca)||0)-((b.g&&b.g.ca)||0))[0];
-  scene(`<div class="kicker">La grande bidouille · ${S.year}</div><h2>Le plan est rejeté</h2><p class="lead">Le vote est perdu. Deux issues : passer en force, ou retirer la mesure la plus contestée (« ${worst?worst.n:''} ») et refaire voter.</p><div class="choices" id="ch"></div>`);
-  $('#ch').appendChild(btn(`<span class="choice"><b>Passer en force</b><small>Le plan s'applique intégralement.</small></span>${fxChips({g:{ca:-15,cse:-6}})}`,()=>{apply({g:{ca:-15,cse:-6}});S.tmp.forced=true;renderVote();}));
-  if(worst) $('#ch').appendChild(btn(`<span class="choice"><b>Retirer « ${worst.n} » et refaire voter</b><small>Le plan amputé est adopté.</small></span>${fxChips({g:{ca:-2}})}`,()=>{S.pending=S.pending.filter(i=>i!==worst.id);apply({g:{ca:-2}});S.tmp.forced=true;renderVote();}));
+  sceneShell(`<div class="resbox bad"><b>Le plan est rejeté</b>Le vote est perdu. Deux issues : passer en force, ou retirer la mesure la plus contestée et refaire voter.</div><div id="c"></div>`,{title:'Le plan est rejeté',tag:'Le conseil a dit non. Vous avez une nuit pour trouver une issue.'});
+  const box=document.createElement('div'); box.className='opts';
+  box.appendChild(btn(`Passer en force<small>Le plan s'applique intégralement.</small><small>${chips({g:{ca:-15,cse:-6}})}</small>`,()=>{apply({g:{ca:-15,cse:-6}},'Passage en force');S.tmp.forced=true;renderGame();},'opt'));
+  if(worst) box.appendChild(btn(`Retirer « ${worst.n} » et refaire voter<small>Le plan amputé est adopté.</small><small>${chips({g:{ca:-2}})}</small>`,()=>{S.pending=S.pending.filter(i=>i!==worst.id);apply({g:{ca:-2}},'Retrait d\'une mesure');S.tmp.forced=true;renderGame();},'opt'));
+  $('#c').appendChild(box);
 }
 
-function renderEvent(){
-  const e=pickEvent(); const fx=typeof e.fx==='function'?e.fx(S):e.fx; apply(fx);
-  scene(`<div class="kicker">Événement · ${S.year}</div><h2>${e.n}</h2><div class="quote">${e.t}</div>${fx.txt?`<p class="lead">${fx.txt}</p>`:''}${fxChips(fx)}<div id="b"></div>`);
-  $('#b').appendChild(btn('Clôturer l\'exercice',next,'primary'));
+function phEvent(silent){
+  if(S.tmp===null) S.tmp={e:pickEvent(),seen:false};
+  const e=EVENTS[S.tmp.e];
+  if(!S.decided){ const fx=typeof e.fx==='function'?e.fx(S):e.fx; S.tmp.fx=fx; }
+  const fx=S.tmp.fx;
+  const bad=(fx.g&&Object.values(fx.g).some(v=>v<0))||(fx.once&&fx.once<0)||(fx.stuY&&fx.stuY<1)||fx.rate>0||fx.revY<0||fx.cost>0;
+  sceneShell(`<div class="resbox ${bad?'bad':''}"><b>${e.ic} ${e.n}</b>${e.t}${fx.txt?`<div style="margin-top:4px">${fx.txt}</div>`:''}<div>${chips(fx)}</div></div>`,{title:'L\'imprévu',tag:'Il y a toujours un imprévu. Il tombe toujours en septembre.',ready:S.decided});
+  if(!S.decided&&!silent){
+    modal(`<div class="ic">${e.ic}</div><div class="ml">Imprévu de la rentrée</div><div class="mt">${e.n}. ${e.t}</div><div class="eff">${fx.txt||''}</div><div>${chips(fx)}</div><div class="ms">Un aléa imprévu affecte l'exercice en cours.</div><div style="margin-top:8px"><button class="mbtn" id="ack">Prendre acte</button></div>`,bad?'bad':'');
+    document.getElementById('ack').onclick=()=>{closeModal();apply(fx,e.n);S.decided=true;save();renderBudget();ready();};
+  }
 }
 
-function renderResultats(){
-  const y=simulate();
-  scene(`<div class="kicker">Résultats · exercice ${S.year}</div><h2>Résultat net : ${pct(y.pct)}</h2>
-  <div class="tw"><table>
-  <tr><td>Nouveaux inscrits</td><td>${fmt(y.newS)}</td></tr><tr><td>Abandons et sorties (${Math.round(y.churn*100)} %)</td><td>−${fmt(y.left)}</td></tr><tr><td><b>Étudiants au 31 décembre</b></td><td><b>${fmt(y.students)}</b></td></tr>
-  <tr><td>Chiffre d'affaires</td><td>${fmt(y.revenue)} k€</td></tr><tr><td>Charges (dont intérêts ${fmt(y.interest)} k€)</td><td>−${fmt(y.costs)} k€</td></tr><tr><td><b>Résultat net</b></td><td><b>${kE(y.res)}</b></td></tr>
-  <tr><td>Mouvements exceptionnels de trésorerie</td><td>${kE(y.once)}</td></tr><tr><td><b>Trésorerie au 31 décembre</b></td><td><b>${kE(S.cash)}</b></td></tr></table></div>
-  <p class="note">${y.pct>=S.target?'Objectif de marge atteint cette année.':y.pct>=0?'L\'école est à l\'équilibre. Reste à construire la marge.':'Encore une année en perte.'}</p><div id="b"></div>`);
-  $('#b').appendChild(btn('Préparer le grand show de fin d\'année',next,'primary'));
+function phResultats(){
+  if(!S.decided){ S.tmp={y:simulate()}; S.decided=true; save(); renderGauges(); renderBudget(); }
+  const y=S.tmp.y;
+  sceneShell(dlg('🧮','Le DAF','Présente les comptes',`« Résultat net ${S.year} : <b style="color:${y.pct<0?'var(--rose)':'var(--green)'}">${pct(y.pct)}</b>. ${y.pct>=S.target?'Objectif de marge atteint cette année.':y.pct>=0?'L\'école est à l\'équilibre. Reste à construire la marge.':'Encore une année en perte.'} »`)+
+   `<div class="tw"><table>
+   <tr><td>Nouveaux inscrits</td><td class="num">${fmt(y.newS)}</td></tr><tr><td>Abandons et sorties (${Math.round(y.churn*100)} %)</td><td class="num">−${fmt(y.left)}</td></tr><tr><td><b>Étudiants au 31 décembre</b></td><td class="num"><b>${fmt(y.students)}</b></td></tr>
+   <tr><td>Chiffre d'affaires</td><td class="num">${fmt(y.revenue)} k€</td></tr><tr><td>Charges (dont intérêts ${fmt(y.interest)} k€)</td><td class="num">−${fmt(y.costs)} k€</td></tr><tr><td><b>Résultat net</b></td><td class="num"><b style="color:${y.res<0?'var(--rose)':'var(--green)'}">${kE(y.res)}</b></td></tr>
+   <tr><td>Mouvements exceptionnels de trésorerie</td><td class="num">${kE(y.once)}</td></tr><tr><td><b>Trésorerie au 31 décembre</b></td><td class="num"><b>${mE(S.cash)}</b></td></tr></table></div>`,{title:'Les comptes de l\'exercice',tag:'Les chiffres tombent. Ils ne négocient pas.',ready:true});
 }
 
-function renderShow(){
+function phShow(){
   const lr=S.lastResult; const prev=S.history.length>1?S.history[S.history.length-2].pct:-12; const better=lr.pct>prev;
   const layoffs=S.active.some(id=>(MEASURES[id].hc||0)<=-20);
   const c=[
-   ["Transparence brutale","Les vrais chiffres, les vraies raisons, ce qui vient.",{cost:150,g:better?{cse:6,com:3,ca:3}:{cse:-4,com:-2,ca:2}},better?"Les équipes apprécient d'être traitées en adultes. Le CA aussi.":"Dire la vérité quand elle est mauvaise ne rend pas populaire. Mais personne ne vous accuse de mentir."],
-   ["Célébration et récompenses","Trophées, vidéo rétrospective, DJ et prime de fin d'année.",{cost:400,g:lr.pct>=0?{cse:10,com:10,ca:-2}:{cse:-6,com:-3,ca:-4}},lr.pct>=0?"La soirée est réussie, le moral remonte.":"Faire la fête sur une année en perte sonne faux. Le CA trouve la facture déplacée."],
-   ["Le discours de vision","L'IA, l'international, l'école de 2032. Peu de chiffres, beaucoup d'ambition.",{cost:150,g:{ca:5,com:5,cse:layoffs?-5:-1}},layoffs?"Les commerciaux applaudissent. Les équipes qui viennent de perdre des collègues trouvent cela déconnecté.":"Les commerciaux applaudissent. Le reste écoute poliment."],
-   ["Annuler le show","Économiser 150 k€ et envoyer un e-mail.",{g:{cse:-10,com:-8,ca:1}},"Le mail est lu en silence. Le show de fin d'année était l'un des rares moments où l'école se voyait comme une seule équipe."]];
-  choiceScene(`Grand show de fin d'année · décembre ${S.year}`,"400 salariés vous attendent sur scène",
-    `${better?'Les résultats s\'améliorent.':'Les résultats n\'ont pas progressé.'} ${layoffs?'Des postes ont été supprimés cette année.':''} Qu'allez-vous leur dire ?`,
-    c.map(([l,sub,fx,out])=>[l,fx,out,sub]));
+   ["Transparence brutale",{cost:150,g:better?{cse:6,com:3,ca:3}:{cse:-4,com:-2,ca:2}},better?"Les équipes apprécient d'être traitées en adultes. Le CA aussi.":"Dire la vérité quand elle est mauvaise ne rend pas populaire. Mais personne ne vous accuse de mentir.","Les vrais chiffres, les vraies raisons, ce qui vient."],
+   ["Célébration et récompenses",{cost:400,g:lr.pct>=0?{cse:10,com:10,ca:-2}:{cse:-6,com:-3,ca:-4}},lr.pct>=0?"La soirée est réussie, le moral remonte.":"Faire la fête sur une année en perte sonne faux. Le CA trouve la facture déplacée.","Trophées, vidéo rétrospective, DJ et prime de fin d'année."],
+   ["Le discours de vision",{cost:150,g:{ca:5,com:5,cse:layoffs?-5:-1}},layoffs?"Les commerciaux applaudissent. Les équipes qui viennent de perdre des collègues trouvent cela déconnecté.":"Les commerciaux applaudissent. Le reste écoute poliment.","L'IA, l'international, l'école de 2032. Peu de chiffres, beaucoup d'ambition."],
+   ["Annuler le show",{g:{cse:-10,com:-8,ca:1}},"Le mail est lu en silence. Le show de fin d'année était l'un des rares moments où l'école se voyait comme une seule équipe.","Économiser 150 k€ et envoyer un e-mail."]];
+  sceneShell(dlg('🎤','La directrice de la communication','Coulisses de la scène',`« 400 salariés sont connectés, 200 dans la salle. ${better?'Les résultats s\'améliorent.':'Les résultats n\'ont pas progressé.'} ${layoffs?'Des postes ont été supprimés cette année.':''} Qu'allez-vous leur dire ? »`)+`<div class="prompt">Votre show de fin d'année :</div><div id="c"></div>`,{title:'Le grand show de fin d\'année',tag:'Une scène, des projecteurs, 400 salariés. Le moment de vérité de l\'année.'});
+  choices($('#c'),c,null,'Grand show');
 }
 
-function renderBilan(){
-  const over=checkOver(); if(over){S.over={lost:true,why:over};return renderFinal();}
-  const last=S.yi>=YEARS.length-1;
-  if(last){S.over={lost:false};return renderFinal();}
-  scene(`<div class="kicker">Bilan · ${S.year}</div><h2>Fin de l'exercice ${S.year}</h2>${histHtml()}<p class="lead">${S.g.ca<30?'Le conseil d\'administration vous accorde un sursis.':S.lastResult.pct>=S.target?'Le conseil vous félicite. Il faudra confirmer.':'Le conseil attend la suite.'} Il reste ${YEARS.length-1-S.yi} exercice${YEARS.length-1-S.yi>1?'s':''} avant la rentrée 2032.</p><div id="b"></div>`);
-  $('#b').appendChild(btn('Ouvrir l\'exercice '+(S.year+1),()=>{S.yi++;S.year=YEARS[S.yi];S.phase=0;S.sub=0;S.tmp=null;render();},'primary'));
+function phBilan(){
+  const over=checkOver(); if(over){S.over={lost:true,why:over};return render();}
+  if(S.yi>=YEARS.length-1){S.over={lost:false};return render();}
+  sceneShell(histHtml()+`<p class="muted" style="margin-top:22px">${S.g.ca<30?'Le conseil d\'administration vous accorde un sursis.':S.lastResult.pct>=S.target?'Le conseil vous félicite. Il faudra confirmer.':'Le conseil attend la suite.'} Il reste ${YEARS.length-1-S.yi} exercice${YEARS.length-1-S.yi>1?'s':''} avant la rentrée 2032.</p>`,{title:'Fin de saison '+(S.yi+1),tag:'Précédemment dans La Bataille de l\'École…',ready:true,onNext:()=>{S.yi++;S.year=YEARS[S.yi];S.phase=0;S.sub=0;S.tmp=null;S.decided=false;S.screen='title';render();}});
+  $('#nextBtn').innerHTML='▶ Saison '+(S.yi+2)+' · Exercice '+(S.year+1);
 }
 function histHtml(){
-  const cells=YEARS.map((y,i)=>{const h=S.history[i]; if(!h) return `<div style="height:0;background:transparent"><span class="note">${y}</span></div>`; const v=clamp(Math.abs(h.pct),0,20); return `<div class="${h.pct<0?'neg':'pos'}" style="height:${v/20*70+4}px"><span>${pct(h.pct)}</span></div>`;}).join('');
-  return `<div class="hist">${cells}</div><p class="note">Résultat net par exercice, 2026 → 2031.</p>`;
+  const cells=YEARS.map((y,i)=>{const h=S.history[i]; if(!h) return `<div style="height:2px;background:var(--line)"><em>${y}</em></div>`; const v=clamp(Math.abs(h.pct),0,20); return `<div class="${h.pct<0?'neg':'pos'}" style="height:${v/20*70+4}px"><span>${pct(h.pct)}</span><em>${y}</em></div>`;}).join('');
+  return `<div class="hist">${cells}</div>`;
 }
 function renderFinal(){
-  const lr=S.lastResult; let verdict,text;
-  if(S.over.lost){verdict="Partie perdue";text=S.over.why;}
-  else if(lr.pct>=S.target){verdict="Objectif atteint";text=`À la rentrée 2032, l'école affiche ${pct(lr.pct)} de résultat net, ${fmt(S.students)} étudiants et ${fmt(S.staff)} salariés. Dix ans plus tard, les anciens élèves se souviennent ${S.g.etu>60?'d\'une école qui a tenu ses promesses.':'surtout des années de rigueur.'}`;}
-  else if(lr.pct>=0){verdict="Demi-succès";text=`L'école est à l'équilibre (${pct(lr.pct)}) mais loin des +${S.target} % demandés. Le CA vous garde, sans enthousiasme.`;}
-  else{verdict="Objectif manqué";text=`Toujours en perte (${pct(lr.pct)}) à la rentrée 2032. Le CA ne renouvelle pas votre mandat.`;}
-  scene(`<div class="kicker">Rentrée 2032</div><div class="final"><div class="verdict">${verdict}</div><p class="lead">${text}</p>${histHtml()}
-  <div class="tw"><table><tr><th>Indicateur</th><th>2025</th><th>Fin de partie</th></tr>
-  <tr><td>Résultat net</td><td>−12,0 %</td><td>${pct(lr.pct)}</td></tr><tr><td>Étudiants</td><td>12 000</td><td>${fmt(S.students)}</td></tr><tr><td>Salariés</td><td>400</td><td>${fmt(S.staff)}</td></tr><tr><td>Frais annuels</td><td>2 500 €</td><td>${fmt(S.price)} €</td></tr><tr><td>Trésorerie</td><td>+0,5 M€</td><td>${fmt(S.cash/100)/10} M€</td></tr><tr><td>Mesures adoptées</td><td>–</td><td>${S.active.length}</td></tr></table></div>
-  <p class="note">Mesures en vigueur : ${S.active.map(i=>MEASURES[i].n).join(' · ')||'aucune'}.</p><div id="b"></div></div>`);
-  $('#b').appendChild(btn('Rejouer',()=>{newGame();render();},'primary'));
+  const lr=S.lastResult; let verdict,text,cls;
+  if(S.over.lost){verdict="Fin de série";text=S.over.why;cls='bad';}
+  else if(lr.pct>=S.target){verdict="Objectif atteint";text=`À la rentrée 2032, l'école affiche ${pct(lr.pct)} de résultat net, ${fmt(S.students)} étudiants et ${fmt(S.staff)} salariés. Dix ans plus tard, les anciens élèves se souviennent ${S.g.etu>60?'d\'une école qui a tenu ses promesses.':'surtout des années de rigueur.'}`;cls='';}
+  else if(lr.pct>=0){verdict="Demi-succès";text=`L'école est à l'équilibre (${pct(lr.pct)}) mais loin des +${S.target} % demandés. Le CA vous garde, sans enthousiasme.`;cls='neu';}
+  else{verdict="Objectif manqué";text=`Toujours en perte (${pct(lr.pct)}) à la rentrée 2032. Le CA ne renouvelle pas votre mandat.`;cls='bad';}
+  app().innerHTML=`<div class="center"><div class="panel wide">
+    <div class="kicker" style="text-align:center">Rentrée 2032 · Générique de fin</div>
+    <h1 class="serif title" style="color:${cls==='bad'?'var(--rose)':cls==='neu'?'var(--gold)':'var(--green)'}">${verdict}</h1>
+    <p style="text-align:center;font-size:15px">${text}</p>
+    ${histHtml()}
+    <div class="tw" style="margin-top:20px"><table><tr><th>Indicateur</th><th>2025</th><th>Fin de série</th></tr>
+    <tr><td>Résultat net</td><td class="num">−12,0 %</td><td class="num">${pct(lr.pct)}</td></tr><tr><td>Étudiants</td><td class="num">12 000</td><td class="num">${fmt(S.students)}</td></tr><tr><td>Salariés</td><td class="num">400</td><td class="num">${fmt(S.staff)}</td></tr><tr><td>Frais annuels</td><td class="num">2 500 €</td><td class="num">${fmt(S.price)} €</td></tr><tr><td>Trésorerie</td><td class="num">+0,5 M€</td><td class="num">${mE(S.cash)}</td></tr><tr><td>Mesures adoptées</td><td>–</td><td class="num">${S.active.length}</td></tr></table></div>
+    <p class="hint">Mesures en vigueur : ${S.active.map(i=>MEASURES[i].n).join(' · ')||'aucune'}.</p>
+    <div style="display:flex;justify-content:center" id="b"></div></div></div>`;
+  $('#b').appendChild(btn('↺ Rejouer la série',()=>{newGame();render();}));
 }
 
-// ---------- Sauvegarde locale et démarrage ----------
-function save(){ try{localStorage.setItem('bde-save',JSON.stringify(S));}catch(e){} }
+// ---------- Démarrage ----------
 function start(data){
   let loaded=null;
   if(data&&data.S) loaded=data.S;
   else { try{const s=localStorage.getItem('bde-save'); if(s) loaded=JSON.parse(s);}catch(e){} }
-  if(loaded&&loaded.year) S=loaded; else newGame();
-  if(S.phase===2||S.phase===5||(S.phase===0&&S.sub===1)){S.sub=0;S.tmp=null;} // reprise propre des scènes à sous-étapes
+  if(loaded&&loaded.screen&&loaded.g&&loaded.used) S=loaded; else newGame();
+  if(S.screen==='title') S.screen='game';
   render();
 }
 try{ window.claude?.hot?.snapshot?.(()=>({S})); }catch(e){}
