@@ -441,7 +441,17 @@ const EVENTS=[
  {pos:true,ic:"🚪",n:"Un concurrent ferme ses portes",t:"Ses étudiants cherchent où finir leur formation. Vos commerciaux ont leurs numéros.",fx:{stuY:1.14,g:{com:8}},w:()=>0.8},
  {pos:true,ic:"📱",n:"Le coût du lead Meta s'effondre",t:"Un nouvel algorithme publicitaire adore vos contenus. Deux fois plus de leads pour le même budget.",fx:{media:{meta:0.55},g:{com:4}},w:s=>s.media.meta>1000?1.4:0.5},
  {pos:true,ic:"🌟",n:"Recrutement d'une star du secteur comme enseignant",t:"Un nom qui fait venir les étudiants et rassure les équipes.",fx:{cost:250,stuY:1.06,g:{etu:7,cse:6}},w:s=>s.g.cse>50?1.3:0.5},
+
+ {pos:true,ic:"🎓",n:"Une promotion record obtient son diplôme",t:"92 % de réussite dans la filière phare. Les diplômés le disent partout, les tuteurs sont fiers.",fx:{stuY:1.07,g:{etu:8,cse:6}},w:s=>s.g.etu>50?1.4:0.6},
+ {pos:true,ic:"📰",n:"Classement des écoles en ligne : Xyn and You dans le top 3",t:"Un hebdomadaire économique publie son palmarès. Les prospects appellent en citant l'article.",fx:{stuY:1.09,g:{ca:5,com:6,etu:3}},w:()=>0.9},
+ {pos:true,ic:"💼",n:"Un grand groupe forme 200 salariés chez vous",t:"Un contrat signé en une semaine, payé d'avance.",fx:{once:900,revY:700,g:{com:6,ca:3}},w:s=>s.active.some(i=>/B2B/.test(MEASURES[i].n))?2.2:0.7},
+ {pos:true,ic:"🧑‍💻",n:"Un alumni star rejoint l'école comme ambassadeur",t:"Devenu dirigeant connu, il cite l'école dans chaque interview.",fx:{stuY:1.06,g:{etu:5,com:3}},w:s=>s.active.some(i=>/alumni/.test(MEASURES[i].n))?2.5:0.6},
+ {pos:true,ic:"🏷️",n:"Google baisse ses enchères sur votre secteur",t:"Deux gros concurrents coupent leurs campagnes. Vos leads coûtent 30 % de moins.",fx:{media:{google:0.7},g:{com:3}},w:s=>s.media.google>1000?1.2:0.5},
+ {pos:true,ic:"🤲",n:"Le CSE propose un accord de productivité",t:"Les équipes acceptent de revoir l'organisation contre une garantie d'emploi. Des économies sans casse.",fx:{cost:-500,g:{cse:5,ca:3}},w:s=>s.g.cse>55?1.8:0.3},
+ {pos:true,ic:"📦",n:"Un éditeur rachète une licence de vos contenus",t:"Une plateforme étrangère paie pour diffuser trois de vos cursus.",fx:{once:800,rev:300,g:{ca:3,cse:-2}},w:()=>0.8},
+ {pos:true,ic:"🧘",n:"Année calme sur le front social",t:"Aucun conflit, un climat apaisé. Les équipes se concentrent sur les étudiants.",fx:{g:{cse:7,etu:4}},w:s=>s.g.cse>45?1.2:0.4},
 ];
+
 const SHAREHOLDER={t:N.president+" vend. Trois repreneurs se présentent, et le conseil vous demande votre préférence. Chacun réécrit les règles du jeu.",
  c:[["🏦","Un fonds d'investissement","Objectif +20 % maintenu, prêt refinancé à bas taux, mais tolérance zéro : chaque année en perte coûtera cher en capital.",{rate:-0.015,g:{ca:10,cse:-8},mode:"fonds"}],
     ["🏛️","Une université publique","La dette est reprise, l'objectif tombe à +8 %, mais les frais sont gelés et toute hausse de prix devient impossible.",{debt:0,g:{ca:5,cse:8,com:-6,etu:6},mode:"univ"}],
@@ -713,8 +723,8 @@ function renderGauges(){ const el=$('#gauges'); if(!el) return; const g=gaugeHtm
 function flashGauge(k){ const el=document.querySelector(`.gauge[data-g="${k}"]`); if(el){el.classList.add('flash');setTimeout(()=>el.classList.remove('flash'),2500);} }
 
 function headlines(){
-  const lr=S.lastResult; const h=[];
-  h.push(lr.pct<0?`Comptes ${S.year-1} : ${N.ecole} a perdu ${(Math.abs(lr.res)/1000).toFixed(1).replace('.',',')} M€`:`Comptes ${S.year-1} : ${N.ecole} dégage ${(lr.res/1000).toFixed(1).replace('.',',')} M€`);
+  const lr=S.lastResult; const h=[]; const cy=S.phase>=8?S.year:S.year-1;
+  h.push(lr.pct<0?`Comptes ${cy} : ${N.ecole} a perdu ${(Math.abs(lr.res)/1000).toFixed(1).replace('.',',')} M€`:`Comptes ${cy} : ${N.ecole} dégage ${(lr.res/1000).toFixed(1).replace('.',',')} M€`);
   h.push(`${S.name} ${S.yi===0?'prend la direction générale de '+N.ecole:'entame sa saison '+(S.yi+1)}`);
   h.push(S.cash<0?`La ${N.banque} surveille le découvert de ${mE(S.cash)}`:`Trésorerie à ${mE(S.cash)}, la ${N.banque} reste calme`);
   h.push(S.g.cse<40?'Le CSE menace d\'une alerte sociale':'Les équipes attendent le plan de la direction');
@@ -826,7 +836,14 @@ function phCadrage(){
   choices($('#c'),[
     ["« La rigueur : je tiendrai les coûts. »",{g:{ca:3,cse:-2}},"Cap fixé. "+N.president+" approuve, le CSE prend note."],
     ["« La qualité : je miserai sur les étudiants. »",{g:{etu:3,ca:-1}},"Cap fixé. Les étudiants apprécient, le conseil attend les chiffres."],
-    ["« La croissance : je relancerai les ventes. »",{g:{com:3,ca:-1}},"Cap fixé. Les commerciaux applaudissent."]],null,'Discours de cadrage');
+    ["« La croissance : je relancerai les ventes. »",{g:{com:3,ca:-1}},"Cap fixé. Les commerciaux applaudissent."]],()=>{
+      if(S.prime&&S.prime.year===S.year){ready();return;}
+      const d=document.createElement('div'); d.innerHTML=`<div class="prompt" style="margin-top:10px">${N.cse}, secrétaire du CSE, vous interpelle : « Et la prime de participation, cette année ? »</div><div id="c2"></div>`; $('#c').after(d);
+      choices($('#c2'),[
+        ["« Oui, pour tous, quoi qu'il arrive. »",()=>{S.prime={year:S.year,promise:'oui'};return {g:{cse:9,com:5}};},"Promesse faite. Elle sera vérifiée au show de fin d'année : environ 450 k€ à sortir.","Engagement ferme, vérifié en décembre."],
+        ["« Oui, si l'école revient à l'équilibre. »",()=>{S.prime={year:S.year,promise:'cond'};return {g:{cse:3,com:2}};},"Une promesse conditionnelle. Les équipes retiennent surtout le « oui ».","Versée seulement si le résultat est positif."],
+        ["« Non. Pas cette année. »",()=>{S.prime={year:S.year,promise:'non'};return {g:{cse:-6,com:-3,ca:2}};},"Le CSE encaisse. Au moins, personne ne sera déçu en décembre.","Clair, et impopulaire."]],null,'Prime de participation');
+    },'Discours de cadrage');
 }
 
 function phMesures(){
@@ -996,7 +1013,18 @@ function phShow(){
    ["Célébration et récompenses",{cost:400,g:lr.pct>=0?{cse:10,com:10,ca:-2}:{cse:-6,com:-3,ca:-4}},lr.pct>=0?"La soirée est réussie, le moral remonte.":"Faire la fête sur une année en perte sonne faux. "+N.president+" trouve la facture déplacée.","Trophées, vidéo rétrospective, DJ et prime de fin d'année."],
    ["Le discours de vision",{cost:150,g:{ca:5,com:5,cse:layoffs?-5:-1}},layoffs?"Les commerciaux applaudissent. Les équipes qui viennent de perdre des collègues trouvent cela déconnecté.":"Les commerciaux applaudissent. Le reste écoute poliment.","L'IA, l'international, "+N.ecole+" en 2030. Peu de chiffres, beaucoup d'ambition."],
    ["Annuler le show",{g:{cse:-10,com:-8,ca:1}},"Le mail est lu en silence. Le show de fin d'année était l'un des rares moments où "+N.ecole+" se voyait comme une seule équipe.","Économiser 150 k€ et envoyer un e-mail."]];
-  sceneShell(dlg('🎤',N.comm,'Directeur de la communication · coulisses de la scène',`« 400 salariés sont connectés, 200 dans la salle, ${N.president} au premier rang. ${better?'Les résultats s\'améliorent.':'Les résultats n\'ont pas progressé.'} ${layoffs?'Des postes ont été supprimés cette année.':''} Qu'allez-vous leur dire ? »`)+`<div class="prompt">Votre show de fin d'année :</div><div id="c"></div>`,{title:'Le grand show de fin d\'année',tag:'Une scène, des projecteurs, 400 salariés. Le moment de vérité de l\'année.'});
+  const P=S.prime&&S.prime.year===S.year?S.prime:null; const primeK=Math.round(S.staff*1.1);
+  let primeHtml='';
+  if(P&&!P.resolved){
+    if(P.promise==='cond'){ P.resolved=true; if(lr.pct>=0){apply({once:-primeK,g:{cse:8,com:4}},'Prime de participation'); primeHtml=`<div class="resbox"><b>💶 Prime de participation versée</b>L'école est à l'équilibre : la prime promise est versée, ${fmt(primeK)} k€.${chips({once:-primeK,g:{cse:8,com:4}})}</div>`;} else {apply({g:{cse:-4}},'Prime de participation'); primeHtml=`<div class="resbox bad"><b>💶 Pas de prime cette année</b>L'école reste en perte : la condition n'est pas remplie. Les équipes l'avaient compris, sans l'accepter.${chips({g:{cse:-4}})}</div>`;} }
+    else if(P.promise==='non'){ P.resolved=true; primeHtml=`<div class="resbox neu"><b>💶 Pas de prime, comme annoncé</b>Personne n'attendait rien. Personne n'applaudit non plus.</div>`; }
+  }
+  if(P&&P.promise==='oui'&&!P.resolved){
+    sceneShell(dlg('🎤',N.comm,'Directeur de la communication · coulisses de la scène',`« Avant de monter sur scène : vous aviez promis une prime de participation à tous en janvier. Elle coûte ${fmt(primeK)} k€. ${S.cash<-3000?'La trésorerie est dans le rouge vif.':''} On la verse ? »`)+`<div class="prompt">La promesse de janvier :</div><div id="c"></div>`,{title:'Le grand show de fin d\'année',tag:'Une scène, des projecteurs, 400 salariés. Et une promesse à tenir.'});
+    choices($('#c'),[["Verser la prime à tous",{once:-primeK,g:{cse:10,com:6,ca:-2}},"Promesse tenue. La salle le saura avant même que vous ne parliez."],["Ne pas la verser",{g:{cse:-18,com:-10,ca:-5}},"Promesse trahie. Le show commence dans un silence glacial, et le CSE prépare un tract."]],()=>{P.resolved=true;save();renderGame();},'Prime de participation');
+    return;
+  }
+  sceneShell(primeHtml+dlg('🎤',N.comm,'Directeur de la communication · coulisses de la scène',`« 400 salariés sont connectés, 200 dans la salle, ${N.president} au premier rang. ${better?'Les résultats s\'améliorent.':'Les résultats n\'ont pas progressé.'} ${layoffs?'Des postes ont été supprimés cette année.':''} Qu'allez-vous leur dire ? »`)+`<div class="prompt">Votre show de fin d'année :</div><div id="c"></div>`,{title:'Le grand show de fin d\'année',tag:'Une scène, des projecteurs, 400 salariés. Le moment de vérité de l\'année.'});
   choices($('#c'),c,null,'Grand show');
 }
 
