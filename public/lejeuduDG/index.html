@@ -740,9 +740,15 @@ function phCadrage(){
 }
 
 function phMesures(){
-  const avail=MEASURES.filter(m=>!S.active.includes(m.id)&&!(S.mode==='univ'&&m.price>0));
+  if(!S.offer) S.offer={};
+  if(!S.offer[S.year]){
+    const pool=MEASURES.filter(m=>!S.active.includes(m.id)&&!(S.mode==='univ'&&m.price>0));
+    const take=(cat,n)=>{const l=pool.filter(m=>m.cat===cat).sort(()=>Math.random()-0.5);return l.slice(0,n).map(m=>m.id);};
+    S.offer[S.year]=[...take('rec',7),...take('dep',7),...take('str',6)];
+  }
+  const avail=S.offer[S.year].map(i=>MEASURES[i]).filter(m=>!S.active.includes(m.id));
   const cats=[['rec','Recettes nouvelles','var(--green)'],['dep','Économies et coupes','var(--gold)'],['str','Réformes de structure','var(--violet)']];
-  const body=dlg('🧮',N.daf,N.dafRole,`« Dessinons l'esquisse du plan : les mesures que vous porterez au conseil. Jusqu'à ${MAXM} cette année. Chaque mesure consomme du capital auprès de ${N.president} ; vous ne pouvez pas engager plus de capital que vous n'en avez. Une mesure adoptée reste en vigueur les années suivantes. »`)+
+  const body=dlg('🧮',N.daf,N.dafRole,`« Dessinons l'esquisse du plan : voici les ${avail.length} mesures instruites par mes équipes cette année ; d'autres seront prêtes l'an prochain. Vous pouvez en retenir jusqu'à ${MAXM}. Chaque mesure consomme du capital auprès de ${N.president} ; vous ne pouvez pas engager plus de capital que vous n'en avez. Une mesure adoptée reste en vigueur les années suivantes. »`)+
    `<div class="note"><div class="h">📗 Note de ${N.daf} — pourquoi ${N.ecole} perd de l'argent</div>Sans mesure nouvelle, le résultat ${S.year} serait de <b style="color:var(--rose)">${pct(projected().pct)}</b>. Trois moteurs l'expliquent :<ul><li><b>Les abandons.</b> Un tiers des étudiants ne va pas au bout : chaque départ est un chiffre d'affaires perdu.</li><li><b>La masse salariale.</b> 400 salariés pour 30 M€, dont 100 commerciaux : le ratio est lourd pour une école en ligne.</li><li><b>La dette.</b> 9 M€ à ${(S.rate*100).toFixed(1).replace('.',',')} % ; chaque euro de découvert coûte plus cher.</li></ul></div>
    <div class="hint">💡 À droite de chaque mesure : son <b>effet estimé sur le résultat annuel (k€)</b> et son <b>coût en capital</b>. Survolez une mesure pour voir ses effets sur les étudiants, les commerciaux et le CSE.</div>
    <div class="capbar" id="capbar"></div>
