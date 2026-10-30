@@ -1,24 +1,5 @@
 [
  {
-  "slug": "ascor",
-  "nom": "ASCOR",
-  "groupe": "",
-  "site": "https://www.ascor.fr",
-  "partenaire": false,
-  "avis": {
-   "source": "Avis Vérifiés",
-   "note": 4.7,
-   "nombre": 1062,
-   "url": "https://www.avis-verifies.com/avis-clients/ascor.fr"
-  },
-  "garantie": "aucune mention sur le site ; renvoi aux CGV (non accessibles) ; prolongation d'accès possible sur demande (sous 1 mois après fin de période, ≥ 80 % de progression, sans incident de paiement)",
-  "accompagnement": "formateur/formatrice référent(e) + conseillère pédagogique, appel d'accueil, suivi téléphonique régulier, rendez-vous téléphoniques à la demande (illimités en formule Accompagné+), cours en direct hebdomadaires avec replay, training class, live coaching, bilan pédagogique mensuel (Accompagné+), forum, hotline gratuite ; assistance technique lun-jeu 9h-19h, ven 9h-18h ; accueil 02 52 56 87 02 lun-jeu 9h-18h, ven 9h-17h ; référent handicap",
-  "supports": "plateforme e-learning 24h/24, vidéos tutorielles sous-titrées, cours en direct + replays, QCM, carnet de bord, manuels papier ou numériques, bibliothèque de contenus complémentaires ; kits matériel en option payante (non inclus)",
-  "modalites": "100 % à distance, à son rythme, places non limitées, accès jusqu'à la prochaine session d'examen (durée indicative 9 à 36 mois pour les CAP, 12 mois pour les TP) ; formules Essentielle / Accompagné / Accompagné+ sur certains CAP ; alternance possible via le CFA Ascor (formation prise en charge avec un contrat)",
-  "preparation_examen": "examens blancs / CAP blancs, évaluations sommatives corrigées, inscription en candidat libre auprès de l'académie (Cyclades, oct.-déc.) accompagnée ; seules les épreuves professionnelles sont préparées (option épreuves générales séparée) ; validation interne si 100 % du parcours suivi et moyenne > 10/20",
-  "taux_reussite": "93 % de réussite au CAP (toutes formations, déclaré par l'école, renvoi CGV) ; par formation : CAP AEPE 99 %, CAP Esthétique 88 %, CAP Cuisine 100 % (08/2026), CAP Pâtisserie 95 %, CAP Boulanger 91 %, CAP Fleuriste 90 %, CAP Mode 93 %, Prothésie ongulaire 94 %"
- },
- {
   "slug": "atelierdeschefs",
   "nom": "L'Atelier des Chefs",
   "groupe": "",
@@ -311,25 +292,6 @@
   "modalites": "100 % à distance, à son rythme, inscription toute l'année, simulateur de durée selon heures/semaine ; stage obligatoire sur les parcours diplômants ; alternance possible via le CFA Skill & You (CAP AEPE, SAMA, ADVF, Bac pro ASSP) ; financement CPF, alternance ou paiement en plusieurs fois sans frais",
   "preparation_examen": "Examens blancs et corrections personnalisées ; CAP AEPE en candidat libre (inscription auprès du rectorat, accompagnement aux démarches) ; titres pro : présentation aux épreuves organisée par Skill & You (centre de Montrouge ou partenaire)",
   "taux_reussite": "Publié par formation : CAP AEPE 94 % réussite / 91 % satisfaction ; Secrétaire médicale (TP SAMA) 83 % réussite / 93 % satisfaction ; ADVF 100 % réussite / 92 % satisfaction (résultats 2025 hors CFA, sur apprenants déclarés présents)"
- },
- {
-  "slug": "studi",
-  "nom": "Studi",
-  "groupe": "Galileo Global Education",
-  "site": "https://www.studi.com",
-  "partenaire": false,
-  "avis": {
-   "source": "Trustpilot",
-   "note": 4.5,
-   "nombre": 9573,
-   "url": "https://www.trustpilot.com/review/studi.com"
-  },
-  "garantie": "Rétractation : 14 jours (Code conso) + 10 jours supplémentaires à compter de la signature du contrat, remboursement intégral (CGV art. 10). « Garantie Diplômé ou Remboursé » (formules Plus et Premium, formations certifiantes éligibles, uniquement en cas d'échec à la 1re session, sous conditions : paiements à jour, devoirs rendus, stages effectués, dossier pro envoyé 2 mois avant l'examen, demande sous 30 jours après résultats). « Garantie Embauché ou Remboursé » (Premium uniquement : remboursement si aucun emploi dans le secteur dans les 12 mois après les résultats, ~5 candidatures/mois et reporting mensuel exigés). Essai gratuit 7 jours sans engagement (Parcours Découverte). Pas de « satisfait ou remboursé » au-delà de la rétractation.",
-  "accompagnement": "3 formules : Essentiel / Plus / Premium (même diplôme, même contenu). Toutes : soutien pédagogique des formateurs lun-ven (questions + corrections illimitées), assistance pédagogique et technique 5j/7, assistant pédagogique IA 24h/24 7j/7, chargés Relation Apprenant, conseiller pédagogique à l'inscription, classes virtuelles (+10 000/an, live ou replay), lives de coaching, communauté de 59 000 apprenants. Plus : + 20 séances individuelles 30 min en visio avec un formateur expert (crédits), Pack Compétences 360 / coaching carrière (parcours employabilité 40 h, LinkedIn, jobboards), garantie Diplômé ou Remboursé. Premium : 40 à 50 séances individuelles (~1/semaine), bilan pédagogique mensuel avec référent, accompagnement emploi personnalisé (CV, simulations d'entretien, négociation salariale), garantie Embauché ou Remboursé. Alternance : 1 séance individuelle/mois. Horaires précis de permanence téléphonique non communiqués.",
-  "supports": "Plateforme e-learning accessible 24h/24 sur tous écrans (en ligne et hors ligne), cours écrits + vidéos à la demande, modules interactifs, ressources téléchargeables, TD/TP corrigés, évaluations d'entraînement, classes virtuelles live et replays, webinaires, ateliers thématiques en petits groupes, assistant IA, + de 400 fiches métiers. Logiciels inclus selon formation (Pennylane, Sage, licence Adobe Creative Cloud 1 an en design). Pas de supports papier ni de kit matériel mentionnés.",
-  "modalites": "100 % en ligne, démarrage à tout moment de l'année (entrée permanente), rythme libre avec planning modulable, accès plateforme sous 14 jours en moyenne après signature, contrat de 36 mois (CGV) ; accès prolongé 3 ans (Essentiel/Plus) ou 10 ans (Premium). Formations également proposées en alternance (CFA Studi) pour la plupart des diplômes. Examens en présentiel (centre d'examen de l'académie pour BTS/CAP ; Paris, Montpellier, Bordeaux, Lyon pour les titres pro) ou en ligne (titres ESG : mars/juin/sept/déc). Certifié Qualiopi (formation + apprentissage).",
-  "preparation_examen": "Préparation à la certification incluse avec inscription et passage de l'examen pris en charge (hors diplômes d'État où Studi accompagne l'inscription en candidat libre et fournit les conventions de stage). 1er passage gratuit et 1er rattrapage gratuit, puis 150 € par passage supplémentaire (CGV). Évaluations d'entraînement corrigées, classes virtuelles de préparation, validation possible bloc par bloc. Garantie Diplômé ou Remboursé (Plus/Premium) en cas d'échec à la 1re session. Examens blancs : non mentionnés explicitement.",
-  "taux_reussite": "Non communiqué au niveau école (seul un taux d'emploi global à 6 mois de 83 % est affiché). Taux publiés par formation (toutes promotions confondues, déclarés par Studi) : voir chaque offre (de 50 % à 100 %)."
  },
  {
   "slug": "youschool",

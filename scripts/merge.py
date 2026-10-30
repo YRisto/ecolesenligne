@@ -3,13 +3,14 @@ SRC="/tmp/claude-0/-home-claude/5f8c2c5d-c66a-53e8-9892-cd67c7bcfa8b/scratchpad/
 def slug(s):
     s=unicodedata.normalize("NFKD",s).encode("ascii","ignore").decode().lower(); return re.sub(r"[^a-z0-9]+","-",s).strip("-")
 NOMS={"ascor":"ASCOR","atelierdeschefs":"L'Atelier des Chefs","cef":"Centre Européen de Formation","cned":"CNED","enaco":"ENACO","entheor":"Entheor","hippocratus":"Hippocratus","iacademie":"Icademie","les2rives":"Les 2 Rives","studi":"Studi","youschool":"YouSchool","educatel":"Educatel","lignes":"Lignes et Formations","ifsa":"IFSA","ecolechezsoi":"École Chez Soi","minerve":"Cours Minerve","edaa":"EDAA","linguaphone":"Linguaphone","cned_langues":"CNED","langues_concurrent":None}
+EXCLURE={"studi","ascor"}  # retirés du panel (30/10/2026)
 PARTENAIRES={"cef","enaco","entheor","hippocratus","educatel","lignes","ifsa","ecolechezsoi","minerve","edaa"}
 GROUPE={"educatel":"Skill&You","lignes":"Skill&You","ifsa":"Skill&You","ecolechezsoi":"Skill&You","minerve":"Skill&You","edaa":"Skill&You","studi":"Galileo Global Education","les2rives":"Adecco","iacademie":"Eureka Education"}
 codes={f["code"] for f in json.load(open("data/formations.json"))}
 ecoles, offres = [], []
 for path in sorted(glob.glob(f"{SRC}/*.json"), key=lambda p: (os.path.basename(p).startswith("cned_"), p)):
     key=os.path.basename(path)[:-5]
-    if key not in NOMS: continue
+    if key not in NOMS or key in EXCLURE: continue
     d=json.load(open(path)); d=d[0] if isinstance(d,list) else d
     if key=="cned_langues":
         cned=next((e for e in ecoles if e["slug"]=="cned"),None)
