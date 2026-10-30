@@ -13,7 +13,7 @@ export async function GET(req) {
   let filter = `type=eq.${type}`;
   if (type === "saison" && annee) filter += `&annee=eq.${annee}`;
   const r = await fetch(`${url}/rest/v1/jeu_dg_scores?${filter}&select=dg,profil,saison,annee,resultat_pct,capital,etudiants,tresorerie_k,mesures,statut,created_at&order=resultat_pct.desc,capital.desc,created_at.asc&limit=50`, { headers: headers(), cache: "no-store" });
-  if (!r.ok) return NextResponse.json({ rows: [], error: true }, { status: 500 });
+  if (!r.ok) { const t = await r.text(); console.error("supabase jeudg GET", r.status, t); return NextResponse.json({ rows: [], error: true, status: r.status, detail: t.slice(0, 300) }, { status: 500 }); }
   return NextResponse.json({ rows: await r.json() });
 }
 
