@@ -352,7 +352,7 @@ const MEASURES_T=[
  ["dep","Fusionner trois filières à faibles effectifs","Moins de cours à maintenir, quelques étudiants orphelins.",{cost:-700,cap:-8,g:{etu:-4,cse:-8}}],
  ["dep","Réduire les primes commerciales","Les commerciaux gagnent moins. Ils le feront savoir.",{cost:-600,cap:-14,g:{com:-22}}],
  ["dep","Chasse aux coûts (frais, prestataires, voyages)","La petite rigueur du quotidien.",{cost:-350,cap:-3,g:{cse:-3}}],
- ["dep","Annualisation du temps de travail","Les équipes travaillent plus à la rentrée, moins l'été : fin des heures sup et de l'intérim. Le CSE négociera cher, et l'accord vivra sa vie.",{cost:-1100,cap:-9,g:{cse:-10,com:-4},flag:"annualisation"}],
+ ["dep","Annualisation du temps de travail","Plus d'heures à la rentrée, semaine de 4 jours en basse saison et vacances en décembre : fin des heures sup et de l'intérim, et tout le monde applaudit. Cher en capital, car l'accord vivra sa vie.",{cost:-1100,cap:-20,g:{cse:6,com:3},flag:"annualisation"}],
  ["dep","Reporter les investissements plateforme","On tiendra encore un an avec l'existant. Peut-être.",{cost:-600,cap:-4,g:{etu:-6},flag:"vieux_lms"}],
  ["str","IA pour les corrections et le feedback","Les copies corrigées par IA, relues par un enseignant. Moins de postes à terme.",{cost:-800,once:-700,hc:-15,cap:-11,g:{cse:-12,etu:-3},flag:"ia"}],
  ["str","Assistant IA pour les commerciaux","Qualification des leads et relances automatisées.",{once:-400,stu:1.07,cap:-4,g:{com:3,cse:-3},flag:"ia"}],
@@ -464,10 +464,10 @@ const AMENDEMENTS=[
 ];
 
 const EVENTS=[
- {ic:"⚖️",n:"Prud'hommes : l'accord d'annualisation attaqué",t:"Trente salariés contestent le décompte des heures. L'avocat du CSE parle de « travail dissimulé ». Provision et mauvaise presse interne.",fx:{once:-550,g:{cse:-9,ca:-3}},w:s=>s.flags.annualisation?2.5:0},
- {ic:"🏛️",n:"L'inspection du travail retoque l'annualisation",t:"Modulation trop large, délais de prévenance non respectés : l'accord doit être renégocié. Une partie des économies s'évapore.",fx:{cost:600,g:{cse:-5,ca:-2}},w:s=>s.flags.annualisation?2:0},
- {pos:true,ic:"📅",n:"L'annualisation absorbe le pic de rentrée",t:"Pour la première fois, septembre passe sans intérim ni heures sup. Les commerciaux ont du support en face d'eux, les comptes respirent.",fx:{cost:-500,g:{com:6,cse:3,ca:3}},w:s=>s.flags.annualisation?2.5:0},
- {pos:true,ic:"🤝",n:"Accord d'annualisation signé par tous les syndicats",t:"Après un an de pratique, le CSE signe un avenant qui pérennise le dispositif. La paix sociale, et un modèle cité par la branche.",fx:{g:{cse:9,ca:4}},w:s=>s.flags.annualisation?2:0},
+ {ic:"🗓️",n:"Annualisation : le casse-tête des plannings",t:"Semaine de 4 jours pour les uns, rentrée à rallonge pour les autres : les plannings se chevauchent, les managers passent leurs soirées sur Excel. Rien de grave, mais du temps perdu partout.",fx:{once:-150,g:{cse:-4,com:-3,ca:-3}},w:s=>s.flags.annualisation&&s.year<=((s.flagYear||{}).annualisation||0)+1?3.5:0},
+ {ic:"🏛️",n:"L'inspection du travail demande des ajustements",t:"Délais de prévenance, compteurs d'heures, décompte des jours de repos : l'accord doit être précisé. Un avenant, quelques semaines de flottement.",fx:{cost:250,g:{cse:-3,ca:-2}},w:s=>s.flags.annualisation&&s.year<=((s.flagYear||{}).annualisation||0)+1?3:0},
+ {pos:true,ic:"📅",n:"Rythme trouvé : la rentrée absorbée en semaine de 4 jours",t:"Deux ans après, tout le monde a pris le pli. Septembre passe sans intérim ni heures sup, et les équipes repartent en forme en janvier.",fx:{cost:-400,g:{cse:5,com:5,ca:3}},w:s=>s.flags.annualisation&&s.year>=((s.flagYear||{}).annualisation||99)+2?3.5:0},
+ {pos:true,ic:"🤝",n:"Décembre au calme : l'école citée en exemple",t:"Les vacances de décembre sont devenues un argument de recrutement. Le CSE signe un avenant qui pérennise l'accord, la branche s'y intéresse.",fx:{g:{cse:7,com:3,ca:4}},w:s=>s.flags.annualisation&&s.year>=((s.flagYear||{}).annualisation||99)+2?3:0},
  {ic:"💥",n:"Panne majeure de la plateforme pendant les examens",t:"Trois jours sans accès en pleine session. Les réseaux sociaux s'en donnent à cœur joie.",fx:{g:{etu:-11,ca:-4},once:-280},w:s=>s.flags.vieux_lms?3:(s.flags.new_lms?0.2:1)},
  {ic:"🔓",n:"Cyberattaque et fuite de données étudiantes",t:"Rançongiciel. La CNIL est prévenue, les étudiants aussi.",fx:{g:{etu:-14,ca:-8,cse:-4},once:-840},w:s=>s.flags.risque_cyber?4:(s.flags.secu?0.2:0.8)},
  {ic:"🆓",n:"Un géant du MOOC lance une offre gratuite diplômante",t:"Vos prospects comparent. Vos commerciaux aussi.",fx:{stuY:0.89,g:{com:-7}},w:()=>1},
@@ -569,7 +569,7 @@ function apply(fx,label){
   if(fx.rate) S.rate=clamp(S.rate+fx.rate,0.01,0.15);
   if(fx.stuY) S.yearFx.stuY*=fx.stuY; if(fx.revY) S.yearFx.revY+=fx.revY;
   if(fx.media) for(const k in fx.media) if(MEDIA[k]) S.mediaMod[k]=(S.mediaMod[k]||1)*fx.media[k];
-  if(fx.flag) S.flags[fx.flag]=true; if(fx.mode) S.mode=fx.mode;
+  if(fx.flag){S.flags[fx.flag]=true; S.flagYear=S.flagYear||{}; if(!S.flagYear[fx.flag]) S.flagYear[fx.flag]=S.year;} if(fx.mode) S.mode=fx.mode;
   renderGauges();
 }
 function toast(v,name,label){
