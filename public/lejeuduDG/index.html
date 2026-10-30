@@ -724,8 +724,9 @@ function btn(label,fn,cls){ const b=document.createElement('button'); b.innerHTM
 function modal(html,cls){ document.getElementById('modal').innerHTML=`<div class="overlay"><div class="modal ${cls||''}">${html}</div></div>`; }
 function closeModal(){ document.getElementById('modal').innerHTML=''; }
 
+function toTop(){ try{window.scrollTo({top:0,left:0,behavior:'instant'});document.documentElement.scrollTop=0;document.body.scrollTop=0;}catch(e){window.scrollTo(0,0);} }
 function render(){
-  save();
+  save(); toTop();
   if(S.screen==='intro') return renderIntro();
   if(S.screen==='scenario') return renderScenario();
   if(S.screen==='profile') return renderProfile();
@@ -830,6 +831,7 @@ function headlines(){
 }
 
 function renderGame(){
+  toTop();
   const g=gaugeHtml();
   app().innerHTML=`<div class="game">
     <div class="top"><div class="brand"><div class="logo">${LOGO}</div><div><div class="t">LE JEU DU DG</div><div class="s">${N.ecole} · Saison ${S.yi+1} · Exercice ${S.year}</div></div><span class="pill ${g.conj[0]}" id="conj" style="margin-left:8px">${g.conj[1]}</span></div>
