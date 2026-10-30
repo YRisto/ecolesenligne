@@ -251,7 +251,7 @@ const YEARS=[2026,2027,2028,2029,2030];
 const EPISODES=[
  ["Janvier","Cadrage","🏛️"],["Février","Les mesures","📋"],["Mars","Plan médias","📣"],["Avril","Guerre des enveloppes","⚔️"],["Mai","Les gardiens","🔎"],["Juin","Audition","🎙️"],
  ["Juillet","Vote du CA","🗳️"],["Septembre","Imprévu","⚡"],["Novembre","Résultats","📊"],["Décembre","Grand show","🎤"],["Bilan","Fin de saison","🏁"]];
-const MAXM=8;
+const MAXM=99;
 // Canaux médias : cpl = coût par lead (€), conv = taux de transformation par les commerciaux, churn = surcroît d'abandon des inscrits (pts)
 const MEDIA={
  google:{n:"Google Ads",ic:"🔍",d:"Recherche payante. Des prospects qui cherchent déjà une formation : chers, mais motivés.",cpl:120,conv:0.08,churn:0,base:1500},
@@ -267,67 +267,67 @@ const PROFILES=[
 
 // Mesures : cat rec/dep/str ; rev,cost k€/an ; mk = variation du budget médias ; price % ; stu = multiplicateur inscriptions ; churn pts ; once = cash immédiat ; cap = capital consommé (ou gagné) ; g = effets jauges
 const MEASURES=[
- ["rec","Hausser les frais de 5 %","Une rentrée à 2 625 € au lieu de 2 500 €. Les commerciaux grognent, les étudiants aussi.",{price:5,churn:1,cap:-8,g:{etu:-4,com:-5}}],
- ["rec","Hausser les frais de 12 %","Positionnement premium assumé. Risque réel sur les inscriptions.",{price:12,churn:4,cap:-15,g:{etu:-9,com:-12}}],
- ["rec","Baisser les frais de 8 %","Prix d'appel pour relancer les inscriptions. Le conseil y voit une fuite en avant.",{price:-8,churn:-2,cap:-12,g:{etu:6,com:8}}],
- ["rec","Frais de dossier de 150 €","Chaque nouvelle inscription paie des frais. Petite recette, petite irritation.",{rev:600,cap:-4,g:{etu:-3,com:-3}}],
- ["rec","Options payantes (coaching, certifications)","Vendre de l'accompagnement individuel en plus du cursus.",{rev:900,cost:300,cap:-3,g:{etu:-2,com:2}}],
- ["rec","Offre B2B de formation continue","Vendre des parcours aux entreprises. Les commerciaux adorent, l'équipe péda doit suivre.",{rev:1500,cost:600,cap:-6,g:{com:4,cse:1}}],
- ["rec","Renforcer les financements CPF / OPCO","Pousser les dossiers de financement public. Dépendance accrue à la réglementation.",{rev:1200,cost:200,cap:-4,g:{com:6},flag:"cpf"}],
- ["rec","Vendre des licences de contenus à d'autres écoles","Monétiser le catalogue de cours. Les enseignants s'inquiètent de voir leur travail partir.",{rev:500,cost:100,cap:-4,g:{cse:-2}}],
- ["rec","Certifications et examens blancs payants","Des badges et attestations facturés à l'unité.",{rev:400,cap:-3,g:{etu:-1}}],
- ["rec","Paiement en 10 fois sans frais","Facilite la signature. Un peu d'impayés en contrepartie.",{stu:1.06,cost:150,cap:-3,g:{com:5,etu:4}}],
- ["rec","Lancer l'alternance et les cours du soir","Nouveau public, nouveaux coûts d'encadrement.",{rev:1800,cost:1200,stu:1.04,cap:-8,g:{cse:-3,com:3}}],
- ["rec","Programme international anglophone","Ouvrir à l'étranger. Coûteux à monter, long à rentabiliser.",{rev:1000,cost:900,stu:1.03,cap:-9,g:{cse:-2}}],
- ["rec","Partenariats entreprises (filières sponsorisées)","Des entreprises financent des filières contre visibilité.",{rev:700,cost:100,cap:-4}],
- ["rec","Campagne grands médias","TV, radio, affichage. Visibilité immédiate, facture aussi.",{mk:900,stu:1.10,cap:-6,g:{com:5}}],
- ["rec","Programme de parrainage étudiants","Les étudiants recrutent leurs proches contre une remise.",{cost:200,stu:1.05,cap:-3,g:{etu:3}}],
- ["dep","Gel des salaires","Aucune augmentation cette année. Le CSE le prendra mal.",{cost:-700,cap:-10,g:{cse:-10,com:-5},flag:"gel"}],
- ["dep","Plan de départs volontaires (30 postes)","Indemnités la première année, économies ensuite.",{cost:-1500,once:-900,hc:-30,cap:-14,g:{cse:-12,etu:-2}}],
- ["dep","Licenciement économique (60 postes)","Le plan social. Rapide sur les comptes, lourd sur tout le reste.",{cost:-3000,once:-1800,hc:-60,cap:-24,g:{cse:-25,etu:-5,com:-4}}],
- ["dep","Réduire le budget médias de 30 %","Moins de leads, moins d'inscriptions l'an prochain.",{mk:-1350,cap:-6,g:{com:-8}}],
- ["dep","Augmenter le budget médias de 30 %","Alimenter la machine à inscriptions.",{mk:1350,cap:-4,g:{com:6}}],
- ["dep","Confier 25 % des cours à des vacataires","Moins de CDI enseignants, plus de prestataires.",{cost:-1200,hc:-20,cap:-12,g:{cse:-10,etu:-6}}],
- ["dep","Externaliser le support étudiant","Un prestataire répond aux étudiants à votre place.",{cost:-900,once:-200,hc:-25,cap:-12,g:{cse:-8,etu:-7}}],
- ["dep","Fermer les derniers locaux (100 % remote)","Vendre le siège, tout le monde à distance.",{cost:-800,once:600,cap:-6,g:{cse:-4}}],
- ["dep","Renégocier les licences logicielles","Un bras de fer avec les éditeurs.",{cost:-400,once:-150,cap:-2}],
- ["dep","Supprimer les bourses internes","Fin de l'aide aux étudiants modestes.",{cost:-500,cap:-9,g:{etu:-8,cse:-3}}],
- ["dep","Fusionner trois filières à faibles effectifs","Moins de cours à maintenir, quelques étudiants orphelins.",{cost:-700,cap:-8,g:{etu:-3,cse:-5}}],
- ["dep","Réduire les primes commerciales","Les commerciaux gagnent moins. Ils le feront savoir.",{cost:-600,cap:-12,g:{com:-15}}],
- ["dep","Chasse aux coûts (frais, prestataires, voyages)","La petite rigueur du quotidien.",{cost:-350,cap:-3,g:{cse:-2}}],
- ["dep","Reporter les investissements plateforme","On tiendra encore un an avec l'existant. Peut-être.",{cost:-600,cap:-4,g:{etu:-4},flag:"vieux_lms"}],
- ["str","IA pour les corrections et le feedback","Les copies corrigées par IA, relues par un enseignant. Moins de postes à terme.",{cost:-800,once:-700,hc:-15,cap:-10,g:{cse:-8,etu:-2},flag:"ia"}],
- ["str","Assistant IA pour les commerciaux","Qualification des leads et relances automatisées.",{once:-400,stu:1.07,cap:-4,g:{com:3,cse:-2},flag:"ia"}],
- ["str","Chatbot support 24h/24","Réponse immédiate aux questions simples.",{cost:-300,once:-300,hc:-8,cap:-6,g:{etu:1,cse:-4}}],
- ["str","Nouvelle plateforme pédagogique (LMS)","Deux ans de migration, une expérience étudiante enfin moderne.",{once:-2500,cost:300,churn:-3,cap:-9,g:{etu:8,cse:3},flag:"new_lms"}],
- ["str","Tutorat individuel renforcé","Un tuteur pour 40 étudiants au lieu de 80.",{cost:1200,hc:20,churn:-5,cap:-9,g:{etu:10,cse:3}}],
- ["str","Démarche qualité et Qualiopi renforcée","Processus, indicateurs, audits internes.",{cost:300,cap:-3,g:{etu:4,cse:2},flag:"qualite"}],
- ["str","Passer 40 % des cours en asynchrone","Moins de classes virtuelles en direct, plus de vidéos.",{cost:-1000,hc:-12,cap:-10,g:{etu:-5,cse:-6}}],
- ["str","Plan de formation des commerciaux","Mieux vendre, moins promettre.",{cost:250,stu:1.05,cap:-3,g:{com:10}}],
- ["str","Primes commerciales sur objectifs","Un variable agressif. Les autres salariés regardent de travers.",{cost:500,stu:1.06,cap:-4,g:{com:12,cse:-3}}],
- ["str","Réseau alumni et service placement","Aider les diplômés à trouver un emploi, et le faire savoir.",{cost:400,stu:1.03,churn:-2,cap:-3,g:{etu:6}}],
- ["str","Accord d'intéressement","Une part du résultat redistribuée aux salariés.",{cost:400,cap:-6,g:{cse:10,com:5}}],
- ["str","Télétravail total et semaine de 4 jours","Attractivité RH, moins de locaux.",{cost:-200,cap:-8,g:{cse:8,com:-2}}],
- ["str","Refondre les 10 cours les plus suivis","Investir là où sont les étudiants.",{cost:600,churn:-2,cap:-4,g:{etu:7,cse:2}}],
+ ["rec","Hausser les frais de 5 %","Une rentrée à 2 625 € au lieu de 2 500 €. Les commerciaux grognent, les étudiants aussi.",{price:5,churn:1,cap:-10,g:{etu:-6,com:-8}}],
+ ["rec","Hausser les frais de 12 %","Positionnement premium assumé. Risque réel sur les inscriptions.",{price:12,churn:4,cap:-20,g:{etu:-14,com:-18}}],
+ ["rec","Baisser les frais de 8 %","Prix d'appel pour relancer les inscriptions. Le conseil y voit une fuite en avant.",{price:-8,churn:-2,cap:-16,g:{etu:6,com:8}}],
+ ["rec","Frais de dossier de 150 €","Chaque nouvelle inscription paie des frais. Petite recette, petite irritation.",{rev:600,cap:-5,g:{etu:-4,com:-4}}],
+ ["rec","Options payantes (coaching, certifications)","Vendre de l'accompagnement individuel en plus du cursus.",{rev:900,cost:300,cap:-4,g:{etu:-3,com:2}}],
+ ["rec","Offre B2B de formation continue","Vendre des parcours aux entreprises. Les commerciaux adorent, l'équipe péda doit suivre.",{rev:1500,cost:600,cap:-8,g:{com:4,cse:1}}],
+ ["rec","Renforcer les financements CPF / OPCO","Pousser les dossiers de financement public. Dépendance accrue à la réglementation.",{rev:1200,cost:200,cap:-5,g:{com:6},flag:"cpf"}],
+ ["rec","Vendre des licences de contenus à d'autres écoles","Monétiser le catalogue de cours. Les enseignants s'inquiètent de voir leur travail partir.",{rev:500,cost:100,cap:-5,g:{cse:-3}}],
+ ["rec","Certifications et examens blancs payants","Des badges et attestations facturés à l'unité.",{rev:400,cap:-4,g:{etu:-2}}],
+ ["rec","Paiement en 10 fois sans frais","Facilite la signature. Un peu d'impayés en contrepartie.",{stu:1.06,cost:150,cap:-4,g:{com:5,etu:4}}],
+ ["rec","Lancer l'alternance et les cours du soir","Nouveau public, nouveaux coûts d'encadrement.",{rev:1800,cost:1200,stu:1.04,cap:-10,g:{cse:-4,com:3}}],
+ ["rec","Programme international anglophone","Ouvrir à l'étranger. Coûteux à monter, long à rentabiliser.",{rev:1000,cost:900,stu:1.03,cap:-12,g:{cse:-3}}],
+ ["rec","Partenariats entreprises (filières sponsorisées)","Des entreprises financent des filières contre visibilité.",{rev:700,cost:100,cap:-5}],
+ ["rec","Campagne grands médias","TV, radio, affichage. Visibilité immédiate, facture aussi.",{mk:900,stu:1.10,cap:-8,g:{com:5}}],
+ ["rec","Programme de parrainage étudiants","Les étudiants recrutent leurs proches contre une remise.",{cost:200,stu:1.05,cap:-4,g:{etu:3}}],
+ ["dep","Gel des salaires","Aucune augmentation cette année. Le CSE le prendra mal.",{cost:-700,cap:-13,g:{cse:-15,com:-8},flag:"gel"}],
+ ["dep","Plan de départs volontaires (30 postes)","Indemnités la première année, économies ensuite.",{cost:-1500,once:-900,hc:-30,cap:-18,g:{cse:-18,etu:-3}}],
+ ["dep","Licenciement économique (60 postes)","Le plan social. Rapide sur les comptes, lourd sur tout le reste.",{cost:-3000,once:-1800,hc:-60,cap:-31,g:{cse:-38,etu:-8,com:-6}}],
+ ["dep","Réduire le budget médias de 30 %","Moins de leads, moins d'inscriptions l'an prochain.",{mk:-1350,cap:-8,g:{com:-12}}],
+ ["dep","Augmenter le budget médias de 30 %","Alimenter la machine à inscriptions.",{mk:1350,cap:-5,g:{com:6}}],
+ ["dep","Confier 25 % des cours à des vacataires","Moins de CDI enseignants, plus de prestataires.",{cost:-1200,hc:-20,cap:-16,g:{cse:-15,etu:-9}}],
+ ["dep","Externaliser le support étudiant","Un prestataire répond aux étudiants à votre place.",{cost:-900,once:-200,hc:-25,cap:-16,g:{cse:-12,etu:-10}}],
+ ["dep","Fermer les derniers locaux (100 % remote)","Vendre le siège, tout le monde à distance.",{cost:-800,once:600,cap:-8,g:{cse:-6}}],
+ ["dep","Renégocier les licences logicielles","Un bras de fer avec les éditeurs.",{cost:-400,once:-150,cap:-3}],
+ ["dep","Supprimer les bourses internes","Fin de l'aide aux étudiants modestes.",{cost:-500,cap:-12,g:{etu:-12,cse:-4}}],
+ ["dep","Fusionner trois filières à faibles effectifs","Moins de cours à maintenir, quelques étudiants orphelins.",{cost:-700,cap:-10,g:{etu:-4,cse:-8}}],
+ ["dep","Réduire les primes commerciales","Les commerciaux gagnent moins. Ils le feront savoir.",{cost:-600,cap:-16,g:{com:-22}}],
+ ["dep","Chasse aux coûts (frais, prestataires, voyages)","La petite rigueur du quotidien.",{cost:-350,cap:-4,g:{cse:-3}}],
+ ["dep","Reporter les investissements plateforme","On tiendra encore un an avec l'existant. Peut-être.",{cost:-600,cap:-5,g:{etu:-6},flag:"vieux_lms"}],
+ ["str","IA pour les corrections et le feedback","Les copies corrigées par IA, relues par un enseignant. Moins de postes à terme.",{cost:-800,once:-700,hc:-15,cap:-13,g:{cse:-12,etu:-3},flag:"ia"}],
+ ["str","Assistant IA pour les commerciaux","Qualification des leads et relances automatisées.",{once:-400,stu:1.07,cap:-5,g:{com:3,cse:-3},flag:"ia"}],
+ ["str","Chatbot support 24h/24","Réponse immédiate aux questions simples.",{cost:-300,once:-300,hc:-8,cap:-8,g:{etu:1,cse:-6}}],
+ ["str","Nouvelle plateforme pédagogique (LMS)","Deux ans de migration, une expérience étudiante enfin moderne.",{once:-2500,cost:300,churn:-3,cap:-12,g:{etu:8,cse:3},flag:"new_lms"}],
+ ["str","Tutorat individuel renforcé","Un tuteur pour 40 étudiants au lieu de 80.",{cost:1200,hc:20,churn:-5,cap:-12,g:{etu:10,cse:3}}],
+ ["str","Démarche qualité et Qualiopi renforcée","Processus, indicateurs, audits internes.",{cost:300,cap:-4,g:{etu:4,cse:2},flag:"qualite"}],
+ ["str","Passer 40 % des cours en asynchrone","Moins de classes virtuelles en direct, plus de vidéos.",{cost:-1000,hc:-12,cap:-13,g:{etu:-8,cse:-9}}],
+ ["str","Plan de formation des commerciaux","Mieux vendre, moins promettre.",{cost:250,stu:1.05,cap:-4,g:{com:10}}],
+ ["str","Primes commerciales sur objectifs","Un variable agressif. Les autres salariés regardent de travers.",{cost:500,stu:1.06,cap:-5,g:{com:12,cse:-4}}],
+ ["str","Réseau alumni et service placement","Aider les diplômés à trouver un emploi, et le faire savoir.",{cost:400,stu:1.03,churn:-2,cap:-4,g:{etu:6}}],
+ ["str","Accord d'intéressement","Une part du résultat redistribuée aux salariés.",{cost:400,cap:-8,g:{cse:10,com:5}}],
+ ["str","Télétravail total et semaine de 4 jours","Attractivité RH, moins de locaux.",{cost:-200,cap:-10,g:{cse:8,com:-3}}],
+ ["str","Refondre les 10 cours les plus suivis","Investir là où sont les étudiants.",{cost:600,churn:-2,cap:-5,g:{etu:7,cse:2}}],
  ["str","Audit indépendant et transparence des comptes","Publier les chiffres aux équipes et au conseil. Rapporte du capital.",{cost:150,cap:5,g:{cse:3}}],
- ["str","Recruter 20 tuteurs","Plus d'encadrement, plus de masse salariale.",{cost:1000,hc:20,churn:-3,cap:-8,g:{etu:6,cse:4}}],
- ["str","Verser un dividende exceptionnel","Rassurer les actionnaires avec du cash qu'on n'a pas vraiment. Rapporte du capital.",{once:-1500,cap:12,g:{cse:-8}}],
- ["str","Renégocier le prêt bancaire","Un taux plus bas contre un plan crédible.",{once:-100,rate:-0.01,cap:-3}],
- ["str","Lever 5 M€ auprès des actionnaires","De l'oxygène, au prix d'une dilution et d'exigences accrues.",{once:5000,cap:-18}],
- ["str","Emprunter 3 M€ de plus","La banque accepte, à son taux.",{once:3000,debt:3000,cap:-6}],
- ["str","Privilégier la qualité au volume","Sélection à l'entrée, promotions plus petites, meilleure réussite.",{stu:0.92,churn:-3,cost:-300,cap:-8,g:{etu:5,com:-8}}],
- ["str","Nouvelle direction commerciale","Changer la tête de la force de vente. Turbulences, puis relance.",{once:-300,stu:1.08,cap:-9,g:{com:-4}}],
+ ["str","Recruter 20 tuteurs","Plus d'encadrement, plus de masse salariale.",{cost:1000,hc:20,churn:-3,cap:-10,g:{etu:6,cse:4}}],
+ ["str","Verser un dividende exceptionnel","Rassurer les actionnaires avec du cash qu'on n'a pas vraiment. Rapporte du capital.",{once:-1500,cap:12,g:{cse:-12}}],
+ ["str","Renégocier le prêt bancaire","Un taux plus bas contre un plan crédible.",{once:-100,rate:-0.01,cap:-4}],
+ ["str","Lever 5 M€ auprès des actionnaires","De l'oxygène, au prix d'une dilution et d'exigences accrues.",{once:5000,cap:-23}],
+ ["str","Emprunter 3 M€ de plus","La banque accepte, à son taux.",{once:3000,debt:3000,cap:-8}],
+ ["str","Privilégier la qualité au volume","Sélection à l'entrée, promotions plus petites, meilleure réussite.",{stu:0.92,churn:-3,cost:-300,cap:-10,g:{etu:5,com:-12}}],
+ ["str","Nouvelle direction commerciale","Changer la tête de la force de vente. Turbulences, puis relance.",{once:-300,stu:1.08,cap:-12,g:{com:-6}}],
  ["str","Plan stratégique 2030 présenté au conseil","Un document, des jalons, un cap. Rapporte du capital.",{cost:80,cap:6}],
- ["fou","Première année gratuite, payante ensuite","Le choc d'offre : inscriptions massives, un an sans recette sur les nouveaux. Si les étudiants restent, le pari est gagné.",{stu:1.6,cost:2800,churn:5,cap:-30,g:{etu:15,com:18,cse:-5}}],
- ["fou","Racheter le concurrent direct","8 M€ de dette en plus, 4 000 étudiants de plus, deux cultures à fusionner.",{debt:8000,once:-500,rev:7000,cost:5200,stu:1.2,cap:-34,g:{cse:-8,com:6,etu:-3}}],
- ["fou","Tout-IA : 60 % des cours générés et corrigés par IA","120 postes supprimés, une plateforme réinventée. Le CSE parlera de carnage, le conseil de modernité.",{cost:-6500,once:-2500,hc:-120,churn:6,cap:-38,g:{cse:-35,etu:-15}}],
- ["fou","Lever 20 M€ en bourse","Introduction sur le marché. L'argent coule, les exigences de reporting aussi, et chaque trimestre devient public.",{once:20000,cost:500,cap:-32,g:{cse:-4,com:4}}],
- ["fou","Doubler les frais : l'école d'élite","5 000 € l'année, promotions divisées par deux, accompagnement de luxe. Les commerciaux changent de métier.",{price:100,stu:0.5,churn:28,cost:800,cap:-36,g:{etu:-12,com:-28,cse:-4}}],
- ["fou","Campagne nationale à 3 M€","TV en prime time, affichage dans toutes les gares. Les inscriptions explosent, la trésorerie aussi.",{mk:3000,stu:1.35,cap:-26,g:{com:14}}],
- ["fou","Semaine de 4 jours et +10 % de salaire pour tous","Le pari social : attirer et garder les meilleurs, et le faire savoir.",{cost:2000,churn:-2,stu:1.04,cap:-24,g:{cse:30,etu:4,com:8}}],
- ["fou","Supprimer la force de vente : 100 % inbound","Les 100 commerciaux partent. Le marketing et le site doivent tout faire.",{cost:-4800,once:-2000,hc:-100,stu:0.55,cap:-40,g:{com:-60,cse:-15}}],
- ["fou","Diplôme garanti ou remboursé","Celui qui échoue est remboursé. Les abandons chutent, l'encadrement coûte, les commerciaux ont un argument en or.",{churn:-8,cost:1800,stu:1.15,cap:-28,g:{etu:12,com:10}}],
- ["fou","Un campus de prestige à Paris","Retour au physique : un hôtel particulier, des amphis, une marque. 6 M€ d'investissement.",{once:-6000,cost:1500,stu:1.12,churn:-2,cap:-30,g:{etu:8,cse:5}}],
+ ["fou","Première année gratuite, payante ensuite","Le choc d'offre : inscriptions massives, un an sans recette sur les nouveaux. Si les étudiants restent, le pari est gagné.",{stu:1.6,cost:2800,churn:5,cap:-39,g:{etu:15,com:18,cse:-8}}],
+ ["fou","Racheter le concurrent direct","8 M€ de dette en plus, 4 000 étudiants de plus, deux cultures à fusionner.",{debt:8000,once:-500,rev:7000,cost:5200,stu:1.2,cap:-44,g:{cse:-12,com:6,etu:-4}}],
+ ["fou","Tout-IA : 60 % des cours générés et corrigés par IA","120 postes supprimés, une plateforme réinventée. Le CSE parlera de carnage, le conseil de modernité.",{cost:-6500,once:-2500,hc:-120,churn:6,cap:-49,g:{cse:-52,etu:-22}}],
+ ["fou","Lever 20 M€ en bourse","Introduction sur le marché. L'argent coule, les exigences de reporting aussi, et chaque trimestre devient public.",{once:20000,cost:500,cap:-42,g:{cse:-6,com:4}}],
+ ["fou","Doubler les frais : l'école d'élite","5 000 € l'année, promotions divisées par deux, accompagnement de luxe. Les commerciaux changent de métier.",{price:100,stu:0.5,churn:28,cost:800,cap:-47,g:{etu:-18,com:-42,cse:-6}}],
+ ["fou","Campagne nationale à 3 M€","TV en prime time, affichage dans toutes les gares. Les inscriptions explosent, la trésorerie aussi.",{mk:3000,stu:1.35,cap:-34,g:{com:14}}],
+ ["fou","Semaine de 4 jours et +10 % de salaire pour tous","Le pari social : attirer et garder les meilleurs, et le faire savoir.",{cost:2000,churn:-2,stu:1.04,cap:-31,g:{cse:30,etu:4,com:8}}],
+ ["fou","Supprimer la force de vente : 100 % inbound","Les 100 commerciaux partent. Le marketing et le site doivent tout faire.",{cost:-4800,once:-2000,hc:-100,stu:0.55,cap:-52,g:{com:-90,cse:-22}}],
+ ["fou","Diplôme garanti ou remboursé","Celui qui échoue est remboursé. Les abandons chutent, l'encadrement coûte, les commerciaux ont un argument en or.",{churn:-8,cost:1800,stu:1.15,cap:-36,g:{etu:12,com:10}}],
+ ["fou","Un campus de prestige à Paris","Retour au physique : un hôtel particulier, des amphis, une marque. 6 M€ d'investissement.",{once:-6000,cost:1500,stu:1.12,churn:-2,cap:-39,g:{etu:8,cse:5}}],
 ].map((m,i)=>({id:i,cat:m[0],n:m[1],d:m[2],...m[3]}));
 
 const ENVELOPPES=[
@@ -820,7 +820,7 @@ function phMesures(){
   }
   const avail=S.offer[S.year].map(i=>MEASURES[i]).filter(m=>!S.active.includes(m.id));
   const cats=[['rec','Recettes nouvelles','var(--green)'],['dep','Économies et coupes','var(--gold)'],['str','Réformes de structure','var(--violet)'],['fou','Coups de poker — effets massifs, capital massif','var(--rose)']];
-  const body=dlg(DAF,N.daf,N.dafRole,`« Dessinons l'esquisse du plan : voici les ${avail.length} mesures instruites par mes équipes cette année ; d'autres seront prêtes l'an prochain. Vous pouvez en retenir jusqu'à ${MAXM}. Chaque mesure consomme du capital auprès de ${N.president} ; vous ne pouvez pas engager plus de capital que vous n'en avez. Une mesure adoptée reste en vigueur les années suivantes. »`)+
+  const body=dlg(DAF,N.daf,N.dafRole,`« Dessinons l'esquisse du plan : voici les ${avail.length} mesures instruites par mes équipes cette année ; d'autres seront prêtes l'an prochain. Retenez-en autant que votre capital le permet, ou aucune. Chaque mesure consomme du capital auprès de ${N.president} ; vous ne pouvez pas engager plus de capital que vous n'en avez. Une mesure adoptée reste en vigueur les années suivantes. »`)+
    `<div class="note"><div class="h">📗 Note de ${N.daf} — pourquoi ${N.ecole} perd de l'argent</div>Sans mesure nouvelle, le résultat ${S.year} serait de <b style="color:var(--rose)">${pct(projected().pct)}</b>. Trois moteurs l'expliquent :<ul><li><b>Les abandons.</b> Un tiers des étudiants ne va pas au bout : chaque départ est un chiffre d'affaires perdu.</li><li><b>La masse salariale.</b> 400 salariés et 22 M€ de salaires pour 30 M€ de chiffre d'affaires : le ratio est intenable pour une école en ligne.</li><li><b>La dette.</b> 9 M€ à ${(S.rate*100).toFixed(1).replace('.',',')} % ; chaque euro de découvert coûte plus cher.</li></ul></div>
    <div class="hint">💡 À droite de chaque mesure : son <b>effet estimé sur le résultat annuel (k€)</b> et son <b>coût en capital</b>. Survolez une mesure pour voir ses effets sur les étudiants, les commerciaux et le CSE.</div>
    <div class="capbar" id="capbar"></div>
@@ -828,10 +828,10 @@ function phMesures(){
   sceneShell(body,{title:'Il faut sauver l\'école',tag:'Seul·e face à la page blanche du plan. Chaque ligne cochée fera un mécontent, et un titre dans la presse.'});
   const draw=()=>{
     const used=-capCost(S.pending); const avail_cap=Math.round(S.g.ca);
-    $('#cat').innerHTML=cats.map(([k,n,col])=>`<div class="cath"><i style="background:${col}"></i>${n}</div><div class="mrows">${avail.filter(m=>m.cat===k).map(m=>{const y=yearly(m);const sel=S.pending.includes(m.id);const c=m.cap||0;const off=!sel&&(S.pending.length>=MAXM||(c<0&&used-c>avail_cap));return `<label class="mrow ${sel?'sel':''} ${off?'off':''} ${m.cat==='fou'?'fou':''}"><input type="checkbox" data-id="${m.id}" ${sel?'checked':''} ${off?'disabled':''}><span>${m.n}</span><span class="cap ${c>0?'gain':''}">${c>0?'+':''}${c} ⚡</span><span class="amt num ${y>50?'pos':y<-50?'neg':'zero'}">${y>50||y<-50?kE(y):'±0'}</span><span class="tip"><span class="d">${m.d}</span>${chips({g:m.g,once:m.once,hc:m.hc,churn:m.churn,rate:m.rate})||'<span class="chip">Aucun effet sur les jauges</span>'}</span></label>`;}).join('')}</div>`).join('');
+    $('#cat').innerHTML=cats.map(([k,n,col])=>`<div class="cath"><i style="background:${col}"></i>${n}</div><div class="mrows">${avail.filter(m=>m.cat===k).map(m=>{const y=yearly(m);const sel=S.pending.includes(m.id);const c=m.cap||0;const off=!sel&&(c<0&&used-c>avail_cap);return `<label class="mrow ${sel?'sel':''} ${off?'off':''} ${m.cat==='fou'?'fou':''}"><input type="checkbox" data-id="${m.id}" ${sel?'checked':''} ${off?'disabled':''}><span>${m.n}</span><span class="cap ${c>0?'gain':''}">${c>0?'+':''}${c} ⚡</span><span class="amt num ${y>50?'pos':y<-50?'neg':'zero'}">${y>50||y<-50?kE(y):'±0'}</span><span class="tip"><span class="d">${m.d}</span>${chips({g:m.g,once:m.once,hc:m.hc,churn:m.churn,rate:m.rate})||'<span class="chip">Aucun effet sur les jauges</span>'}</span></label>`;}).join('')}</div>`).join('');
     $('#cat').querySelectorAll('input').forEach(i=>i.addEventListener('change',e=>{const id=+e.target.dataset.id; if(e.target.checked) S.pending.push(id); else S.pending=S.pending.filter(x=>x!==id); draw(); renderBudget(); renderGauges(); save();}));
     const cb=$('#capbar'); cb.className='capbar'+(used>avail_cap?' over':''); cb.innerHTML=`<span>⚡ Capital engagé par les mesures cochées</span><span><b>${used}</b> / ${avail_cap} pts disponibles</span>`;
-    $('#tally').innerHTML=`<b>${S.pending.length}</b> / ${MAXM} mesures retenues. ${S.pending.length?'Elles seront soumises au vote du conseil en juillet ; le capital sera débité à l\'adoption.':'Vous pouvez aussi continuer sans nouvelle mesure.'}`;
+    $('#tally').innerHTML=`<b>${S.pending.length}</b> mesure${S.pending.length>1?'s':''} retenue${S.pending.length>1?'s':''}. ${S.pending.length?'Elles seront soumises au vote du conseil en juillet ; le capital sera débité à l\'adoption.':'Vous pouvez aussi continuer sans nouvelle mesure.'}`;
     ready();
   };
   draw();
