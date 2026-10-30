@@ -292,14 +292,14 @@ const SCENARIOS=[
   base:{students:24000,price:2500,organic:2600,payrollOther:24000,payrollCom:6000,marketing:9000,platform:3000,other:6000,debt:0,rate:0.04,cash:8000,staff:700,com:150}, start:20, target:15, growth:1.5, bank:-15000, unit:'étudiants', mediaTitle:'Plan médias', mediaWord:'médias', leadWord:'leads', lead1:'lead', churn:0.34, sat:9000, eff:0.72, varc:0.49,
   media:scaleMedia(MEDIA_XYN,2),
   mission:"relancer la croissance d'un leader installé : +50 % de chiffre d'affaires en cinq ans, sans descendre sous +15 %", pitch:"Le CNF est rentable, connu, et immobile : chaque année les inscriptions remplacent tout juste les départs. Le conseil veut 90 M€ en 2030 avec au moins +15 % de résultat. Le marché est mûr : chaque étudiant de plus coûtera plus cher."},
- {id:'asclepia',name:"Asclépia",ic:"🌿",tag:"La startup du bien-être qui brûle du cash",
+ {id:'hippocampus',name:"Hippocampus",ic:"🌿",tag:"La startup du bien-être qui brûle du cash",
   desc:"1 M€ de chiffre d'affaires, 170 étudiants à 6 000 € (ultra premium), 12 salariés, −50 % de résultat : la startup des formations bien-être perd 500 k€ par an. Les investisseurs veulent ×5 (5 M€) et +30 % de résultat fin 2030.",
   base:{students:167,price:6000,organic:40,payrollOther:720,payrollCom:180,marketing:300,platform:120,other:180,debt:0,rate:0.06,cash:400,staff:12,com:3}, start:-50, target:30, growth:5, bank:-800, unit:'étudiants', mediaTitle:'Plan médias', mediaWord:'médias', leadWord:'leads', lead1:'lead', churn:0.26, sat:1700, eff:1.4, varc:0.27,
   media:{google:{n:"Google Ads",ic:"🔍",d:"Recherche payante sur des mots-clés chers. Des prospects aisés, rares, exigeants.",cpl:380,conv:0.06,churn:0,base:100},
          hello:{n:"HelloFormation",ic:"🤝",d:"Broker généraliste : beaucoup de curieux, peu de clients à 6 000 €.",cpl:280,conv:0.03,churn:1,base:67},
          diplo:{n:"Diplomomo",ic:"🎓",d:"Broker diplômant, un peu mieux ciblé.",cpl:330,conv:0.045,churn:0,base:53},
          meta:{n:"Meta (Facebook / Instagram)",ic:"📱",d:"Le bien-être cartonne sur Instagram. Convertir à 6 000 € est une autre histoire.",cpl:160,conv:0.022,churn:2,base:80}},
-  mission:"passer d'une startup qui brûle du cash à une pépite rentable : ×5 et +30 %", pitch:"Asclépia a un produit que ses étudiants adorent, une petite équipe, et 400 k€ en banque. À ce rythme, il reste dix mois. Les investisseurs ne remettront pas au pot sans une trajectoire vers 5 M€ et +30 %."},
+  mission:"passer d'une startup qui brûle du cash à une pépite rentable : ×5 et +30 %", pitch:"Hippocampus a un produit que ses étudiants adorent, une petite équipe, et 400 k€ en banque. À ce rythme, il reste dix mois. Les investisseurs ne remettront pas au pot sans une trajectoire vers 5 M€ et +30 %."},
 ];
 function applyScenario(i){
   SC=SCENARIOS[i]; BASE={...SC.base}; MEDIA=JSON.parse(JSON.stringify(SC.media)); N.ecole=SC.name;
