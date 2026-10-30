@@ -1,0 +1,70 @@
+{
+  "slug": "cap-esthetique",
+  "formation": "cap-esthetique-cosmetique-parfumerie",
+  "ecole": "cef",
+  "accent": "#ff8fa3",
+  "scene": "Beauté",
+  "image": null,
+  "surtitre": "Formation à distance",
+  "titre": "CAP Esthétique",
+  "soustitre": "Cosmétique Parfumerie",
+  "accroche": "Passez votre diplôme d'État depuis chez vous, à votre rythme, avec un coach dédié.",
+  "cta": "Recevoir ma brochure gratuite",
+  "quiz": [
+    { "k": "situation", "q": "Quelle est votre situation professionnelle ?", "o": [["Salarié", "briefcase"], ["Étudiant", "cap"], ["Demandeur d'emploi", "search"], ["Autre", "dots"]] },
+    { "k": "financement", "q": "Comment pensez-vous financer votre formation ?", "o": [["Avec mon CPF", "wallet"], ["Via France Travail", "search"], ["En alternance", "briefcase"], ["Par moi-même, en plusieurs fois", "wallet"], ["Je ne sais pas encore", "dots"]] },
+    { "k": "delai", "q": "Quand souhaitez-vous démarrer ?", "o": [["Dès que possible", "bolt"], ["Dans 1 à 3 mois", "clock"], ["Plus tard", "clock"]] }
+  ],
+  "badges": [
+    "Finançable avec votre CPF",
+    "« Diplômé ou remboursé » (conditions auprès de l'école)",
+    "4,2/5 sur Trustpilot (2 670 avis)",
+    "86 % de réussite au CAP Esthétique en 2025 (chiffre déclaré par l'école)"
+  ],
+  "methode": {
+    "titre": "Une équipe à votre service",
+    "blocs": [
+      { "t": "Coach personnel", "d": "Un même coach pendant tout le parcours : visio de lancement puis environ 10 rendez-vous individuels." },
+      { "t": "Professeurs référents", "d": "Joignables par téléphone, e-mail ou sur la plateforme. Devoirs corrigés sous environ 12 h." },
+      { "t": "Service élèves", "d": "À l'écoute pour vos questions et vos conventions de stage." }
+    ],
+    "supports": {
+      "titre": "Une formation multisupports",
+      "blocs": [
+        { "t": "Plateforme CEF Learning", "d": "Cours numériques, quiz, devoirs autocorrigés et suivi de votre progression." },
+        { "t": "Vidéos", "d": "Tutoriels pédagogiques et webinaires pour s'entraîner aux gestes." },
+        { "t": "Cours papier", "d": "Cours illustrés envoyés à domicile, à consulter où vous voulez." }
+      ]
+    }
+  },
+  "programme": {
+    "titre": "Un programme aligné sur le référentiel du diplôme national",
+    "groupes": [
+      { "t": "Techniques esthétiques du visage, des mains et des pieds", "items": ["Bases du corps humain", "Produits cosmétiques", "Appareils et instruments", "Soin du visage", "Maquillage", "Conduire une prestation UV"] },
+      { "t": "Techniques esthétiques liées aux phanères", "items": ["Protocoles d'épilation", "Coloration des cils et sourcils, embellissement des cils", "Soin et maquillage des ongles"] },
+      { "t": "Conduite d'un institut de beauté et de bien-être", "items": ["Participation à la vie d'un institut", "Mise en valeur et promotion des produits et prestations", "Conseil et vente de produits cosmétiques et de prestations"] }
+    ]
+  },
+  "bonus": {
+    "titre": "Allez plus loin",
+    "texte": "Selon l'école, des modules complémentaires sont offerts avec la formation.",
+    "items": ["Prothésie ongulaire et nail art", "Maquillage professionnel", "Modelage et relaxation", "Création d'institut"]
+  },
+  "financement": {
+    "titre": "Comment la financer ?",
+    "blocs": [
+      { "t": "Compte personnel de formation", "d": "La formation est éligible au CPF. Participation forfaitaire de 150 € à régler. Vérifiez vos droits sur moncompteformation.gouv.fr." },
+      { "t": "France Travail", "d": "Des aides existent pour les demandeurs d'emploi. Un conseiller vous indique les démarches." },
+      { "t": "Alternance", "d": "Possible en apprentissage selon votre situation : frais de formation pris en charge par l'employeur via l'OPCO." },
+      { "t": "Paiement en plusieurs fois", "d": "À partir de 109 € par mois, après un acompte de 109 €." }
+    ]
+  },
+  "faq": [
+    { "q": "Faut-il un diplôme pour s'inscrire ?", "r": "Non. La formation est accessible dès 16 ans, sans prérequis." },
+    { "q": "Combien de temps dure la formation ?", "r": "Environ 424 heures de cours, réparties sur 9, 12 ou 18 mois selon le rythme choisi. L'accompagnement dure 18 mois." },
+    { "q": "Le stage est-il obligatoire ?", "r": "Il est facultatif, mais environ 12 semaines sont vivement conseillées pour se préparer au métier. L'école fournit les conventions." },
+    { "q": "Où passe-t-on l'examen ?", "r": "En candidat libre, dans un lycée proche de votre domicile. Le diplôme est un CAP de niveau 3, inscrit au RNCP (RNCP39030)." },
+    { "q": "Quand puis-je commencer ?", "r": "Les inscriptions sont ouvertes toute l'année." }
+  ],
+  "consent": "J'accepte d'être recontacté·e par e-mail et téléphone par le Centre Européen de Formation au sujet de ma demande, et j'ai lu la politique de confidentialité."
+}

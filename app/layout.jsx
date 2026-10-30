@@ -3,6 +3,7 @@ import "@fontsource-variable/inter";
 import "./globals.css";
 import Header from "../components/Header";
 import Footer from "../components/Footer";
+import Chrome from "../components/Chrome";
 
 export const metadata = {
   metadataBase: new URL("https://ecolesenligne.fr"),
@@ -14,9 +15,7 @@ export default function RootLayout({ children }) {
   return (
     <html lang="fr">
       <body>
-        <Header />
-        <main>{children}</main>
-        <Footer />
+        <Chrome header={<Header />} footer={<Footer />}>{children}</Chrome>
       </body>
     </html>
   );

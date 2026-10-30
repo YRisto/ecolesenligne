@@ -22,10 +22,10 @@ function Fig({ x, s = 1, skin = S, hair = K, top = K, bot = D, long = false, arm
 
 const Cadre = ({ children }) => (
   <>
-    <rect width="240" height="180" fill={G} />
+    <rect x="-600" y="-600" width="1440" height="1200" fill={G} />
     <circle cx="120" cy="98" r="76" fill={G2} />
     {children}
-    <rect y="168" width="240" height="12" fill={K} />
+    <rect x="-600" y="168" width="1440" height="600" fill={K} />
   </>
 );
 
@@ -58,6 +58,17 @@ const SCENES = {
       <Fig x={92} top={W} hair="#5a3a22" long arms={[{ d: "M16 -104 L40 -88", h: [43, -86], c: W }, { d: "M-16 -104 L-22 -70", h: [-23, -64], c: W }]}>
         <path d="M-9 -112v20a9 9 0 0018 0v-20" fill="none" stroke={K} strokeWidth="3" strokeLinecap="round" /><circle cx="9" cy="-80" r="5" fill={G} stroke={K} strokeWidth="2" />
         <path d="M36 -88c0-14 10-20 22-20 0 12-8 22-22 20z" fill={VERT} stroke={K} strokeWidth="2" />
+      </Fig>
+    </Cadre>
+  ),
+  "Beauté": (
+    <Cadre>
+      <rect x="150" y="48" width="64" height="84" rx="32" fill={W} stroke={K} strokeWidth="3" /><rect x="156" y="54" width="52" height="72" rx="26" fill="#cfe9f3" /><path d="M170 70q10-8 24 0" fill="none" stroke={W} strokeWidth="4" strokeLinecap="round" />
+      <rect x="176" y="132" width="12" height="30" fill={K} /><rect x="164" y="160" width="36" height="8" rx="3" fill={K} />
+      <rect x="28" y="104" width="14" height="30" rx="4" fill={ROUGE} stroke={K} strokeWidth="2.500" /><rect x="31" y="92" width="8" height="12" fill={K} />
+      <Fig x={100} top={W} hair="#5a3a22" long arms={[{ d: "M16 -104 L44 -112 L58 -122", h: [60, -124], c: "#ff8fa3" }, { d: "M-16 -104 L-24 -72", h: [-25, -66], c: "#ff8fa3" }]}>
+        <rect x="-18" y="-112" width="36" height="64" rx="12" fill="#ff8fa3" />
+        <rect x="58" y="-142" width="5" height="22" rx="2" fill={K} transform="rotate(30 60 -132)" /><ellipse cx="68" cy="-152" rx="8" ry="6" fill={ROUGE} transform="rotate(30 68 -152)" />
       </Fig>
     </Cadre>
   ),
