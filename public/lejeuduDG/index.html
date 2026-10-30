@@ -105,6 +105,10 @@ input[type=range]{width:100%;accent-color:var(--gold)}
 .gauge .v small{font-size:11px;font-weight:700;color:var(--muted)}
 .gauge .bar{height:5px;border-radius:3px;background:#1b2440;overflow:hidden}
 .gauge .bar i{display:block;height:100%;border-radius:3px;transition:width .5s}
+.gauge .v .pv{font-size:12px;font-weight:800;margin-left:6px}
+.gauge .v .pv.up{color:var(--green)} .gauge .v .pv.dn{color:var(--rose)}
+.gauge .bar{position:relative} .gauge .bar em{position:absolute;top:0;height:100%;background:repeating-linear-gradient(90deg,rgba(255,255,255,.55) 0 3px,transparent 3px 6px)}
+.gauge.has-pv{border-color:var(--gold)}
 .gauge.flash{box-shadow:0 0 0 2px var(--gold),0 0 24px rgba(201,162,74,.5)}
 .gauge.c-ca{border-color:var(--gold-dark)}
 .c-res i{background:var(--rose)} .c-cash i{background:var(--orange)} .c-rate i{background:var(--cyan)} .c-ca i{background:var(--gold)} .c-etu i{background:#4ade80} .c-com i{background:var(--blue)} .c-cse i{background:var(--violet)}
@@ -213,7 +217,7 @@ th{font-size:10px;font-weight:900;letter-spacing:.1em;text-transform:uppercase;c
  .gauges{display:flex;overflow-x:auto;gap:6px;padding-block:4px;scrollbar-width:none;-webkit-overflow-scrolling:touch}
  .gauges::-webkit-scrollbar{display:none}
  .gauge{flex:0 0 auto;width:118px;padding:5px 8px;border-radius:8px}
- .gauge .l{font-size:8px;letter-spacing:.06em} .gauge .v{font-size:13px;margin:1px 0 3px} .gauge .v small{display:none} .gauge .bar{height:3px}
+ .gauge .l{font-size:8px;letter-spacing:.06em} .gauge .v{font-size:13px;margin:1px 0 3px} .gauge .v small{display:none} .gauge .v .pv{font-size:10px;margin-left:3px} .gauge .bar{height:3px}
  .episodes{display:flex;overflow-x:auto;gap:6px;scrollbar-width:none} .episodes::-webkit-scrollbar{display:none} .ep{flex:0 0 auto;width:104px}.tiles,.profiles,.btiles,.media,.mtot{grid-template-columns:1fr}.panel{padding:18px}.scene{padding:14px}.ticker{margin-inline:-14px}.scene h2{font-size:20px}.toasts{top:auto;bottom:16px}.mrow{grid-template-columns:auto 1fr auto}.mrow .cap{grid-column:2;text-align:left}}
 </style>
 
@@ -257,9 +261,9 @@ const PROFILES=[
 
 // Mesures : cat rec/dep/str ; rev,cost k€/an ; mk = variation du budget médias ; price % ; stu = multiplicateur inscriptions ; churn pts ; once = cash immédiat ; cap = capital consommé (ou gagné) ; g = effets jauges
 const MEASURES=[
- ["rec","Hausser les frais de 5 %","Une rentrée à 2 625 € au lieu de 2 500 €. Les commerciaux grognent, les étudiants aussi.",{price:5,cap:-8,g:{etu:-4,com:-5}}],
- ["rec","Hausser les frais de 12 %","Positionnement premium assumé. Risque réel sur les inscriptions.",{price:12,cap:-15,g:{etu:-9,com:-12}}],
- ["rec","Baisser les frais de 8 %","Prix d'appel pour relancer les inscriptions. Le conseil y voit une fuite en avant.",{price:-8,cap:-12,g:{etu:6,com:8}}],
+ ["rec","Hausser les frais de 5 %","Une rentrée à 2 625 € au lieu de 2 500 €. Les commerciaux grognent, les étudiants aussi.",{price:5,churn:1,cap:-8,g:{etu:-4,com:-5}}],
+ ["rec","Hausser les frais de 12 %","Positionnement premium assumé. Risque réel sur les inscriptions.",{price:12,churn:4,cap:-15,g:{etu:-9,com:-12}}],
+ ["rec","Baisser les frais de 8 %","Prix d'appel pour relancer les inscriptions. Le conseil y voit une fuite en avant.",{price:-8,churn:-2,cap:-12,g:{etu:6,com:8}}],
  ["rec","Frais de dossier de 150 €","Chaque nouvelle inscription paie des frais. Petite recette, petite irritation.",{rev:600,cap:-4,g:{etu:-3,com:-3}}],
  ["rec","Options payantes (coaching, certifications)","Vendre de l'accompagnement individuel en plus du cursus.",{rev:900,cost:300,cap:-3,g:{etu:-2,com:2}}],
  ["rec","Offre B2B de formation continue","Vendre des parcours aux entreprises. Les commerciaux adorent, l'équipe péda doit suivre.",{rev:1500,cost:600,cap:-6,g:{com:4,cse:1}}],
@@ -312,7 +316,7 @@ const MEASURES=[
  ["fou","Racheter le concurrent direct","8 M€ de dette en plus, 4 000 étudiants de plus, deux cultures à fusionner.",{debt:8000,once:-500,rev:7000,cost:5200,stu:1.2,cap:-34,g:{cse:-8,com:6,etu:-3}}],
  ["fou","Tout-IA : 60 % des cours générés et corrigés par IA","120 postes supprimés, une plateforme réinventée. Le CSE parlera de carnage, le conseil de modernité.",{cost:-6500,once:-2500,hc:-120,churn:6,cap:-38,g:{cse:-35,etu:-15}}],
  ["fou","Lever 20 M€ en bourse","Introduction sur le marché. L'argent coule, les exigences de reporting aussi, et chaque trimestre devient public.",{once:20000,cost:500,cap:-32,g:{cse:-4,com:4}}],
- ["fou","Doubler les frais : l'école d'élite","5 000 € l'année, promotions divisées par deux, accompagnement de luxe. Les commerciaux changent de métier.",{price:100,stu:0.5,churn:-6,cost:800,cap:-36,g:{etu:-12,com:-28,cse:-4}}],
+ ["fou","Doubler les frais : l'école d'élite","5 000 € l'année, promotions divisées par deux, accompagnement de luxe. Les commerciaux changent de métier.",{price:100,stu:0.5,churn:28,cost:800,cap:-36,g:{etu:-12,com:-28,cse:-4}}],
  ["fou","Campagne nationale à 3 M€","TV en prime time, affichage dans toutes les gares. Les inscriptions explosent, la trésorerie aussi.",{mk:3000,stu:1.35,cap:-26,g:{com:14}}],
  ["fou","Semaine de 4 jours et +10 % de salaire pour tous","Le pari social : attirer et garder les meilleurs, et le faire savoir.",{cost:2000,churn:-2,stu:1.04,cap:-24,g:{cse:30,etu:4,com:8}}],
  ["fou","Supprimer la force de vente : 100 % inbound","Les 100 commerciaux partent. Le marketing et le site doivent tout faire.",{cost:-4800,once:-2000,hc:-100,stu:0.55,cap:-40,g:{com:-60,cse:-15}}],
@@ -492,7 +496,7 @@ function chips(fx){
   if(fx.g) for(const k in fx.g) out.push([GN[k]+' '+(fx.g[k]>0?'+':'')+fx.g[k],fx.g[k]>0]);
   return out.map(([t,p,c])=>`<span class="chip ${c||(p?'pos':'neg')}">${t}</span>`).join('');
 }
-function yearly(m){ return (m.rev||0)-(m.cost||0)-(m.mk||0)+(m.price?S.students*S.price*m.price/100/1000:0)+(m.stu?(m.stu-1)*4200*S.price/1000:0); }
+function yearly(m){ const tu=S.students*S.price/1000; return (m.rev||0)-(m.cost||0)-(m.mk||0)+(m.price?tu*m.price/100:0)-(m.churn?tu*m.churn/100*(1+(m.price||0)/100):0)+(m.stu?(m.stu-1)*4200*S.price/1000:0); }
 
 // ---------- Médias et inscriptions ----------
 function channelCalc(k,budget){
@@ -626,15 +630,22 @@ function gaugeHtml(){
   const resW=clamp((lr.pct+20)/40*100,2,100);
   const cashW=clamp((S.cash+6000)/16000*100,2,100);
   const conj=S.cash<-2000?['bad','🔥 Trésorerie sous tension']:S.lastResult.pct<-5?['warn','😬 Comptes dans le rouge']:S.lastResult.pct<S.target?['','😐 Redressement en cours']:['','😀 Objectif en vue'];
-  const G=(cls,ic,l,v,w,sub)=>`<div class="gauge ${cls}" data-g="${cls.slice(2)}"><div class="l">${ic} ${l}</div><div class="v num">${v}${sub?`<small> · ${sub}</small>`:''}</div><div class="bar"><i style="width:${w}%"></i></div></div>`;
+  // Prévisualisation : effet des mesures cochées (non encore votées)
+  const pend=S.pending.map(i=>MEASURES[i]); const pv=pend.length>0;
+  const d={ca:0,etu:0,com:0,cse:0,once:0};
+  pend.forEach(m=>{d.ca+=m.cap||0; d.once+=m.once||0; if(m.g) for(const k in m.g) d[k]+=m.g[k];});
+  const pj=projected();
+  const arrow=(cur,nxt,fmtF,good)=>pv&&Math.round(nxt*10)!==Math.round(cur*10)?`<span class="pv ${good?'up':'dn'}">→ ${fmtF(nxt)}</span>`:'';
+  const G=(cls,ic,l,v,w,sub,pvh,w2)=>`<div class="gauge ${cls}${pvh?' has-pv':''}" data-g="${cls.slice(2)}"><div class="l">${ic} ${l}</div><div class="v num">${v}${pvh||(sub?`<small> · ${sub}</small>`:'')}</div><div class="bar"><i style="width:${w}%"></i>${pvh?`<em style="left:${Math.min(w,w2)}%;width:${Math.abs(w2-w)}%"></em>`:''}</div></div>`;
+  const nca=clamp(S.g.ca+d.ca,0,100),netu=clamp(S.g.etu+d.etu,0,100),ncom=clamp(S.g.com+d.com,0,100),ncse=clamp(S.g.cse+d.cse,0,100),ncash=S.cash+d.once;
   return {conj,html:
-   G('c-res','📉','Résultat net',pct(lr.pct),resW,`cible +${S.target} %`)+
-   G('c-ca','⚡','Capital',Math.round(S.g.ca)+' pts',S.g.ca,S.g.ca<20?'danger':S.g.ca<40?'fragile':S.g.ca<70?'solide':'fort')+
-   G('c-cash','🏦','Trésorerie',mE(S.cash),cashW,`dette ${(S.debt/1000).toFixed(0)} M€`)+
+   G('c-res','📉','Résultat net',pct(lr.pct),resW,`cible +${S.target} %`,pv?arrow(lr.pct,pj.pct,pct,pj.pct>lr.pct):'',clamp((pj.pct+20)/40*100,2,100))+
+   G('c-ca','⚡','Capital',Math.round(S.g.ca)+' pts',S.g.ca,S.g.ca<20?'danger':S.g.ca<40?'fragile':S.g.ca<70?'solide':'fort',arrow(S.g.ca,nca,x=>Math.round(x)+' pts',nca>=S.g.ca),nca)+
+   G('c-cash','🏦','Trésorerie',mE(S.cash),cashW,`dette ${(S.debt/1000).toFixed(0)} M€`,arrow(S.cash,ncash,mE,ncash>=S.cash),clamp((ncash+6000)/16000*100,2,100))+
    G('c-rate','📈','Taux · banque',(S.rate*100).toFixed(1).replace('.',',')+' %',clamp(100-S.rate*800,5,100),S.rate<0.045?'AA':S.rate<0.065?'BBB':'B')+
-   G('c-etu','🎓','Étudiants',Math.round(S.g.etu)+' %',S.g.etu,fmt(S.students))+
-   G('c-com','💼','Commerciaux',Math.round(S.g.com)+' %',S.g.com,fmt(S.lastNew)+' inscr.')+
-   G('c-cse','🤝','CSE · salariés',Math.round(S.g.cse)+' %',S.g.cse,fmt(S.staff))};
+   G('c-etu','🎓','Étudiants',Math.round(S.g.etu)+' %',S.g.etu,fmt(S.students),arrow(S.g.etu,netu,x=>Math.round(x)+' %',netu>=S.g.etu),netu)+
+   G('c-com','💼','Commerciaux',Math.round(S.g.com)+' %',S.g.com,fmt(S.lastNew)+' inscr.',arrow(S.g.com,ncom,x=>Math.round(x)+' %',ncom>=S.g.com),ncom)+
+   G('c-cse','🤝','CSE · salariés',Math.round(S.g.cse)+' %',S.g.cse,fmt(S.staff),arrow(S.g.cse,ncse,x=>Math.round(x)+' %',ncse>=S.g.cse),ncse)};
 }
 function renderGauges(){ const el=$('#gauges'); if(!el) return; const g=gaugeHtml(); el.innerHTML=g.html; const p=$('#conj'); if(p){p.className='pill '+g.conj[0];p.textContent=g.conj[1];} }
 function flashGauge(k){ const el=document.querySelector(`.gauge[data-g="${k}"]`); if(el){el.classList.add('flash');setTimeout(()=>el.classList.remove('flash'),2500);} }
@@ -774,7 +785,7 @@ function phMesures(){
   const draw=()=>{
     const used=-capCost(S.pending); const avail_cap=Math.round(S.g.ca);
     $('#cat').innerHTML=cats.map(([k,n,col])=>`<div class="cath"><i style="background:${col}"></i>${n}</div><div class="mrows">${avail.filter(m=>m.cat===k).map(m=>{const y=yearly(m);const sel=S.pending.includes(m.id);const c=m.cap||0;const off=!sel&&(S.pending.length>=MAXM||(c<0&&used-c>avail_cap));return `<label class="mrow ${sel?'sel':''} ${off?'off':''} ${m.cat==='fou'?'fou':''}"><input type="checkbox" data-id="${m.id}" ${sel?'checked':''} ${off?'disabled':''}><span>${m.n}</span><span class="cap ${c>0?'gain':''}">${c>0?'+':''}${c} ⚡</span><span class="amt num ${y>50?'pos':y<-50?'neg':'zero'}">${y>50||y<-50?kE(y):'±0'}</span><span class="tip"><span class="d">${m.d}</span>${chips({g:m.g,once:m.once,hc:m.hc,churn:m.churn,rate:m.rate})||'<span class="chip">Aucun effet sur les jauges</span>'}</span></label>`;}).join('')}</div>`).join('');
-    $('#cat').querySelectorAll('input').forEach(i=>i.addEventListener('change',e=>{const id=+e.target.dataset.id; if(e.target.checked) S.pending.push(id); else S.pending=S.pending.filter(x=>x!==id); draw(); renderBudget(); save();}));
+    $('#cat').querySelectorAll('input').forEach(i=>i.addEventListener('change',e=>{const id=+e.target.dataset.id; if(e.target.checked) S.pending.push(id); else S.pending=S.pending.filter(x=>x!==id); draw(); renderBudget(); renderGauges(); save();}));
     const cb=$('#capbar'); cb.className='capbar'+(used>avail_cap?' over':''); cb.innerHTML=`<span>⚡ Capital engagé par les mesures cochées</span><span><b>${used}</b> / ${avail_cap} pts disponibles</span>`;
     $('#tally').innerHTML=`<b>${S.pending.length}</b> / ${MAXM} mesures retenues. ${S.pending.length?'Elles seront soumises au vote du conseil en juillet ; le capital sera débité à l\'adoption.':'Vous pouvez aussi continuer sans nouvelle mesure.'}`;
     ready();
