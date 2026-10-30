@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="description" content="Le Jeu du DG : cinq écoles en ligne à diriger de 2026 à 2030.">
+<meta name="description" content="Le Jeu du DG : cinq Ã©coles en ligne Ã  diriger de 2026 Ã  2030.">
 <title>Le Jeu du DG</title>
 <style>
 /* Layout: série politique — en-tête + bandeau d'épisodes, jauges collantes, carte d'épisode à cadre doré, panneau budget. Thème unique sombre, choisi délibérément. */
@@ -246,7 +246,7 @@ const N={
  daf:"Guillaume Norgeat", dafRole:"Directeur administratif et financier",
  peda:"Eva Duchene", com:"Delphine Engels", dsi:"Bechir Labaflechette", mkt:"Kim Lavertue", support:"Hector Behelle", business:"Perrine Teintagel", qualite:"Melyne Jeannie", rh:"Anne-Sophie Marrasco", comm:"Arthur Fortatos",
  cse:"Noemie Dosmot", comSenior:"Mariya Unika", etuF:"Inès Benkacem", etuM:"Mehdi Lauret", filiere:"Léa Fabre",
- adminEtu:"Hugo Simon", adminEns:"Claude Allegre", actionnaire:"Jean-Luc Amanoutian", adminIndep:"Hélène Bellavenir", banquier:"Henri Largenté", banque:"Banque Rhône-Atlantique",
+ adminEtu:"Kevin Van Debout", adminEns:"Claude Allegre", actionnaire:"Jean-Luc Amanoutian", adminIndep:"Hélène Bellavenir", banquier:"Henri Largenté", banque:"Banque Rhône-Atlantique",
  cac:"cabinet BDA", qualiopi:"Certif'Form", star:"Matthieu Levertueux",
  fil1:"Marketing digital", fil2:"Petite Enfance", fil3:"Santé Naturelle", mba:"MBA Business en ligne",
 };
@@ -349,6 +349,7 @@ const MEASURES_T=[
  ["dep","Fusionner trois filières à faibles effectifs","Moins de cours à maintenir, quelques étudiants orphelins.",{cost:-700,cap:-8,g:{etu:-4,cse:-8}}],
  ["dep","Réduire les primes commerciales","Les commerciaux gagnent moins. Ils le feront savoir.",{cost:-600,cap:-14,g:{com:-22}}],
  ["dep","Chasse aux coûts (frais, prestataires, voyages)","La petite rigueur du quotidien.",{cost:-350,cap:-3,g:{cse:-3}}],
+ ["dep","Annualisation du temps de travail","Les équipes travaillent plus à la rentrée, moins l'été : fin des heures sup et de l'intérim. Le CSE négociera cher, et l'accord vivra sa vie.",{cost:-1100,cap:-9,g:{cse:-10,com:-4},flag:"annualisation"}],
  ["dep","Reporter les investissements plateforme","On tiendra encore un an avec l'existant. Peut-être.",{cost:-600,cap:-4,g:{etu:-6},flag:"vieux_lms"}],
  ["str","IA pour les corrections et le feedback","Les copies corrigées par IA, relues par un enseignant. Moins de postes à terme.",{cost:-800,once:-700,hc:-15,cap:-11,g:{cse:-12,etu:-3},flag:"ia"}],
  ["str","Assistant IA pour les commerciaux","Qualification des leads et relances automatisées.",{once:-400,stu:1.07,cap:-4,g:{com:3,cse:-3},flag:"ia"}],
@@ -460,6 +461,10 @@ const AMENDEMENTS=[
 ];
 
 const EVENTS=[
+ {ic:"⚖️",n:"Prud'hommes : l'accord d'annualisation attaqué",t:"Trente salariés contestent le décompte des heures. L'avocat du CSE parle de « travail dissimulé ». Provision et mauvaise presse interne.",fx:{once:-550,g:{cse:-9,ca:-3}},w:s=>s.flags.annualisation?2.5:0},
+ {ic:"🏛️",n:"L'inspection du travail retoque l'annualisation",t:"Modulation trop large, délais de prévenance non respectés : l'accord doit être renégocié. Une partie des économies s'évapore.",fx:{cost:600,g:{cse:-5,ca:-2}},w:s=>s.flags.annualisation?2:0},
+ {pos:true,ic:"📅",n:"L'annualisation absorbe le pic de rentrée",t:"Pour la première fois, septembre passe sans intérim ni heures sup. Les commerciaux ont du support en face d'eux, les comptes respirent.",fx:{cost:-500,g:{com:6,cse:3,ca:3}},w:s=>s.flags.annualisation?2.5:0},
+ {pos:true,ic:"🤝",n:"Accord d'annualisation signé par tous les syndicats",t:"Après un an de pratique, le CSE signe un avenant qui pérennise le dispositif. La paix sociale, et un modèle cité par la branche.",fx:{g:{cse:9,ca:4}},w:s=>s.flags.annualisation?2:0},
  {ic:"💥",n:"Panne majeure de la plateforme pendant les examens",t:"Trois jours sans accès en pleine session. Les réseaux sociaux s'en donnent à cœur joie.",fx:{g:{etu:-11,ca:-4},once:-280},w:s=>s.flags.vieux_lms?3:(s.flags.new_lms?0.2:1)},
  {ic:"🔓",n:"Cyberattaque et fuite de données étudiantes",t:"Rançongiciel. La CNIL est prévenue, les étudiants aussi.",fx:{g:{etu:-14,ca:-8,cse:-4},once:-840},w:s=>s.flags.risque_cyber?4:(s.flags.secu?0.2:0.8)},
  {ic:"🆓",n:"Un géant du MOOC lance une offre gratuite diplômante",t:"Vos prospects comparent. Vos commerciaux aussi.",fx:{stuY:0.89,g:{com:-7}},w:()=>1},
@@ -956,6 +961,8 @@ function phMesures(){
     const take=(cat,n)=>{const l=pool.filter(m=>m.cat===cat).sort(()=>Math.random()-0.5);return l.slice(0,n).map(m=>m.id);};
     const Q=[[4,4,3,1],[5,5,4,1],[6,6,4,2],[7,6,5,2],[7,6,5,2]][Math.min(S.yi,4)];
     S.offer[S.year]=[...take('rec',Q[0]),...take('dep',Q[1]),...take('str',Q[2]),...take('fou',Q[3])];
+    const ann=MEASURES.find(m=>m.flag==='annualisation');
+    if(S.yi===0&&ann&&!S.active.includes(ann.id)&&!S.offer[S.year].includes(ann.id)){const deps=S.offer[S.year].filter(i=>MEASURES[i].cat==='dep');S.offer[S.year][S.offer[S.year].indexOf(deps[deps.length-1])]=ann.id;}
   }
   const avail=S.offer[S.year].map(i=>MEASURES[i]).filter(m=>!S.active.includes(m.id));
   const cats=[['rec','Recettes nouvelles','var(--green)'],['dep','Économies et coupes','var(--gold)'],['str','Réformes de structure','var(--violet)'],['fou','Coups de poker — effets massifs, capital massif','var(--rose)']];
