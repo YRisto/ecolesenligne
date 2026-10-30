@@ -1,14 +1,14 @@
 import Link from "next/link";
-import DomaineIllu from "./DomaineIllu";
+import DomaineScene from "./DomaineScene";
 
 const MOTS = ["Comparer", "Choisir", "Demander", "Réussir"];
 
-export default function PageHero({ crumbs = [], chips = [], titre, sous, aside, domaine }) {
+export default function PageHero({ crumbs = [], chips = [], titre, sous, aside, domaine, stats }) {
+  const carte = domaine ? <DomaineScene domaine={domaine} className="phero-card" title={`Illustration : ${domaine}`} /> : null;
   return (
     <>
       <section className="phero">
         <svg className="hero-chart" viewBox="0 0 1200 500" preserveAspectRatio="none" aria-hidden="true"><polyline points="0,470 120,430 230,445 360,360 470,380 600,290 720,310 850,190 980,215 1100,90 1200,60" /></svg>
-        {domaine && <DomaineIllu domaine={domaine} className="phero-illu" />}
         <div className="phero-in">
           <div className="phero-main">
             {crumbs.length > 0 && (
@@ -20,7 +20,8 @@ export default function PageHero({ crumbs = [], chips = [], titre, sous, aside, 
             <h1 className="display">{titre}</h1>
             {sous && <p className="phero-sub">{sous}</p>}
           </div>
-          {aside && <div className="phero-aside">{aside}</div>}
+          {(aside || carte) && <div className="phero-aside">{carte || aside}</div>}
+          {stats && <ul className="phero-row">{stats.map((x, i) => <li key={i}><strong>{x.v}</strong><span>{x.l}</span></li>)}</ul>}
         </div>
       </section>
       <div className="ticker" aria-hidden="true">

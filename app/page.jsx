@@ -4,7 +4,7 @@ import conf from "../data/ponderation.json";
 import toutesOffres from "../data/offres.json";
 import CountUp from "../components/home/CountUp";
 import HeroSearch from "../components/home/HeroSearch";
-import DomaineIllu from "../components/DomaineIllu";
+import DomaineScene from "../components/DomaineScene";
 
 const LIBELLES = { diplome: "Diplôme reconnu", prix: "Prix", accompagnement: "Accompagnement", avis: "Avis des élèves", financement: "Financement", preparation_examen: "Préparation à l'examen", taux_reussite: "Taux de réussite", garantie: "Garantie", supports: "Supports de cours" };
 const virgule = (n) => n.toFixed(1).replace(".", ",");
@@ -106,7 +106,7 @@ export default function Home() {
           <div className="tiles">
             {DOMAINES.map((d) => {
               const n = formations.filter((f) => f.domaine === d).length;
-              return <Link key={d} href={`/formations?domaine=${encodeURIComponent(d)}`} className="tile"><DomaineIllu domaine={d} className="tile-illu" /><span className="tile-n">{n}</span><span className="tile-t">{d}</span></Link>;
+              return <Link key={d} href={`/formations?domaine=${encodeURIComponent(d)}`} className="tile"><DomaineScene domaine={d} className="tile-scene" /><span className="tile-foot"><span className="tile-n">{n}</span><span className="tile-t">{d}</span></span></Link>;
             })}
           </div>
         </div>

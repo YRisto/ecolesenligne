@@ -28,13 +28,11 @@ export default async function Page({ params }) {
         chips={[{ label: f.type }, f.niveau && { label: f.niveau, tone: "muted" }].filter(Boolean)}
         titre={<>{f.intitule}<span className="or"> à distance</span></>}
         sous={`Quelle école choisir ? ${offres.length} écoles comparées sur les mêmes critères, classées par note ecolesenligne.fr.`}
-        aside={
-          <ul className="phero-stats">
-            <li><strong>{offres.length}</strong><span>écoles comparées</span></li>
-            {prixMin(f.code) && <li><strong>{eur(prixMin(f.code))}</strong><span>prix le plus bas</span></li>}
-            {ecart > 0 && <li><strong>{eur(ecart)}</strong><span>d'écart entre la moins chère et la plus chère</span></li>}
-          </ul>
-        }
+        stats={[
+          { v: offres.length, l: "écoles comparées" },
+          ...(prixMin(f.code) ? [{ v: eur(prixMin(f.code)), l: "prix le plus bas" }] : []),
+          ...(ecart > 0 ? [{ v: eur(ecart), l: "d'écart entre la moins chère et la plus chère" }] : []),
+        ]}
       />
       {v && (
         <section className="sec sec-white sec-tight" aria-label="Le métier en vidéo">

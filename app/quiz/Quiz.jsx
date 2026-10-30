@@ -2,6 +2,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import DomaineIllu from "../../components/DomaineIllu";
+import DomaineScene from "../../components/DomaineScene";
 
 const eur = (n) => (n ? `${Number(n).toLocaleString("fr-FR")} €` : "prix sur demande");
 const QUESTIONS = [
@@ -84,7 +85,7 @@ export default function Quiz({ formations, domaines }) {
         {step === 0 ? (
           <>
             {domaines.map((d) => (
-              <button key={d} className="qo qo-illu" onClick={() => { setDomaine(d); next(); }}><DomaineIllu domaine={d} className="qo-i" /><span>{d}</span></button>
+              <button key={d} className="qo qo-illu" onClick={() => { setDomaine(d); next(); }}><DomaineScene domaine={d} className="qo-scene" /><span className="qo-t">{d}</span></button>
             ))}
             <button className="qo" onClick={() => { setDomaine(""); next(); }}><span>Je ne sais pas encore</span></button>
           </>
