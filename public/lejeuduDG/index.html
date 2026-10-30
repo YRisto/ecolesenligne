@@ -896,11 +896,14 @@ function phVote(){
   }
   const pend=S.pending.map(i=>MEASURES[i]);
   const cap=capCost(S.pending);
-  const chance=clamp(S.g.ca+S.tmp.bonus+cap*1.5+(pend.length?-pend.length*2:30),5,97);
+  // Chance d'adoption : base 70, + confiance du conseil (capital), + amendements, − ambition du plan (capital engagé, nombre de mesures), + crédibilité (résultat projeté)
+  const pj=projected(); const credib=clamp((pj.pct-S.lastResult.pct)*0.6,-6,10);
+  const parts={base:70,conf:Math.round((S.g.ca-50)*0.6),amd:S.tmp.bonus,poids:Math.round(cap*0.4-pend.length*1.5),cred:Math.round(credib)};
+  const chance=pend.length?clamp(parts.base+parts.conf+parts.amd+parts.poids+parts.cred,8,95):97;
   if(S.sub===2){
     sceneShell(dlg(PRES,S.mode?'Le président du conseil':N.president,N.presidentRole+' · ouvre le vote',`« ${pend.length?`Le plan comporte ${pend.length} mesure${pend.length>1?'s':''}, pour ${-cap} points de capital.`:'Aucune nouvelle mesure n\'est soumise.'} Le conseil se prononce à main levée. »`)+
      `<div class="tw"><table><tr><th>Mesure</th><th>Effet annuel</th><th>Capital</th><th>Étudiants</th><th>CSE</th></tr>${pend.map(m=>`<tr><td>${m.n}</td><td class="num">${kE(yearly(m))}</td><td class="num" style="color:var(--gold-hi)">${m.cap>0?'+':''}${m.cap||0}</td><td class="num">${(m.g&&m.g.etu)||0}</td><td class="num">${(m.g&&m.g.cse)||0}</td></tr>`).join('')||'<tr><td colspan="5" class="muted">Aucune mesure</td></tr>'}</table></div>
-     <div class="note">Chance d'adoption estimée : <b style="font-size:18px;color:var(--gold)">${Math.round(chance)} %</b> <span class="muted">(capital ${Math.round(S.g.ca)} pts, amendements ${S.tmp.bonus>=0?'+':''}${S.tmp.bonus}, poids des mesures ${Math.round(cap*1.5)})</span></div><div id="c" style="display:flex;justify-content:center"></div>`,{title:'Le vote du conseil',tag:'La grande bidouille se termine. Le conseil tranche.'});
+     <div class="note">Chance d'adoption estimée : <b style="font-size:18px;color:var(--gold)">${Math.round(chance)} %</b> <span class="muted">(base 70, confiance du conseil ${parts.conf>=0?'+':''}${parts.conf}, amendements ${parts.amd>=0?'+':''}${parts.amd}, ambition du plan ${parts.poids}, crédibilité ${parts.cred>=0?'+':''}${parts.cred})</span></div><div id="c" style="display:flex;justify-content:center"></div>`,{title:'Le vote du conseil',tag:'La grande bidouille se termine. Le conseil tranche.'});
     $('#c').appendChild(btn('🗳️ Appeler au vote',()=>{S.sub=3;S.tmp.roll=Math.random()*100;renderGame();}));
     return;
   }
