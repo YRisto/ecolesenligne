@@ -9,7 +9,7 @@ export default function Page() {
       <h2>Destinataires</h2><p>L'école désignée dans votre demande ; le cas échéant, les autres écoles partenaires référencées sur le site (liste consultable sur la page <a href="/formations">Formations</a>) ; nos sous-traitants techniques (Vercel, Supabase).</p>
       <h2>Durée de conservation</h2><p>Les demandes sont conservées 3 ans à compter du dernier contact, puis supprimées.</p>
       <h2>Vos droits</h2><p>Accès, rectification, effacement, limitation, opposition, portabilité et retrait du consentement à tout moment, en écrivant à [e-mail]. Vous pouvez saisir la CNIL (cnil.fr) en cas de litige.</p>
-      <h2>Cookies</h2><p>Le site n'utilise aucun cookie publicitaire. Seuls des cookies techniques strictement nécessaires peuvent être déposés.</p>
+      <h2>Cookies</h2><p>Le site n'utilise aucun cookie publicitaire. Seuls des cookies techniques strictement nécessaires peuvent être déposés. Les vidéos présentées sur les fiches métier sont hébergées par YouTube (Google) : elles ne se chargent qu'après votre clic sur « lire », via le domaine youtube-nocookie.com ; avant ce clic, aucune donnée n'est transmise à YouTube.</p>
     </div>
   );
 }

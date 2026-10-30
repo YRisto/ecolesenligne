@@ -11,11 +11,15 @@ export async function POST(req) {
   if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(b.email)) return NextResponse.json({ error: "E-mail invalide." }, { status: 400 });
 
   const f = b.formation ? getFormation(b.formation) : null;
-  const e = getEcole(b.ecole_preferee);
+  const e = b.ecole_preferee === "autre" ? null : getEcole(b.ecole_preferee);
+  const autre = b.ecole_preferee === "autre";
+  if (autre && !b.consent_autres_ecoles) return NextResponse.json({ error: "Pour une école non partenaire, votre accord de mise à disposition aux autres écoles est nécessaire." }, { status: 400 });
+  const souhaitee = autre && b.ecole_souhaitee ? String(b.ecole_souhaitee).slice(0, 120) : null;
   const lead = {
     prenom: b.prenom, nom: b.nom, email: b.email, telephone: b.telephone, code_postal: b.code_postal || null,
     situation: b.situation || null, formation_slug: f?.slug || null, formation_intitule: f?.intitule || null,
-    ecole_preferee_slug: e?.slug || null, domaine: f?.domaine || null, message: b.message || null,
+    ecole_preferee_slug: autre ? "autre" : e?.slug || null, domaine: f?.domaine || null,
+    message: [souhaitee ? `[École souhaitée : ${souhaitee}]` : null, b.message || null].filter(Boolean).join(" ") || null,
     consent_ecole_preferee: true, consent_autres_ecoles: !!b.consent_autres_ecoles, consent_cgu: true,
     ip: req.headers.get("x-forwarded-for")?.split(",")[0] || null, user_agent: req.headers.get("user-agent") || null, source: b.source || null,
   };

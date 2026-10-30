@@ -3,6 +3,8 @@ import { notFound } from "next/navigation";
 import { getFormations, getFormation, getOffres, eur, prixMin } from "../../../lib/catalogue";
 import TableauComparatif from "../../../components/TableauComparatif";
 import conf from "../../../data/ponderation.json";
+import videos from "../../../data/videos.json";
+import VideoMetier from "../../../components/VideoMetier";
 
 export function generateStaticParams() { return getFormations().map((f) => ({ slug: f.slug })); }
 export async function generateMetadata({ params }) {
@@ -11,7 +13,7 @@ export async function generateMetadata({ params }) {
 }
 export default async function Page({ params }) {
   const { slug } = await params; const f = getFormation(slug); if (!f) notFound();
-  const offres = getOffres(f.code); const s = f.synthese;
+  const offres = getOffres(f.code); const s = f.synthese; const v = videos[f.code];
   return (
     <>
       <p className="muted"><Link href="/formations">Formations</Link> › {f.domaine}</p>
@@ -23,6 +25,7 @@ export default async function Page({ params }) {
       {s ? (
         <section className="prose synthese">
           <h2>Le métier après {f.intitule}</h2>
+          {v && <VideoMetier id={v.id} titre={v.titre} chaine={v.chaine} ecole={v.ecole} />}
           {s.metiers && <><h3>Métiers accessibles</h3><p>{s.metiers}</p></>}
           {s.missions && <><h3>Missions au quotidien</h3><p>{s.missions}</p></>}
           {s.conditions && <><h3>Conditions de travail</h3><p>{s.conditions}</p></>}

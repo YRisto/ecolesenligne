@@ -35,7 +35,7 @@ export default function TableauComparatif({ offres, formation }) {
               <td><Txt v={e.supports} /></td>
               <td><Txt v={e.preparation_examen} /></td>
               <td><Txt v={o.modalites || e.modalites} /></td>
-              <td>{e.partenaire ? <Link href={`/demande?formation=${formation.slug}&ecole=${o.ecole}`} className="btn btn-sm">Demander des infos</Link> : <a href={o.url || e.site} target="_blank" rel="nofollow noopener" className="btn btn-sm btn-outline">Voir le site</a>}</td>
+              <td><Link href={`/demande?formation=${formation.slug}&ecole=${o.ecole}`} className="btn btn-sm">Demander des infos</Link></td>
             </tr>); })}
         </tbody>
       </table>

@@ -1,6 +1,18 @@
 {
   "_doc": "Poids de chaque critère dans la note (total 100). Note finale ramenée sur 3,0–5,0. Prix : au-delà de +30 % par rapport au moins cher, plus de points perdus. 'Non communiqué' = 40 % du critère.",
-  "poids": { "diplome": 20, "prix": 15, "accompagnement": 15, "avis": 15, "financement": 10, "preparation_examen": 10, "taux_reussite": 5, "garantie": 5, "supports": 5 },
+  "poids": {
+    "diplome": 15,
+    "prix": 15,
+    "accompagnement": 10,
+    "avis": 25,
+    "financement": 10,
+    "preparation_examen": 5,
+    "taux_reussite": 10,
+    "garantie": 5,
+    "supports": 5
+  },
   "plafond_prix_pct": 30,
-  "note_min": 3.0, "note_max": 5.0, "valeur_non_communique": 0.4
+  "note_min": 3.0,
+  "note_max": 5.0,
+  "valeur_non_communique": 0.4
 }

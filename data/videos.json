@@ -1,0 +1,324 @@
+{
+ "BTS-ASSU": {
+  "id": "PQYU4bsttho",
+  "titre": "Conseiller en Assurances - Vidéo Métier"
+ },
+ "BTS-MCO": {
+  "id": "Cv5DIYcZOr4",
+  "titre": "Responsable de rayon, un métier passionnant",
+  "chaine": "Decathlon Retail jobs"
+ },
+ "BACH-MKD": {
+  "id": "bCumtRnTUTQ",
+  "titre": "Maxime raconte sa vie de Chef de Projet Marketing Digital chez un éditeur Saas"
+ },
+ "CAP-FLEU": {
+  "id": "VCyF206gwxU",
+  "titre": "FLEURISTE - DÉCOUVRE UN MÉTIER"
+ },
+ "BACPRO-MV": {
+  "id": "Dh2BhVvZqoc",
+  "titre": "Présentation du métier de technicien mécanicien automobile"
+ },
+ "TP-GCF": {
+  "id": "aj-lZ81rn3c",
+  "titre": "LE METIER | Gestionnaire Comptable et Fiscal",
+  "chaine": "NELLAPP"
+ },
+ "TP-TIP": {
+  "id": "rPTl5H-rnS0",
+  "titre": "Le poste du mois : Technicien de proximité en informatique"
+ },
+ "CERT-IA": {
+  "id": "yl9eqtuAwGI",
+  "titre": "Prompt Engineering et IA Générative - Le métier du futur ?"
+ },
+ "Q-YOGA": {
+  "id": "3IWD_--fQBM",
+  "titre": "Les Métiers #07 - Professeur de yoga"
+ },
+ "Q-SOIGN": {
+  "id": "d5GQuXwwpC4",
+  "titre": "SOIGNEUR ANIMALIER : découvre ce métier passion (missions, salaire..."
+ },
+ "VAE-DCG": {
+  "id": "W2NK4JNdHSU",
+  "titre": "Le métier d'expert-comptable"
+ },
+ "VAE-DEEJE": {
+  "id": "p6i3IRGNXRI",
+  "titre": "Les Métiers de la Petite Enfance : Zoom sur l'Éducateur de Jeunes Enfants"
+ },
+ "LANG-FLE": {
+  "id": "Qn6pZVzFmXw",
+  "titre": "Le métier de prof de FLE (français langue étrangère"
+ },
+ "BTS-BANQ": {
+  "id": "YEcT4eYryu8",
+  "titre": "« LE MÉTIER DE CONSEILLER BANCAIRE (missions, quotidien, parcours ..."
+ },
+ "BTS-NDRC": {
+  "id": "wZ2XxLgWGGE",
+  "titre": "« 5 métiers après un BTS NDRC : débouchés concrets",
+  "ecole": "enaco"
+ },
+ "CAP-AEPE": {
+  "id": "CKCqDKVRWXo",
+  "titre": "« Auxiliaire petite enfance en crèche : les missions clés"
+ },
+ "CAP-CARR": {
+  "id": "97gkuatJj8E",
+  "titre": "« Le carrossier automobile"
+ },
+ "BACPRO-COUT": {
+  "id": "6x6vZALAYwA",
+  "titre": "« Le métier de couturier h/f"
+ },
+ "TP-GP": {
+  "id": "caYyy_ZV1Sk",
+  "titre": "« GESTIONNAIRE DE PAIE : le guide complet du métier"
+ },
+ "TP-TSSR": {
+  "id": "6haRNTST3gw",
+  "titre": "« MÉTIER ADMINISTRATEUR SYSTÈME ET RÉSEAUX"
+ },
+ "CERT-ACACED": {
+  "id": "xFQJo8ivC9U",
+  "titre": "« TOILETTEUR CANIN : le métier qui sublime nos compagnons"
+ },
+ "Q-ONGLE": {
+  "id": "m7VLB7af3Es",
+  "titre": "« PROTHÉSISTE ONGULAIRE : tout savoir sur ce métier"
+ },
+ "Q-STYL": {
+  "id": "1fIU_jL8xH0",
+  "titre": "« STYLISTE : tout savoir sur ce métier créatif"
+ },
+ "VAE-DEAES": {
+  "id": "aZixUFCrVps",
+  "titre": "Découverte du métier d’Accompagnant Éducatif et Social (AES)",
+  "chaine": "ADSEA80"
+ },
+ "VAE-MASTMAE": {
+  "id": "8Ej3hkodYCc",
+  "titre": "« FICHE MÉTIER : CHEF D'ENTREPRISE"
+ },
+ "BTS-CI": {
+  "id": "MlOG61aKki0",
+  "titre": "Interview Métiers du Commerce international",
+  "chaine": "Onisep Limoges"
+ },
+ "BTS-PI": {
+  "id": "yvuXxru4WB4",
+  "titre": "AGENT IMMOBILIER : un métier de terrain et de contact",
+  "chaine": "Hellowork"
+ },
+ "CAP-BOUL": {
+  "id": "Pfi6do2G8HA",
+  "titre": "BOULANGER : le métier artisanal par excellence",
+  "chaine": "Hellowork"
+ },
+ "CAP-MVVL": {
+  "id": "DiUnzjf1R8o",
+  "titre": "Une journée avec une mécanicienne automobile",
+  "chaine": "Ludovic B"
+ },
+ "BACPRO-MELEC": {
+  "id": "e3exdmdV5ps",
+  "titre": "Le métier d’électricien - Portrait de pros",
+  "chaine": "Cap Métiers Nouvelle-Aquitaine"
+ },
+ "TP-SAMA": {
+  "id": "AI8R7I9yT9I",
+  "titre": "SECRÉTAIRE MÉDICALE : un métier au service des patients",
+  "chaine": "Hellowork"
+ },
+ "TP-GRAPH": {
+  "id": "_Nr5NV2RFN4",
+  "titre": "MÉTIER GRAPHISTE : formation webdesigner, salaire, freelance ou salarié",
+  "chaine": "Maintenant j'aime le lundi"
+ },
+ "Q-ASA": {
+  "id": "ku_QwesWJgo",
+  "titre": "Vidéo métier : Claire, 30 ans, auxiliaire vétérinaire",
+  "chaine": "ImagineTonFutur"
+ },
+ "Q-SOPHRO": {
+  "id": "sRjKPOuBz8U",
+  "titre": "Sophrologue, un métier qui a du sens",
+  "chaine": "École Santé Naturelle"
+ },
+ "VAE-ASSDIR": {
+  "id": "NuKdPc2D57M",
+  "titre": "ASSISTANT DE DIRECTION : un métier stratégique",
+  "chaine": "Hellowork"
+ },
+ "VAE-DEME": {
+  "id": "7tcqksJ2_I4",
+  "titre": "MONITEUR ÉDUCATEUR : découvre ce métier humain",
+  "chaine": "Hellowork"
+ },
+ "VAE-RCL": {
+  "id": "4jZNzjRy3eE",
+  "titre": "Le métier de responsable logistique",
+  "chaine": "AFT"
+ },
+ "BTS-COM": {
+  "id": "UlteCFNMwVI",
+  "titre": "Le métier de CHARGÉE DE COMMUNICATION : défis, rémunération, quotidien"
+ },
+ "BTS-SAM": {
+  "id": "qIoHfQ3XelI",
+  "titre": "Devenez Office Manager avec un Bts SAM !"
+ },
+ "CAP-CUIS": {
+  "id": "LOYFEn23aYM",
+  "titre": "CUISINIER : le guide complet (missions, salaire, conseils de chef"
+ },
+ "CAP-MVMO": {
+  "id": "xjDCGMzrBm0",
+  "titre": "Métiers de la moto"
+ },
+ "TP-ARH": {
+  "id": "AWYfzZwFRWw",
+  "titre": "ASSISTANTE EN RESSOURCES HUMAINES, DÉCOUVRE UN MÉTIER"
+ },
+ "TP-SC": {
+  "id": "4MtZ_3tu9hw",
+  "titre": "Découvrez le métier de Delphine, secrétaire comptable"
+ },
+ "TP-CDUI": {
+  "id": "4ga0JcMFBj4",
+  "titre": "DESIGNER UI (USER INTERFACE"
+ },
+ "Q-NUTRI": {
+  "id": "h-hRPYA8b9w",
+  "titre": "Lucile, coach diététique COMME J'AIME dit tout sur son parcours et sur son métier"
+ },
+ "Q-TOILET": {
+  "id": "xFQJo8ivC9U",
+  "titre": "TOILETTEUR CANIN : le métier qui sublime nos compagnons à quatre pattes"
+ },
+ "VAE-BTSMCO": {
+  "id": "1lMGM7GFiNA",
+  "titre": "Un métier pour vous : Manageuse & Manager d'univers marchand"
+ },
+ "VAE-DEAS": {
+  "id": "KvN9uJ0C7RE",
+  "titre": "AIDE-SOIGNANT : tout connaître du métier (missions, salaire, quotidien"
+ },
+ "VAE-RPARH": {
+  "id": "BxVduu-d3Uk",
+  "titre": "Lucie Lejeune, responsable paie et fière de son job !"
+ },
+ "BTS-CG": {
+  "id": "epLCmPxySBo",
+  "titre": "Mon métier c'est : Comptable"
+ },
+ "BTS-TOUR": {
+  "id": "D2FhIwHQMm0",
+  "titre": "Vis ma vie : Conseiller voyage en Agence FRAM"
+ },
+ "CAP-PATI": {
+  "id": "umeI63mhs_U",
+  "titre": "PATISSIER. DÉCOUVRE UN MÉTIER",
+  "chaine": "Ouest-France"
+ },
+ "CAP-MODE": {
+  "id": "LstJToAwR_Y",
+  "titre": "Couturière - Métiers d'envie"
+ },
+ "TP-CA": {
+  "id": "471QDRm3Soc",
+  "titre": "Le métier d'assistant comptable - Portrait de pros"
+ },
+ "TP-ADVF": {
+  "id": "TbyB2pv1bLE",
+  "titre": "IPERIA // Témoignage métier \"assistant de vie\""
+ },
+ "CERT-ORAL": {
+  "id": "_FoFkQLREfg",
+  "titre": "Gérer la prise de parole en public : développer son charisme"
+ },
+ "Q-DECO": {
+  "id": "JbGhWo3j1FY",
+  "titre": "Le témoignage d'Aude, décoratrice d'intérieur formée à l'edaa pour une reconversion pro",
+  "ecole": "edaa"
+ },
+ "Q-EDUCCAN": {
+  "id": "HWM6wpDOaMQ",
+  "titre": "Le métier d'éducateur canin : portrait d'Alexandra Galand (spécialisée au comportement)",
+  "ecole": "cef"
+ },
+ "VAE-BUTGEA": {
+  "id": "0bpLwDS7Ya4",
+  "titre": "BUT GEA - Gestion des entreprises et des administrations : programme, alternance, débouchés"
+ },
+ "VAE-DEAP": {
+  "id": "YVq1fA9Fxqk",
+  "titre": "AUXILIAIRE DE PUÉRICULTURE : le guide (salaire, missions, journée type)"
+ },
+ "VAE-TPGP": {
+  "id": "0DlK8vchu0k",
+  "titre": "Découverte d'un métier en plein essor : gestionnaire de paie"
+ },
+ "BTS-GPME": {
+  "id": "uQFZYL27N8Q",
+  "titre": "Assistant de gestion PME - La fiche métier complète",
+  "chaine": "Officéo"
+ },
+ "BTS-BAT": {
+  "id": "O01Pibu2LXQ",
+  "titre": "Conducteur de travaux Bâtiment",
+  "chaine": "Afpa"
+ },
+ "CAP-ESTH": {
+  "id": "BiVqYmg6Fuk",
+  "titre": "Le métier d'Esthéticienne : ce qu'il faut savoir avant de se lancer",
+  "chaine": "Elisa Louis"
+ },
+ "CAP-ELEC": {
+  "id": "e3exdmdV5ps",
+  "titre": "Le métier d’électricien - Portrait de pros",
+  "chaine": "Cap Métiers Nouvelle-Aquitaine"
+ },
+ "TP-DWWM": {
+  "id": "--hnzO3tMQo",
+  "titre": "Le métier Développeur web : le témoignage de Nicolas",
+  "chaine": "Digital Campus"
+ },
+ "TP-FPA": {
+  "id": "AuZs7BN8FSA",
+  "titre": "Formateur professionnel d'adultes : interview de David",
+  "chaine": "groupe ETABLIERES"
+ },
+ "CERT-MGT": {
+  "id": "tOo1dzd4bgA",
+  "titre": "Comment manager une équipe : les conseils en management",
+  "chaine": "Robert Half France"
+ },
+ "Q-NATURO": {
+  "id": "5fdCwd1TukQ",
+  "titre": "Naturopathe : un métier d'avenir",
+  "chaine": "ISOstéo Lyon"
+ },
+ "Q-ELEV": {
+  "id": "skN5pH1BOxo",
+  "titre": "Connaissez-vous le métier d'éleveur canin ?",
+  "chaine": "TRUFFAUT"
+ },
+ "VAE-CAPAEPE": {
+  "id": "VBDFO-jdv20",
+  "titre": "vidéos de formation, à vérifier"
+ },
+ "VAE-DEES": {
+  "id": "bgX_t9KgfAE",
+  "titre": "LE MÉTIER D'ÉDUCATEUR SPÉCIALISÉ",
+  "chaine": "La Fabrik de l'orientation"
+ },
+ "LANG-ANG": {
+  "id": "ZbW-VcYSWD4",
+  "titre": "Parler anglais au travail : 5 expressions et conseils",
+  "chaine": "L'Anglais, c'est pas Sorcier!"
+ }
+}

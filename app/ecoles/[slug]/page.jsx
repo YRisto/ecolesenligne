@@ -19,7 +19,6 @@ export default async function Page({ params }) {
           <div><dt>Modalités</dt><dd>{e.modalites || "non communiqué"}</dd></div>
           <div><dt>Préparation examen</dt><dd>{e.preparation_examen || "non communiqué"}</dd></div>
         </dl>
-        {e.site && <a href={e.site} target="_blank" rel="nofollow noopener" className="btn btn-outline">Site de l'école</a>}
       </div>
       <h2>Formations</h2>
       <table className="compare"><thead><tr><th>Formation</th><th>Prix total</th><th>Durée</th><th>Diplôme</th><th></th></tr></thead>
