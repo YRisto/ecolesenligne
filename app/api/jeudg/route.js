@@ -26,7 +26,7 @@ export async function POST(req) {
   const num = (v, lo, hi) => { const n = Number(v); return Number.isFinite(n) ? Math.max(lo, Math.min(hi, n)) : null; };
   const row = {
     partie_id: b.partie_id, type, dg, profil: clean(b.profil, 60),
-    saison: type === "saison" ? num(b.saison, 1, 6) : null, annee: num(b.annee, 2026, 2031),
+    saison: type === "saison" ? num(b.saison, 1, 5) : null, annee: num(b.annee, 2026, 2030),
     resultat_pct: num(b.resultat_pct, -100, 100) ?? 0, capital: num(b.capital, 0, 100), etudiants: num(b.etudiants, 0, 1e6),
     tresorerie_k: num(b.tresorerie_k, -1e6, 1e6), mesures: num(b.mesures, 0, 200), statut: clean(b.statut, 20) || null,
   };
