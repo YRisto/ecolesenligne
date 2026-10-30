@@ -1,0 +1,599 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="description" content="Le jeu du DG : redressez une école à distance de 12 000 étudiants avant la rentrée 2032.">
+<title>La Bataille de l'École</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=Source+Sans+3:ital,wght@0,400;0,600;0,700;1,400&display=swap">
+<style>
+/* Layout: a fixed "tableau de bord" strip (jauges + chiffres) above a single scene card, like a ministry briefing binder. */
+:root{
+  --bg:#f3f1ec; --paper:#ffffff; --fg:#1d2430; --muted:#5e6673; --line:#d8d4cb;
+  --accent:#2a4d8f; --accent-fg:#ffffff; --tint:#e6ecf7;
+  --good:#2f7d4f; --warn:#b7791f; --crit:#b33a3a;
+  --display:"Bricolage Grotesque","Avenir Next",Arial,sans-serif;
+  --body:"Source Sans 3","Segoe UI",Helvetica,Arial,sans-serif;
+}
+@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){
+  --bg:#151a22; --paper:#1e2531; --fg:#e8e9ec; --muted:#9aa3b2; --line:#303a49;
+  --accent:#7fa3e6; --accent-fg:#101722; --tint:#263247;
+  --good:#5fbf86; --warn:#e0a84a; --crit:#e2706d; color-scheme:dark } }
+:root[data-theme="dark"]{
+  --bg:#151a22; --paper:#1e2531; --fg:#e8e9ec; --muted:#9aa3b2; --line:#303a49;
+  --accent:#7fa3e6; --accent-fg:#101722; --tint:#263247;
+  --good:#5fbf86; --warn:#e0a84a; --crit:#e2706d; color-scheme:dark }
+*{box-sizing:border-box}
+html,body{height:100%}
+body{margin:0;background:var(--bg);color:var(--fg);font-family:var(--body);font-size:16px;line-height:1.5;
+  padding-block:0 32px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+h1,h2,h3{font-family:var(--display);text-wrap:balance;margin:0;line-height:1.15}
+h1{font-size:1.6rem;font-weight:800}
+h2{font-size:1.35rem;font-weight:700}
+h3{font-size:1.05rem;font-weight:700}
+p{margin:0}
+.wrap{max-width:980px;margin:0 auto;display:grid;gap:16px}
+header{display:flex;flex-wrap:wrap;align-items:baseline;justify-content:space-between;gap:8px 16px;padding-block:18px 4px;border-bottom:2px solid var(--fg)}
+header .yr{font-family:var(--display);font-weight:800;font-size:1.6rem;font-variant-numeric:tabular-nums}
+header .sub{color:var(--muted);font-size:.95rem;width:100%}
+.dash{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+.g{background:var(--paper);border:1px solid var(--line);padding:10px 12px;display:grid;gap:4px;min-width:0}
+.g .lab{font-size:.72rem;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);font-weight:600}
+.g .val{font-family:var(--display);font-weight:700;font-size:1.3rem;font-variant-numeric:tabular-nums;display:flex;justify-content:space-between;align-items:baseline}
+.g .val small{font-size:.8rem;color:var(--muted);font-family:var(--body);font-weight:600}
+.bar{height:8px;background:var(--line);border-radius:4px;overflow:hidden}
+.bar i{display:block;height:100%;background:var(--accent);transition:width .4s}
+.bar.good i{background:var(--good)} .bar.warn i{background:var(--warn)} .bar.crit i{background:var(--crit)}
+.kpi .val.neg{color:var(--crit)} .kpi .val.pos{color:var(--good)}
+.steps{display:flex;flex-wrap:wrap;gap:6px;font-size:.78rem}
+.steps span{padding:3px 9px;border:1px solid var(--line);border-radius:999px;color:var(--muted);background:var(--paper)}
+.steps span.on{background:var(--accent);color:var(--accent-fg);border-color:var(--accent);font-weight:600}
+.steps span.done{text-decoration:line-through;opacity:.6}
+.scene{background:var(--paper);border:1px solid var(--line);padding:22px;display:grid;gap:14px}
+.kicker{font-size:.75rem;text-transform:uppercase;letter-spacing:.08em;color:var(--accent);font-weight:700}
+.scene p.lead{font-size:1.05rem;max-width:65ch}
+.quote{border-left:3px solid var(--accent);padding:6px 14px;font-style:italic;max-width:65ch;background:var(--tint)}
+.choices{display:grid;gap:8px}
+button{font:inherit;cursor:pointer;border:1px solid var(--line);background:var(--bg);color:var(--fg);padding:10px 14px;text-align:left;border-radius:6px}
+button:hover{border-color:var(--accent)} button:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+button.primary{background:var(--accent);color:var(--accent-fg);border-color:var(--accent);font-weight:700;text-align:center}
+button:disabled{opacity:.45;cursor:not-allowed}
+.choice b{display:block;font-weight:700}
+.choice small{color:var(--muted)}
+.fx{display:flex;flex-wrap:wrap;gap:6px;margin-top:4px}
+.fx span{font-size:.74rem;padding:1px 7px;border-radius:4px;background:var(--tint);font-variant-numeric:tabular-nums;font-weight:600}
+.fx span.neg{color:var(--crit)} .fx span.pos{color:var(--good)}
+.result{border:1px dashed var(--line);padding:12px 14px;background:var(--tint);display:grid;gap:6px}
+.cat{display:grid;gap:14px}
+.cat .tabs{display:flex;flex-wrap:wrap;gap:6px}
+.cat .tabs button{padding:6px 12px;border-radius:999px;font-size:.9rem}
+.cat .tabs button.on{background:var(--fg);color:var(--bg);border-color:var(--fg)}
+.mlist{display:grid;gap:8px;max-height:52vh;overflow:auto;padding-right:4px}
+.m{display:grid;grid-template-columns:auto 1fr;gap:10px;align-items:start;border:1px solid var(--line);padding:10px 12px;border-radius:6px;background:var(--bg)}
+.m.sel{border-color:var(--accent);background:var(--tint)}
+.m input{margin-top:4px;width:18px;height:18px}
+.m b{font-weight:700} .m small{color:var(--muted);display:block}
+.m label{cursor:pointer;display:block}
+.tally{display:flex;flex-wrap:wrap;gap:8px 18px;font-size:.9rem;font-variant-numeric:tabular-nums;align-items:center;justify-content:space-between}
+.tally b{font-family:var(--display)}
+table{border-collapse:collapse;width:100%;font-variant-numeric:tabular-nums;font-size:.95rem}
+td,th{padding:5px 8px;border-bottom:1px solid var(--line);text-align:right}
+td:first-child,th:first-child{text-align:left}
+th{font-size:.75rem;text-transform:uppercase;letter-spacing:.05em;color:var(--muted)}
+.tw{overflow-x:auto}
+.final{display:grid;gap:10px}
+.final .verdict{font-family:var(--display);font-size:2rem;font-weight:800}
+.hist{display:grid;grid-template-columns:repeat(6,1fr);gap:4px;align-items:end;height:90px;border-bottom:1px solid var(--line)}
+.hist div{background:var(--accent);min-height:2px;position:relative;font-size:.7rem;text-align:center}
+.hist div.neg{background:var(--crit)} .hist div.pos{background:var(--good)}
+.hist div span{position:absolute;left:0;right:0;top:-18px;font-weight:600;font-variant-numeric:tabular-nums}
+.note{font-size:.85rem;color:var(--muted)}
+@media (max-width:720px){ .dash{grid-template-columns:repeat(2,1fr)} .scene{padding:16px} }
+@media (prefers-reduced-motion:reduce){ .bar i{transition:none} }
+</style>
+
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div><h1>La Bataille de l'École</h1><p class="sub">Vous dirigez une école à distance de 12 000 étudiants. Ramenez le résultat net à +10 % du chiffre d'affaires avant la rentrée 2032, sans perdre le conseil d'administration, les étudiants, les commerciaux ni le CSE.</p></div>
+    <div class="yr" id="year">2026</div>
+  </header>
+  <div class="dash" id="dash"></div>
+  <div class="steps" id="steps"></div>
+  <div class="scene" id="scene"></div>
+</div>
+
+<script>
+// ---------- Données de base (k€) ----------
+const BASE = {students:12000, price:2500, newBase:4200, payrollOther:15600, payrollCom:4800, marketing:4500, platform:2200, other:6100, debt:9000, rate:0.045, cash:500, staff:400, com:100};
+const YEARS=[2026,2027,2028,2029,2030,2031];
+const PHASES=["Cadrage","Mesures","Enveloppes","Gardiens","Audition","Vote du CA","Événement","Résultats","Grand show","Bilan"];
+const MAXM=8;
+
+// Mesures : cat rec/dep/str ; rev,cost en k€/an ; mk = variation du budget marketing ; price % ; stu = multiplicateur nouveaux inscrits ; churn en points ; once = cash immédiat ; g = effets jauges ; hc = effectifs
+const MEASURES=[
+ ["rec","Hausser les frais de 5 %","Une rentrée à 2 625 € au lieu de 2 500 €. Les commerciaux grognent, les étudiants aussi.",{price:5,g:{ca:3,etu:-4,com:-5}}],
+ ["rec","Hausser les frais de 12 %","Positionnement premium assumé. Risque réel sur les inscriptions.",{price:12,g:{ca:5,etu:-9,com:-12}}],
+ ["rec","Baisser les frais de 8 %","Prix d'appel pour relancer les inscriptions. Le CA y voit une fuite en avant.",{price:-8,g:{ca:-6,etu:6,com:8}}],
+ ["rec","Frais de dossier de 150 €","Chaque nouvelle inscription paie des frais. Petite recette, petite irritation.",{rev:600,g:{etu:-3,com:-3}}],
+ ["rec","Options payantes (coaching, certifications)","Vendre de l'accompagnement individuel en plus du cursus.",{rev:900,cost:300,g:{etu:-2,com:2}}],
+ ["rec","Offre B2B de formation continue","Vendre des parcours aux entreprises. Les commerciaux adorent, l'équipe péda doit suivre.",{rev:1500,cost:600,g:{ca:2,com:4,cse:1}}],
+ ["rec","Renforcer les financements CPF / OPCO","Pousser les dossiers de financement public. Dépendance accrue à la réglementation.",{rev:1200,cost:200,g:{ca:2,com:6},flag:"cpf"}],
+ ["rec","Vendre des licences de contenus à d'autres écoles","Monétiser le catalogue de cours. Les enseignants s'inquiètent de voir leur travail partir.",{rev:500,cost:100,g:{cse:-2}}],
+ ["rec","Certifications et examens blancs payants","Des badges et attestations facturés à l'unité.",{rev:400,g:{etu:-1}}],
+ ["rec","Paiement en 10 fois sans frais","Facilite la signature. Un peu d'impayés en contrepartie.",{stu:1.06,cost:150,g:{com:5,etu:4}}],
+ ["rec","Lancer l'alternance et les cours du soir","Nouveau public, nouveaux coûts d'encadrement.",{rev:1800,cost:1200,stu:1.04,g:{cse:-3,com:3}}],
+ ["rec","Programme international anglophone","Ouvrir à l'étranger. Coûteux à monter, long à rentabiliser.",{rev:1000,cost:900,stu:1.03,g:{ca:2,cse:-2}}],
+ ["rec","Partenariats entreprises (filières sponsorisées)","Des entreprises financent des filières contre visibilité.",{rev:700,cost:100,g:{ca:2}}],
+ ["rec","Campagne grands médias","TV, radio, affichage. Visibilité immédiate, facture aussi.",{mk:900,stu:1.10,g:{com:5,ca:-1}}],
+ ["rec","Programme de parrainage étudiants","Les étudiants recrutent leurs proches contre une remise.",{cost:200,stu:1.05,g:{etu:3}}],
+ ["dep","Gel des salaires","Aucune augmentation cette année. Le CSE le prendra mal.",{cost:-700,g:{cse:-10,com:-5,ca:2}}],
+ ["dep","Plan de départs volontaires (30 postes)","Indemnités la première année, économies ensuite.",{cost:-1500,once:-900,hc:-30,g:{cse:-12,ca:4,etu:-2}}],
+ ["dep","Licenciement économique (60 postes)","Le plan social. Rapide sur les comptes, lourd sur tout le reste.",{cost:-3000,once:-1800,hc:-60,g:{cse:-25,ca:6,etu:-5,com:-4}}],
+ ["dep","Réduire le marketing de 30 %","Moins de prospection, moins d'inscriptions l'an prochain.",{mk:-1350,g:{com:-8,ca:2}}],
+ ["dep","Augmenter le marketing de 30 %","Alimenter la machine à inscriptions.",{mk:1350,g:{com:6,ca:-2}}],
+ ["dep","Confier 25 % des cours à des vacataires","Moins de CDI enseignants, plus de prestataires.",{cost:-1200,hc:-20,g:{cse:-10,etu:-6,ca:2}}],
+ ["dep","Externaliser le support étudiant","Un prestataire répond aux étudiants à votre place.",{cost:-900,once:-200,hc:-25,g:{cse:-8,etu:-7,ca:3}}],
+ ["dep","Fermer les derniers locaux (100 % remote)","Vendre le siège, tout le monde à distance.",{cost:-800,once:600,g:{cse:-4,ca:3}}],
+ ["dep","Renégocier les licences logicielles","Un bras de fer avec les éditeurs.",{cost:-400,once:-150}],
+ ["dep","Supprimer les bourses internes","Fin de l'aide aux étudiants modestes.",{cost:-500,g:{etu:-8,cse:-3,ca:1}}],
+ ["dep","Fusionner trois filières à faibles effectifs","Moins de cours à maintenir, quelques étudiants orphelins.",{cost:-700,g:{etu:-3,cse:-5,ca:2}}],
+ ["dep","Réduire les primes commerciales","Les commerciaux gagnent moins. Ils le feront savoir.",{cost:-600,g:{com:-15,ca:2}}],
+ ["dep","Chasse aux coûts (frais, prestataires, voyages)","La petite rigueur du quotidien.",{cost:-350,g:{cse:-2}}],
+ ["dep","Reporter les investissements plateforme","On tiendra encore un an avec l'existant. Peut-être.",{cost:-600,g:{etu:-4},flag:"vieux_lms"}],
+ ["str","IA pour les corrections et le feedback","Les copies corrigées par IA, relues par un enseignant. Moins de postes à terme.",{cost:-800,once:-700,hc:-15,g:{cse:-8,etu:-2,ca:3},flag:"ia"}],
+ ["str","Assistant IA pour les commerciaux","Qualification des leads et relances automatisées.",{once:-400,stu:1.07,g:{com:3,cse:-2},flag:"ia"}],
+ ["str","Chatbot support 24h/24","Réponse immédiate aux questions simples.",{cost:-300,once:-300,hc:-8,g:{etu:1,cse:-4}}],
+ ["str","Nouvelle plateforme pédagogique (LMS)","Deux ans de migration, une expérience étudiante enfin moderne.",{once:-2500,cost:300,churn:-3,g:{etu:8,cse:3,ca:-2},flag:"new_lms"}],
+ ["str","Tutorat individuel renforcé","Un tuteur pour 40 étudiants au lieu de 80.",{cost:1200,hc:20,churn:-5,g:{etu:10,cse:3,ca:-3}}],
+ ["str","Démarche qualité et Qualiopi renforcée","Processus, indicateurs, audits internes.",{cost:300,g:{etu:4,ca:2,cse:2},flag:"qualite"}],
+ ["str","Passer 40 % des cours en asynchrone","Moins de classes virtuelles en direct, plus de vidéos.",{cost:-1000,hc:-12,g:{etu:-5,cse:-6,ca:3}}],
+ ["str","Plan de formation des commerciaux","Mieux vendre, moins promettre.",{cost:250,stu:1.05,g:{com:10}}],
+ ["str","Primes commerciales sur objectifs","Un variable agressif. Les autres salariés regardent de travers.",{cost:500,stu:1.06,g:{com:12,cse:-3}}],
+ ["str","Réseau alumni et service placement","Aider les diplômés à trouver un emploi, et le faire savoir.",{cost:400,stu:1.03,churn:-2,g:{etu:6}}],
+ ["str","Accord d'intéressement","Une part du résultat redistribuée aux salariés.",{cost:400,g:{cse:10,com:5,ca:-2}}],
+ ["str","Télétravail total et semaine de 4 jours","Attractivité RH, moins de locaux.",{cost:-200,g:{cse:8,com:-2,ca:-3}}],
+ ["str","Refondre les 10 cours les plus suivis","Investir là où sont les étudiants.",{cost:600,churn:-2,g:{etu:7,cse:2}}],
+ ["str","Audit indépendant et transparence des comptes","Publier les chiffres aux équipes et au CA.",{cost:150,g:{ca:5,cse:3}}],
+ ["str","Recruter 20 tuteurs","Plus d'encadrement, plus de masse salariale.",{cost:1000,hc:20,churn:-3,g:{etu:6,cse:4,ca:-3}}],
+ ["str","Verser un dividende exceptionnel","Rassurer les actionnaires avec du cash qu'on n'a pas vraiment.",{once:-1500,g:{ca:12,cse:-8}}],
+ ["str","Renégocier le prêt bancaire","Un taux plus bas contre un plan crédible.",{once:-100,rate:-0.01,g:{ca:1}}],
+ ["str","Lever 5 M€ auprès des actionnaires","De l'oxygène, au prix d'une dilution et d'exigences accrues.",{once:5000,g:{ca:-10}}],
+ ["str","Emprunter 3 M€ de plus","La banque accepte, à son taux.",{once:3000,debt:3000,g:{ca:-3}}],
+ ["str","Privilégier la qualité au volume","Sélection à l'entrée, promotions plus petites, meilleure réussite.",{stu:0.92,churn:-3,cost:-300,g:{etu:5,com:-8,ca:1}}],
+ ["str","Nouvelle direction commerciale","Changer la tête de la force de vente. Turbulences, puis relance.",{once:-300,stu:1.08,g:{com:-4,ca:2}}],
+].map((m,i)=>({id:i,cat:m[0],n:m[1],d:m[2],...m[3]}));
+
+// Guerre des enveloppes
+const ENVELOPPES=[
+ {who:"La directrice pédagogique",ask:"« Il me faut 15 tuteurs de plus. Nos promos de 80 étudiants par tuteur ne tiennent plus, le taux d'abandon le prouve. »",
+  c:[["Accorder les 15 postes",{cost:750,hc:15,churn:-2,g:{etu:4,cse:4,ca:-2}},"Elle repart soulagée. Le DAF, moins."],
+     ["Refuser",{g:{cse:-5,etu:-2}},"« Alors ne venez pas vous plaindre des abandons. »"],
+     ["Compromis : 5 postes",{cost:250,hc:5,churn:-1,g:{etu:1,cse:1}},"Elle accepte, sans enthousiasme."]]},
+ {who:"Le directeur commercial",ask:"« Avec 20 % de budget prospection en plus, je vous signe 300 inscriptions supplémentaires. Sans, je ne garantis plus les objectifs. »",
+  c:[["Accorder les 20 %",{mk:900,stu:1.06,g:{com:8,ca:-2}},"Il promet des résultats. On verra à la rentrée."],
+     ["Refuser",{g:{com:-8}},"« Vous me demandez de faire des briques sans paille. »"],
+     ["Compromis : 10 %, conditionnés aux résultats",{mk:400,stu:1.03,g:{com:2}},"Il grimace mais signe."]]},
+ {who:"Le DSI",ask:"« La plateforme tourne sur une infrastructure de 2017. Sans migration et sans budget sécurité, je ne réponds plus de rien. »",
+  c:[["Financer la migration",{cost:500,once:-400,flag:"secu"},"La migration démarre cet été."],
+     ["Refuser",{g:{cse:-2},flag:"risque_cyber"},"Il note la décision par écrit. Ce n'est jamais bon signe."],
+     ["Compromis : sécurité seulement",{cost:250,flag:"secu"},"Les correctifs critiques sont financés, le reste attendra."]]},
+ {who:"La directrice marketing",ask:"« Notre site date, notre référencement s'effondre. Une refonte, c'est 350 k€ et quatre points d'inscriptions. »",
+  c:[["Financer la refonte",{cost:350,stu:1.04,g:{com:3}},"Nouveau site à la rentrée."],
+     ["Refuser",{g:{com:-3}},"« Les concurrents nous dépassent sur Google, je vous aurai prévenu. »"],
+     ["Compromis : optimisations seulement",{cost:120,stu:1.015},"Quelques pages refaites, le gros chantier attendra."]]},
+ {who:"Le responsable du support étudiant",ask:"« Nous répondons en 6 jours au lieu de 48 h. Il me faut 10 conseillers, ou les avis en ligne vont nous tuer. »",
+  c:[["Recruter 10 conseillers",{cost:450,hc:10,g:{etu:5,cse:3,ca:-1}},"Le délai de réponse redescend à deux jours."],
+     ["Refuser",{g:{etu:-4,cse:-4}},"Les avis une étoile continuent de tomber."],
+     ["Compromis : 4 conseillers et une FAQ",{cost:200,hc:4,g:{etu:2}},"Un mieux, pas une solution."]]},
+ {who:"Le DAF",ask:"« Nous avons trois litiges étudiants en cours. Je veux provisionner 300 k€ maintenant plutôt que de surprendre le CA plus tard. »",
+  c:[["Provisionner",{once:-300,g:{ca:3}},"Le CA apprécie la prudence."],
+     ["Refuser",{g:{ca:-2},flag:"litiges"},"Le DAF soupire. Les litiges, eux, continuent."]]},
+ {who:"Le responsable de la filière Business",ask:"« Un MBA en ligne à 6 000 €. Cent inscrits la première année, c'est 600 k€ de marge dès la deuxième. »",
+  c:[["Lancer le MBA",{rev:1100,cost:800,g:{ca:1,com:4}},"Le programme ouvre en janvier."],
+     ["Refuser",{g:{com:-2}},"Il ira peut-être le proposer ailleurs."],
+     ["Compromis : lancement test à 30 places",{rev:400,cost:300,g:{com:1}},"Un pilote, pour voir."]]},
+ {who:"La directrice qualité",ask:"« L'audit de renouvellement Qualiopi est dans huit mois. Sans 200 k€ de mise en conformité, je ne garantis pas la certification. »",
+  c:[["Financer la mise en conformité",{cost:200,g:{ca:2},flag:"qualite"},"Les processus sont remis d'équerre."],
+     ["Refuser",{flag:"risque_qualiopi"},"« Je ne signerai pas le rapport d'auto-évaluation, dans ce cas. »"]]},
+ {who:"Le responsable RH",ask:"« Les salaires des tuteurs sont 12 % sous le marché. On perd nos meilleurs éléments chaque trimestre. »",
+  c:[["Rattrapage salarial",{cost:600,g:{cse:8,etu:2,ca:-2}},"Les départs se calment."],
+     ["Refuser",{g:{cse:-6,etu:-2}},"Les démissions continuent."],
+     ["Compromis : prime de fidélisation",{cost:250,g:{cse:3}},"Un geste, pas une réponse."]]},
+];
+
+// Auditions : town hall salariés et amphi étudiants
+const AUDITIONS=[
+ {kicker:"Town hall, 400 salariés en visio",q:"Un tuteur prend la parole : « Est-ce qu'il y aura des licenciements cette année ? Oui ou non ? »",
+  c:[["« Non. »",{g:{cse:8,ca:-4}},"Soulagement dans le chat. Le CA vous rappelle que vous venez de vous lier les mains."],
+     ["« Je ne peux rien exclure, mais ce n'est pas le plan. »",{g:{cse:-2,ca:2}},"Langue de bois détectée. Personne n'est rassuré, personne n'est trahi."],
+     ["« Si nous ne redressons pas les comptes, oui. Voici les chiffres. »",{g:{cse:-5,ca:5,com:2}},"Silence, puis des questions précises. La transparence a un prix immédiat."]]},
+ {kicker:"Amphi virtuel, 2 000 étudiants connectés",q:"Une étudiante : « Pourquoi payer plus cher si c'est pour avoir moins de tuteurs ? Vous allez faire quoi, concrètement ? »",
+  c:[["Promettre un délai de réponse de 48 h garanti",{cost:200,g:{etu:6,cse:-2}},"Applaudissements. Le support devra tenir."],
+     ["Expliquer les contraintes financières",{g:{etu:-3,ca:2}},"Les étudiants comprennent, sans être contents."],
+     ["Annoncer une remise de 100 € pour les réinscriptions",{rev:-400,churn:-2,g:{etu:5,ca:-3}},"Un geste commercial qui coûte."]]},
+ {kicker:"Town hall, équipe commerciale",q:"Une commerciale senior : « On nous demande de vendre un produit dont on supprime les tuteurs. Vous nous prenez pour quoi ? »",
+  c:[["Reconnaître le problème et promettre un plan qualité",{cost:150,g:{com:5,etu:2}},"La salle se détend un peu."],
+     ["Rappeler les objectifs et les primes",{g:{com:-6,ca:2}},"Froid polaire. Le directeur commercial baisse les yeux."],
+     ["Proposer un atelier commun commerciaux / pédagogie",{g:{com:3,cse:3}},"Quelques sourires. Reste à le faire."]]},
+ {kicker:"Réunion CSE extraordinaire",q:"Le secrétaire du CSE : « Nous demandons une expertise indépendante sur la situation économique. Vous la financez ? »",
+  c:[["Accepter l'expertise",{once:-80,g:{cse:6,ca:-1}},"L'expert confirmera vos chiffres. Ou pas."],
+     ["Refuser",{g:{cse:-8}},"Le CSE saisira l'inspection du travail."],
+     ["Proposer une présentation détaillée des comptes à la place",{g:{cse:2,ca:1}},"Accepté du bout des lèvres."]]},
+ {kicker:"Amphi virtuel, filière Informatique",q:"Un étudiant : « Vos corrections, c'est une IA maintenant ? J'ai eu la même remarque que trois camarades. »",
+  c:[["Assumer et expliquer la relecture humaine",{g:{etu:-2,ca:2}},"Réactions partagées, mais vous n'avez pas menti."],
+     ["Nier",{g:{etu:-6,cse:-4}},"La capture d'écran circule dans l'heure."],
+     ["Promettre une relecture humaine systématique",{cost:300,g:{etu:4,cse:2}},"Rassurant, et coûteux."]]},
+ {kicker:"Town hall, fin de trimestre",q:"Une responsable de filière : « Les chiffres que vous nous montrez sont-ils ceux du CA, ou une version adoucie ? »",
+  c:[["Montrer les mêmes chiffres qu'au CA",{g:{cse:5,ca:3,com:-2}},"Crédibilité acquise, quelques visages blêmes."],
+     ["Montrer une version simplifiée",{g:{cse:-3}},"Quelqu'un fera le rapprochement."]]},
+];
+
+// Amendements au vote du CA
+const AMENDEMENTS=[
+ {who:"L'administrateur représentant les étudiants",ask:"Amendement : maintien du tutorat individuel pour toutes les filières, quel qu'en soit le coût.",y:{cost:400,g:{etu:5,ca:-2}},n:{g:{etu:-4}}},
+ {who:"L'administratrice représentant les enseignants",ask:"Amendement : aucune correction entièrement automatisée sans relecture humaine.",y:{cost:250,g:{cse:5,ca:-1}},n:{g:{cse:-5}}},
+ {who:"L'actionnaire principal",ask:"Amendement : objectif de résultat relevé de 2 points cette année, ou gel des recrutements.",y:{g:{ca:6,cse:-4}},n:{g:{ca:-6}}},
+ {who:"Le représentant des commerciaux",ask:"Amendement : aucune hausse de prix sans augmentation équivalente du budget prospection.",y:{mk:400,g:{com:6,ca:-2}},n:{g:{com:-6}}},
+ {who:"L'administrateur indépendant",ask:"Amendement : publication trimestrielle des indicateurs de satisfaction étudiante au CA.",y:{cost:60,g:{ca:4,etu:2}},n:{g:{ca:-2}}},
+ {who:"La représentante de la banque (censeur)",ask:"Amendement : plafonnement du découvert et plan de trésorerie mensuel.",y:{g:{ca:3,cse:-1},flag:"plan_treso"},n:{g:{ca:-3},rate:0.005}},
+ {who:"Le fondateur historique",ask:"Amendement : conserver le nom et la mission d'origine de l'école dans toute offre B2B.",y:{g:{ca:2,cse:3,com:-2}},n:{g:{ca:-3}}},
+ {who:"L'administrateur représentant les étudiants",ask:"Amendement : rétablissement d'un fonds de bourses de 300 k€.",y:{cost:300,g:{etu:6,ca:-2}},n:{g:{etu:-3}}},
+];
+
+// Événements
+const EVENTS=[
+ {n:"Panne majeure de la plateforme pendant les examens",t:"Trois jours sans accès en pleine session. Les réseaux sociaux s'en donnent à cœur joie.",fx:{g:{etu:-8,ca:-3},once:-200},w:s=>s.flags.vieux_lms?3:(s.flags.new_lms?0.2:1)},
+ {n:"Cyberattaque et fuite de données étudiantes",t:"Rançongiciel. La CNIL est prévenue, les étudiants aussi.",fx:{g:{etu:-10,ca:-6,cse:-3},once:-600},w:s=>s.flags.risque_cyber?4:(s.flags.secu?0.2:0.8)},
+ {n:"Un géant du MOOC lance une offre gratuite diplômante",t:"Vos prospects comparent. Vos commerciaux aussi.",fx:{stuY:0.92,g:{com:-5}},w:()=>1},
+ {n:"Réforme du CPF : reste à charge et filtrage des formations",t:"Un décret restreint les financements publics. Les dossiers s'effondrent.",fx:{revY:-900,g:{com:-6,ca:-2}},w:s=>s.flags.cpf?3:0.8},
+ {n:"Polémique sur de faux avis en ligne",t:"Un article de presse accuse l'école d'avoir acheté des avis. Vrai ou faux, le mal est fait.",fx:{g:{etu:-6,ca:-3},stuY:0.95},w:()=>1},
+ {n:"Vague d'IA générative : les étudiants rendent des devoirs écrits par machine",t:"Vos enseignants ne savent plus ce qu'ils corrigent. Il faut repenser l'évaluation.",fx:{cost:250,g:{cse:-4}},w:()=>1.2},
+ {n:"Départ d'un enseignant star vers un concurrent",t:"Il emmène sa communauté et ses 40 000 abonnés.",fx:{stuY:0.96,g:{etu:-4,cse:-3}},w:s=>s.g.cse<40?2:0.8},
+ {n:"Reportage télévisé très favorable",t:"Vingt minutes sur une diplômée devenue cheffe d'entreprise. Le standard explose.",fx:{stuY:1.08,g:{ca:3,com:4,etu:2}},w:s=>s.g.etu>55?1.5:0.6},
+ {n:"Contrôle de France Compétences",t:"Les inspecteurs vérifient la conformité des certifications.",fx:s=>s.flags.risque_qualiopi?{g:{ca:-8,etu:-5},revY:-1200,txt:"Sans mise en conformité, deux certifications sont suspendues. Les financements associés tombent."}:{g:{ca:2},txt:"Rapport sans réserve. Le CA respire."},w:()=>1},
+ {n:"Grève des tuteurs pendant une semaine",t:"Le CSE appelle à cesser le travail. Les étudiants attendent leurs corrections.",fx:{g:{etu:-5,cse:3,ca:-3}},w:s=>s.g.cse<35?3:0.2},
+ {n:"Hausse générale des taux d'intérêt",t:"La BCE resserre. Votre banque suit.",fx:{rate:0.01,g:{ca:-1}},w:()=>0.8},
+ {n:"Inflation : les salariés demandent un rattrapage",t:"Le CSE réclame 4 % pour tout le monde.",fx:s=>s.flags.gel?{g:{cse:-8},txt:"Avec le gel des salaires, la demande tourne à la colère."}:{cost:500,g:{cse:2},txt:"Vous accordez 2,5 %. Ni satisfait, ni révolté."},w:()=>1},
+];
+
+// Actionnaire 2028
+const SHAREHOLDER={kicker:"2028 : changement d'actionnaire",t:"Le fondateur vend. Trois repreneurs se présentent, et le CA vous demande votre préférence. Chacun réécrit les règles du jeu.",
+ c:[["Un fonds d'investissement","Objectif +10 % maintenu, prêt refinancé à bas taux, mais tolérance zéro : chaque année en perte coûtera cher au CA.",{rate:-0.015,g:{ca:10,cse:-8},mode:"fonds"}],
+    ["Une université publique","La dette est reprise, l'objectif tombe à +3 %, mais les frais sont gelés et toute hausse de prix devient impossible.",{debt:0,g:{ca:5,cse:8,com:-6,etu:6},mode:"univ"}],
+    ["Un groupe edtech","5 M€ injectés immédiatement, mais le groupe exige +10 % d'étudiants par an, sous peine de sanctions.",{once:5000,g:{ca:5,com:8,cse:-5},mode:"edtech"}]]};
+
+// ---------- État ----------
+let S;
+function newGame(){
+  S={year:2026,yi:0,phase:0,g:{ca:60,etu:55,com:50,cse:50},students:BASE.students,price:BASE.price,marketing:BASE.marketing,
+     rev:0,cost:0,churn:0,stuMult:1,staff:BASE.staff,debt:BASE.debt,cash:BASE.cash,rate:BASE.rate,active:[],pending:[],flags:{},
+     used:{env:[],aud:[],amd:[],evt:[]},history:[],lastResult:null,lastNew:4200,yearFx:{stuY:1,revY:0,once:0},target:10,mode:null,sub:0,tmp:null,over:null};
+  // année 0 : résultat de référence 2025
+  S.lastResult={pct:-12,rev:30000,res:-3605};
+}
+const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
+const fmt=n=>new Intl.NumberFormat('fr-FR').format(Math.round(n));
+const kE=n=>(n>=0?'+':'−')+fmt(Math.abs(n))+' k€';
+const pct=n=>(n>=0?'+':'−')+Math.abs(n).toFixed(1)+' %';
+function pick(pool,key){
+  const avail=pool.map((x,i)=>i).filter(i=>!S.used[key].includes(i));
+  const src=avail.length?avail:pool.map((x,i)=>i);
+  const i=src[Math.floor(Math.random()*src.length)];
+  S.used[key].push(i); return pool[i];
+}
+function pickEvent(){
+  const ws=EVENTS.map((e,i)=>S.used.evt.includes(i)?0:e.w(S));
+  let tot=ws.reduce((a,b)=>a+b,0); if(tot<=0){S.used.evt=[];return pickEvent();}
+  let r=Math.random()*tot;
+  for(let i=0;i<EVENTS.length;i++){r-=ws[i]; if(r<=0){S.used.evt.push(i);return EVENTS[i];}}
+  return EVENTS[0];
+}
+// Applique un paquet d'effets (immédiats + récurrents)
+function apply(fx){
+  if(!fx) return;
+  if(fx.g) for(const k in fx.g){S.g[k]=clamp(S.g[k]+fx.g[k],0,100);}
+  if(fx.rev) S.rev+=fx.rev; if(fx.cost) S.cost+=fx.cost; if(fx.mk) S.marketing=Math.max(500,S.marketing+fx.mk);
+  if(fx.price){ if(S.mode==='univ'&&fx.price>0){} else S.price=Math.round(S.price*(1+fx.price/100)); }
+  if(fx.stu) S.stuMult*=fx.stu; if(fx.churn) S.churn+=fx.churn; if(fx.hc) S.staff+=fx.hc;
+  if(fx.once){S.cash+=fx.once; S.yearFx.once+=fx.once;} if(fx.debt!==undefined){ if(fx.debt===0) S.debt=0; else S.debt+=fx.debt; }
+  if(fx.rate) S.rate=clamp(S.rate+fx.rate,0.01,0.15);
+  if(fx.stuY) S.yearFx.stuY*=fx.stuY; if(fx.revY) S.yearFx.revY+=fx.revY;
+  if(fx.flag) S.flags[fx.flag]=true; if(fx.mode) S.mode=fx.mode;
+}
+function fxChips(fx){
+  if(!fx) return '';
+  const names={ca:'CA',etu:'Étudiants',com:'Commerciaux',cse:'CSE'}; const out=[];
+  if(fx.rev) out.push(['Recettes '+kE(fx.rev)+'/an',fx.rev>0]);
+  if(fx.cost) out.push(['Coûts '+kE(fx.cost)+'/an',fx.cost<0]);
+  if(fx.mk) out.push(['Marketing '+kE(fx.mk)+'/an',fx.mk<0]);
+  if(fx.price) out.push(['Prix '+pct(fx.price),fx.price>0]);
+  if(fx.stu) out.push(['Inscriptions '+pct((fx.stu-1)*100),fx.stu>1]);
+  if(fx.stuY) out.push(['Inscriptions cette année '+pct((fx.stuY-1)*100),fx.stuY>1]);
+  if(fx.churn) out.push(['Abandons '+(fx.churn>0?'+':'')+fx.churn+' pts',fx.churn<0]);
+  if(fx.once) out.push(['Trésorerie '+kE(fx.once),fx.once>0]);
+  if(fx.revY) out.push(['CA cette année '+kE(fx.revY),fx.revY>0]);
+  if(fx.hc) out.push(['Effectifs '+(fx.hc>0?'+':'')+fx.hc,fx.hc>0]);
+  if(fx.rate) out.push(['Taux '+(fx.rate>0?'+':'')+(fx.rate*100).toFixed(1)+' pt',fx.rate<0]);
+  if(fx.g) for(const k in fx.g) out.push([names[k]+' '+(fx.g[k]>0?'+':'')+fx.g[k],fx.g[k]>0]);
+  return '<div class="fx">'+out.map(([t,p])=>`<span class="${p?'pos':'neg'}">${t}</span>`).join('')+'</div>';
+}
+
+// ---------- Simulation annuelle ----------
+function simulate(){
+  const g=S.g;
+  const mkF=Math.pow(S.marketing/BASE.marketing,0.5);
+  const comF=0.6+0.8*(g.com/100);
+  const priceF=Math.pow(S.price/BASE.price,-0.9);
+  const repF=0.7+0.6*(g.etu/100);
+  const newS=Math.round(BASE.newBase*S.stuMult*mkF*comF*priceF*repF*S.yearFx.stuY);
+  const churn=clamp(0.35+(50-g.etu)/100*0.3+S.churn/100,0.08,0.75);
+  const left=Math.round(S.students*churn);
+  const students=Math.max(0,S.students-left+newS);
+  const tuition=students*S.price/1000;
+  const revenue=tuition+S.rev+S.yearFx.revY;
+  const payroll=BASE.payrollOther+BASE.payrollCom; // ajustés via cost
+  const overdraft=Math.max(0,-S.cash);
+  const interest=(S.debt+overdraft)*S.rate;
+  const costs=payroll+S.marketing+BASE.platform+BASE.other+S.cost+interest;
+  const res=revenue-costs; const pc=revenue>0?res/revenue*100:-100;
+  const y={year:S.year,newS,left,churn,students,revenue,costs,interest,res,pct:pc,once:S.yearFx.once,cashBefore:S.cash};
+  S.cash+=res; y.cash=S.cash;
+  // Dérive des jauges
+  const prev=S.lastResult;
+  let dca=clamp((pc-prev.pct)*0.8,-8,8)+(pc>=0?2:-3);
+  if(S.mode==='fonds'&&pc<0) dca-=6;
+  if(S.mode==='edtech'&&students<S.students*1.10) dca-=8;
+  if(S.mode==='edtech'&&students>=S.students*1.10) dca+=4;
+  g.ca=clamp(g.ca+dca,0,100);
+  g.etu=clamp(g.etu+(50-g.etu)*0.15+(churn<0.35?3:-2),0,100);
+  const dcom=clamp((newS-S.lastNew)/S.lastNew*30,-8,8); g.com=clamp(g.com+dcom,0,100);
+  g.cse=clamp(g.cse+(50-g.cse)*0.15+(pc<-5?-3:(pc>3?2:0)),0,100);
+  if(S.rate>0.045&&S.cash>0) S.rate=Math.max(0.03,S.rate-0.005);
+  if(S.cash<0) S.rate=clamp(S.rate+0.01,0.01,0.15);
+  S.students=students; S.lastNew=newS; S.lastResult={pct:pc,rev:revenue,res}; S.history.push(y);
+  S.yearFx={stuY:1,revY:0,once:0};
+  return y;
+}
+function checkOver(){
+  if(S.g.ca<=0) return "Le conseil d'administration vous a révoqué·e. Un cabinet de redressement prend la direction.";
+  if(S.cash<-6000) return "La banque a coupé la ligne de crédit. L'école dépose le bilan.";
+  if(S.g.cse<=0) return "Grève illimitée. Après six semaines sans cours, le CA vous a remplacé·e.";
+  if(S.g.etu<=0) return "Hémorragie d'étudiants et plainte collective. L'école perd son habilitation.";
+  return null;
+}
+
+// ---------- Rendu ----------
+const $=s=>document.querySelector(s);
+function gaugeClass(v){return v<25?'crit':v<45?'warn':v>=65?'good':''}
+function renderDash(){
+  $('#year').textContent=S.over?'Fin':S.year;
+  const lr=S.lastResult;
+  const gauges=[['Conseil d\'administration','ca'],['Étudiants','etu'],['Commerciaux','com'],['CSE / salariés','cse']];
+  let h=gauges.map(([n,k])=>`<div class="g"><div class="lab">${n}</div><div class="val">${Math.round(S.g[k])}<small>/100</small></div><div class="bar ${gaugeClass(S.g[k])}"><i style="width:${S.g[k]}%"></i></div></div>`).join('');
+  h+=`<div class="g kpi"><div class="lab">Résultat net (dernier exercice)</div><div class="val ${lr.pct<0?'neg':'pos'}">${pct(lr.pct)}</div><div class="note">Objectif : +${S.target} %</div></div>`;
+  h+=`<div class="g kpi"><div class="lab">Trésorerie</div><div class="val ${S.cash<0?'neg':''}">${fmt(S.cash/1000*10)/10} M€</div><div class="note">Dette ${fmt(S.debt/1000*10)/10} M€ à ${(S.rate*100).toFixed(1)} %</div></div>`;
+  h+=`<div class="g kpi"><div class="lab">Étudiants</div><div class="val">${fmt(S.students)}</div><div class="note">Frais ${fmt(S.price)} € / an</div></div>`;
+  h+=`<div class="g kpi"><div class="lab">Salariés</div><div class="val">${fmt(S.staff)}</div><div class="note">dont ${BASE.com} commerciaux</div></div>`;
+  $('#dash').innerHTML=h;
+  $('#steps').innerHTML=PHASES.map((p,i)=>`<span class="${i===S.phase?'on':(i<S.phase?'done':'')}">${p}</span>`).join('');
+}
+function scene(html){ $('#scene').innerHTML=html; renderDash(); $('#scene').scrollIntoView({block:'nearest'}); save(); }
+function next(){ S.phase++; S.sub=0; S.tmp=null; render(); }
+function btn(label,fn,cls){ const b=document.createElement('button'); b.innerHTML=label; if(cls) b.className=cls; b.addEventListener('click',fn); return b; }
+function choiceScene(kicker,title,text,choices,after){
+  // choices: [label, fx, outcomeText, sub]
+  scene(`<div class="kicker">${kicker}</div><h2>${title}</h2>${text?`<div class="quote">${text}</div>`:''}<div class="choices" id="ch"></div><div id="out"></div>`);
+  const ch=$('#ch');
+  choices.forEach(([label,fx,out,sub])=>{
+    const b=btn(`<span class="choice"><b>${label}</b>${sub?`<small>${sub}</small>`:''}</span>${fxChips(typeof fx==='function'?null:fx)}`,()=>{
+      const f=typeof fx==='function'?fx():fx; apply(f);
+      ch.querySelectorAll('button').forEach(x=>x.disabled=true);
+      $('#out').innerHTML=`<div class="result"><p>${(f&&f.txt)||out}</p>${typeof fx==='function'?fxChips(f):''}</div>`;
+      $('#out').appendChild(btn('Continuer',after||next,'primary')); renderDash(); save();
+    });
+    ch.appendChild(b);
+  });
+}
+
+function render(){
+  if(S.over) return renderFinal();
+  switch(S.phase){
+    case 0: return renderCadrage();
+    case 1: return renderMesures();
+    case 2: return renderEnveloppes();
+    case 3: return renderGardiens();
+    case 4: return renderAudition();
+    case 5: return renderVote();
+    case 6: return renderEvent();
+    case 7: return renderResultats();
+    case 8: return renderShow();
+    case 9: return renderBilan();
+  }
+}
+
+function renderCadrage(){
+  if(S.year===2028&&S.sub===0){
+    S.sub=1;
+    return choiceScene(SHAREHOLDER.kicker,"Qui rachète l'école ?",SHAREHOLDER.t,SHAREHOLDER.c.map(([l,sub,fx])=>[l,fx,"Le CA suit votre avis. Les règles changent dès cette année.",sub]),()=>{ if(S.mode==='univ') S.target=3; S.sub=2; render(); });
+  }
+  const first=S.year===2026;
+  const lr=S.lastResult;
+  const letter=first?
+   `<p class="lead">Vous prenez la direction générale de l'école le 2 janvier 2026. Le DAF vous tend les comptes 2025 : 30 M€ de chiffre d'affaires, 12 000 étudiants, 400 salariés dont 100 commerciaux, et une perte de 3,6 M€, soit <b>−12 % de résultat net</b>. La trésorerie tient encore deux mois, le prêt bancaire de 9 M€ court à 4,5 %.</p>
+    <div class="quote">« Le conseil d'administration vous donne six exercices. À la rentrée 2032, nous voulons un résultat net de +10 % du chiffre d'affaires. Nous ne voulons ni scandale, ni grève, ni exode des étudiants. Bonne chance. »</div>
+    <p>Chaque année se joue en neuf temps : vos mesures, la guerre des enveloppes avec les directeurs de service, l'avis des gardiens (commissaire aux comptes, banque, auditeurs qualité), une audition devant salariés ou étudiants, le vote du conseil d'administration et ses amendements, un événement imprévu, les résultats de l'exercice, le grand show de fin d'année devant les 400 salariés, puis le bilan.</p>
+    <p class="note">Quatre jauges à surveiller : si le conseil d'administration, les étudiants ou le CSE tombent à zéro, la partie s'arrête. Si la trésorerie passe sous −6 M€, l'école dépose le bilan.</p>`
+  : `<p class="lead">Lettre de cadrage ${S.year}. Le conseil d'administration prend acte d'un résultat ${lr.pct>=0?'positif':'négatif'} de ${pct(lr.pct)} sur l'exercice précédent. ${lr.pct>=S.target?'L\'objectif est atteint, il s\'agit maintenant de le tenir.':`Il reste ${(S.target-lr.pct).toFixed(1)} points à gagner avant 2032.`}</p>
+    <div class="quote">${S.g.ca<35?'« Nous ne cachons pas notre inquiétude. Cette année est celle de la dernière chance. »':S.g.ca>65?'« Le conseil renouvelle sa confiance. Continuez. »':'« Le conseil attend des résultats mesurables cette année. »'}</div>
+    ${S.cash<0?'<p>La trésorerie est négative : les intérêts de découvert pèsent sur les comptes et la banque surveille chaque mouvement.</p>':''}
+    ${S.mode==='edtech'?'<p>Le groupe edtech rappelle son exigence : +10 % d\'étudiants cette année.</p>':''}${S.mode==='fonds'?'<p>Le fonds rappelle qu\'une année en perte ne sera pas tolérée.</p>':''}${S.mode==='univ'?'<p>L\'université rappelle le gel des frais de scolarité.</p>':''}`;
+  scene(`<div class="kicker">Cadrage · ${S.year}</div><h2>${first?'Prise de fonction':'La lettre du conseil'}</h2>${letter}<div id="b"></div>`);
+  $('#b').appendChild(btn(first?'Commencer l\'exercice 2026':'Préparer les mesures '+S.year,next,'primary'));
+}
+
+function renderMesures(){
+  const avail=MEASURES.filter(m=>!S.active.includes(m.id)&&!(S.mode==='univ'&&m.price>0));
+  let cat='rec';
+  scene(`<div class="kicker">Mesures · ${S.year}</div><h2>Le catalogue des mesures</h2><p class="lead">Choisissez jusqu'à ${MAXM} mesures. Les effets financiers s'appliquent chaque année à partir de celle-ci ; les réactions des jauges s'appliquent au moment du vote. Une mesure adoptée reste en vigueur.</p>
+  <div class="cat"><div class="tabs" id="tabs"></div><div class="mlist" id="ml"></div><div class="tally" id="tally"></div><div id="b"></div></div>`);
+  const tabs=[['rec','Recettes'],['dep','Dépenses'],['str','Structurel']];
+  function draw(){
+    $('#tabs').innerHTML=''; tabs.forEach(([k,n])=>$('#tabs').appendChild(btn(n+' ('+avail.filter(m=>m.cat===k).length+')',()=>{cat=k;draw();},k===cat?'on':'')));
+    const ml=$('#ml'); ml.innerHTML='';
+    avail.filter(m=>m.cat===cat).forEach(m=>{
+      const sel=S.pending.includes(m.id);
+      const d=document.createElement('div'); d.className='m'+(sel?' sel':'');
+      d.innerHTML=`<input type="checkbox" id="m${m.id}" ${sel?'checked':''} ${(!sel&&S.pending.length>=MAXM)?'disabled':''}><label for="m${m.id}"><b>${m.n}</b><small>${m.d}</small>${fxChips(m)}</label>`;
+      d.querySelector('input').addEventListener('change',e=>{ if(e.target.checked) S.pending.push(m.id); else S.pending=S.pending.filter(x=>x!==m.id); draw(); save(); });
+      ml.appendChild(d);
+    });
+    const sum={rev:0,cost:0,once:0}; S.pending.forEach(id=>{const m=MEASURES[id]; sum.rev+=m.rev||0; sum.cost+=(m.cost||0)+(m.mk||0); sum.once+=m.once||0;});
+    $('#tally').innerHTML=`<span><b>${S.pending.length}</b> / ${MAXM} mesures</span><span>Recettes ${kE(sum.rev)}/an</span><span>Coûts ${kE(sum.cost)}/an</span><span>Trésorerie ${kE(sum.once)}</span>`;
+    $('#b').innerHTML=''; $('#b').appendChild(btn(S.pending.length?'Soumettre ces '+S.pending.length+' mesures':'Continuer sans nouvelle mesure',next,'primary'));
+  }
+  draw();
+}
+
+function renderEnveloppes(){
+  if(S.sub===0){ S.tmp={list:[pick(ENVELOPPES,'env'),pick(ENVELOPPES,'env')]}; }
+  const e=S.tmp.list[S.sub];
+  const after=()=>{ S.sub++; if(S.sub>=2) next(); else renderEnveloppes(); };
+  choiceScene(`Guerre des enveloppes · ${S.sub+1}/2`,e.who+' demande à vous voir',e.ask,e.c.map(([l,fx,out])=>[l,fx,out]),after);
+}
+
+function renderGardiens(){
+  const items=[];
+  // Commissaire aux comptes
+  if(S.cash<-2000){items.push(["Le commissaire aux comptes","déclenche une procédure d'alerte : la continuité d'exploitation n'est plus assurée sans mesures fortes.",{g:{ca:-5,cse:-3}}]);}
+  else if(S.cash<0){items.push(["Le commissaire aux comptes","signale une trésorerie négative et demande un plan de financement.",{g:{ca:-2}}]);}
+  else items.push(["Le commissaire aux comptes","certifie les comptes sans réserve.",{g:{ca:1}}]);
+  // Banque
+  if(S.cash<-3000){items.push(["La banque","invoque les clauses du prêt et relève le taux. Elle exige un plan de trésorerie mensuel.",{rate:0.01,g:{ca:-4}}]);}
+  else if(S.cash<0){items.push(["La banque","tolère le découvert, mais facture des agios.",{rate:0.005}]);}
+  else if(S.lastResult.pct>5){items.push(["La banque","salue le redressement et propose un taux révisé.",{rate:-0.005,g:{ca:2}}]);}
+  else items.push(["La banque","maintient ses conditions.",{}]);
+  // Qualité
+  if(S.flags.risque_qualiopi){items.push(["L'auditeur Qualiopi","émet des non-conformités majeures. Sans correction, la certification sera retirée.",{g:{ca:-3,etu:-3}}]);}
+  else if(S.g.etu<35){items.push(["La commission pédagogique indépendante","alerte sur le taux d'abandon et la satisfaction. Son rapport est transmis au CA.",{g:{ca:-3,etu:-2}}]);}
+  else if(S.flags.qualite){items.push(["L'auditeur Qualiopi","renouvelle la certification et cite l'école en exemple.",{g:{ca:2,etu:2}}]);}
+  else items.push(["La commission pédagogique","rend un avis neutre : rien d'alarmant, rien de remarquable.",{}]);
+  // Prudence sur les mesures en attente
+  const pend=S.pending.map(i=>MEASURES[i]); const cuts=pend.filter(m=>m.cat==='dep'&&(m.hc||0)<0).length;
+  if(cuts>=2) items.push(["L'inspection du travail","note l'accumulation de suppressions de postes et demande à être associée au calendrier.",{g:{cse:-3}}]);
+  items.forEach(i=>apply(i[2]));
+  scene(`<div class="kicker">Les gardiens · ${S.year}</div><h2>Avis et surveillance</h2><p class="lead">Avant le vote, les contrôleurs extérieurs se prononcent sur la situation de l'école.</p>
+  <div class="choices">${items.map(i=>`<div class="result"><p><b>${i[0]}</b> ${i[1]}</p>${fxChips(i[2])}</div>`).join('')}</div><div id="b"></div>`);
+  $('#b').appendChild(btn('Passer à l\'audition',next,'primary'));
+}
+
+function renderAudition(){
+  const a=pick(AUDITIONS,'aud');
+  choiceScene(a.kicker,'Audition',a.q,a.c.map(([l,fx,out])=>[l,fx,out]));
+}
+
+function renderVote(){
+  if(S.sub<2){
+    if(S.sub===0) S.tmp={list:[pick(AMENDEMENTS,'amd'),pick(AMENDEMENTS,'amd')],bonus:0};
+    const a=S.tmp.list[S.sub];
+    const after=()=>{S.sub++; renderVote();};
+    return choiceScene(`Vote du CA · amendement ${S.sub+1}/2`,a.who+' dépose un amendement',a.ask,
+      [["Accepter l'amendement",()=>{S.tmp.bonus+=12;return a.y;},"L'amendement est intégré au plan."],
+       ["Rejeter l'amendement",()=>{S.tmp.bonus-=5;return a.n;},"Rejeté. Son auteur s'en souviendra au moment du vote."]],after);
+  }
+  const pend=S.pending.map(i=>MEASURES[i]);
+  const polit=pend.reduce((a,m)=>a+Math.min(0,(m.g&&m.g.ca)||0)*2+Math.min(0,(m.g&&m.g.cse)||0)*0.5,0);
+  const chance=clamp(S.g.ca+S.tmp.bonus+polit+(pend.length?-pend.length*2:30),5,97);
+  if(S.sub===2){
+    scene(`<div class="kicker">La grande bidouille · ${S.year}</div><h2>Le vote du conseil d'administration</h2>
+    <p class="lead">${pend.length?`Votre plan comporte ${pend.length} mesure${pend.length>1?'s':''}.`:'Vous ne soumettez aucune nouvelle mesure cette année.'} Le CA se prononce à main levée. Chance d'adoption estimée : <b>${Math.round(chance)} %</b>.</p>
+    <div class="tw"><table><tr><th>Mesure</th><th>Recettes</th><th>Coûts</th><th>CA</th></tr>${pend.map(m=>`<tr><td>${m.n}</td><td>${m.rev?kE(m.rev):'–'}</td><td>${(m.cost||m.mk)?kE((m.cost||0)+(m.mk||0)):'–'}</td><td>${(m.g&&m.g.ca)||0}</td></tr>`).join('')}</table></div><div id="b"></div>`);
+    $('#b').appendChild(btn('Appeler au vote',()=>{S.sub=3;S.tmp.roll=Math.random()*100;renderVote();},'primary'));
+    return;
+  }
+  const ok=S.tmp.roll<chance;
+  if(ok||S.tmp.forced){
+    pend.forEach(m=>{apply({g:m.g,rev:m.rev,cost:m.cost,mk:m.mk,price:m.price,stu:m.stu,churn:m.churn,hc:m.hc,once:m.once,debt:m.debt,rate:m.rate,flag:m.flag}); S.active.push(m.id); if(m.n.startsWith('Gel')) S.flags.gel=true;});
+    S.pending=[];
+    scene(`<div class="kicker">La grande bidouille · ${S.year}</div><h2>${S.tmp.forced?'Plan imposé':'Plan adopté'}</h2><p class="lead">${S.tmp.forced?'Vous avez usé de votre pouvoir de direction. Le plan s\'applique, mais le CA et le CSE s\'en souviendront.':'Le conseil adopte le plan. Les mesures entrent en vigueur immédiatement.'}</p><div id="b"></div>`);
+    $('#b').appendChild(btn('Continuer',next,'primary'));
+    return;
+  }
+  // rejet
+  const worst=pend.slice().sort((a,b)=>((a.g&&a.g.ca)||0)-((b.g&&b.g.ca)||0))[0];
+  scene(`<div class="kicker">La grande bidouille · ${S.year}</div><h2>Le plan est rejeté</h2><p class="lead">Le vote est perdu. Deux issues : passer en force, ou retirer la mesure la plus contestée (« ${worst?worst.n:''} ») et refaire voter.</p><div class="choices" id="ch"></div>`);
+  $('#ch').appendChild(btn(`<span class="choice"><b>Passer en force</b><small>Le plan s'applique intégralement.</small></span>${fxChips({g:{ca:-15,cse:-6}})}`,()=>{apply({g:{ca:-15,cse:-6}});S.tmp.forced=true;renderVote();}));
+  if(worst) $('#ch').appendChild(btn(`<span class="choice"><b>Retirer « ${worst.n} » et refaire voter</b><small>Le plan amputé est adopté.</small></span>${fxChips({g:{ca:-2}})}`,()=>{S.pending=S.pending.filter(i=>i!==worst.id);apply({g:{ca:-2}});S.tmp.forced=true;renderVote();}));
+}
+
+function renderEvent(){
+  const e=pickEvent(); const fx=typeof e.fx==='function'?e.fx(S):e.fx; apply(fx);
+  scene(`<div class="kicker">Événement · ${S.year}</div><h2>${e.n}</h2><div class="quote">${e.t}</div>${fx.txt?`<p class="lead">${fx.txt}</p>`:''}${fxChips(fx)}<div id="b"></div>`);
+  $('#b').appendChild(btn('Clôturer l\'exercice',next,'primary'));
+}
+
+function renderResultats(){
+  const y=simulate();
+  scene(`<div class="kicker">Résultats · exercice ${S.year}</div><h2>Résultat net : ${pct(y.pct)}</h2>
+  <div class="tw"><table>
+  <tr><td>Nouveaux inscrits</td><td>${fmt(y.newS)}</td></tr><tr><td>Abandons et sorties (${Math.round(y.churn*100)} %)</td><td>−${fmt(y.left)}</td></tr><tr><td><b>Étudiants au 31 décembre</b></td><td><b>${fmt(y.students)}</b></td></tr>
+  <tr><td>Chiffre d'affaires</td><td>${fmt(y.revenue)} k€</td></tr><tr><td>Charges (dont intérêts ${fmt(y.interest)} k€)</td><td>−${fmt(y.costs)} k€</td></tr><tr><td><b>Résultat net</b></td><td><b>${kE(y.res)}</b></td></tr>
+  <tr><td>Mouvements exceptionnels de trésorerie</td><td>${kE(y.once)}</td></tr><tr><td><b>Trésorerie au 31 décembre</b></td><td><b>${kE(S.cash)}</b></td></tr></table></div>
+  <p class="note">${y.pct>=S.target?'Objectif de marge atteint cette année.':y.pct>=0?'L\'école est à l\'équilibre. Reste à construire la marge.':'Encore une année en perte.'}</p><div id="b"></div>`);
+  $('#b').appendChild(btn('Préparer le grand show de fin d\'année',next,'primary'));
+}
+
+function renderShow(){
+  const lr=S.lastResult; const prev=S.history.length>1?S.history[S.history.length-2].pct:-12; const better=lr.pct>prev;
+  const layoffs=S.active.some(id=>(MEASURES[id].hc||0)<=-20);
+  const c=[
+   ["Transparence brutale","Les vrais chiffres, les vraies raisons, ce qui vient.",{cost:150,g:better?{cse:6,com:3,ca:3}:{cse:-4,com:-2,ca:2}},better?"Les équipes apprécient d'être traitées en adultes. Le CA aussi.":"Dire la vérité quand elle est mauvaise ne rend pas populaire. Mais personne ne vous accuse de mentir."],
+   ["Célébration et récompenses","Trophées, vidéo rétrospective, DJ et prime de fin d'année.",{cost:400,g:lr.pct>=0?{cse:10,com:10,ca:-2}:{cse:-6,com:-3,ca:-4}},lr.pct>=0?"La soirée est réussie, le moral remonte.":"Faire la fête sur une année en perte sonne faux. Le CA trouve la facture déplacée."],
+   ["Le discours de vision","L'IA, l'international, l'école de 2032. Peu de chiffres, beaucoup d'ambition.",{cost:150,g:{ca:5,com:5,cse:layoffs?-5:-1}},layoffs?"Les commerciaux applaudissent. Les équipes qui viennent de perdre des collègues trouvent cela déconnecté.":"Les commerciaux applaudissent. Le reste écoute poliment."],
+   ["Annuler le show","Économiser 150 k€ et envoyer un e-mail.",{g:{cse:-10,com:-8,ca:1}},"Le mail est lu en silence. Le show de fin d'année était l'un des rares moments où l'école se voyait comme une seule équipe."]];
+  choiceScene(`Grand show de fin d'année · décembre ${S.year}`,"400 salariés vous attendent sur scène",
+    `${better?'Les résultats s\'améliorent.':'Les résultats n\'ont pas progressé.'} ${layoffs?'Des postes ont été supprimés cette année.':''} Qu'allez-vous leur dire ?`,
+    c.map(([l,sub,fx,out])=>[l,fx,out,sub]));
+}
+
+function renderBilan(){
+  const over=checkOver(); if(over){S.over={lost:true,why:over};return renderFinal();}
+  const last=S.yi>=YEARS.length-1;
+  if(last){S.over={lost:false};return renderFinal();}
+  scene(`<div class="kicker">Bilan · ${S.year}</div><h2>Fin de l'exercice ${S.year}</h2>${histHtml()}<p class="lead">${S.g.ca<30?'Le conseil d\'administration vous accorde un sursis.':S.lastResult.pct>=S.target?'Le conseil vous félicite. Il faudra confirmer.':'Le conseil attend la suite.'} Il reste ${YEARS.length-1-S.yi} exercice${YEARS.length-1-S.yi>1?'s':''} avant la rentrée 2032.</p><div id="b"></div>`);
+  $('#b').appendChild(btn('Ouvrir l\'exercice '+(S.year+1),()=>{S.yi++;S.year=YEARS[S.yi];S.phase=0;S.sub=0;S.tmp=null;render();},'primary'));
+}
+function histHtml(){
+  const cells=YEARS.map((y,i)=>{const h=S.history[i]; if(!h) return `<div style="height:0;background:transparent"><span class="note">${y}</span></div>`; const v=clamp(Math.abs(h.pct),0,20); return `<div class="${h.pct<0?'neg':'pos'}" style="height:${v/20*70+4}px"><span>${pct(h.pct)}</span></div>`;}).join('');
+  return `<div class="hist">${cells}</div><p class="note">Résultat net par exercice, 2026 → 2031.</p>`;
+}
+function renderFinal(){
+  const lr=S.lastResult; let verdict,text;
+  if(S.over.lost){verdict="Partie perdue";text=S.over.why;}
+  else if(lr.pct>=S.target){verdict="Objectif atteint";text=`À la rentrée 2032, l'école affiche ${pct(lr.pct)} de résultat net, ${fmt(S.students)} étudiants et ${fmt(S.staff)} salariés. Dix ans plus tard, les anciens élèves se souviennent ${S.g.etu>60?'d\'une école qui a tenu ses promesses.':'surtout des années de rigueur.'}`;}
+  else if(lr.pct>=0){verdict="Demi-succès";text=`L'école est à l'équilibre (${pct(lr.pct)}) mais loin des +${S.target} % demandés. Le CA vous garde, sans enthousiasme.`;}
+  else{verdict="Objectif manqué";text=`Toujours en perte (${pct(lr.pct)}) à la rentrée 2032. Le CA ne renouvelle pas votre mandat.`;}
+  scene(`<div class="kicker">Rentrée 2032</div><div class="final"><div class="verdict">${verdict}</div><p class="lead">${text}</p>${histHtml()}
+  <div class="tw"><table><tr><th>Indicateur</th><th>2025</th><th>Fin de partie</th></tr>
+  <tr><td>Résultat net</td><td>−12,0 %</td><td>${pct(lr.pct)}</td></tr><tr><td>Étudiants</td><td>12 000</td><td>${fmt(S.students)}</td></tr><tr><td>Salariés</td><td>400</td><td>${fmt(S.staff)}</td></tr><tr><td>Frais annuels</td><td>2 500 €</td><td>${fmt(S.price)} €</td></tr><tr><td>Trésorerie</td><td>+0,5 M€</td><td>${fmt(S.cash/100)/10} M€</td></tr><tr><td>Mesures adoptées</td><td>–</td><td>${S.active.length}</td></tr></table></div>
+  <p class="note">Mesures en vigueur : ${S.active.map(i=>MEASURES[i].n).join(' · ')||'aucune'}.</p><div id="b"></div></div>`);
+  $('#b').appendChild(btn('Rejouer',()=>{newGame();render();},'primary'));
+}
+
+// ---------- Sauvegarde locale et démarrage ----------
+function save(){ try{localStorage.setItem('bde-save',JSON.stringify(S));}catch(e){} }
+function start(data){
+  let loaded=null;
+  if(data&&data.S) loaded=data.S;
+  else { try{const s=localStorage.getItem('bde-save'); if(s) loaded=JSON.parse(s);}catch(e){} }
+  if(loaded&&loaded.year) S=loaded; else newGame();
+  if(S.phase===2||S.phase===5||(S.phase===0&&S.sub===1)){S.sub=0;S.tmp=null;} // reprise propre des scènes à sous-étapes
+  render();
+}
+try{ window.claude?.hot?.snapshot?.(()=>({S})); }catch(e){}
+window.claude?.hot?.ready ? window.claude.hot.ready(start) : start(window.claude?.hot?.data ?? {});
+</script>
+
+</body>
+</html>
