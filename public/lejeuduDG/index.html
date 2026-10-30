@@ -105,7 +105,7 @@ input[type=range]{width:100%;accent-color:var(--gold)}
 .ep .st{position:absolute;right:6px;top:5px;font-size:10px;color:var(--muted2)}
 .ep.done{opacity:.8} .ep.done .st{color:var(--green)}
 .ep.on{opacity:1;border-color:var(--gold);background:linear-gradient(160deg,#3a2d12,#241a08)} .ep.on .m,.ep.on .n{color:var(--gold)} .ep.on .st{color:var(--gold)}
-.gauges{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:8px;background:var(--bg);padding-block:6px}
+.gauges{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;display:grid;grid-template-columns:repeat(8,minmax(0,1fr));gap:8px;background:var(--bg);padding-block:6px}
 .gauge{background:var(--card);border:.8px solid var(--line);border-radius:12px;padding:10px 12px;min-width:0;transition:box-shadow .3s}
 .gauge .l{font-size:10px;font-weight:900;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .gauge .l .gi{font-size:14px;vertical-align:-1px;margin-right:2px}
@@ -119,7 +119,7 @@ input[type=range]{width:100%;accent-color:var(--gold)}
 .gauge.has-pv{border-color:var(--gold)}
 .gauge.flash{box-shadow:0 0 0 2px var(--gold),0 0 24px rgba(201,162,74,.5)}
 .gauge.c-ca{border-color:var(--gold-dark)}
-.c-res i{background:var(--rose)} .c-cash i{background:var(--orange)} .c-rate i{background:var(--cyan)} .c-ca i{background:var(--gold)} .c-etu i{background:#4ade80} .c-com i{background:var(--blue)} .c-cse i{background:var(--violet)}
+.c-rev i{background:var(--cyan)} .c-res i{background:var(--rose)} .c-cash i{background:var(--orange)} .c-rate i{background:var(--cyan)} .c-ca i{background:var(--gold)} .c-etu i{background:#4ade80} .c-com i{background:var(--blue)} .c-cse i{background:var(--violet)}
 .toasts{position:fixed;right:max(16px,env(safe-area-inset-right,0px));bottom:24px;z-index:40;display:grid;gap:6px;pointer-events:none;width:260px}
 .toast{background:var(--card);border:1.5px solid var(--green);border-radius:10px;padding:6px 14px;text-align:left;box-shadow:0 8px 30px rgba(0,0,0,.5);animation:toast 3.2s forwards;min-width:200px}
 .toast.neg{border-color:var(--rose)}
@@ -656,7 +656,8 @@ function projected(){
   const extra=pend.reduce((a,m)=>a+yearly(m),0);
   const rc=4000*SC.scale; const rev=S.students*S.price/1000+(S.rev>rc?rc+(S.rev-rc)*0.5:S.rev)+S.yearFx.revY;
   const costs=BASE.payrollOther+BASE.payrollCom+mkTotal()+BASE.platform+BASE.other+S.cost+(S.debt+Math.max(0,-S.cash))*S.rate+Math.max(0,S.students-BASE.students)*S.price*(SC.varc||0.55)/1000;
-  const res=rev-costs+extra; return {res,pct:rev>0?res/rev*100:-100,extra};
+  const revX=pend.reduce((a,m)=>a+(m.rev||0)+(m.price?S.students*S.price*m.price/100/1000:0)+(m.stu?(m.stu-1)*4200*SC.scale*S.price/1000:0),0);
+  const res=rev-costs+extra; return {res,pct:rev>0?res/rev*100:-100,extra,rev:rev+revX};
 }
 function capCost(ids){ return ids.map(i=>MEASURES[i]).reduce((a,m)=>a+Math.min(0,m.cap||0),0); }
 function checkOver(){
@@ -793,6 +794,7 @@ function gaugeHtml(){
   const G=(cls,ic,l,v,w,sub,pvh,w2)=>`<div class="gauge ${cls}${pvh?' has-pv':''}" data-g="${cls.slice(2)}"><div class="l"><span class="gi">${ic}</span> ${l}</div><div class="v num">${v}${pvh||(sub?`<small> · ${sub}</small>`:'')}</div><div class="bar"><i style="width:${w}%"></i>${pvh?`<em style="left:${Math.min(w,w2)}%;width:${Math.abs(w2-w)}%"></em>`:''}</div></div>`;
   const nca=clamp(S.g.ca+d.ca,0,100),netu=clamp(S.g.etu+d.etu,0,100),ncom=clamp(S.g.com+d.com,0,100),ncse=clamp(S.g.cse+d.cse,0,100),ncash=S.cash+d.once;
   return {conj,html:
+   G('c-rev','💶','Chiffre d\'aff.',(lr.rev/1000).toFixed(1).replace('.',',')+' M€',clamp(lr.rev/(SC.caTarget||SC.ca0*1.5)*100,2,100),SC.growth?`cible ${(SC.caTarget/1000).toFixed(0)} M€`:`2025 : ${(SC.ca0/1000).toFixed(0)} M€`,pv?arrow(lr.rev,pj.rev,x=>(x/1000).toFixed(1).replace('.',',')+' M€',pj.rev>=lr.rev):'',clamp(pj.rev/(SC.caTarget||SC.ca0*1.5)*100,2,100))+
    G('c-res','📉','Résultat net',pct(lr.pct),resW,`cible +${S.target} %`,pv?arrow(lr.pct,pj.pct,pct,pj.pct>lr.pct):'',clamp((pj.pct+30)/60*100,2,100))+
    G('c-ca','⚡','Capital',Math.round(S.g.ca)+' pts',S.g.ca,S.g.ca<20?'danger':S.g.ca<40?'fragile':S.g.ca<70?'solide':'fort',arrow(S.g.ca,nca,x=>Math.round(x)+' pts',nca>=S.g.ca),nca)+
    G('c-cash','🏦','Trésorerie',mE(S.cash),cashW,`dette ${(S.debt/1000).toFixed(1).replace('.',',')} M€`,arrow(S.cash,ncash,mE,ncash>=S.cash),clamp((ncash-SC.bank)/(-SC.bank*2)*100,2,100))+
