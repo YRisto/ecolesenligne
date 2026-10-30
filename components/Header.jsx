@@ -6,7 +6,7 @@ export default function Header() {
         <Link href="/" className="brand">Écoles<span>enligne</span>.fr</Link>
         <nav>
           <Link href="/formations">Formations</Link>
-          <Link href="/demande" className="btn-sm">Demander des infos</Link>
+          <Link href="/demande" className="btn-sm btn-sm-or">Demander des infos</Link>
         </nav>
       </div>
     </header>

@@ -1,3 +1,5 @@
+import "@fontsource/anton/latin-400.css";
+import "@fontsource-variable/inter";
 import "./globals.css";
 import Header from "../components/Header";
 import Footer from "../components/Footer";
