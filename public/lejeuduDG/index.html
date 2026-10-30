@@ -498,7 +498,7 @@ function apply(fx,label){
   if(fx.rev) S.rev+=fx.rev; if(fx.cost) S.cost+=fx.cost;
   if(fx.mk){const t=mkTotal(); const f=Math.max(0.2,(t+fx.mk)/t); for(const k in S.media) S.media[k]=Math.round(S.media[k]*f);}
   if(fx.price){ if(!(S.mode==='univ'&&fx.price>0)) S.price=Math.round(S.price*(1+fx.price/100)); }
-  if(fx.stu) S.stuMult*=fx.stu; if(fx.churn) S.churn+=fx.churn; if(fx.hc) S.staff+=fx.hc;
+  if(fx.stu) S.stuMult=clamp(S.stuMult*fx.stu,0.4,1.6); if(fx.churn) S.churn+=fx.churn; if(fx.hc) S.staff+=fx.hc;
   if(fx.once){S.cash+=fx.once; S.yearFx.once+=fx.once;} if(fx.debt!==undefined){ if(fx.debt===0) S.debt=0; else S.debt+=fx.debt; }
   if(fx.rate) S.rate=clamp(S.rate+fx.rate,0.01,0.15);
   if(fx.stuY) S.yearFx.stuY*=fx.stuY; if(fx.revY) S.yearFx.revY+=fx.revY;
@@ -549,7 +549,9 @@ function inscriptions(){
   for(const k in MEDIA){const r=channelCalc(k,S.media[k]); out[k]=r; tot+=r.ins; leads+=r.leads; churnExtra+=r.ins*MEDIA[k].churn;}
   const repF=0.7+0.6*(S.g.etu/100);
   const organic=Math.round(BASE.organic*repF*S.stuMult);
-  return {channels:out,organic,total:Math.round((tot+organic)*S.yearFx.stuY),leads,churnExtra:tot?churnExtra/tot:0};
+  // Saturation du marché : au-delà de 12 000 étudiants, chaque inscription coûte plus cher (marché fini)
+  const sat=clamp(1-(S.students-12000)/14000,0.3,1.1);
+  return {channels:out,organic,total:Math.round((tot+organic)*S.yearFx.stuY*sat),leads,churnExtra:tot?churnExtra/tot:0,sat};
 }
 
 // ---------- Simulation annuelle ----------
@@ -560,11 +562,13 @@ function simulate(){
   const left=Math.round(S.students*churn);
   const students=Math.max(0,S.students-left+newS);
   const tuition=students*S.price/1000;
-  const revenue=tuition+S.rev+S.yearFx.revY;
+  const revEff=S.rev>4000?4000+(S.rev-4000)*0.5:S.rev; // rendements décroissants des recettes annexes
+  const revenue=tuition+revEff+S.yearFx.revY;
   const payroll=BASE.payrollOther+BASE.payrollCom;
   const overdraft=Math.max(0,-S.cash);
   const interest=(S.debt+overdraft)*S.rate;
-  const costs=payroll+mkTotal()+BASE.platform+BASE.other+S.cost+interest;
+  const scaleCost=Math.max(0,students-12000)*0.9; // encadrement, support et plateforme pour les étudiants supplémentaires
+  const costs=payroll+mkTotal()+BASE.platform+BASE.other+S.cost+interest+scaleCost;
   const res=revenue-costs; const pc=revenue>0?res/revenue*100:-100;
   const y={year:S.year,newS,ins,left,churn,students,revenue,costs,interest,res,pct:pc,once:S.yearFx.once,cashBefore:S.cash,media:{...S.media}};
   S.cash+=res; y.cash=S.cash;
@@ -587,8 +591,8 @@ function simulate(){
 function projected(){
   const pend=S.pending.map(i=>MEASURES[i]);
   const extra=pend.reduce((a,m)=>a+yearly(m),0);
-  const rev=S.students*S.price/1000+S.rev+S.yearFx.revY;
-  const costs=BASE.payrollOther+BASE.payrollCom+mkTotal()+BASE.platform+BASE.other+S.cost+(S.debt+Math.max(0,-S.cash))*S.rate;
+  const rev=S.students*S.price/1000+(S.rev>4000?4000+(S.rev-4000)*0.5:S.rev)+S.yearFx.revY;
+  const costs=BASE.payrollOther+BASE.payrollCom+mkTotal()+BASE.platform+BASE.other+S.cost+(S.debt+Math.max(0,-S.cash))*S.rate+Math.max(0,S.students-12000)*0.9;
   const res=rev-costs+extra; return {res,pct:rev>0?res/rev*100:-100,extra};
 }
 function capCost(ids){ return ids.map(i=>MEASURES[i]).reduce((a,m)=>a+Math.min(0,m.cap||0),0); }
