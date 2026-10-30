@@ -101,3 +101,7 @@ create table if not exists jeu_dg_scores (
 );
 create index if not exists jeu_dg_scores_type_idx on jeu_dg_scores (type, annee, resultat_pct desc);
 alter table jeu_dg_scores enable row level security;  -- accès uniquement via la clé service (route /api/jeudg)
+-- Droits pour la clé service (le projet n'accorde pas de privilèges par défaut sur les nouvelles tables)
+grant select, insert, update on public.jeu_dg_scores to service_role;
+grant usage, select on sequence public.jeu_dg_scores_id_seq to service_role;
+notify pgrst, 'reload schema';
