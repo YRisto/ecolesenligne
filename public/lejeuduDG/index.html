@@ -3,8 +3,8 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="description" content="Le jeu du DG : redressez Xyn and You, école à distance de 12 000 étudiants, avant la rentrée 2032.">
-<title>La Bataille de l'École</title>
+<meta name="description" content="La Bataille du DG : redressez Xyn and You, école à distance de 12 000 étudiants, avant la rentrée 2032.">
+<title>La Bataille du DG</title>
 <style>
 /* Layout: série politique — en-tête + bandeau d'épisodes, jauges collantes, carte d'épisode à cadre doré, panneau budget. Thème unique sombre, choisi délibérément. */
 :root{
@@ -222,11 +222,11 @@ const N={
  ecole:"Xyn and You",
  president:"Bernard Bugatti", presidentRole:"Président-fondateur",
  daf:"Guillaume Norgeat", dafRole:"Directeur administratif et financier",
- peda:"Claire Vasseur", com:"Thomas Rey", dsi:"Karim Benali", mkt:"Sophie Lemaire", support:"Julien Morel", business:"Antoine Garnier", qualite:"Nadia Ferreira", rh:"Marc Delorme", comm:"Élise Fontaine",
- cse:"Patrick Lamy", comSenior:"Valérie Roux", etuF:"Inès Benkacem", etuM:"Mehdi Lauret", filiere:"Léa Fabre",
- adminEtu:"Hugo Simon", adminEns:"Isabelle Caron", actionnaire:"Philippe Marchand", adminIndep:"Hélène Dubois", banquier:"Céline Aubert", banque:"Banque Rhône-Atlantique",
- cac:"cabinet Auditis", qualiopi:"Certif'Form", star:"Lucas Perrin",
- fil1:"Marketing digital", fil2:"Informatique", fil3:"Gestion", mba:"MBA Business en ligne",
+ peda:"Eva Duchene", com:"Delphine Engels", dsi:"Bechir Flechel", mkt:"Kim Lemaire", support:"Hector Morel", business:"Perrine Teintagel", qualite:"Nadia Ferreira", rh:"Anne-Sophie Marrasco", comm:"Arthur Fortatos",
+ cse:"Noemie Dosmot", comSenior:"Mariya Unika", etuF:"Inès Benkacem", etuM:"Mehdi Lauret", filiere:"Léa Fabre",
+ adminEtu:"Hugo Simon", adminEns:"Isabelle Caron", actionnaire:"Jean-Luc Manouquian", adminIndep:"Hélène Belleavenir", banquier:"Henri Largenté", banque:"Banque Rhône-Atlantique",
+ cac:"cabinet BDA", qualiopi:"Certif'Form", star:"Matthieu Levertueux",
+ fil1:"Marketing digital", fil2:"Petite Enfance", fil3:"Santé Naturelle", mba:"MBA Business en ligne",
 };
 // ---------- Données de base (k€) ----------
 const BASE = {students:12000, price:2500, organic:1200, payrollOther:15600, payrollCom:4800, marketing:4500, platform:2200, other:6100, debt:9000, rate:0.045, cash:500, staff:400, com:100};
@@ -308,10 +308,10 @@ const ENVELOPPES=[
   c:[["Accorder les 15 postes",{cost:750,hc:15,churn:-2,g:{etu:4,cse:4,ca:-2}},"Elle repart soulagée. "+N.daf+", moins."],
      ["Refuser",{g:{cse:-5,etu:-2}},"« Alors ne venez pas vous plaindre des abandons. »"],
      ["Compromis : 5 postes",{cost:250,hc:5,churn:-1,g:{etu:1,cse:1}},"Elle accepte, sans enthousiasme."]]},
- {who:N.com,role:"Directeur commercial",ic:"👨‍💼",ask:"« Avec 20 % de budget médias en plus, je vous signe 300 inscriptions supplémentaires. Sans, je ne garantis plus les objectifs. »",
-  c:[["Accorder les 20 %",{mk:900,stu:1.06,g:{com:8,ca:-2}},"Il promet des résultats. On verra à la rentrée."],
+ {who:N.com,role:"Directrice commerciale",ic:"👩‍💼",ask:"« Avec 20 % de budget médias en plus, je vous signe 300 inscriptions supplémentaires. Sans, je ne garantis plus les objectifs. »",
+  c:[["Accorder les 20 %",{mk:900,stu:1.06,g:{com:8,ca:-2}},"Elle promet des résultats. On verra à la rentrée."],
      ["Refuser",{g:{com:-8}},"« Vous me demandez de faire des briques sans paille. »"],
-     ["Compromis : 10 %, conditionnés aux résultats",{mk:400,stu:1.03,g:{com:2}},"Il grimace mais signe."]]},
+     ["Compromis : 10 %, conditionnés aux résultats",{mk:400,stu:1.03,g:{com:2}},"Elle grimace mais signe."]]},
  {who:N.dsi,role:"Directeur des systèmes d'information",ic:"🧑‍💻",ask:"« La plateforme tourne sur une infrastructure de 2017. Sans migration et sans budget sécurité, je ne réponds plus de rien. »",
   c:[["Financer la migration",{cost:500,once:-400,flag:"secu"},"La migration démarre cet été."],
      ["Refuser",{g:{cse:-2},flag:"risque_cyber"},"Il note la décision par écrit. Ce n'est jamais bon signe."],
@@ -327,9 +327,9 @@ const ENVELOPPES=[
  {who:N.daf,role:N.dafRole,ic:"🧮",ask:"« Nous avons trois litiges étudiants en cours. Je veux provisionner 300 k€ maintenant plutôt que de surprendre le conseil plus tard. »",
   c:[["Provisionner",{once:-300,g:{ca:3}},"Le conseil apprécie la prudence."],
      ["Refuser",{g:{ca:-2},flag:"litiges"},N.daf+" soupire. Les litiges, eux, continuent."]]},
- {who:N.business,role:"Responsable de la filière Business",ic:"🧑‍🏫",ask:"« Un "+N.mba+" à 6 000 €. Cent inscrits la première année, c'est 600 k€ de marge dès la deuxième. »",
+ {who:N.business,role:"Responsable de la filière Business",ic:"👩‍🏫",ask:"« Un "+N.mba+" à 6 000 €. Cent inscrits la première année, c'est 600 k€ de marge dès la deuxième. »",
   c:[["Lancer le MBA",{rev:1100,cost:800,g:{ca:1,com:4}},"Le programme ouvre en janvier."],
-     ["Refuser",{g:{com:-2}},"Il ira peut-être le proposer ailleurs."],
+     ["Refuser",{g:{com:-2}},"Elle ira peut-être le proposer ailleurs."],
      ["Compromis : lancement test à 30 places",{rev:400,cost:300,g:{com:1}},"Un pilote, pour voir."]]},
  {who:N.qualite,role:"Directrice qualité",ic:"👩‍🔬",ask:"« L'audit de renouvellement Qualiopi est dans huit mois. Sans 200 k€ de mise en conformité, je ne garantis pas la certification. »",
   c:[["Financer la mise en conformité",{cost:200,g:{ca:2},flag:"qualite"},"Les processus sont remis d'équerre."],
@@ -353,7 +353,7 @@ const AUDITIONS=[
   c:[["Reconnaître le problème et promettre un plan qualité",{cost:150,g:{com:5,etu:2}},"La salle se détend un peu."],
      ["Rappeler les objectifs et les primes",{g:{com:-6,ca:2}},"Froid polaire. "+N.com+" baisse les yeux."],
      ["Proposer un atelier commun commerciaux / pédagogie",{g:{com:3,cse:3}},"Quelques sourires. Reste à le faire."]]},
- {kicker:"Réunion CSE extraordinaire",who:N.cse,role:"Secrétaire du CSE",ic:"🧔",q:"« Nous demandons une expertise indépendante sur la situation économique. Vous la financez ? »",
+ {kicker:"Réunion CSE extraordinaire",who:N.cse,role:"Secrétaire du CSE",ic:"👩",q:"« Nous demandons une expertise indépendante sur la situation économique. Vous la financez ? »",
   c:[["Accepter l'expertise",{once:-80,g:{cse:6,ca:-1}},"L'expert confirmera vos chiffres. Ou pas."],
      ["Refuser",{g:{cse:-8}},"Le CSE saisira l'inspection du travail."],
      ["Proposer une présentation détaillée des comptes à la place",{g:{cse:2,ca:1}},"Accepté du bout des lèvres."]]},
@@ -370,9 +370,9 @@ const AMENDEMENTS=[
  {who:N.adminEtu,role:"Administrateur représentant les étudiants",ic:"👨‍🎓",ask:"Amendement : maintien du tutorat individuel pour toutes les filières, quel qu'en soit le coût.",y:{cost:400,g:{etu:5,ca:-2}},n:{g:{etu:-4}}},
  {who:N.adminEns,role:"Administratrice représentant les enseignants",ic:"👩‍🏫",ask:"Amendement : aucune correction entièrement automatisée sans relecture humaine.",y:{cost:250,g:{cse:5,ca:-1}},n:{g:{cse:-5}}},
  {who:N.actionnaire,role:"Actionnaire minoritaire",ic:"🕴️",ask:"Amendement : objectif de résultat relevé de 2 points cette année, ou gel des recrutements.",y:{g:{ca:6,cse:-4}},n:{g:{ca:-6}}},
- {who:N.com,role:"Directeur commercial, invité au conseil",ic:"👨‍💼",ask:"Amendement : aucune hausse de prix sans augmentation équivalente du budget médias.",y:{mk:400,g:{com:6,ca:-2}},n:{g:{com:-6}}},
+ {who:N.com,role:"Directrice commerciale, invitée au conseil",ic:"👩‍💼",ask:"Amendement : aucune hausse de prix sans augmentation équivalente du budget médias.",y:{mk:400,g:{com:6,ca:-2}},n:{g:{com:-6}}},
  {who:N.adminIndep,role:"Administratrice indépendante",ic:"🧓",ask:"Amendement : publication trimestrielle des indicateurs de satisfaction étudiante au conseil.",y:{cost:60,g:{ca:4,etu:2}},n:{g:{ca:-2}}},
- {who:N.banquier,role:"Représentante de la "+N.banque+" (censeur)",ic:"🏦",ask:"Amendement : plafonnement du découvert et plan de trésorerie mensuel.",y:{g:{ca:3,cse:-1},flag:"plan_treso"},n:{g:{ca:-3},rate:0.005}},
+ {who:N.banquier,role:"Représentant de la "+N.banque+" (censeur)",ic:"🏦",ask:"Amendement : plafonnement du découvert et plan de trésorerie mensuel.",y:{g:{ca:3,cse:-1},flag:"plan_treso"},n:{g:{ca:-3},rate:0.005}},
  {who:N.president,role:N.presidentRole,ic:"👴",ask:"Amendement : conserver le nom et la mission d'origine de "+N.ecole+" dans toute offre B2B.",y:{g:{ca:2,cse:3,com:-2}},n:{g:{ca:-3}}},
  {who:N.adminEtu,role:"Administrateur représentant les étudiants",ic:"👨‍🎓",ask:"Amendement : rétablissement d'un fonds de bourses de 300 k€.",y:{cost:300,g:{etu:6,ca:-2}},n:{g:{etu:-3}}},
 ];
@@ -564,7 +564,7 @@ function renderIntro(){
   app().innerHTML=`<div class="center"><div class="panel">
     <div class="flag"><i style="background:var(--gold)"></i><i style="background:#eef2fb"></i><i style="background:var(--red)"></i></div>
     <div class="kicker" style="text-align:center">Votre série de direction · ${N.ecole}</div>
-    <h1 class="serif title">LA BATAILLE DE L'ÉCOLE</h1>
+    <h1 class="serif title">LA BATAILLE DU DG</h1>
     <div style="text-align:center;color:var(--gold);font-size:13px;margin-top:-8px">2026-2032</div>
     <div class="speech"><div class="avatar">👴</div><div>
       <p>« Bienvenue chez ${N.ecole}. Je suis ${N.president}, président-fondateur. Votre mission : faire adopter le plan de redressement 2026 et les suivants. »</p>
@@ -600,7 +600,7 @@ function renderProfile(){
 }
 
 function renderTitle(){
-  app().innerHTML=`<div class="titlecard"><div class="big">LA BATAILLE DE L'ÉCOLE</div><div class="rule"></div><div class="sub">Saison ${S.yi+1} · Exercice ${S.year}</div></div>`;
+  app().innerHTML=`<div class="titlecard"><div class="big">LA BATAILLE DU DG</div><div class="rule"></div><div class="sub">Saison ${S.yi+1} · Exercice ${S.year}</div></div>`;
   setTimeout(()=>{S.screen='game';render();},2600);
 }
 
@@ -637,7 +637,7 @@ function headlines(){
 function renderGame(){
   const g=gaugeHtml();
   app().innerHTML=`<div class="game">
-    <div class="top"><div class="brand"><div class="logo"></div><div><div class="t">LA BATAILLE DE L'ÉCOLE</div><div class="s">${N.ecole} · Saison ${S.yi+1} · Exercice ${S.year}</div></div><span class="pill ${g.conj[0]}" id="conj" style="margin-left:8px">${g.conj[1]}</span></div>
+    <div class="top"><div class="brand"><div class="logo"></div><div><div class="t">LA BATAILLE DU DG</div><div class="s">${N.ecole} · Saison ${S.yi+1} · Exercice ${S.year}</div></div><span class="pill ${g.conj[0]}" id="conj" style="margin-left:8px">${g.conj[1]}</span></div>
       <div class="icons"><button title="Recommencer" id="reset">↺</button><button title="Partie sauvegardée automatiquement">💾</button></div></div>
     <div class="episodes">${EPISODES.map((e,i)=>`<div class="ep ${i===S.phase?'on':(i<S.phase?'done':'')}"><span class="st">${i<S.phase?'✓':i===S.phase?'▶':'🔒'}</span><span class="ic">${e[2]}</span><span class="m">E${i+1} · ${e[0]}</span><span class="n">${e[1]}</span></div>`).join('')}</div>
     <div class="gauges" id="gauges">${g.html}</div>
@@ -872,14 +872,14 @@ function phShow(){
    ["Célébration et récompenses",{cost:400,g:lr.pct>=0?{cse:10,com:10,ca:-2}:{cse:-6,com:-3,ca:-4}},lr.pct>=0?"La soirée est réussie, le moral remonte.":"Faire la fête sur une année en perte sonne faux. "+N.president+" trouve la facture déplacée.","Trophées, vidéo rétrospective, DJ et prime de fin d'année."],
    ["Le discours de vision",{cost:150,g:{ca:5,com:5,cse:layoffs?-5:-1}},layoffs?"Les commerciaux applaudissent. Les équipes qui viennent de perdre des collègues trouvent cela déconnecté.":"Les commerciaux applaudissent. Le reste écoute poliment.","L'IA, l'international, "+N.ecole+" en 2032. Peu de chiffres, beaucoup d'ambition."],
    ["Annuler le show",{g:{cse:-10,com:-8,ca:1}},"Le mail est lu en silence. Le show de fin d'année était l'un des rares moments où "+N.ecole+" se voyait comme une seule équipe.","Économiser 150 k€ et envoyer un e-mail."]];
-  sceneShell(dlg('🎤',N.comm,'Directrice de la communication · coulisses de la scène',`« 400 salariés sont connectés, 200 dans la salle, ${N.president} au premier rang. ${better?'Les résultats s\'améliorent.':'Les résultats n\'ont pas progressé.'} ${layoffs?'Des postes ont été supprimés cette année.':''} Qu'allez-vous leur dire ? »`)+`<div class="prompt">Votre show de fin d'année :</div><div id="c"></div>`,{title:'Le grand show de fin d\'année',tag:'Une scène, des projecteurs, 400 salariés. Le moment de vérité de l\'année.'});
+  sceneShell(dlg('🎤',N.comm,'Directeur de la communication · coulisses de la scène',`« 400 salariés sont connectés, 200 dans la salle, ${N.president} au premier rang. ${better?'Les résultats s\'améliorent.':'Les résultats n\'ont pas progressé.'} ${layoffs?'Des postes ont été supprimés cette année.':''} Qu'allez-vous leur dire ? »`)+`<div class="prompt">Votre show de fin d'année :</div><div id="c"></div>`,{title:'Le grand show de fin d\'année',tag:'Une scène, des projecteurs, 400 salariés. Le moment de vérité de l\'année.'});
   choices($('#c'),c,null,'Grand show');
 }
 
 function phBilan(){
   const over=checkOver(); if(over){S.over={lost:true,why:over};return render();}
   if(S.yi>=YEARS.length-1){S.over={lost:false};return render();}
-  sceneShell(histHtml()+`<p class="muted" style="margin-top:22px">${S.g.ca<30?N.president+' vous accorde un sursis.':S.lastResult.pct>=S.target?N.president+' vous félicite. Il faudra confirmer.':'Le conseil attend la suite.'} Il reste ${YEARS.length-1-S.yi} exercice${YEARS.length-1-S.yi>1?'s':''} avant la rentrée 2032.</p>`,{title:'Fin de saison '+(S.yi+1),tag:'Précédemment dans La Bataille de l\'École…',ready:true,onNext:()=>{S.yi++;S.year=YEARS[S.yi];S.phase=0;S.sub=0;S.tmp=null;S.decided=false;S.screen='title';render();}});
+  sceneShell(histHtml()+`<p class="muted" style="margin-top:22px">${S.g.ca<30?N.president+' vous accorde un sursis.':S.lastResult.pct>=S.target?N.president+' vous félicite. Il faudra confirmer.':'Le conseil attend la suite.'} Il reste ${YEARS.length-1-S.yi} exercice${YEARS.length-1-S.yi>1?'s':''} avant la rentrée 2032.</p>`,{title:'Fin de saison '+(S.yi+1),tag:'Précédemment dans La Bataille du DG…',ready:true,onNext:()=>{S.yi++;S.year=YEARS[S.yi];S.phase=0;S.sub=0;S.tmp=null;S.decided=false;S.screen='title';render();}});
   $('#nextBtn').innerHTML='▶ Saison '+(S.yi+2)+' · Exercice '+(S.year+1);
 }
 function histHtml(){
