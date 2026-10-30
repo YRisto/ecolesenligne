@@ -47,7 +47,7 @@ export default function Home() {
               </h1>
               <p className="hero-sub">Même formation, deux écoles : jusqu'à <strong>{eur(top.ecart)}</strong> d'écart. Nous avons mis {ecoles.length} écoles à distance côte à côte (prix, diplôme, avis, financement) et nous les notons de 3 à 5. Vous choisissez en connaissance de cause.</p>
               <HeroSearch formations={formations.map((f) => ({ slug: f.slug, intitule: f.intitule, nbEcoles: f.nbEcoles }))} />
-              <p className="hero-links"><Link href="/formations">Parcourir les {formations.length} formations</Link></p>
+              <p className="hero-links"><Link href="/quiz" className="btn-or hero-quiz">Faire le quiz : quelle formation pour moi ?</Link> <Link href="/formations">Parcourir les {formations.length} formations</Link></p>
             </div>
 
             {vedette && (
@@ -147,7 +147,7 @@ export default function Home() {
       <section className="sec sec-or">
         <div className="sec-in cta-f">
           <h2 className="display h-dark">Dans deux minutes, vous savez quoi demander.</h2>
-          <Link href="/formations" className="btn-noir">Trouver ma formation</Link>
+          <Link href="/quiz" className="btn-noir">Trouver ma formation en 2 minutes</Link>
         </div>
       </section>
     </div>
