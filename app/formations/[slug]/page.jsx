@@ -20,12 +20,12 @@ export default async function Page({ params }) {
       <span className="chip">{f.type}</span><span className="chip chip-muted">{f.niveau}</span>
       <h1>{f.intitule} à distance : quelle école choisir ?</h1>
       <p className="lead">{offres.length} école{offres.length > 1 ? "s" : ""} comparée{offres.length > 1 ? "s" : ""} sur les mêmes critères{prixMin(f.code) ? `, à partir de ${eur(prixMin(f.code))}` : ""}. Classement par note ecolesenligne.fr.</p>
+      {v && <section aria-label="Le métier en vidéo"><VideoMetier id={v.id} titre={v.titre} chaine={v.chaine} ecole={v.ecole} /></section>}
       <TableauComparatif offres={offres} formation={f} />
       <p className="small muted">Note de 3 à 5 calculée à partir des critères pondérés ({Object.entries(conf.poids).map(([k, p]) => `${k} ${p} %`).join(", ")}). Aucune école ne descend sous 3/5 : toutes celles présentées ont été sélectionnées. Les écoles « Partenaire » rémunèrent le site pour la mise en relation ; cela n'influence pas la note. Données relevées sur les sites des écoles, susceptibles d'évoluer.</p>
       {s ? (
         <section className="prose synthese">
           <h2>Le métier après {f.intitule}</h2>
-          {v && <VideoMetier id={v.id} titre={v.titre} chaine={v.chaine} ecole={v.ecole} />}
           {s.metiers && <><h3>Métiers accessibles</h3><p>{s.metiers}</p></>}
           {s.missions && <><h3>Missions au quotidien</h3><p>{s.missions}</p></>}
           {s.conditions && <><h3>Conditions de travail</h3><p>{s.conditions}</p></>}
