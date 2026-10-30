@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { DOMAINES, getFormations, getEcoles, getOffres, prixMin, eur } from "../lib/catalogue";
 import conf from "../data/ponderation.json";
-import offres from "../data/offres.json";
+import toutesOffres from "../data/offres.json";
 import CountUp from "../components/home/CountUp";
 import HeroSearch from "../components/home/HeroSearch";
 
@@ -11,6 +11,8 @@ const virgule = (n) => n.toFixed(1).replace(".", ",");
 export default function Home() {
   const formations = getFormations();
   const ecoles = getEcoles();
+  const visibles = new Set(formations.map((f) => f.code));
+  const offres = toutesOffres.filter((o) => visibles.has(o.formation));
 
   // Chiffres réels calculés sur le catalogue
   const prix = {};
