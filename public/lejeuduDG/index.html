@@ -209,7 +209,12 @@ th{font-size:10px;font-weight:900;letter-spacing:.1em;text-transform:uppercase;c
 .modal .lnk{background:none;border:0;color:var(--muted);font-weight:600;padding:8px 0}
 
 @media (max-width:1100px){.gauges{grid-template-columns:repeat(4,minmax(0,1fr))}.episodes{grid-template-columns:repeat(6,minmax(0,1fr))}.btiles{grid-template-columns:1fr 1fr}}
-@media (max-width:720px){.gauges{grid-template-columns:repeat(2,minmax(0,1fr))}.episodes{grid-template-columns:repeat(3,minmax(0,1fr))}.tiles,.profiles,.btiles,.media,.mtot{grid-template-columns:1fr}.panel{padding:18px}.scene{padding:14px}.ticker{margin-inline:-14px}.scene h2{font-size:20px}.toasts{top:auto;bottom:16px}.mrow{grid-template-columns:auto 1fr auto}.mrow .cap{grid-column:2;text-align:left}}
+@media (max-width:720px){
+ .gauges{display:flex;overflow-x:auto;gap:6px;padding-block:4px;scrollbar-width:none;-webkit-overflow-scrolling:touch}
+ .gauges::-webkit-scrollbar{display:none}
+ .gauge{flex:0 0 auto;width:118px;padding:5px 8px;border-radius:8px}
+ .gauge .l{font-size:8px;letter-spacing:.06em} .gauge .v{font-size:13px;margin:1px 0 3px} .gauge .v small{display:none} .gauge .bar{height:3px}
+ .episodes{display:flex;overflow-x:auto;gap:6px;scrollbar-width:none} .episodes::-webkit-scrollbar{display:none} .ep{flex:0 0 auto;width:104px}.tiles,.profiles,.btiles,.media,.mtot{grid-template-columns:1fr}.panel{padding:18px}.scene{padding:14px}.ticker{margin-inline:-14px}.scene h2{font-size:20px}.toasts{top:auto;bottom:16px}.mrow{grid-template-columns:auto 1fr auto}.mrow .cap{grid-column:2;text-align:left}}
 </style>
 
 </head>
