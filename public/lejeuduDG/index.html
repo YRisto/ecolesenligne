@@ -930,6 +930,21 @@ function renderPhase(silent){
   }
 }
 
+function presidentMood(tagOnly){
+  const lr=S.lastResult, prev=S.history.length>1?S.history[S.history.length-2]:null;
+  const ok=lr.res>=SC.resTarget, onTrack=!SC.growth||lr.rev>=SC.ca0+(SC.caTarget-SC.ca0)*S.yi/5;
+  const up=prev?lr.res>prev.res:lr.res>SC.ca0*SC.start/100;
+  const left=mE(SC.resTarget-lr.res).slice(1);
+  let q,t;
+  if(ok&&onTrack){q='« Objectif atteint, et avec de la marge. Le conseil est ravi ; moi aussi. Maintenant, on consolide : pas de relâchement, et gardez un œil sur les équipes. »';t='Nouvelle saison. Le conseil est satisfait, et le fait savoir.';}
+  else if(ok&&!onTrack){q=`« Le résultat est là, bravo. Mais le chiffre d'affaires ne suit pas : ${(SC.caTarget/1000).toFixed(0)} M€ en 2030, c'est l'autre moitié du mandat. Cette année, on accélère. »`;t='Nouvelle saison. Rentable, mais le conseil regarde la courbe des ventes.';}
+  else if(lr.pct<0&&S.g.ca<35){q='« Je ne vous cache pas mon inquiétude. L\'école perd de l\'argent et le conseil s\'impatiente. Cette année est celle de la dernière chance. »';t='Nouvelle saison, sous pression. Le conseil a relu les comptes deux fois.';}
+  else if(lr.pct<0){q=`« Encore une année en perte. ${up?'La tendance est bonne, je le reconnais, mais':'Et sans amélioration :'} le conseil veut voir l'équilibre cette année. ${left} nous séparent de l'objectif. »`;t='Nouvelle saison. Le conseil attend l\'équilibre.';}
+  else if(up){q=`« Belle progression. L'école est rentable et le conseil l'a remarqué. Il reste ${left} à aller chercher d'ici 2030 : gardons ce rythme${SC.growth&&!onTrack?', et remettons de l\'ambition sur le chiffre d\'affaires':''}. »`;t='Nouvelle saison. Le conseil est encourageant : la courbe va dans le bon sens.';}
+  else{q=`« Rentable, mais sans progrès par rapport à l'an dernier. Le conseil attend un coup d'accélérateur : ${left} manquent encore. »`;t='Nouvelle saison. Le conseil veut voir la courbe repartir.';}
+  if(S.cash<SC.bank*0.6&&!ok) q+=` « Et la trésorerie : ${N.banquier} m'a appelé. Réglez ça. »`;
+  return tagOnly?t:q;
+}
 function phCadrage(){
   const first=S.yi===0; const lr=S.lastResult;
   if(false&&S.year===2028&&S.sub===0){ // rachat en cours de partie désactivé
@@ -938,13 +953,14 @@ function phCadrage(){
     return;
   }
   const quote=first?`« Le conseil vous donne cinq exercices. Fin 2030, je veux un résultat net de ${tgt()}${SC.growth?' et un chiffre d\'affaires de '+(SC.caTarget/1000).toFixed(0)+' M€ (×'+SC.growth.toString().replace('.',',')+')':''}. Ni scandale, ni grève, ni exode des ${SC.unit}. Bonne chance. »`
-    :(S.g.ca<35?'« Je ne cache pas mon inquiétude. Cette année est celle de la dernière chance. »':S.g.ca>65?'« Le conseil renouvelle sa confiance. Continuez. »':'« Le conseil attend des résultats mesurables cette année. »');
+    :presidentMood();
   const extra=[S.cash<0?'La trésorerie est négative : les agios pèsent et la '+N.banque+' surveille chaque mouvement.':'',S.mode==='edtech'?'Le groupe edtech rappelle son exigence : +10 % d\'étudiants cette année.':'',S.mode==='fonds'?'Le fonds rappelle qu\'une année en perte ne sera pas tolérée.':'',S.mode==='univ'?'L\'université rappelle le gel des frais de scolarité.':''].filter(Boolean);
   const speaker=S.mode?['🕴️','Le nouvel actionnaire','Président du conseil']:[PRES,N.president,N.presidentRole+' · vous reçoit dans son bureau'];
   const body=dlg(speaker[0],speaker[1],speaker[2],(first?`« Bonjour ${S.name}. ${N.daf}, notre DAF, vous a remis les comptes 2025 : ${(SC.ca0/1000).toFixed(0)} M€ de chiffre d'affaires, ${fmt(BASE.students)} ${SC.unit}, ${BASE.staff} salariés dont ${BASE.com} commerciaux, et un résultat de <b style="color:${SC.start<0?'var(--rose)':'var(--green)'}">${pct(SC.start)}</b>. ${SC.pitch} »<br>`:`« Résultat ${S.year-1} : <b style="color:${lr.pct<0?'var(--rose)':'var(--green)'}">${pct(lr.pct)}</b>. ${lr.res>=SC.resTarget?'L\'objectif est atteint, il s\'agit de le tenir.':`Il manque ${mE(SC.resTarget-lr.res).slice(1)} de résultat avant fin 2030.`} »<br>`)+quote)+
    (extra.length?`<div class="note">${extra.map(x=>`<div>${x}</div>`).join('')}</div>`:'')+
    `<div class="prompt">Votre discours de prise de fonction — fixez le cap :</div><div id="c"></div>`;
-  sceneShell(body,{title:first?'Mission : Impossible':'La lettre du conseil',tag:first?(SC.start<0?'On vous confie une école qui perd '+fmt(-SC.ca0*SC.start/100/12*1000)+' € par mois. ':'On vous confie '+SC.name+'. ')+N.president+' attend un cap, les équipes guettent vos premiers mots.':'Nouvelle saison, mêmes contraintes. Le conseil a relu les comptes.'});
+  const mood=first?null:presidentMood(true);
+  sceneShell(body,{title:first?(SC.start<0?'Mission : Impossible':'Feuille de route'):'La lettre du conseil',tag:first?(SC.start<0?'On vous confie une école qui perd '+fmt(-SC.ca0*SC.start/100/12*1000)+' € par mois. ':'On vous confie une école en bonne santé, et une ambition à la hauteur. ')+N.president+' attend un cap, les équipes guettent vos premiers mots.':mood});
   choices($('#c'),[
     ["« La rigueur : je tiendrai les coûts. »",{g:{ca:3,cse:-2}},"Cap fixé. "+N.president+" approuve, le CSE prend note."],
     ["« La qualité : je miserai sur les étudiants. »",{g:{etu:3,ca:-1}},"Cap fixé. Les étudiants apprécient, le conseil attend les chiffres."],
