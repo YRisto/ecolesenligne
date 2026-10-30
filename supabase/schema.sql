@@ -78,3 +78,26 @@ create table if not exists leads_inbox (
   statut text default 'nouveau', transmis_a text[]
 );
 alter table leads_inbox enable row level security;  -- aucune policy : accessible uniquement avec la clé service (API serveur)
+
+-- ---------------------------------------------------------------
+-- La Bataille du DG : hall of fame (scores par saison et par partie)
+-- ---------------------------------------------------------------
+create table if not exists jeu_dg_scores (
+  id bigint generated always as identity primary key,
+  created_at timestamptz not null default now(),
+  partie_id uuid not null,
+  type text not null check (type in ('saison','partie')),
+  dg text not null,
+  profil text,
+  saison int,                 -- 1..6 (null pour une partie)
+  annee int,                  -- exercice (2026..2031)
+  resultat_pct numeric(6,2) not null,
+  capital int,
+  etudiants int,
+  tresorerie_k int,
+  mesures int,
+  statut text,                -- partie : 'objectif', 'equilibre', 'manque', 'perdu'
+  unique (partie_id, type, saison)
+);
+create index if not exists jeu_dg_scores_type_idx on jeu_dg_scores (type, annee, resultat_pct desc);
+alter table jeu_dg_scores enable row level security;  -- accès uniquement via la clé service (route /api/jeudg)

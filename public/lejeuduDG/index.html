@@ -144,6 +144,7 @@ input[type=range]{width:100%;accent-color:var(--gold)}
 .foot{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-top:4px}
 
 .hint{font-size:12px;color:var(--muted)}
+.cat .tabs{display:flex;flex-wrap:wrap;gap:6px;justify-content:center} .cat .tabs .tab{padding:6px 12px;border-radius:999px;font-size:12.5px;background:var(--card2);border:1px solid var(--line);color:var(--fg)} .cat .tabs .tab.on{background:var(--gold);color:var(--gold-ink);border-color:var(--gold);font-weight:700}
 .cath{display:flex;align-items:center;gap:8px;font-size:12px;font-weight:700;color:var(--muted);margin-top:6px}
 .cath i{width:9px;height:9px;border-radius:50%;display:inline-block}
 .mrows{display:grid;gap:6px}
@@ -436,7 +437,7 @@ const TUTO=[["Le résultat net","C'est l'indicateur central : le résultat de l'
 // ---------- État ----------
 let S;
 function newGame(){
-  S={screen:'intro',name:'',profile:null,year:2026,yi:0,phase:0,g:{ca:55,etu:55,com:50,cse:50},students:BASE.students,price:BASE.price,
+  S={screen:'intro',pid:(crypto.randomUUID?crypto.randomUUID():'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g,c=>{const r=Math.random()*16|0;return (c==='x'?r:(r&3|8)).toString(16)})),name:'',profile:null,year:2026,yi:0,phase:0,g:{ca:55,etu:55,com:50,cse:50},students:BASE.students,price:BASE.price,
      media:{google:1500,hello:1000,diplo:800,meta:1200},mediaMod:{},
      rev:0,cost:0,churn:0,stuMult:1,staff:BASE.staff,debt:BASE.debt,cash:BASE.cash,rate:BASE.rate,active:[],pending:[],flags:{},
      used:{env:[],aud:[],amd:[],evt:[]},history:[],lastResult:{pct:-12,rev:30000,res:-3605},lastNew:4200,yearFx:{stuY:1,revY:0,once:0},target:10,mode:null,sub:0,tmp:null,over:null,tuto:0,decided:false};
@@ -571,6 +572,40 @@ function checkOver(){
   return null;
 }
 
+// ---------- Hall of Fame ----------
+const API='/api/jeudg';
+function localScores(){ try{return JSON.parse(localStorage.getItem('bde-hof')||'[]');}catch(e){return [];} }
+function postScore(type,extra){
+  const row={partie_id:S.pid,type,dg:S.name,profil:S.profile!==null?PROFILES[S.profile][1]:'',annee:S.year,resultat_pct:+S.lastResult.pct.toFixed(2),capital:Math.round(S.g.ca),etudiants:S.students,tresorerie_k:Math.round(S.cash),mesures:S.active.length,saison:type==='saison'?S.yi+1:null,...extra};
+  try{const l=localScores().filter(x=>!(x.partie_id===row.partie_id&&x.type===row.type&&x.saison===row.saison)); l.push({...row,created_at:new Date().toISOString()}); localStorage.setItem('bde-hof',JSON.stringify(l.slice(-300)));}catch(e){}
+  try{fetch(API,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(row)}).catch(()=>{});}catch(e){}
+}
+async function fetchScores(type,annee){
+  try{const r=await fetch(API+'?type='+type+(annee?'&annee='+annee:''),{cache:'no-store'}); if(r.ok){const j=await r.json(); if(!j.offline&&!j.error) return {rows:j.rows,online:true};}}catch(e){}
+  const rows=localScores().filter(x=>x.type===type&&(!annee||x.annee===annee)).sort((a,b)=>b.resultat_pct-a.resultat_pct||(b.capital||0)-(a.capital||0));
+  return {rows,online:false};
+}
+function renderHof(){
+  if(!S.hof) S.hof={type:'saison',annee:2026};
+  const h=S.hof;
+  app().innerHTML=`<div class="center"><div class="panel wide">
+    <div class="kicker" style="text-align:center">${N.ecole} · Hall of Fame</div>
+    <h1 class="serif title">🏆 Les meilleurs DG</h1>
+    <div class="cat"><div class="tabs" id="tabs"></div></div>
+    <div class="tw" id="hof"><p class="muted" style="text-align:center">Chargement…</p></div>
+    <p class="credit" id="src"></p>
+    <div style="display:flex;justify-content:center" id="b"></div></div></div>`;
+  const tabs=[['saison',2026,'Saison 1 · 2026'],['saison',2027,'Saison 2 · 2027'],['saison',2028,'Saison 3 · 2028'],['saison',2029,'Saison 4 · 2029'],['saison',2030,'Saison 5 · 2030'],['saison',2031,'Saison 6 · 2031'],['partie',0,'🏁 Parties complètes']];
+  const tb=$('#tabs'); tabs.forEach(([t,a,l])=>tb.appendChild(btn(l,()=>{S.hof={type:t,annee:a};renderHof();},(h.type===t&&h.annee===a)?'tab on':'tab')));
+  $('#b').appendChild(btn('↩ Retour',()=>{S.screen=S.hofBack||'intro';render();},'sbtn'));
+  fetchScores(h.type,h.type==='saison'?h.annee:0).then(({rows,online})=>{
+    $('#src').textContent=online?'Classement partagé entre tous les joueurs.':'Classement local (cet appareil seulement) : le serveur de scores est injoignable.';
+    if(!rows.length){$('#hof').innerHTML='<p class="muted" style="text-align:center">Aucun score pour l\'instant. Soyez le premier DG inscrit !</p>';return;}
+    const st={objectif:'🏆 Objectif atteint',equilibre:'🟡 Équilibre',manque:'🔴 Objectif manqué',perdu:'💀 Révoqué·e'};
+    $('#hof').innerHTML=`<table><tr><th>#</th><th>DG</th><th>Profil</th>${h.type==='partie'?'<th>Issue</th>':''}<th>Résultat net</th><th>⚡</th><th>Étudiants</th><th>Trésorerie</th></tr>${rows.map((r,i)=>`<tr${r.dg===S.name?' style="color:var(--gold-hi)"':''}><td class="num">${i+1}</td><td><b>${String(r.dg).replace(/[<>&]/g,'')}</b></td><td class="muted">${String(r.profil||'').replace(/[<>&]/g,'')}</td>${h.type==='partie'?`<td>${st[r.statut]||''}</td>`:''}<td class="num" style="color:${r.resultat_pct<0?'var(--rose)':'var(--green)'}"><b>${pct(+r.resultat_pct)}</b></td><td class="num">${r.capital??'–'}</td><td class="num">${r.etudiants?fmt(r.etudiants):'–'}</td><td class="num">${r.tresorerie_k!=null?mE(r.tresorerie_k):'–'}</td></tr>`).join('')}</table>`;
+  });
+}
+
 // ---------- Rendu ----------
 const $=s=>document.querySelector(s);
 const app=()=>document.getElementById('app');
@@ -584,7 +619,8 @@ function render(){
   if(S.screen==='intro') return renderIntro();
   if(S.screen==='profile') return renderProfile();
   if(S.screen==='title') return renderTitle();
-  if(S.over) return renderFinal();
+  if(S.screen==='hof') return renderHof();
+  if(S.screen==='final'||S.over) return renderFinal();
   renderGame();
 }
 
@@ -604,10 +640,11 @@ function renderIntro(){
       <div class="tile cyan"><b>📣 Vos médias</b>Google, HelloFormation, Diplomomo, Meta : vous répartissez le budget, les commerciaux transforment les leads en inscriptions.</div>
       <div class="tile green"><b>📅 Chaque année</b>11 épisodes : cadrage, mesures, plan médias, guerre des enveloppes, gardiens, audition, vote du conseil, imprévu, résultats, grand show de fin d'année, bilan.</div>
     </div>
-    <div style="display:flex;justify-content:center" id="b"></div>
+    <div style="display:flex;justify-content:center;gap:10px;flex-wrap:wrap" id="b"></div>
     <div class="credit">Un jeu ${N.ecole} · inspiré de La Bataille du Budget</div>
   </div></div>`;
   $('#b').appendChild(btn('▶ Lancer la saison 1',()=>{S.screen='profile';render();}));
+  $('#b').appendChild(btn('🏆 Hall of Fame',()=>{S.hofBack='intro';S.screen='hof';render();},'sbtn'));
 }
 
 function renderProfile(){
@@ -895,7 +932,7 @@ function phEvent(silent){
 }
 
 function phResultats(){
-  if(!S.decided){ S.tmp={y:simulate()}; S.decided=true; save(); renderGauges(); renderBudget(); }
+  if(!S.decided){ S.tmp={y:simulate()}; S.decided=true; save(); renderGauges(); renderBudget(); postScore('saison',{}); }
   const y=S.tmp.y; const ins=y.ins;
   sceneShell(dlg(DAF,N.daf,N.dafRole+' · présente les comptes',`« Résultat net ${S.year} : <b style="color:${y.pct<0?'var(--rose)':'var(--green)'}">${pct(y.pct)}</b>. ${y.pct>=S.target?'Objectif de marge atteint cette année.':y.pct>=0?'L\'école est à l\'équilibre. Reste à construire la marge.':'Encore une année en perte.'} ${N.president} ${y.dca>=0?'vous accorde '+y.dca+' points de capital.':'vous retire '+(-y.dca)+' points de capital.'} »`)+
    `<div class="tw"><table><tr><th>Canal</th><th>Budget</th><th>Leads</th><th>Inscriptions</th><th>Coût / inscrit</th></tr>${Object.keys(MEDIA).map(k=>`<tr><td>${MEDIA[k].ic} ${MEDIA[k].n}</td><td class="num">${fmt(y.media[k])} k€</td><td class="num">${fmt(ins.channels[k].leads)}</td><td class="num">${fmt(ins.channels[k].ins)}</td><td class="num">${ins.channels[k].cpi?fmt(ins.channels[k].cpi)+' €':'–'}</td></tr>`).join('')}<tr><td>🌱 Bouche-à-oreille et alumni</td><td class="num">–</td><td class="num">–</td><td class="num">${fmt(ins.organic)}</td><td class="num">0 €</td></tr></table></div>
@@ -929,6 +966,8 @@ function histHtml(){
 }
 function renderFinal(){
   const lr=S.lastResult; let verdict,text,cls;
+  const statut=S.over.lost?'perdu':lr.pct>=S.target?'objectif':lr.pct>=0?'equilibre':'manque';
+  if(!S.over.posted){S.over.posted=true;postScore('partie',{statut});}
   if(S.over.lost){verdict="Fin de série";text=S.over.why;cls='bad';}
   else if(lr.pct>=S.target){verdict="Objectif atteint";text=`À la rentrée 2032, ${N.ecole} affiche ${pct(lr.pct)} de résultat net, ${fmt(S.students)} étudiants et ${fmt(S.staff)} salariés. Dix ans plus tard, les anciens élèves se souviennent ${S.g.etu>60?'d\'une école qui a tenu ses promesses.':'surtout des années de rigueur.'}`;cls='';}
   else if(lr.pct>=0){verdict="Demi-succès";text=`${N.ecole} est à l'équilibre (${pct(lr.pct)}) mais loin des +${S.target} % demandés. Le conseil vous garde, sans enthousiasme.`;cls='neu';}
@@ -941,8 +980,9 @@ function renderFinal(){
     <div class="tw" style="margin-top:20px"><table><tr><th>Indicateur</th><th>2025</th><th>Fin de série</th></tr>
     <tr><td>Résultat net</td><td class="num">−12,0 %</td><td class="num">${pct(lr.pct)}</td></tr><tr><td>Capital</td><td class="num">–</td><td class="num">${Math.round(S.g.ca)} pts</td></tr><tr><td>Étudiants</td><td class="num">12 000</td><td class="num">${fmt(S.students)}</td></tr><tr><td>Salariés</td><td class="num">400</td><td class="num">${fmt(S.staff)}</td></tr><tr><td>Frais annuels</td><td class="num">2 500 €</td><td class="num">${fmt(S.price)} €</td></tr><tr><td>Budget médias</td><td class="num">4,5 M€</td><td class="num">${(mkTotal()/1000).toFixed(1).replace('.',',')} M€</td></tr><tr><td>Trésorerie</td><td class="num">+0,5 M€</td><td class="num">${mE(S.cash)}</td></tr><tr><td>Mesures adoptées</td><td>–</td><td class="num">${S.active.length}</td></tr></table></div>
     <p class="hint">Mesures en vigueur : ${S.active.map(i=>MEASURES[i].n).join(' · ')||'aucune'}.</p>
-    <div style="display:flex;justify-content:center" id="b"></div></div></div>`;
+    <div style="display:flex;justify-content:center;gap:10px;flex-wrap:wrap" id="b"></div></div></div>`;
   $('#b').appendChild(btn('↺ Rejouer la série',()=>{newGame();render();}));
+  $('#b').appendChild(btn('🏆 Hall of Fame',()=>{S.hofBack='final';S.screen='hof';render();},'sbtn'));
 }
 
 // ---------- Démarrage ----------
@@ -951,6 +991,7 @@ function start(data){
   if(data&&data.S) loaded=data.S;
   else { try{const s=localStorage.getItem('bde-save'); if(s) loaded=JSON.parse(s);}catch(e){} }
   if(loaded&&loaded.screen&&loaded.g&&loaded.used&&loaded.media) S=loaded; else newGame();
+  if(!S.pid){const t=S; newGame(); t.pid=S.pid; S=t;}
   if(S.screen==='title') S.screen='game';
   render();
 }
