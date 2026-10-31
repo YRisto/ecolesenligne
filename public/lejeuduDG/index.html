@@ -713,13 +713,18 @@ const BADGES=[
  {id:'sober',ic:'🧊',n:'Sobriété',d:'Passer une saison sans aucune nouvelle mesure et rester rentable.'},
  {id:'tour',ic:'🌍',n:'Tour des écoles',d:'Terminer une partie dans chacun des cinq scénarios.'},
  {id:'slam',ic:'👑',n:'Grand chelem',d:'Remplir le mandat dans les cinq scénarios.'},
+ {id:'compromis',ic:'🕊️',n:'L\'art du compromis',d:'Terminer le mandat sans jamais passer un plan en force.'},
+ {id:'serre',ic:'😅',n:'Rescapé·e du vote',d:'Faire adopter un plan à une voix près.'},
+ {id:'sanshausse',ic:'🚫',n:'Ni vu ni connu',d:'Remplir le mandat sans jamais augmenter les frais de scolarité.'},
+ {id:'reformateur',ic:'🏗️',n:'Grand·e réformateur·rice',d:'Faire adopter au moins 3 réformes de structure dans un même mandat.'},
+ {id:'tronconneuse',ic:'🪚',n:'La tronçonneuse',d:'Faire adopter au moins 3 coupes budgétaires dans une même année.'},
  {id:'fired',ic:'🎭',n:'Sortie de scène',d:'Se faire révoquer par le conseil. Ça arrive aux meilleurs.'},
 ];
 function badges(){ try{return JSON.parse(localStorage.getItem('bde-badges')||'{}');}catch(e){return {};} }
 function award(id){
   const B=badges(); if(B[id]) return; const b=BADGES.find(x=>x.id===id); if(!b) return;
   B[id]={date:new Date().toISOString().slice(0,10),dg:S.name||'',sc:SC?SC.name:'' }; try{localStorage.setItem('bde-badges',JSON.stringify(B));}catch(e){}
-  const t=document.createElement('div'); t.className='toast badge'; t.innerHTML=`<b>🎖️ Badge débloqué : ${b.ic} ${b.n}</b><small>${b.d}</small>`;
+  (S.trophSession=S.trophSession||[]).push(id); const t=document.createElement('div'); t.className='toast badge'; t.innerHTML=`<b>🏅 Trophée débloqué : ${b.ic} ${b.n}</b><small>${b.d}</small>`;
   const box=document.getElementById('toasts'); if(box){while(box.children.length>=4) box.firstChild.remove(); box.appendChild(t); setTimeout(()=>t.remove(),5000);}
 }
 function badgeSeason(y){ // appelé après la simulation de l'année
@@ -732,15 +737,15 @@ function badgeSeason(y){ // appelé après la simulation de l'année
 }
 function badgeFinal(statut){
   const B=badges(); const done=B.done||{}; done[SC.id]={statut,date:new Date().toISOString().slice(0,10)}; B.done=done; try{localStorage.setItem('bde-badges',JSON.stringify(B));}catch(e){}
-  if(!S.over.lost) award('five'); if(statut==='objectif'){award('win'); if(S.lowCap) award('phoenix');} if(statut==='perdu') award('fired');
+  if(!S.over.lost) award('five'); if(statut==='objectif'){award('win'); if(S.lowCap) award('phoenix'); if(!S.priceUp) award('sanshausse');} if(!S.over.lost&&!S.forcedOnce) award('compromis'); if(statut==='perdu') award('fired');
   if(SCENARIOS.every(c=>done[c.id])) award('tour'); if(SCENARIOS.every(c=>done[c.id]&&done[c.id].statut==='objectif')) award('slam');
 }
 function renderBadges(){
   const B=badges(); const n=BADGES.filter(b=>B[b.id]).length;
   app().innerHTML=`<div class="center"><div class="panel wide">
-    <div class="kicker" style="text-align:center">Le Jeu du DG · Badges</div>
-    <h1 class="serif title">🎖️ Vos badges</h1>
-    <p class="muted" style="text-align:center;margin-top:-6px">${n} badge${n>1?'s':''} sur ${BADGES.length} débloqué${n>1?'s':''} sur cet appareil.</p>
+    <div class="kicker" style="text-align:center">Le Jeu du DG · Galerie des trophées</div>
+    <h1 class="serif title">🏅 Vos trophées</h1>
+    <p class="muted" style="text-align:center;margin-top:-6px">${n} trophée${n>1?'s':''} sur ${BADGES.length} débloqué${n>1?'s':''} sur cet appareil.</p>
     <div class="bgrid">${BADGES.map(b=>{const u=B[b.id];return `<div class="bdg ${u?'on':'lock'}"><span class="ic">${u?b.ic:'🔒'}</span><b>${b.n}</b><small>${b.d}</small>${u?`<em>${u.dg?u.dg+' · ':''}${u.sc||''}${u.date?' · '+u.date.split('-').reverse().join('/'):''}</em>`:''}</div>`;}).join('')}</div>
     <div style="display:flex;justify-content:center" id="b"></div></div></div>`;
   $('#b').appendChild(btn('↩ Retour',()=>{S.screen=S.hofBack||'intro';render();},'sbtn'));
@@ -825,7 +830,7 @@ function renderIntro(){
   </div></div>`;
   $('#b').appendChild(btn('▶ Choisir mon école',()=>{S.screen='scenario';render();}));
   $('#b').appendChild(btn('🏆 Hall of Fame',()=>{S.hofBack='intro';S.screen='hof';render();},'sbtn'));
-  $('#b').appendChild(btn('🎖️ Badges',()=>{S.hofBack='intro';S.screen='badges';render();},'sbtn'));
+  $('#b').appendChild(btn('🏅 Galerie des trophées ('+BADGES.filter(b=>badges()[b.id]).length+'/'+BADGES.length+')',()=>{S.hofBack='intro';S.screen='badges';render();},'sbtn'));
 }
 
 function renderScenario(){
@@ -1160,7 +1165,7 @@ function phVote(){
   const V=S.tmp.votes||{list:[],ok:false}; const ok=V.ok||S.tmp.forced;
   const votesHtml=V.list.length?`<div class="tw"><table><tr><th>Administrateur</th><th>Vote</th><th>Motif</th></tr>${V.list.map(v=>`<tr><td><b>${v.who}</b><br><span class="muted" style="font-size:11px">${v.role}</span></td><td style="color:${v.pour?'var(--green)':'var(--rose)'};white-space:nowrap"><b>${v.pour?'✓ Pour':'✗ Contre'}</b></td><td style="text-align:left;color:var(--muted)">${v.why}</td></tr>`).join('')}<tr><td colspan="3" style="text-align:left"><b>${V.pour} pour · ${V.contre} contre</b>${V.tie?' · égalité : la voix du président tranche':''}</td></tr></table></div>`:'';
   if(ok){
-    if(!S.decided){ if(pend.some(m=>m.cat==='fou')) award('poker'); if(V.list.length&&V.list.every(v=>v.pour)) award('unanime'); pend.forEach(m=>{(S.log=S.log||[]).push({y:S.year,kind:'mesure',n:m.n,eff:Math.round(yearly(m)),cap:m.cap||0,heart:m.g?Object.values(m.g).reduce((a,b)=>a+b,0):0}); apply({cap:m.cap,g:m.g,rev:m.rev,cost:m.cost,mk:m.mk,price:m.price,stu:m.stu,churn:m.churn,hc:m.hc,once:m.once,debt:m.debt,rate:m.rate,flag:m.flag},m.n); S.active.push(m.id);}); S.pending=[]; S.decided=true; save(); renderBudget(); renderGauges(); }
+    if(!S.decided){ if(pend.some(m=>m.cat==='fou')) award('poker'); if(V.list.length&&V.list.every(v=>v.pour)) award('unanime'); if(!S.tmp.forced&&V.list.length&&V.pour-V.contre<=1) award('serre'); if(pend.filter(m=>m.cat==='dep').length>=3) award('tronconneuse'); if(S.tmp.forced) S.forcedOnce=true; if(pend.some(m=>m.price>0)) S.priceUp=true; S.nbStr=(S.nbStr||0)+pend.filter(m=>m.cat==='str').length; if(S.nbStr>=3) award('reformateur'); pend.forEach(m=>{(S.log=S.log||[]).push({y:S.year,kind:'mesure',n:m.n,eff:Math.round(yearly(m)),cap:m.cap||0,heart:m.g?Object.values(m.g).reduce((a,b)=>a+b,0):0}); apply({cap:m.cap,g:m.g,rev:m.rev,cost:m.cost,mk:m.mk,price:m.price,stu:m.stu,churn:m.churn,hc:m.hc,once:m.once,debt:m.debt,rate:m.rate,flag:m.flag},m.n); S.active.push(m.id);}); S.pending=[]; S.decided=true; save(); renderBudget(); renderGauges(); }
     if(!S.tmp.forced&&!S.tmp.party){S.tmp.party=true;confetti();}
     sceneShell(votesHtml+`<div class="resbox ${S.tmp.forced?'bad':'pop'}"><b>${S.tmp.forced?'Plan imposé':'Plan adopté'}</b>${S.tmp.forced?'Vous avez usé de votre pouvoir de direction. Le plan s\'applique, mais le conseil et le CSE s\'en souviendront.':'Le conseil adopte le plan. Les mesures entrent en vigueur immédiatement et le capital est débité.'}</div>`,{title:S.tmp.forced?'Le passage en force':'Le plan est adopté',tag:'Les mesures entrent en vigueur. Reste à les faire vivre.',ready:true});
     return;
@@ -1284,11 +1289,12 @@ function renderFinal(){
     <div class="tw" style="margin-top:20px"><table><tr><th>Indicateur</th><th>2025</th><th>Fin de série</th></tr>
     <tr><td>Résultat net</td><td class="num">${mE(SC.ca0*SC.start/100)}</td><td class="num">${mE(lr.res)} <span class="muted">(${pct(lr.pct)} · cible ${tgt()})</span></td></tr><tr><td>Chiffre d'affaires</td><td class="num">${(SC.ca0/1000).toFixed(1).replace('.',',')} M€</td><td class="num">${(lr.rev/1000).toFixed(1).replace('.',',')} M€${SC.growth?' <span class="muted">(cible '+(SC.caTarget/1000).toFixed(0)+')</span>':''}</td></tr><tr><td>Capital</td><td class="num">–</td><td class="num">${Math.round(S.g.ca)} pts</td></tr><tr><td>${SC.unit.charAt(0).toUpperCase()+SC.unit.slice(1)}</td><td class="num">${fmt(BASE.students)}</td><td class="num">${fmt(S.students)}</td></tr><tr><td>Salariés</td><td class="num">${BASE.staff}</td><td class="num">${fmt(S.staff)}</td></tr><tr><td>Frais annuels</td><td class="num">${fmt(BASE.price)} €</td><td class="num">${fmt(S.price)} €</td></tr><tr><td>Budget ${SC.mediaWord}</td><td class="num">${(BASE.marketing/1000).toFixed(1).replace('.',',')} M€</td><td class="num">${(mkTotal()/1000).toFixed(1).replace('.',',')} M€</td></tr><tr><td>Trésorerie</td><td class="num">${mE(BASE.cash)}</td><td class="num">${mE(S.cash)}</td></tr><tr><td>Mesures adoptées</td><td>–</td><td class="num">${S.active.length}</td></tr></table></div>
     ${bilanHtml()}
+    ${(S.trophSession||[]).length?`<div class="note" style="text-align:left;border-color:var(--gold)"><div class="h">🏅 Trophées débloqués pendant cette partie</div>${[...new Set(S.trophSession)].map(id=>BADGES.find(b=>b.id===id)).filter(Boolean).map(b=>`<p style="margin:4px 0"><b>${b.ic} ${b.n}</b> <span class="muted">· ${b.d}</span></p>`).join('')}</div>`:''}
     <p class="hint">Mesures en vigueur : ${S.active.map(i=>MEASURES[i].n).join(' · ')||'aucune'}.</p>
     <div style="display:flex;justify-content:center;gap:10px;flex-wrap:wrap" id="b"></div></div></div>`;
   $('#b').appendChild(btn('↺ Rejouer la série',()=>{newGame(S.sc);S.screen='intro';render();}));
   $('#b').appendChild(btn('🏆 Hall of Fame',()=>{S.hofBack='final';S.screen='hof';render();},'sbtn'));
-  $('#b').appendChild(btn('🎖️ Badges',()=>{S.hofBack='final';S.screen='badges';render();},'sbtn'));
+  $('#b').appendChild(btn('🏅 Galerie des trophées ('+BADGES.filter(b=>badges()[b.id]).length+'/'+BADGES.length+')',()=>{S.hofBack='final';S.screen='badges';render();},'sbtn'));
   $('#b').appendChild(btn('📣 Partager mon score',()=>shareScore(verdict),'sbtn'));
 }
 function shareScore(verdict){
