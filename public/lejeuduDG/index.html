@@ -616,23 +616,23 @@ function lecture(m){
 function yearly(m){ const tu=S.students*S.price/1000; return (m.rev||0)-(m.cost||0)-(m.mk||0)+(m.price?tu*m.price/100:0)-(m.churn?tu*m.churn/100*(1+(m.price||0)/100):0)+(m.stu?(m.stu-1)*4200*S.price/1000:0); }
 
 // ---------- Médias et inscriptions ----------
+function marketSat(){ const over=Math.max(0,S.students-BASE.students)/SC.sat; return clamp(1-0.45*over*over+(S.students<BASE.students?(BASE.students-S.students)/BASE.students*0.3:0),0.5,1.2); } // à la cible de croissance (over=1), chaque inscription coûte ~2 fois plus
 function channelCalc(k,budget){
-  const c=MEDIA[k]; const cpl=c.cpl*(S.mediaMod[k]||1);
+  const c=MEDIA[k]; const cpl=c.cpl*(S.mediaMod[k]||1); const sat=marketSat()*S.yearFx.stuY;
   const baseLeads=c.base*1000/c.cpl;
   const raw=budget*1000/cpl;
   const leads=raw>0?Math.round(baseLeads*Math.pow(raw/baseLeads,0.62)):0;
   const comF=0.6+0.8*(S.g.com/100);
-  const ins=Math.round(leads*c.conv*(c.per||1)*comF*S.stuMult);
+  const ins=Math.round(leads*c.conv*(c.per||1)*comF*S.stuMult*sat);
   return {leads,ins,cpl,cpi:ins?Math.round(budget*1000/ins):0};
 }
 function inscriptions(){
   const out={}; let tot=0,leads=0,churnExtra=0;
   for(const k in MEDIA){const r=channelCalc(k,S.media[k]); out[k]=r; tot+=r.ins; leads+=r.leads; churnExtra+=r.ins*MEDIA[k].churn;}
   const repF=0.7+0.6*(S.g.etu/100);
-  const organic=Math.round(BASE.organic*repF*S.stuMult);
-  // Saturation du marché : au-delà de 12 000 étudiants, chaque inscription coûte plus cher (marché fini)
-  const over=Math.max(0,S.students-BASE.students)/SC.sat; const sat=clamp(1-0.45*over*over+(S.students<BASE.students?(BASE.students-S.students)/BASE.students*0.3:0),0.5,1.2); // à la cible de croissance (over=1), chaque inscription coûte ~2 fois plus
-  return {channels:out,organic,total:Math.round((tot+organic)*S.yearFx.stuY*sat),leads,churnExtra:tot?churnExtra/tot:0,sat};
+  const sat=marketSat();
+  const organic=Math.round(BASE.organic*repF*S.stuMult*sat*S.yearFx.stuY);
+  return {channels:out,organic,paid:tot,total:tot+organic,leads,churnExtra:tot?churnExtra/tot:0,sat};
 }
 
 // ---------- Simulation annuelle ----------
@@ -1013,7 +1013,7 @@ function phMedias(){
       <input type="range" id="r-${k}" min="0" max="${Math.round(3000*SC.scale/50)*50||300}" step="${SC.scale<0.5?10:50}" value="${S.media[k]}" data-k="${k}"><div class="stats"><span class="amt num">${fmt(S.media[k])} k€</span><span>${SC.leadWord.charAt(0).toUpperCase()+SC.leadWord.slice(1)} <b class="num">${fmt(r.leads)}</b></span><span>Inscriptions <b class="num">${fmt(r.ins)}</b></span><span>Coût par inscrit <b class="num">${r.cpi?fmt(r.cpi)+' €':'–'}</b></span></div></div>`;}).join('');
     $('#media').querySelectorAll('input[type=range]').forEach(r=>r.addEventListener('input',e=>{S.media[e.target.dataset.k]=+e.target.value;draw();renderBudget();save();}));
     const tot=mkTotal();
-    $('#mtot').innerHTML=`<div class="btile o"><div class="l">Budget ${SC.mediaWord}</div><div class="v num">${(tot/1000).toFixed(2).replace('.',',')}</div><div class="s">M€ · ${pct((tot/BASE.marketing-1)*100)} vs 2025</div></div><div class="btile b"><div class="l">${SC.leadWord} attendus</div><div class="v num">${fmt(ins.leads)}</div><div class="s">tous canaux</div></div><div class="btile g"><div class="l">Inscriptions attendues</div><div class="v num">${fmt(ins.total)}</div><div class="s">dont ${fmt(ins.organic)} organiques</div></div><div class="btile c"><div class="l">Coût moyen par inscrit</div><div class="v num">${fmt(tot*1000/Math.max(1,ins.total-ins.organic))}</div><div class="s">€ · frais annuels ${fmt(S.price)} €</div></div>`;
+    $('#mtot').innerHTML=`<div class="btile o"><div class="l">Budget ${SC.mediaWord}</div><div class="v num">${(tot/1000).toFixed(2).replace('.',',')}</div><div class="s">M€ · ${pct((tot/BASE.marketing-1)*100)} vs 2025</div></div><div class="btile b"><div class="l">${SC.leadWord} attendus</div><div class="v num">${fmt(ins.leads)}</div><div class="s">tous canaux</div></div><div class="btile g"><div class="l">Inscriptions attendues</div><div class="v num">${fmt(ins.total)}</div><div class="s">dont ${fmt(ins.organic)} organiques</div></div><div class="btile c"><div class="l">Coût moyen par inscrit</div><div class="v num">${fmt(tot*1000/Math.max(1,ins.paid))}</div><div class="s">€ · frais annuels ${fmt(S.price)} €</div></div>`+(ins.sat<0.95?`<div class="note" style="grid-column:1/-1">⚠️ Marché saturé : avec ${fmt(S.students)} ${SC.unit}, chaque euro ${SC.mediaWord} rapporte ${Math.round(ins.sat*100)} % de ce qu'il rapportait en 2025. Les chiffres ci-dessus en tiennent compte.</div>`:'');
   };
   draw();
 }
@@ -1202,7 +1202,7 @@ function bilanHtml(){
   if(costly.length) lines.push(`<b>Celles qui ont coûté cher en cœurs :</b> ${costly.map(x=>`${x.n} (${x.heart} au total)`).join(' · ')}.`);
   if(worst.length) lines.push(`<b>Les coups durs :</b> ${worst.map(x=>`${x.n} (${x.y})`).join(' · ')}.`);
   if(best.length) lines.push(`<b>Le coup de chance :</b> ${best[0].n} (${best[0].y}).`);
-  if(h0&&hN) lines.push(`<b>En chiffres :</b> ${fmt(BASE.students)} ${SC.unit} en 2025, ${fmt(hN.students)} fin 2030 ; ${fmt(h0.newS)} inscriptions en 2026, ${fmt(hN.newS)} en 2030 ; taux d'abandon de ${Math.round(h0.churn*100)} % à ${Math.round(hN.churn*100)} % ; budget ${SC.mediaWord} de ${(h0.mediaK/1000).toFixed(1).replace('.',',')} M€ à ${(hN.mediaK/1000).toFixed(1).replace('.',',')} M€, soit ${fmt(h0.mediaK*1000/Math.max(1,h0.newS))} € puis ${fmt(hN.mediaK*1000/Math.max(1,hN.newS))} € par inscription${hN.ins.sat<0.9?' (marché saturé : chaque inscription coûte plus cher à mesure que l\'école grossit)':''}.`);
+  if(h0&&hN) lines.push(`<b>En chiffres :</b> ${fmt(BASE.students)} ${SC.unit} en 2025, ${fmt(hN.students)} fin 2030 ; ${fmt(h0.newS)} inscriptions en 2026, ${fmt(hN.newS)} en 2030 ; taux d'abandon de ${Math.round(h0.churn*100)} % à ${Math.round(hN.churn*100)} % ; budget ${SC.mediaWord} de ${(h0.mediaK/1000).toFixed(1).replace('.',',')} M€ à ${(hN.mediaK/1000).toFixed(1).replace('.',',')} M€, soit ${fmt(h0.mediaK*1000/Math.max(1,h0.ins.paid||h0.newS))} € puis ${fmt(hN.mediaK*1000/Math.max(1,hN.ins.paid||hN.newS))} € par inscription payante${hN.ins.sat<0.9?' (marché saturé : chaque inscription coûte plus cher à mesure que l\'école grossit)':''}.`);
   const lesson=S.g.ca<25?'Vous avez fini à court de capital : le conseil ne suivait plus. Garder une réserve de capital, c\'est garder la main.':S.g.cse<30?'Le climat social a été sacrifié : les économies ont tenu, pas les équipes.':S.g.etu<35?'Les étudiants ont payé le redressement : abandons élevés, bouche-à-oreille en berne.':hN&&hN.res>=SC.resTarget?'Un redressement équilibré : les comptes, les équipes et les étudiants ont tenu ensemble.':'Les comptes ont progressé, mais pas assez vite : les premières années pèsent le plus, chaque mesure prise tôt rapporte cinq fois.';
   lines.push(`<b>La leçon :</b> ${lesson}`);
   return `<div class="note" style="text-align:left"><div class="h">📘 Ce que cette partie raconte</div>${lines.map(l=>`<p style="margin:4px 0">${l}</p>`).join('')}</div>`;
