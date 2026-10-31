@@ -390,64 +390,64 @@ const MEASURES_T=[
 // MEASURES (à l'échelle du scénario) est construit par applyScenario()
 
 const ENVELOPPES=[
- {who:N.peda,role:"Directrice pédagogique",ic:"👩‍🏫",ask:"« Il me faut 15 tuteurs de plus. Nos promos de 80 étudiants par tuteur ne tiennent plus, le taux d'abandon le prouve. »",
+ {who:N.peda,role:"Directrice pédagogique",ic:"👩‍🏫",ask:"« J'adore nos étudiants, vous le savez. Mais à 80 par tuteur, on ne les accompagne plus, on les regarde partir : le taux d'abandon le prouve. Donnez-moi 15 tuteurs de plus et je vous rends des promos heureuses. »",
   c:[["Accorder les 15 postes",{cost:750,hc:15,churn:-2,g:{etu:4,cse:4,ca:-2}},"Elle repart soulagée. "+N.daf+", moins."],
-     ["Refuser",{g:{cse:-5,etu:-2}},"« Alors ne venez pas vous plaindre des abandons. »"],
-     ["Compromis : 5 postes",{cost:250,hc:5,churn:-1,g:{etu:1,cse:1}},"Elle accepte, sans enthousiasme."]]},
- {who:N.com,role:"Directrice commerciale",ic:COM,ask:"« Avec 20 % de budget médias en plus, je vous signe 300 inscriptions supplémentaires. Sans, je ne garantis plus les objectifs. »",
+     ["Refuser",{g:{cse:-5,etu:-2}},"« Je comprends. Mais ne soyez pas surpris quand on reparlera des abandons. » Elle sourit, un peu triste."],
+     ["Compromis : 5 postes",{cost:250,hc:5,churn:-1,g:{etu:1,cse:1}},"Elle accepte : « Cinq, c'est un début. Je reviendrai pour les dix autres ! »"]]},
+ {who:N.com,role:"Directrice commerciale",ic:COM,ask:"« Mes équipes sont chaudes, les leads sont là, il ne manque que le carburant : 20 % de budget médias en plus et je vous signe 300 inscriptions supplémentaires. Sans, je ferai de mon mieux, mais je ne peux plus garantir les objectifs. »",
   c:[["Accorder les 20 %",{mk:900,stu:1.06,g:{com:8,ca:-2}},"Elle promet des résultats. On verra à la rentrée."],
-     ["Refuser",{g:{com:-8}},"« Vous me demandez de faire des briques sans paille. »"],
-     ["Compromis : 10 %, conditionnés aux résultats",{mk:400,stu:1.03,g:{com:2}},"Elle grimace mais signe."]]},
- {who:N.dsi,role:"Directeur des systèmes d'information",ic:"🧑‍💻",ask:"« La plateforme tourne sur une infrastructure de 2017. Sans migration et sans budget sécurité, je ne réponds plus de rien. »",
+     ["Refuser",{g:{com:-8}},"« Des briques sans paille, donc. On va essayer quand même ! » Elle rit, mais prend des notes."],
+     ["Compromis : 10 %, conditionnés aux résultats",{mk:400,stu:1.03,g:{com:2}},"Elle sourit : « Conditionnés aux résultats ? Chiche. »"]]},
+ {who:N.dsi,role:"Directeur des systèmes d'information",ic:"🧑‍💻",ask:"« Je ne suis pas du genre à dramatiser, vous me connaissez. Mais la plateforme tourne sur une infrastructure de 2017 : sans migration et sans budget sécurité, je ne pourrai plus répondre de rien. Aidez-moi à vous protéger. »",
   c:[["Financer la migration",{cost:500,once:-400,flag:"secu"},"La migration démarre cet été."],
-     ["Refuser",{g:{cse:-2},flag:"risque_cyber"},"Il note la décision par écrit. Ce n'est jamais bon signe."],
+     ["Refuser",{g:{cse:-2},flag:"risque_cyber"},"Il note la décision par écrit, gentiment : « Pour mémoire, pas pour vous embêter. »"],
      ["Compromis : sécurité seulement",{cost:250,flag:"secu"},"Les correctifs critiques sont financés, le reste attendra."]]},
- {who:N.mkt,role:"Directrice marketing",ic:"👩‍🎨",ask:"« Notre site date, notre référencement s'effondre. Une refonte, c'est 350 k€ et quatre points d'inscriptions. »",
+ {who:N.mkt,role:"Directrice marketing",ic:"👩‍🎨",ask:"« J'ai une idée qui me fait vibrer : refondre le site. Le nôtre date, le référencement s'effondre, et une refonte c'est 350 k€ pour quatre points d'inscriptions. On y va ? »",
   c:[["Financer la refonte",{cost:350,stu:1.04,g:{com:3}},"Nouveau site à la rentrée."],
-     ["Refuser",{g:{com:-3}},"« Les concurrents nous dépassent sur Google, je vous aurai prévenu. »"],
+     ["Refuser",{g:{com:-3}},"« Les concurrents nous dépassent sur Google, je vous aurai prévenu ! » Elle garde sa maquette sous le coude pour l'an prochain."],
      ["Compromis : optimisations seulement",{cost:120,stu:1.015},"Quelques pages refaites, le gros chantier attendra."]]},
- {who:N.support,role:"Responsable du support étudiant",ic:"🧑‍🎧",ask:"« Nous répondons en 6 jours au lieu de 48 h. Il me faut 10 conseillers, ou les avis en ligne vont nous tuer. »",
+ {who:N.support,role:"Responsable du support étudiant",ic:"🧑‍🎧",ask:"« Mon équipe fait des miracles, mais on répond en 6 jours au lieu de 48 h. Donnez-moi 10 conseillers et je vous promets des étudiants qui nous recommandent au lieu de nous noter une étoile. »",
   c:[["Recruter 10 conseillers",{cost:450,hc:10,g:{etu:5,cse:3,ca:-1}},"Le délai de réponse redescend à deux jours."],
      ["Refuser",{g:{etu:-4,cse:-4}},"Les avis une étoile continuent de tomber."],
      ["Compromis : 4 conseillers et une FAQ",{cost:200,hc:4,g:{etu:2}},"Un mieux, pas une solution."]]},
- {who:N.daf,role:N.dafRole,ic:DAF,ask:"« Nous avons trois litiges étudiants en cours. Je veux provisionner 300 k€ maintenant plutôt que de surprendre le conseil plus tard. »",
+ {who:N.daf,role:N.dafRole,ic:DAF,ask:"« Trois litiges étudiants en cours, rien de dramatique, mais je préfère provisionner 300 k€ maintenant que de surprendre le conseil plus tard. Vous me connaissez : je dors mieux quand c'est carré. »",
   c:[["Provisionner",{once:-300,g:{ca:3}},"Le conseil apprécie la prudence."],
-     ["Refuser",{g:{ca:-2},flag:"litiges"},N.daf+" soupire. Les litiges, eux, continuent."]]},
- {who:N.business,role:"Responsable de la filière Business",ic:"👩‍🏫",ask:"« Un "+N.mba+" à 6 000 €. Cent inscrits la première année, c'est 600 k€ de marge dès la deuxième. »",
+     ["Refuser",{g:{ca:-2},flag:"litiges"},N.daf+" sourit : « Comme vous voudrez. » Les litiges, eux, continuent."]]},
+ {who:N.business,role:"Responsable de la filière Business",ic:"👩‍🏫",ask:"« J'ai un projet qui me tient à cœur : un "+N.mba+" à 6 000 €. Cent inscrits la première année, 600 k€ de marge dès la deuxième, et une vitrine pour toute l'école. Laissez-moi le lancer ! »",
   c:[["Lancer le MBA",{rev:1100,cost:800,g:{ca:1,com:4}},"Le programme ouvre en janvier."],
-     ["Refuser",{g:{com:-2}},"Elle ira peut-être le proposer ailleurs."],
+     ["Refuser",{g:{com:-2}},"Elle encaisse avec élégance : « Je le garde au chaud. »"],
      ["Compromis : lancement test à 30 places",{rev:400,cost:300,g:{com:1}},"Un pilote, pour voir."]]},
- {who:N.qualite,role:"Directrice qualité",ic:"👩‍🔬",ask:"« L'audit de renouvellement Qualiopi est dans huit mois. Sans 200 k€ de mise en conformité, je ne garantis pas la certification. »",
+ {who:N.qualite,role:"Directrice qualité",ic:"👩‍🔬",ask:"« L'audit de renouvellement Qualiopi est dans huit mois, et j'ai très envie qu'on le passe haut la main. Il me faut 200 k€ de mise en conformité ; sans ça, je ne peux pas vous garantir la certification. »",
   c:[["Financer la mise en conformité",{cost:200,g:{ca:2},flag:"qualite"},"Les processus sont remis d'équerre."],
-     ["Refuser",{flag:"risque_qualiopi"},"« Je ne signerai pas le rapport d'auto-évaluation, dans ce cas. »"]]},
- {who:N.rh,role:"Responsable des ressources humaines",ic:"🧑‍💼",ask:"« Les salaires des tuteurs sont 12 % sous le marché. On perd nos meilleurs éléments chaque trimestre. »",
+     ["Refuser",{flag:"risque_qualiopi"},"« Alors je ne pourrai pas signer le rapport d'auto-évaluation, et ça me fend le cœur. »"]]},
+ {who:N.rh,role:"Responsable des ressources humaines",ic:"🧑‍💼",ask:"« Nos tuteurs sont formidables, et on les paie 12 % sous le marché. On perd nos meilleurs éléments chaque trimestre, et à chaque fois ça me fait mal. Un rattrapage, et je vous promets des équipes fidèles. »",
   c:[["Rattrapage salarial",{cost:600,g:{cse:8,etu:2,ca:-2}},"Les départs se calment."],
      ["Refuser",{g:{cse:-6,etu:-2}},"Les démissions continuent."],
      ["Compromis : prime de fidélisation",{cost:250,g:{cse:3}},"Un geste, pas une réponse."]]},
 ];
 
 const AUDITIONS=[
- {kicker:"Town hall · 400 salariés en visio",who:"Un tuteur",role:"Prend la parole dans le chat",ic:"🧑‍🏫",q:"« Est-ce qu'il y aura des licenciements cette année ? Oui ou non ? »",
-  c:[["« Non. »",{g:{cse:8,ca:-4}},"Soulagement dans le chat. "+N.president+" vous rappelle que vous venez de vous lier les mains."],
+ {kicker:"Town hall · 400 salariés en visio",who:"Un tuteur",role:"Prend la parole dans le chat",ic:"🧑‍🏫",q:"« Merci d'être là, vraiment. Une question simple, parce qu'on a tous besoin de dormir : est-ce qu'il y aura des licenciements cette année ? Oui ou non ? »",
+  c:[["« Non. »",{g:{cse:8,ca:-4}},"Soulagement dans le chat. "+N.president+" vous glisse en riant que vous venez de vous lier les mains."],
      ["« Je ne peux rien exclure, mais ce n'est pas le plan. »",{g:{cse:-2,ca:2}},"Langue de bois détectée. Personne n'est rassuré, personne n'est trahi."],
      ["« Si nous ne redressons pas les comptes, oui. Voici les chiffres. »",{g:{cse:-5,ca:5,com:2}},"Silence, puis des questions précises. La transparence a un prix immédiat."]]},
- {kicker:"Amphi virtuel · 2 000 étudiants connectés",who:N.etuF,role:"Étudiante en "+N.fil1,ic:"👩‍🎓",q:"« Pourquoi payer plus cher si c'est pour avoir moins de tuteurs ? Vous allez faire quoi, concrètement ? »",
+ {kicker:"Amphi virtuel · 2 000 étudiants connectés",who:N.etuF,role:"Étudiante en "+N.fil1,ic:"👩‍🎓",q:"« J'adore mes cours, je le dis partout. Mais pourquoi payer plus cher si c'est pour avoir moins de tuteurs ? Vous allez faire quoi, concrètement ? »",
   c:[["Promettre un délai de réponse de 48 h garanti",{cost:200,g:{etu:6,cse:-2}},"Applaudissements. Le support devra tenir."],
      ["Expliquer les contraintes financières",{g:{etu:-3,ca:2}},"Les étudiants comprennent, sans être contents."],
      ["Annoncer une remise de 100 € pour les réinscriptions",{rev:-400,churn:-2,g:{etu:5,ca:-3}},"Un geste commercial qui coûte."]]},
- {kicker:"Town hall · équipe commerciale",who:N.comSenior,role:"Commerciale senior, 12 ans de maison",ic:"👩‍💼",q:"« On nous demande de vendre un produit dont on supprime les tuteurs. Vous nous prenez pour quoi ? »",
+ {kicker:"Town hall · équipe commerciale",who:N.comSenior,role:"Commerciale senior, 12 ans de maison",ic:"👩‍💼",q:"« Douze ans que je vends cette école avec fierté. Alors expliquez-moi : comment je vends un produit dont on supprime les tuteurs ? Aidez-moi à y croire encore. »",
   c:[["Reconnaître le problème et promettre un plan qualité",{cost:150,g:{com:5,etu:2}},"La salle se détend un peu."],
-     ["Rappeler les objectifs et les primes",{g:{com:-6,ca:2}},"Froid polaire. "+N.com+" baisse les yeux."],
+     ["Rappeler les objectifs et les primes",{g:{com:-6,ca:2}},"Silence poli. "+N.com+" vous sauvera la mise d'une blague, mais le message est passé."],
      ["Proposer un atelier commun commerciaux / pédagogie",{g:{com:3,cse:3}},"Quelques sourires. Reste à le faire."]]},
- {kicker:"Réunion CSE extraordinaire",who:N.cse,role:"Secrétaire du CSE",ic:"👩",q:"« Nous demandons une expertise indépendante sur la situation économique. Vous la financez ? »",
+ {kicker:"Réunion CSE extraordinaire",who:N.cse,role:"Secrétaire du CSE",ic:"👩",q:"« On vous fait confiance, mais on aimerait comprendre : nous demandons une expertise indépendante sur la situation économique. Vous la financez ? »",
   c:[["Accepter l'expertise",{once:-80,g:{cse:6,ca:-1}},"L'expert confirmera vos chiffres. Ou pas."],
-     ["Refuser",{g:{cse:-8}},"Le CSE saisira l'inspection du travail."],
+     ["Refuser",{g:{cse:-8}},"Le CSE saisira l'inspection du travail, à regret."],
      ["Proposer une présentation détaillée des comptes à la place",{g:{cse:2,ca:1}},"Accepté du bout des lèvres."]]},
- {kicker:"Amphi virtuel · filière "+N.fil2,who:N.etuM,role:"Étudiant en deuxième année",ic:"👨‍🎓",q:"« Vos corrections, c'est une IA maintenant ? J'ai eu la même remarque que trois camarades. »",
+ {kicker:"Amphi virtuel · filière "+N.fil2,who:N.etuM,role:"Étudiant en deuxième année",ic:"👨‍🎓",q:"« Petite question, sans vouloir vous piéger : nos corrections, c'est une IA maintenant ? J'ai eu la même remarque que trois camarades, mot pour mot. »",
   c:[["Assumer et expliquer la relecture humaine",{g:{etu:-2,ca:2}},"Réactions partagées, mais vous n'avez pas menti."],
      ["Nier",{g:{etu:-6,cse:-4}},"La capture d'écran circule dans l'heure."],
      ["Promettre une relecture humaine systématique",{cost:300,g:{etu:4,cse:2}},"Rassurant, et coûteux."]]},
- {kicker:"Town hall · fin de trimestre",who:N.filiere,role:"Responsable de la filière "+N.fil3,ic:"👩‍🏫",q:"« Les chiffres que vous nous montrez sont-ils ceux du conseil, ou une version adoucie ? »",
+ {kicker:"Town hall · fin de trimestre",who:N.filiere,role:"Responsable de la filière "+N.fil3,ic:"👩‍🏫",q:"« On est de votre côté, vous le savez. Alors soyez franc avec nous : les chiffres que vous nous montrez sont-ils ceux du conseil, ou une version adoucie ? »",
   c:[["Montrer les mêmes chiffres qu'au conseil",{g:{cse:5,ca:3,com:-2}},"Crédibilité acquise, quelques visages blêmes."],
      ["Montrer une version simplifiée",{g:{cse:-3}},"Quelqu'un fera le rapprochement."]]},
 ];
@@ -681,7 +681,7 @@ function projected(){
 }
 function capCost(ids){ return ids.map(i=>MEASURES[i]).reduce((a,m)=>a+Math.min(0,m.cap||0),0); }
 function checkOver(){
-  if(S.g.ca<=0) return N.president+" vous a retiré sa confiance. Le conseil vous révoque et un cabinet de redressement prend la direction.";
+  if(S.g.ca<=0) return N.president+" n'a plus pu vous défendre devant le conseil, et il en est le premier désolé. Vous êtes révoqué·e ; un cabinet de redressement prend la direction.";
   if(S.cash<SC.bank) return "La "+N.banque+" a coupé la ligne de crédit. "+N.ecole+" dépose le bilan.";
   if(S.g.cse<=0) return "Grève illimitée. Après six semaines sans cours, le conseil vous a remplacé·e.";
   if(S.g.etu<=0) return "Hémorragie d'étudiants et plainte collective. "+N.ecole+" perd son habilitation.";
@@ -752,7 +752,7 @@ function renderIntro(){
     <h1 class="serif title">LE JEU DU DG</h1>
     <div style="text-align:center;color:var(--gold);font-size:13px;margin-top:-8px">2026-2030</div>
     <div class="speech"><div class="avatar">${PRES}</div><div>
-      <p>« Je suis ${N.president}. J'investis dans des écoles en ligne, et j'ai besoin d'un directeur général pour chacune. Cinq écoles, cinq situations : une à redresser, une à faire tripler, une à relancer, un leader à remettre en mouvement, une startup à sauver. »</p>
+      <p>« Je suis ${N.president}, et je crois aux écoles en ligne comme d'autres croient au soleil : ça change des vies, tous les jours ! J'en ai cinq, cinq bijoux, et il me manque une seule chose : vous. Une école à redresser, une à faire tripler, une à relancer, un leader à remettre en mouvement, une startup à faire décoller. Choisissez la vôtre, et allons-y ! »</p>
       <p>« Vous avez cinq exercices, de 2026 à 2030. Le conseil d'administration, les étudiants, les commerciaux et le CSE vous jugeront chaque année. Choisissez votre école. »</p>
     </div></div>
     <div class="tiles">
@@ -834,7 +834,7 @@ function headlines(){
   h.push(S.cash<0?`La ${N.banque} surveille le découvert de ${mE(S.cash)}`:`Trésorerie à ${mE(S.cash)}, la ${N.banque} reste calme`);
   h.push(S.g.cse<40?'Le CSE menace d\'une alerte sociale':'Les équipes attendent le plan de la direction');
   h.push(S.g.com<40?N.com+' dénonce des objectifs intenables':'Les commerciaux visent '+fmt(S.lastNew)+' inscriptions');
-  h.push(S.g.ca<30?N.president+' ne cache plus son impatience':N.president+' observe, sans commenter');
+  h.push(S.g.ca<30?N.president+' vous encourage, un peu inquiet mais toujours souriant':N.president+' applaudit depuis le premier rang');
   h.push(S.active.length?`${S.active.length} mesure${S.active.length>1?'s':''} déjà en vigueur`:'Aucune mesure structurelle en vigueur à ce jour');
   return h;
 }
@@ -936,13 +936,13 @@ function presidentMood(tagOnly){
   const up=prev?lr.res>prev.res:lr.res>SC.ca0*SC.start/100;
   const left=mE(SC.resTarget-lr.res).slice(1);
   let q,t;
-  if(ok&&onTrack){q='« Objectif atteint, et avec de la marge. Le conseil est ravi ; moi aussi. Maintenant, on consolide : pas de relâchement, et gardez un œil sur les équipes. »';t='Nouvelle saison. Le conseil est satisfait, et le fait savoir.';}
-  else if(ok&&!onTrack){q=`« Le résultat est là, bravo. Mais le chiffre d'affaires ne suit pas : ${(SC.caTarget/1000).toFixed(0)} M€ en 2030, c'est l'autre moitié du mandat. Cette année, on accélère. »`;t='Nouvelle saison. Rentable, mais le conseil regarde la courbe des ventes.';}
-  else if(lr.pct<0&&S.g.ca<35){q='« Je ne vous cache pas mon inquiétude. L\'école perd de l\'argent et le conseil s\'impatiente. Cette année est celle de la dernière chance. »';t='Nouvelle saison, sous pression. Le conseil a relu les comptes deux fois.';}
-  else if(lr.pct<0){q=`« Encore une année en perte. ${up?'La tendance est bonne, je le reconnais, mais':'Et sans amélioration :'} le conseil veut voir l'équilibre cette année. ${left} nous séparent de l'objectif. »`;t='Nouvelle saison. Le conseil attend l\'équilibre.';}
-  else if(up){q=`« Belle progression. L'école est rentable et le conseil l'a remarqué. Il reste ${left} à aller chercher d'ici 2030 : gardons ce rythme${SC.growth&&!onTrack?', et remettons de l\'ambition sur le chiffre d\'affaires':''}. »`;t='Nouvelle saison. Le conseil est encourageant : la courbe va dans le bon sens.';}
-  else{q=`« Rentable, mais sans progrès par rapport à l'an dernier. Le conseil attend un coup d'accélérateur : ${left} manquent encore. »`;t='Nouvelle saison. Le conseil veut voir la courbe repartir.';}
-  if(S.cash<SC.bank*0.6&&!ok) q+=` « Et la trésorerie : ${N.banquier} m'a appelé. Réglez ça. »`;
+  if(ok&&onTrack){q='« Vous l\'avez fait ! Objectif atteint, et avec de la marge ! Le conseil est aux anges et moi, je ne tiens plus en place. Maintenant, on consolide, on ne lâche rien, et on garde un œil tendre sur les équipes : c\'est comme ça qu\'on écrit une belle histoire. »';t='Nouvelle saison. Le conseil est enchanté, et '+N.president+' le dit à tout le monde.';}
+  else if(ok&&!onTrack){q=`« Quel résultat, bravo, vraiment ! Il nous manque juste l'autre moitié du rêve : ${(SC.caTarget/1000).toFixed(0)} M€ de chiffre d'affaires en 2030. Vous avez prouvé que vous saviez gagner de l'argent ; prouvez-moi maintenant que vous savez grandir. Cette année, on accélère, et je suis derrière vous ! »`;t='Nouvelle saison. Rentable ! Le conseil rêve maintenant de croissance.';}
+  else if(lr.pct<0&&S.g.ca<35){q='« Je vais être franc, parce que je vous aime bien : l\'école perd de l\'argent, le conseil s\'impatiente, et cette année est celle de la dernière chance. Mais je n\'ai pas misé sur vous par hasard. Les plus belles remontées commencent exactement ici. Montrez-leur ! »';t='Nouvelle saison, sous pression. '+N.president+' y croit encore, lui.';}
+  else if(lr.pct<0){q=`« Encore une année dans le rouge, d'accord. ${up?'Mais la tendance est bonne, et ça, ça me plaît énormément !':'Et sans amélioration, ce qui ne vous ressemble pas.'} Le conseil veut voir l'équilibre cette année : ${left} nous séparent de l'objectif, et je sais que vous avez ça dans le ventre. »`;t='Nouvelle saison. Le conseil attend l\'équilibre, '+N.president+' attend des étincelles.';}
+  else if(up){q=`« Quelle progression ! L'école est rentable, la courbe monte, et le conseil en parle avec des étoiles dans les yeux. Il reste ${left} à aller chercher d'ici 2030 : gardons ce rythme formidable${SC.growth&&!onTrack?', et remettons un peu d\'ambition sur le chiffre d\'affaires':''}. Je suis fier de vous ! »`;t='Nouvelle saison. Le conseil est ravi : la courbe va dans le bon sens.';}
+  else{q=`« Rentable, c'est déjà beau ! Mais on fait du surplace par rapport à l'an dernier, et vous valez mieux que ça. Il manque ${left} : donnez-moi un coup d'accélérateur cette année, je veux sentir le vent ! »`;t='Nouvelle saison. Le conseil veut voir la courbe repartir, '+N.president+' en est sûr.';}
+  if(S.cash<SC.bank*0.6&&!ok) q+=` « Ah, et la trésorerie : ${N.banquier} m'a appelé, charmant comme toujours, mais inquiet. Réglez-lui ça, et il nous invitera à déjeuner. »`;
   return tagOnly?t:q;
 }
 function phCadrage(){
@@ -952,7 +952,7 @@ function phCadrage(){
     choices($('#c'),SHAREHOLDER.c.map(([ic,l,sub,fx])=>[ic+' '+l,fx,'Le conseil suit votre avis. Les règles changent dès cette année.',sub]),()=>{ if(S.mode==='univ') S.target=8; ready(); },'Rachat de l\'école');
     return;
   }
-  const quote=first?`« Le conseil vous donne cinq exercices. Fin 2030, je veux un résultat net de ${tgt()}${SC.growth?' et un chiffre d\'affaires de '+(SC.caTarget/1000).toFixed(0)+' M€ (×'+SC.growth.toString().replace('.',',')+')':''}. Ni scandale, ni grève, ni exode des ${SC.unit}. Bonne chance. »`
+  const quote=first?`« Alors voilà le pari, et quel pari ! Cinq saisons. Fin 2030, ${tgt()} de résultat net${SC.growth?' et '+(SC.caTarget/1000).toFixed(0)+' M€ de chiffre d\'affaires, ×'+SC.growth.toString().replace('.',',')+' s\'il vous plaît':''} — avec des ${SC.unit} fiers, des équipes qui sourient et un CSE qui vous invite à son pot de Noël. Vous allez adorer. Et moi, je serai au premier rang pour applaudir ! »`
     :presidentMood();
   const extra=[S.cash<0?'La trésorerie est négative : les agios pèsent et la '+N.banque+' surveille chaque mouvement.':'',S.mode==='edtech'?'Le groupe edtech rappelle son exigence : +10 % d\'étudiants cette année.':'',S.mode==='fonds'?'Le fonds rappelle qu\'une année en perte ne sera pas tolérée.':'',S.mode==='univ'?'L\'université rappelle le gel des frais de scolarité.':''].filter(Boolean);
   const speaker=S.mode?['🕴️','Le nouvel actionnaire','Président du conseil']:[PRES,N.president,N.presidentRole+' · vous reçoit dans son bureau'];
@@ -960,7 +960,7 @@ function phCadrage(){
    (extra.length?`<div class="note">${extra.map(x=>`<div>${x}</div>`).join('')}</div>`:'')+
    `<div class="prompt">Votre discours de prise de fonction — fixez le cap :</div><div id="c"></div>`;
   const mood=first?null:presidentMood(true);
-  sceneShell(body,{title:first?(SC.start<0?'Mission : Impossible':'Feuille de route'):'La lettre du conseil',tag:first?(SC.start<0?'On vous confie une école qui perd '+fmt(-SC.ca0*SC.start/100/12*1000)+' € par mois. ':'On vous confie une école en bonne santé, et une ambition à la hauteur. ')+N.president+' attend un cap, les équipes guettent vos premiers mots.':mood});
+  sceneShell(body,{title:first?(SC.start<0?'Mission : Impossible':'Feuille de route'):'La lettre du conseil',tag:first?(SC.start<0?'On vous confie une école qui perd '+fmt(-SC.ca0*SC.start/100/12*1000)+' € par mois, et un président qui y croit dur comme fer. ':'On vous confie une école en bonne santé, une ambition à la hauteur et un président enthousiaste. ')+'Les équipes guettent vos premiers mots.':mood});
   choices($('#c'),[
     ["« La rigueur : je tiendrai les coûts. »",{g:{ca:3,cse:-2}},"Cap fixé. "+N.president+" approuve, le CSE prend note."],
     ["« La qualité : je miserai sur les étudiants. »",{g:{etu:3,ca:-1}},"Cap fixé. Les étudiants apprécient, le conseil attend les chiffres."],
@@ -1022,7 +1022,7 @@ function phEnveloppes(){
   if(S.sub===0&&!S.tmp){ S.tmp={list:[pick(ENVELOPPES,'env'),pick(ENVELOPPES,'env')],spring:pickEvent(),springDone:false}; }
   if(!S.tmp.springDone){ const ev=EVENTS[S.tmp.spring]; const fx=eventFx(ev); S.tmp.springFx=fx; sceneShell(`<div class="resbox ${isBad(fx)?'bad':''}"><b>${ev.ic} ${ev.n}</b>${ev.t}${fx.txt?`<div style="margin-top:4px">${fx.txt}</div>`:''}<div>${chips(fx)}</div></div>`,{title:'Imprévu de printemps',tag:'Les directeurs attendent à la porte. Mais d\'abord, une nouvelle.'}); eventModal(ev,fx,'Imprévu de printemps',()=>{S.tmp.springDone=true;save();renderBudget();renderGame();}); return; }
   const e=ENVELOPPES[S.tmp.list[S.sub]];
-  sceneShell(dlg(e.ic,e.who,e.role,e.ask)+`<div class="prompt">Arbitrage ${S.sub+1}/2 :</div><div id="c"></div>`,{title:'La guerre des enveloppes',tag:'Chaque directeur défend son budget, menace de partir, et ira voir '+N.president+' si vous dites non.',onNext:()=>{S.sub++; if(S.sub>=2) nextPhase(); else {S.decided=false;renderGame();}}});
+  sceneShell(dlg(e.ic,e.who,e.role,e.ask)+`<div class="prompt">Arbitrage ${S.sub+1}/2 :</div><div id="c"></div>`,{title:'La guerre des enveloppes',tag:'Chaque directeur défend son budget avec le cœur, et ira plaider sa cause chez '+N.president+' si vous dites non.',onNext:()=>{S.sub++; if(S.sub>=2) nextPhase(); else {S.decided=false;renderGame();}}});
   choices($('#c'),e.c.map(([l,fx,out])=>[l,fx,out]),null,e.who);
 }
 
@@ -1091,7 +1091,7 @@ function phVote(){
   const parts={base:70,conf:Math.round((S.g.ca-50)*0.6),amd:S.tmp.bonus,poids:Math.round(cap*0.4-pend.length*1.5),cred:Math.round(credib)};
   const chance=pend.length?clamp(parts.base+parts.conf+parts.amd+parts.poids+parts.cred,8,95):97;
   if(S.sub===2){
-    sceneShell(dlg(PRES,S.mode?'Le président du conseil':N.president,N.presidentRole+' · ouvre le vote',`« ${pend.length?`Le plan comporte ${pend.length} mesure${pend.length>1?'s':''}, pour ${-cap} points de capital.`:'Aucune nouvelle mesure n\'est soumise.'} Le conseil se prononce à main levée. »`)+
+    sceneShell(dlg(PRES,S.mode?'Le président du conseil':N.president,N.presidentRole+' · ouvre le vote',`« Mes amis, au travail ! ${pend.length?`Le plan comporte ${pend.length} mesure${pend.length>1?'s':''}, pour ${-cap} points de capital, et je le trouve plein d'allant.`:'Aucune nouvelle mesure n\'est soumise cette année : on garde le cap.'} Le conseil se prononce à main levée, et je compte les mains avec gourmandise. »`)+
      `<div class="tw"><table><tr><th>Mesure</th><th>Effet annuel</th><th>Capital</th><th>Étudiants</th><th>CSE</th></tr>${pend.map(m=>`<tr><td>${m.n}</td><td class="num">${kE(yearly(m))}</td><td class="num" style="color:var(--gold-hi)">${m.cap>0?'+':''}${m.cap||0}</td><td class="num">${(m.g&&m.g.etu)||0}</td><td class="num">${(m.g&&m.g.cse)||0}</td></tr>`).join('')||'<tr><td colspan="5" class="muted">Aucune mesure</td></tr>'}</table></div>
      <div class="note">Chance d'adoption estimée : <b style="font-size:18px;color:var(--gold)">${Math.round(chance)} %</b> <span class="muted">(base 70, confiance du conseil ${parts.conf>=0?'+':''}${parts.conf}, amendements ${parts.amd>=0?'+':''}${parts.amd}, ambition du plan ${parts.poids}, crédibilité ${parts.cred>=0?'+':''}${parts.cred})</span></div><div id="c" style="display:flex;justify-content:center"></div>`,{title:'Le vote du conseil',tag:'La grande bidouille se termine. Le conseil tranche.'});
     $('#c').appendChild(btn('🗳️ Appeler au vote',()=>{S.sub=3;S.tmp.votes=boardVotes(chance,pend);renderGame();}));
@@ -1131,7 +1131,7 @@ function phResultats(){
   if(!S.decided){ S.tmp={y:simulate()}; if(S.tmp.y.norgeat){(S.log=S.log||[]).push({y:S.year,kind:'imprévu',n:'Effet Norgeat : reprise de provision '+kE(S.tmp.y.norgeat),eff:S.tmp.y.norgeat,cap:0,heart:0,bad:false});} S.decided=true; save(); renderGauges(); renderBudget(); postScore('saison',{}); }
   const y=S.tmp.y; const ins=y.ins;
   const norgHtml=y.norgeat?`<div class="resbox" style="background:#2a2410;border-color:var(--gold-dark)"><b>🧮 L'effet Norgeat : ${kE(y.norgeat)} sur le résultat</b>« Ah, j'oubliais. Une provision de ${fmt(y.norgeat)} k€ que j'avais passée il y a quelque temps n'avait plus lieu d'être. Je l'ai reprise hier soir, juste avant la clôture. ${y.norgeat/y.revenue>0.02?'Oui, c\'est beaucoup. Mais si tu te souviens…':'Trois fois rien, mais c\'est toujours ça.'} » <span class="muted">Écriture comptable : le résultat s'améliore, la trésorerie ne bouge pas.</span></div>`:'';
-  sceneShell(dlg(DAF,N.daf,N.dafRole+' · présente les comptes',`« Résultat net ${S.year} : <b style="color:${y.pct<0?'var(--rose)':'var(--green)'}">${mE(y.res)}</b> (${pct(y.pct)}). ${y.res>=SC.resTarget?'Objectif de résultat atteint cette année.':y.pct>=0?'L\'école est à l\'équilibre. Reste à construire la marge.':'Encore une année en perte.'} ${N.president} ${y.dca>=0?'vous accorde '+y.dca+' points de capital.':'vous retire '+(-y.dca)+' points de capital.'} »`)+
+  sceneShell(dlg(DAF,N.daf,N.dafRole+' · présente les comptes',`« Résultat net ${S.year} : <b style="color:${y.pct<0?'var(--rose)':'var(--green)'}">${mE(y.res)}</b> (${pct(y.pct)}). ${y.res>=SC.resTarget?'Objectif de résultat atteint cette année.':y.pct>=0?'L\'école est à l\'équilibre. Reste à construire la marge.':'Encore une année en perte.'} ${N.president} ${y.dca>=0?'exulte et vous accorde '+y.dca+' points de capital.':'vous retire '+(-y.dca)+' points de capital, avec un mot gentil et une tape sur l\'épaule.'} »`)+
    norgHtml+`<div class="tw"><table><tr><th>Canal</th><th>Budget</th><th>${SC.leadWord}</th><th>Inscriptions</th><th>Coût / inscrit</th></tr>${Object.keys(MEDIA).map(k=>`<tr><td>${MEDIA[k].ic} ${MEDIA[k].n}</td><td class="num">${fmt(y.media[k])} k€</td><td class="num">${fmt(ins.channels[k].leads)}</td><td class="num">${fmt(ins.channels[k].ins)}</td><td class="num">${ins.channels[k].cpi?fmt(ins.channels[k].cpi)+' €':'–'}</td></tr>`).join('')}<tr><td>🌱 Bouche-à-oreille et alumni</td><td class="num">–</td><td class="num">–</td><td class="num">${fmt(ins.organic)}</td><td class="num">0 €</td></tr></table></div>
    <div class="tw"><table>
    <tr><td><b>Nouveaux inscrits</b></td><td class="num"><b>${fmt(y.newS)}</b></td></tr><tr><td>Abandons et sorties (${Math.round(y.churn*100)} %)</td><td class="num">−${fmt(y.left)}</td></tr><tr><td><b>Étudiants au 31 décembre</b></td><td class="num"><b>${fmt(y.students)}</b></td></tr>
@@ -1162,7 +1162,7 @@ function phShow(){
   const layoffs=S.active.some(id=>(MEASURES[id].hc||0)<=-20);
   const c=[
    ["Transparence brutale",{cost:150,g:better?{cse:6,com:3,ca:3}:{cse:-4,com:-2,ca:2}},better?"Les équipes apprécient d'être traitées en adultes. "+N.president+" aussi.":"Dire la vérité quand elle est mauvaise ne rend pas populaire. Mais personne ne vous accuse de mentir.","Les vrais chiffres, les vraies raisons, ce qui vient."],
-   ["Célébration et récompenses",{cost:400,g:lr.pct>=0?{cse:10,com:10,ca:-2}:{cse:-6,com:-3,ca:-4}},lr.pct>=0?"La soirée est réussie, le moral remonte.":"Faire la fête sur une année en perte sonne faux. "+N.president+" trouve la facture déplacée.","Trophées, vidéo rétrospective, DJ et prime de fin d'année."],
+   ["Célébration et récompenses",{cost:400,g:lr.pct>=0?{cse:10,com:10,ca:-2}:{cse:-6,com:-3,ca:-4}},lr.pct>=0?"La soirée est réussie, le moral remonte.":"Faire la fête sur une année en perte sonne faux. "+N.president+" danse quand même, mais trouve la facture salée.","Trophées, vidéo rétrospective, DJ et prime de fin d'année."],
    ["Le discours de vision",{cost:150,g:{ca:5,com:5,cse:layoffs?-5:-1}},layoffs?"Les commerciaux applaudissent. Les équipes qui viennent de perdre des collègues trouvent cela déconnecté.":"Les commerciaux applaudissent. Le reste écoute poliment.","L'IA, l'international, "+N.ecole+" en 2030. Peu de chiffres, beaucoup d'ambition."],
    ["Annuler le show",{g:{cse:-10,com:-8,ca:1}},"Le mail est lu en silence. Le show de fin d'année était l'un des rares moments où "+N.ecole+" se voyait comme une seule équipe.","Économiser 150 k€ et envoyer un e-mail."]];
   const P=S.prime&&S.prime.year===S.year?S.prime:null; const primeK=Math.round(S.staff*1.1);
@@ -1183,7 +1183,7 @@ function phShow(){
 function phBilan(){
   const over=checkOver(); if(over){S.over={lost:true,why:over};return render();}
   if(S.yi>=YEARS.length-1){S.over={lost:false};return render();}
-  sceneShell(histHtml()+`<p class="muted" style="margin-top:22px">${S.lastResult.res>=SC.resTarget?N.president+' vous félicite : l\'objectif de résultat est atteint. Il faudra confirmer.':S.g.ca<30?N.president+' vous accorde un sursis.':S.lastResult.pct>=0?'Le conseil salue une école rentable et attend la suite.':'Le conseil attend la suite.'} Il reste ${YEARS.length-1-S.yi} exercice${YEARS.length-1-S.yi>1?'s':''} avant la fin de 2030.</p>`,{title:'Fin de saison '+(S.yi+1),tag:'Précédemment dans Le Jeu du DG…',ready:true,onNext:()=>{S.yi++;S.year=YEARS[S.yi];S.phase=0;S.sub=0;S.tmp=null;S.decided=false;S.screen='title';render();}});
+  sceneShell(histHtml()+`<p class="muted" style="margin-top:22px">${S.lastResult.res>=SC.resTarget?N.president+' vous serre dans ses bras : l\'objectif de résultat est atteint ! Il faudra confirmer, mais quelle saison.':S.g.ca<30?N.president+' vous accorde un sursis, et un sourire : il y croit encore.':S.lastResult.pct>=0?'Le conseil salue une école rentable et attend la suite avec appétit.':'Le conseil attend la suite, '+N.president+' avec confiance.'} Il reste ${YEARS.length-1-S.yi} exercice${YEARS.length-1-S.yi>1?'s':''} avant la fin de 2030.</p>`,{title:'Fin de saison '+(S.yi+1),tag:'Précédemment dans Le Jeu du DG…',ready:true,onNext:()=>{S.yi++;S.year=YEARS[S.yi];S.phase=0;S.sub=0;S.tmp=null;S.decided=false;S.screen='title';render();}});
   $('#nextBtn').innerHTML='▶ Saison '+(S.yi+2)+' · Exercice '+(S.year+1);
 }
 function histHtml(){
@@ -1214,8 +1214,8 @@ function renderFinal(){
   if(!S.over.posted){S.over.posted=true;postScore('partie',{statut});}
   if(S.over.lost){verdict="Fin de série";text=S.over.why;cls='bad';}
   else if(lr.res>=SC.resTarget&&grown){verdict="Objectif atteint";text=`Fin 2030, ${N.ecole} affiche ${mE(lr.res)} de résultat net (${pct(lr.pct)}), ${(lr.rev/1000).toFixed(1).replace('.',',')} M€ de chiffre d'affaires, ${fmt(S.students)} ${SC.unit} et ${fmt(S.staff)} salariés. Dix ans plus tard, les anciens élèves se souviennent ${S.g.etu>60?'d\'une école qui a tenu ses promesses.':'surtout des années de rigueur.'}`;cls='';}
-  else if(lr.pct>=0){verdict="Demi-succès";text=lr.res>=SC.resTarget?`${N.ecole} tient ${mE(lr.res)} de résultat, mais le chiffre d'affaires (${(lr.rev/1000).toFixed(1).replace('.',',')} M€) reste loin des ${(SC.caTarget/1000).toFixed(0)} M€ demandés. Rentable, pas assez ambitieux.`:`${N.ecole} est rentable (${mE(lr.res)}) mais loin des ${tgt()} demandés. Le conseil vous garde, sans enthousiasme.`;cls='neu';}
-  else{verdict="Objectif manqué";text=`Toujours en perte (${mE(lr.res)}) fin 2030. ${N.president} ne renouvelle pas votre mandat.`;cls='bad';}
+  else if(lr.pct>=0){verdict="Demi-succès";text=lr.res>=SC.resTarget?`${N.ecole} tient ${mE(lr.res)} de résultat, mais le chiffre d'affaires (${(lr.rev/1000).toFixed(1).replace('.',',')} M€) reste loin des ${(SC.caTarget/1000).toFixed(0)} M€ demandés. Rentable, pas assez ambitieux : ${N.president} vous garde, en rêvant déjà de la suite.`:`${N.ecole} est rentable (${mE(lr.res)}) mais loin des ${tgt()} demandés. ${N.president} vous garde avec plaisir, et vous promet que la prochaine fois sera la bonne.`;cls='neu';}
+  else{verdict="Objectif manqué";text=`Toujours en perte (${mE(lr.res)}) fin 2030. ${N.president} ne renouvelle pas votre mandat, la gorge serrée : « Vous reviendrez, j'en suis sûr. »`;cls='bad';}
   app().innerHTML=`<div class="center"><div class="panel wide">
     <div class="kicker" style="text-align:center">Fin 2030 · Générique de fin</div>
     <h1 class="serif title" style="color:${cls==='bad'?'var(--rose)':cls==='neu'?'var(--gold)':'var(--green)'}">${verdict}</h1>
