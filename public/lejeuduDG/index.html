@@ -293,12 +293,12 @@ const SCENARIOS=[
   mission:"doubler l'école en cinq ans et atteindre +20 % de résultat, sans trahir son âme", pitch:"ENACTO a traversé la tempête et en est sortie debout, avec des diplômés fidèles et une pédagogie que ses concurrents lui envient. Mon entrée au capital lui donne les moyens de ses ambitions ; Hélène Bellavenir, sa fondatrice, siège au conseil et veillera à ce que la croissance ne trahisse pas l'école. Objectif : 20 M€ et +20 % fin 2030."},
  {id:'cnf',name:"Centre National de Formation",ic:"🏛️",tag:"Le leader du secteur, solide, rentable, prêt pour un nouveau chapitre",
   desc:"60 M€ de chiffre d'affaires, 24 000 étudiants, 700 salariés, +20 % de résultat et la première place du secteur. Après trois années stables, le conseil veut rouvrir le chapitre de la croissance : +50 % de chiffre d'affaires d'ici 2030, avec au moins +13,5 M€ de résultat net.",
-  base:{students:24000,price:2500,organic:2600,payrollOther:24000,payrollCom:6000,marketing:9000,platform:3000,other:6000,debt:0,rate:0.04,cash:8000,staff:700,com:150}, start:20, target:15, growth:1.5, bank:-15000, unit:'étudiants', mediaTitle:'Plan médias', mediaWord:'médias', leadWord:'leads', lead1:'lead', churn:0.35, sat:12000, eff:0.45, varc:0.68, capMod:-15,
+  base:{students:24000,price:2500,organic:2600,payrollOther:24000,payrollCom:6000,marketing:9000,platform:3000,other:6000,debt:0,rate:0.04,cash:8000,staff:700,com:150}, start:20, target:15, growth:1.5, bank:-15000, unit:'étudiants', mediaTitle:'Plan médias', mediaWord:'médias', leadWord:'leads', lead1:'lead', churn:0.35, sat:12000, eff:0.42, varc:0.7, capMod:-15,
   media:scaleMedia(MEDIA_XYN,2),
   mission:"relancer la croissance d'un leader installé : +50 % de chiffre d'affaires en cinq ans, sans descendre sous +15 %", pitch:"Le CNF est la référence : rentable, connu de tous, avec des équipes qui savent faire. Depuis trois ans, les inscriptions remplacent exactement les départs ; c'est confortable, ce n'est pas assez. Le conseil veut 90 M€ en 2030 avec au moins +15 % de résultat, sur un marché mûr où chaque étudiant de plus se gagne."},
  {id:'hippocampus',name:"Hippocampus",ic:"🌿",tag:"La startup du bien-être ultra premium, un produit adoré, une trajectoire à construire",
   desc:"1 M€ de chiffre d'affaires, 170 étudiants à 6 000 € qui recommandent l'école les yeux fermés, 12 salariés, un positionnement ultra premium unique sur le marché. La startup investit encore (−50 % de résultat) ; les investisseurs y croient et veulent ×5 (5 M€ de CA) et +1,5 M€ de résultat net fin 2030.",
-  base:{students:167,price:6000,organic:40,payrollOther:720,payrollCom:180,marketing:300,platform:120,other:180,debt:0,rate:0.06,cash:400,staff:12,com:3}, start:-50, target:30, growth:5, bank:-800, unit:'étudiants', mediaTitle:'Plan médias', mediaWord:'médias', leadWord:'leads', lead1:'lead', churn:0.25, sat:900, eff:1.4, varc:0.32,
+  base:{students:167,price:6000,organic:40,payrollOther:720,payrollCom:180,marketing:300,platform:120,other:180,debt:0,rate:0.06,cash:400,staff:12,com:3}, start:-50, target:30, growth:5, bank:-800, unit:'étudiants', mediaTitle:'Plan médias', mediaWord:'médias', leadWord:'leads', lead1:'lead', churn:0.25, sat:900, eff:1.8, varc:0.26,
   media:{google:{n:"Google Ads",ic:"🔍",d:"Recherche payante sur des mots-clés chers. Des prospects aisés, rares, exigeants.",cpl:380,conv:0.08,churn:0,base:100},
          hello:{n:"HelloFormation",ic:"🤝",d:"Broker généraliste : beaucoup de curieux, peu de clients à 6 000 €.",cpl:280,conv:0.042,churn:1,base:67},
          diplo:{n:"Diplomomo",ic:"🎓",d:"Broker diplômant, un peu mieux ciblé.",cpl:330,conv:0.06,churn:0,base:53},
@@ -631,7 +631,7 @@ function inscriptions(){
   const repF=0.7+0.6*(S.g.etu/100);
   const organic=Math.round(BASE.organic*repF*S.stuMult);
   // Saturation du marché : au-delà de 12 000 étudiants, chaque inscription coûte plus cher (marché fini)
-  const over=Math.max(0,S.students-BASE.students)/SC.sat; const sat=clamp(1-0.45*over*over+(S.students<BASE.students?(BASE.students-S.students)/BASE.students*0.3:0),0.35,1.2); // à la cible de croissance (over=1), chaque inscription coûte ~2 fois plus
+  const over=Math.max(0,S.students-BASE.students)/SC.sat; const sat=clamp(1-0.45*over*over+(S.students<BASE.students?(BASE.students-S.students)/BASE.students*0.3:0),0.5,1.2); // à la cible de croissance (over=1), chaque inscription coûte ~2 fois plus
   return {channels:out,organic,total:Math.round((tot+organic)*S.yearFx.stuY*sat),leads,churnExtra:tot?churnExtra/tot:0,sat};
 }
 
@@ -639,7 +639,7 @@ function inscriptions(){
 function simulate(){
   const g=S.g;
   const ins=inscriptions(); const newS=ins.total;
-  const churn=clamp(SC.churn+(50-g.etu)/100*0.3+S.churn/100+ins.churnExtra/100,0.08,0.75);
+  const churn=clamp(SC.churn+(50-g.etu)/100*0.16+S.churn/100+ins.churnExtra/100,Math.max(0.12,SC.churn*0.5),0.75);
   const left=Math.round(S.students*churn);
   const students=Math.max(0,S.students-left+newS);
   const tuition=students*S.price/1000;
@@ -1202,7 +1202,7 @@ function bilanHtml(){
   if(costly.length) lines.push(`<b>Celles qui ont coûté cher en cœurs :</b> ${costly.map(x=>`${x.n} (${x.heart} au total)`).join(' · ')}.`);
   if(worst.length) lines.push(`<b>Les coups durs :</b> ${worst.map(x=>`${x.n} (${x.y})`).join(' · ')}.`);
   if(best.length) lines.push(`<b>Le coup de chance :</b> ${best[0].n} (${best[0].y}).`);
-  if(h0&&hN) lines.push(`<b>Les abandons</b> sont passés de ${Math.round(h0.churn*100)} % à ${Math.round(hN.churn*100)} % ; <b>les inscriptions</b> de ${fmt(h0.newS)} à ${fmt(hN.newS)} par an ; <b>le budget média par inscrit</b> de ${fmt(h0.mediaK*1000/Math.max(1,h0.newS))} € à ${fmt(hN.mediaK*1000/Math.max(1,hN.newS))} €.`);
+  if(h0&&hN) lines.push(`<b>En chiffres :</b> ${fmt(BASE.students)} ${SC.unit} en 2025, ${fmt(hN.students)} fin 2030 ; ${fmt(h0.newS)} inscriptions en 2026, ${fmt(hN.newS)} en 2030 ; taux d'abandon de ${Math.round(h0.churn*100)} % à ${Math.round(hN.churn*100)} % ; budget ${SC.mediaWord} de ${(h0.mediaK/1000).toFixed(1).replace('.',',')} M€ à ${(hN.mediaK/1000).toFixed(1).replace('.',',')} M€, soit ${fmt(h0.mediaK*1000/Math.max(1,h0.newS))} € puis ${fmt(hN.mediaK*1000/Math.max(1,hN.newS))} € par inscription${hN.ins.sat<0.9?' (marché saturé : chaque inscription coûte plus cher à mesure que l\'école grossit)':''}.`);
   const lesson=S.g.ca<25?'Vous avez fini à court de capital : le conseil ne suivait plus. Garder une réserve de capital, c\'est garder la main.':S.g.cse<30?'Le climat social a été sacrifié : les économies ont tenu, pas les équipes.':S.g.etu<35?'Les étudiants ont payé le redressement : abandons élevés, bouche-à-oreille en berne.':hN&&hN.res>=SC.resTarget?'Un redressement équilibré : les comptes, les équipes et les étudiants ont tenu ensemble.':'Les comptes ont progressé, mais pas assez vite : les premières années pèsent le plus, chaque mesure prise tôt rapporte cinq fois.';
   lines.push(`<b>La leçon :</b> ${lesson}`);
   return `<div class="note" style="text-align:left"><div class="h">📘 Ce que cette partie raconte</div>${lines.map(l=>`<p style="margin:4px 0">${l}</p>`).join('')}</div>`;
