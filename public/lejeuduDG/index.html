@@ -1093,7 +1093,18 @@ function phMesures(){
    <div class="hint">💡 À droite de chaque mesure : son <b>effet estimé sur le résultat annuel (k€)</b> et son <b>coût en capital</b>. Survolez une mesure (ou lisez la ligne sous chaque mesure sur mobile) pour sa lecture détaillée et ses effets sur les étudiants, les commerciaux et le CSE.</div>
    <div class="capbar" id="capbar"></div>
    <div id="cat"></div><div class="hint" id="tally"></div>`;
-  sceneShell(body,{title:'Il faut sauver l\'école',tag:'Seul·e face à la page blanche du plan. Chaque ligne cochée fera un mécontent, et un titre dans la presse.'});
+  const lr0=S.lastResult, nAct=S.active.length;
+  const mt=S.yi===0?(SC.start<0?'Il faut sauver l\'école':'Le plan de la première année')
+    :lr0.res>=SC.resTarget?'Tenir le cap'
+    :lr0.pct<0?'Le plan de redressement, acte '+(S.yi+1)
+    :S.yi>=3?'Les dernières cartes'
+    :'Le plan '+S.year;
+  const mtag=S.yi===0?'Seul·e face à la page blanche du plan. Chaque ligne cochée fera un mécontent, et aucune ne fera plaisir à tout le monde.'
+    :lr0.res>=SC.resTarget?'L\'objectif est atteint : chaque nouvelle mesure doit consolider sans fragiliser. Le conseil regarde surtout ce que vous ne touchez pas.'
+    :lr0.pct<0?`${nAct} mesure${nAct>1?'s':''} déjà en vigueur, et l\'école perd encore de l\'argent. Il faut choisir : couper plus, ou vendre mieux.`
+    :S.yi>=3?`Il reste ${YEARS.length-S.yi} exercice${YEARS.length-S.yi>1?'s':''} pour aller chercher ${mE(SC.resTarget-lr0.res).slice(1)}. Chaque mesure adoptée tard rapporte moins.`
+    :`${nAct} mesure${nAct>1?'s':''} en vigueur et une école rentable. Le plus dur commence : trouver la marge sans casser ce qui marche.`;
+  sceneShell(body,{title:mt,tag:mtag});
   const draw=()=>{
     const used=-capCost(S.pending); const avail_cap=Math.round(S.g.ca);
     $('#cat').innerHTML=cats.map(([k,n,col])=>`<div class="cath"><i style="background:${col}"></i>${n}</div><div class="mrows">${avail.filter(m=>m.cat===k).map(m=>{const y=yearly(m);const sel=S.pending.includes(m.id);const c=m.cap||0;const off=!sel&&(c<0&&used-c>avail_cap);return `<label class="mrow ${sel?'sel':''} ${off?'off':''} ${m.cat==='fou'?'fou':''}"><input type="checkbox" data-id="${m.id}" ${sel?'checked':''} ${off?'disabled':''}><span>${m.n}</span><span class="cap ${c>0?'gain':''}">${c>0?'+':''}${c} ⚡</span><span class="amt num ${y>50?'pos':y<-50?'neg':'zero'}">${y>50||y<-50?kE(y):'±0'}</span><span class="tip"><span class="d">${m.d}</span>${chips({g:m.g,once:m.once,hc:m.hc,churn:m.churn,rate:m.rate})||'<span class="chip">Aucun effet sur les jauges</span>'}<span class="d" style="margin-top:4px;color:var(--gold-hi)">${lecture(m)}</span></span><span class="mfx"><span class="d">${m.d}</span>${chips({g:m.g,once:m.once,hc:m.hc,churn:m.churn,rate:m.rate})}<span class="d" style="color:var(--gold-hi)">${lecture(m)}</span></span></label>`;}).join('')}</div>`).join('');
