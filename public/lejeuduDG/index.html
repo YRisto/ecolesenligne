@@ -315,12 +315,14 @@ function applyScenario(i){
   SC.scale=BASE.students*BASE.price/1000/30000*(SC.eff||1); SC.ca0=BASE.students*BASE.price/1000; SC.caTarget=SC.growth?Math.round(SC.ca0*SC.growth):null; SC.studentsTarget=SC.growth?Math.round(BASE.students*SC.growth):null; SC.resTarget=Math.round((SC.caTarget||SC.ca0)*SC.target/100);
   EPISODES[2][1]=SC.mediaTitle;
   const f=SC.scale; const sc=v=>Math.round(v*f);
-  MEASURES=MEASURES_T.map(m=>{const o={...m}; for(const k of ['rev','cost','mk','once','debt','revY']) if(o[k]) o[k]=sc(o[k]); if(o.hc) o.hc=Math.sign(o.hc)*Math.max(1,Math.round(Math.abs(o.hc)*f)); o.g=o.g?{...o.g}:o.g;
+  MEASURES=MEASURES_T.map(m=>{const o={...m}; for(const k of ['rev','cost','mk','once','debt','revY']) if(o[k]) o[k]=sc(o[k]); if(o.hc) o.hc=Math.sign(o.hc)*scaleN(Math.abs(o.hc)); o.g=o.g?{...o.g}:o.g;
     o.n=o.n.replace(/(\d+) postes/,(_,n)=>Math.max(1,Math.round(n*f))+' postes').replace(/(\d+) tuteurs/,(_,n)=>Math.max(1,Math.round(n*f))+' tuteurs').replace(/(\d+) M€/,(_,n)=>(Math.round(n*f*10)/10).toString().replace('.',',')+' M€').replace(/(\d+) conseillers/,(_,n)=>Math.max(1,Math.round(n*f))+' conseillers');
     return o;});
 }
 // Mise à l'échelle d'un paquet d'effets (montants en k€ et effectifs) selon la taille de l'école
-function scf(fx){ if(!fx||fx._abs||!SC||SC.scale===1) return fx; const o={...fx}; const f=SC.scale; for(const k of ['rev','cost','mk','once','revY']) if(o[k]) o[k]=Math.round(o[k]*f); if(o.debt) o.debt=Math.round(o.debt*f); if(o.hc) o.hc=Math.sign(o.hc)*Math.max(1,Math.round(Math.abs(o.hc)*f)); return o; }
+// Effectifs à l'échelle de l'école : garde des écarts lisibles même dans une petite structure (15 → 2, 5 → 1, 60 → 4 chez Hippocampus)
+function scaleN(v){ const fs=BASE.staff/400; const x=v*fs; if(x>=2) return v>=1000?Math.round(x/100)*100:x>=200?Math.round(x/10)*10:x>=30?Math.round(x/5)*5:Math.round(x); return v>=50?4:v>=25?3:v>=8?2:1; }
+function scf(fx){ if(!fx||fx._abs||!SC||SC.scale===1) return fx; const o={...fx}; const f=SC.scale; for(const k of ['rev','cost','mk','once','revY']) if(o[k]) o[k]=Math.round(o[k]*f); if(o.debt) o.debt=Math.round(o.debt*f); if(o.hc) o.hc=Math.sign(o.hc)*scaleN(Math.abs(o.hc)); return o; }
 const PROFILES=[
  ["🎓","Pédagogue réputé·e","Ancien·ne directeur·rice des études. Les équipes vous font confiance, le conseil attend des preuves.",{ca:52,etu:62,com:46,cse:60}],
  ["💼","Gestionnaire aguerri·e","Venu·e d'un groupe de formation. Le conseil adore, les équipes se méfient.",{ca:70,etu:50,com:50,cse:44}],
@@ -1022,7 +1024,7 @@ function sceneShell(body,opts){
 function nice(v){ return v>=1000?Math.round(v/100)*100:v>=200?Math.round(v/10)*10:v>=30?Math.round(v/5)*5:Math.max(1,Math.round(v)); }
 function money(k){ return Math.abs(k)>=1000?(k/1000).toFixed(1).replace('.',',').replace(',0','')+' M€':fmt(Math.round(k))+' k€'; }
 function tx(t){ if(!t||!SC||typeof t!=='string') return t; const f=SC.scale, fs=BASE.staff/400, fe=BASE.students/12000;
-  return t.replace(/\{k:([\d.]+)\}/g,(_,v)=>money(nice(+v*f))).replace(/\{M:([\d.]+)\}/g,(_,v)=>money(nice(+v*1000*f))).replace(/\{n:(\d+)\}/g,(_,v)=>fmt(nice(+v*fs))).replace(/\{s:(\d+)\}/g,(_,v)=>fmt(nice(+v*fe))).replace(/\{com:(\d+)\}/g,(_,v)=>fmt(Math.max(1,Math.round(+v*BASE.com/100)))).replace(/\{p:([\d.]+)\}/g,(_,v)=>fmt(Math.round(S.price*+v/10)*10)+' €').replace(/\{staff\}/g,fmt(BASE.staff)).replace(/\{comN\}/g,fmt(BASE.com)).replace(/\b1 ([a-zéè]{3,})s\b/g,'1 $1'); }
+  return t.replace(/\{k:([\d.]+)\}/g,(_,v)=>money(nice(+v*f))).replace(/\{M:([\d.]+)\}/g,(_,v)=>money(nice(+v*1000*f))).replace(/\{n:(\d+)\}/g,(_,v)=>fmt(scaleN(+v))).replace(/\{s:(\d+)\}/g,(_,v)=>fmt(nice(+v*fe))).replace(/\{com:(\d+)\}/g,(_,v)=>fmt(Math.max(1,Math.round(+v*BASE.com/100)))).replace(/\{p:([\d.]+)\}/g,(_,v)=>fmt(Math.round(S.price*+v/10)*10)+' €').replace(/\{staff\}/g,fmt(BASE.staff)).replace(/\{comN\}/g,fmt(BASE.com)).replace(/\b1 ([a-zéè]{3,})s\b/g,'1 $1'); }
 function dlg(ic,who,role,text){ return `<div class="dlg"><div class="avatar sm">${ic}</div><div class="who"><b>${who}</b><small>${role}</small><p>${tx(text)}</p></div></div>`; }
 function ready(){ const b=$('#nextBtn'); if(b) b.disabled=false; S.decided=true; save(); }
 function confetti(){
