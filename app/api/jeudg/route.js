@@ -14,8 +14,8 @@ export async function GET(req) {
   let filter = `type=eq.${type}&archive=eq.${archive}`;
   if (type === "saison" && annee) filter += `&annee=eq.${annee}`;
   const base = "dg,profil,saison,annee,resultat_pct,capital,etudiants,tresorerie_k,mesures,statut,archive,created_at";
-  let r = await fetch(`${url}/rest/v1/jeu_dg_scores?${filter}&select=${base},resultat_k,ca_k&order=resultat_k.desc.nullslast,resultat_pct.desc,capital.desc,created_at.asc&limit=50`, { headers: headers(), cache: "no-store" });
-  if (r.status === 400) r = await fetch(`${url}/rest/v1/jeu_dg_scores?${filter}&select=${base}&order=resultat_pct.desc,capital.desc,created_at.asc&limit=50`, { headers: headers(), cache: "no-store" }); // colonnes resultat_k / ca_k pas encore créées
+  let r = await fetch(`${url}/rest/v1/jeu_dg_scores?${filter}&select=${base},resultat_k,ca_k&order=resultat_k.desc.nullslast,resultat_pct.desc,capital.desc,created_at.asc&limit=300`, { headers: headers(), cache: "no-store" });
+  if (r.status === 400) r = await fetch(`${url}/rest/v1/jeu_dg_scores?${filter}&select=${base}&order=resultat_pct.desc,capital.desc,created_at.asc&limit=300`, { headers: headers(), cache: "no-store" }); // colonnes resultat_k / ca_k pas encore créées
   if (!r.ok) { const t = await r.text(); console.error("supabase jeudg GET", r.status, t); return NextResponse.json({ rows: [], error: true, status: r.status, detail: t.slice(0, 300) }, { status: 500 }); }
   return NextResponse.json({ rows: await r.json() });
 }
