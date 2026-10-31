@@ -8,8 +8,8 @@
 <style>
 /* Layout: série politique — en-tête + bandeau d'épisodes, jauges collantes, carte d'épisode à cadre doré, panneau budget. Thème unique sombre, choisi délibérément. */
 :root{
-  --bg:#0b1020; --card:#111831; --card2:#0f1730; --line:#232d4a; --line2:#1e2740;
-  --fg:#eef2fb; --cream:#f4f1e8; --muted:#9aa4c8; --muted2:#6b7498;
+  --bg:#0f1631; --card:#172146; --card2:#141d3e; --line:#2e3a64; --line2:#26305a;
+  --fg:#eef2fb; --cream:#f4f1e8; --muted:#b6bfe0; --muted2:#8b94ba;
   --gold:#c9a24a; --gold-dark:#a5843a; --gold-ink:#1a1408; --gold-hi:#e8c15a;
   --red:#c22020; --rose:#ff6b7a; --green:#7ee0a0; --green-deep:#2f8f46; --green-bg:#13291d; --green-line:#2f8f46;
   --orange:#f0a24b; --cyan:#3ec8d6; --blue:#7fa3e6; --violet:#b48be6;
@@ -19,7 +19,7 @@
 }
 *{box-sizing:border-box}
 html,body{height:100%}
-body{margin:0;background:var(--bg) radial-gradient(ellipse 60% 40% at 50% 30%,#141c3a 0%,transparent 70%);background-attachment:fixed;color:var(--fg);font-family:var(--sans);font-size:14px;line-height:1.5;
+body{margin:0;background:var(--bg) radial-gradient(ellipse 60% 40% at 50% 30%,#1e2a58 0%,transparent 70%);background-attachment:fixed;color:var(--fg);font-family:var(--sans);font-size:14px;line-height:1.5;
   padding-block:0 40px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
 body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--bg)}
 h1,h2,h3{margin:0;line-height:1.15;text-wrap:balance}
@@ -116,7 +116,7 @@ input[type=range]{width:100%;accent-color:var(--gold)}
 .gauge .l .gi{font-size:14px;vertical-align:-1px;margin-right:2px}
 .gauge .v{font-size:19px;font-weight:900;color:var(--cream);white-space:nowrap;margin:2px 0 4px}
 .gauge .v small{font-size:11px;font-weight:700;color:var(--muted)}
-.gauge .bar{height:5px;border-radius:3px;background:#1b2440;overflow:hidden}
+.gauge .bar{height:6px;border-radius:3px;background:linear-gradient(90deg,rgba(255,107,122,.38) 0 var(--z,0%),#243058 var(--z,0%));overflow:hidden}
 .gauge .bar i{display:block;height:100%;border-radius:3px;transition:width .5s}
 .gauge .v .pv{font-size:12px;font-weight:800;margin-left:6px}
 .gauge .v .pv.up{color:var(--green)} .gauge .v .pv.dn{color:var(--rose)}
@@ -146,7 +146,7 @@ input[type=range]{width:100%;accent-color:var(--gold)}
 .dlg .who>b{display:block;font-size:15px} .dlg .who>small{color:var(--muted);font-size:12px;display:block;margin-bottom:6px}
 .dlg .who p{font-size:14.5px;max-width:110ch}
 .prompt{color:var(--gold);font-weight:700;font-size:13.5px}
-.note{background:#101a33;border:1px solid var(--line);border-radius:10px;padding:12px 14px;font-size:13px;color:var(--fg)}
+.note{background:#16204a;border:1px solid var(--line);border-radius:10px;padding:12px 14px;font-size:13px;color:var(--fg)}
 .note .h{color:var(--blue);font-weight:700;margin-bottom:4px}
 .note ul{margin:6px 0 0 16px;padding:0;color:var(--muted)} .note li{margin:2px 0}
 .resbox{background:#0f2a1a;border:1px solid var(--green-line);border-radius:10px;padding:12px 14px}
@@ -228,6 +228,42 @@ th{font-size:10px;font-weight:900;letter-spacing:.1em;text-transform:uppercase;c
 .modal .mf{display:flex;justify-content:space-between;align-items:center;width:100%;margin-top:6px}
 .modal .lnk{background:none;border:0;color:var(--muted);font-weight:600;padding:8px 0}
 
+
+/* Jauges : écart depuis le début de l'épisode, flash de variation */
+.gauge .v{overflow:hidden;text-overflow:ellipsis}
+.gauge .dl{font-size:11px;font-weight:900;margin-left:6px;padding:1px 6px;border-radius:999px;vertical-align:2px}
+.gauge .dl.up{color:#0d2a18;background:var(--green)} .gauge .dl.dn{color:#3a0b12;background:var(--rose)}
+.gauge.fl-up{animation:flup 1.2s ease-out} .gauge.fl-dn{animation:fldn 1.2s ease-out}
+@keyframes flup{0%{box-shadow:0 0 0 2px var(--green),0 0 22px rgba(126,224,160,.55)}100%{box-shadow:none}}
+@keyframes fldn{0%{box-shadow:0 0 0 2px var(--rose),0 0 22px rgba(255,107,122,.55)}100%{box-shadow:none}}
+/* Transition entre épisodes */
+.scene{animation:scenein .45s ease-out}
+@keyframes scenein{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+/* Résultats : révélation des comptes */
+.reveal{display:grid;gap:8px;background:linear-gradient(160deg,var(--sc-bg,#16204a),#0f1631);border:1px solid var(--sc-line,var(--line));border-radius:14px;padding:16px 18px}
+.reveal .rv{display:flex;justify-content:space-between;align-items:baseline;gap:12px;opacity:0;transform:translateY(8px);animation:rvin .5s ease-out forwards}
+.reveal .rv span{color:var(--muted);font-size:14px} .reveal .rv b{font-size:22px;font-weight:900;font-variant-numeric:tabular-nums}
+.reveal .rv.big{border-top:1px dashed var(--line);padding-top:10px} .reveal .rv.big span{color:var(--fg);font-weight:800;font-size:16px} .reveal .rv.big b{font-size:clamp(30px,7vw,44px)}
+.reveal .verdict{justify-content:center;font-weight:800;font-size:15px;text-align:center}
+.reveal .att{height:8px;border-radius:4px;background:#243058;overflow:hidden;opacity:0;animation:rvin .5s ease-out forwards} .reveal .att i{display:block;height:100%;width:0;border-radius:4px;transition:width 1.2s ease-out}
+@keyframes rvin{to{opacity:1;transform:none}}
+details.det>summary{cursor:pointer;list-style:none;display:inline-block;background:#1b2550;border:1px solid var(--line);border-radius:8px;padding:9px 14px;font-weight:700;color:var(--fg)} details.det>summary::-webkit-details-marker{display:none}
+details.det[open]>summary{margin-bottom:10px} details.det{display:grid;gap:10px}
+/* Carte-titre de saison */
+.titlecard .tsc{display:flex;align-items:center;gap:12px;font-family:var(--serif);font-size:clamp(20px,4vw,30px);font-weight:900;color:var(--sc-hi,var(--gold-hi));opacity:0;animation:rvin .6s .5s ease-out forwards;transform:translateY(8px)}
+.titlecard .tsc .ic{font-size:1.4em}
+.titlecard .tlogo{animation:tpop .7s ease-out}
+.titlecard .big{animation:tbig 1s ease-out}
+.titlecard .rule{transform-origin:center;animation:trule .9s .3s ease-out both}
+.titlecard .sub{opacity:0;animation:rvin .6s 1s ease-out forwards;transform:translateY(8px)}
+.titlecard .year{font-family:var(--serif);font-size:clamp(40px,10vw,84px);font-weight:900;color:var(--cream);letter-spacing:.06em;opacity:0;animation:tyear .9s 1.3s ease-out forwards}
+.titlecard::after{content:'';position:absolute;inset:0;background:linear-gradient(100deg,transparent 30%,rgba(255,255,255,.07) 50%,transparent 70%);transform:translateX(-100%);animation:tsweep 1.6s .2s ease-in-out}
+@keyframes tpop{0%{transform:scale(.4) rotate(-20deg);opacity:0}70%{transform:scale(1.12)}100%{transform:none;opacity:1}}
+@keyframes tbig{0%{letter-spacing:.5em;opacity:0}100%{letter-spacing:.02em;opacity:1}}
+@keyframes trule{from{transform:scaleX(0)}to{transform:scaleX(1)}}
+@keyframes tyear{0%{opacity:0;transform:scale(1.4);filter:blur(6px)}100%{opacity:1;transform:none;filter:none}}
+@keyframes tsweep{to{transform:translateX(100%)}}
+@media (prefers-reduced-motion:reduce){.scene,.reveal .rv,.reveal .att,.titlecard *,.titlecard::after,.gauge.fl-up,.gauge.fl-dn{animation:none!important;opacity:1!important;transform:none!important}}
 /* Couleur propre à chaque scénario : bandeau DIRECT, cadres, onglet d'épisode, carte-titre, encadrés, halo du fond */
 html[data-sc=xyn]{--sc:#1f3a93;--sc-hi:#7b97f2;--sc-line:#3352c0;--sc-bg:#0f1a3d;--sc-glow:#152558}
 html[data-sc=linguia]{--sc:#8e1b2b;--sc-hi:#ec7584;--sc-line:#b02a3e;--sc-bg:#2a0f15;--sc-glow:#3d1019}
@@ -1126,8 +1162,8 @@ function renderProfile(){
 }
 
 function renderTitle(){
-  app().innerHTML=`<div class="titlecard"><div class="tlogo">${LOGO}</div><div class="big">LE JEU DU DG</div><div class="rule"></div><div class="sub">Saison ${S.yi+1} · Exercice ${S.year}</div></div>`;
-  setTimeout(()=>{S.screen='game';render();},2600);
+  app().innerHTML=`<div class="titlecard"><div class="tlogo">${LOGO}</div><div class="big">LE JEU DU DG</div><div class="rule"></div><div class="tsc"><span class="ic">${SC.ic}</span>${N.ecole}</div><div class="sub">Saison ${S.yi+1} sur 5</div><div class="year">${S.year}</div></div>`;
+  setTimeout(()=>{S.screen='game';render();},3400);
 }
 
 function gaugeHtml(){
@@ -1141,19 +1177,37 @@ function gaugeHtml(){
   pend.forEach(m=>{d.ca+=m.cap||0; d.once+=m.once||0; if(m.g) for(const k in m.g) d[k]+=m.g[k];});
   const pj=projected();
   const arrow=(cur,nxt,fmtF,good)=>pv&&Math.round(nxt*10)!==Math.round(cur*10)?`<span class="pv ${good?'up':'dn'}">→ ${fmtF(nxt)}</span>`:'';
-  const G=(cls,ic,l,v,w,sub,pvh,w2)=>`<div class="gauge ${cls}${pvh?' has-pv':''}" data-g="${cls.slice(2)}"><div class="l"><span class="gi">${ic}</span> ${l}</div><div class="v num">${v}${pvh||(sub?`<small> · ${sub}</small>`:'')}</div><div class="bar"><i style="width:${w}%"></i>${pvh?`<em style="left:${Math.min(w,w2)}%;width:${Math.abs(w2-w)}%"></em>`:''}</div></div>`;
+  const SN=S.snap||{}; const dlt=(k,cur,f)=>{ if(pv||SN[k]==null) return ''; const d=cur-SN[k]; const r=k==='cash'?Math.round(d/100)/10:Math.round(d); if(!r) return ''; return `<span class="dl ${d>0?'up':'dn'}">${d>0?'▲':'▼'} ${f?f(d):(d>0?'+':'−')+Math.abs(r)}</span>`; };
+  const ZONE={ca:20,etu:20,com:20,cse:20,cash:10,res:50};
+  const G=(cls,ic,l,v,w,sub,pvh,w2,dh)=>`<div class="gauge ${cls}${pvh?' has-pv':''}" data-g="${cls.slice(2)}"><div class="l"><span class="gi">${ic}</span> ${l}</div><div class="v num"><span class="vv" data-k="${cls.slice(2)}">${v}</span>${dh||''}${pvh||(sub?`<small> · ${sub}</small>`:'')}</div><div class="bar" style="--z:${ZONE[cls.slice(2)]||0}%"><i style="width:${w}%"></i>${pvh?`<em style="left:${Math.min(w,w2)}%;width:${Math.abs(w2-w)}%"></em>`:''}</div></div>`;
   const nca=clamp(S.g.ca+d.ca,0,100),netu=clamp(S.g.etu+d.etu,0,100),ncom=clamp(S.g.com+d.com,0,100),ncse=clamp(S.g.cse+d.cse,0,100),ncash=S.cash+d.once;
   return {conj,html:
    G('c-rev','💶','Chiffre d\'aff.',(lr.rev/1000).toFixed(1).replace('.',',')+' M€',clamp(lr.rev/(SC.caTarget||SC.ca0*1.5)*100,2,100),SC.growth?`cible ${(SC.caTarget/1000).toFixed(0)} M€`:`2025 : ${(SC.ca0/1000).toFixed(0)} M€`,pv?arrow(lr.rev,pj.rev,x=>(x/1000).toFixed(1).replace('.',',')+' M€',pj.rev>=lr.rev):'',clamp(pj.rev/(SC.caTarget||SC.ca0*1.5)*100,2,100))+
    G('c-res','📉','Résultat net',mE(lr.res),resW,`cible ${tgt()}`,pv?arrow(lr.res,pj.res,mE,pj.res>lr.res):'',clamp((pj.res+SC.resTarget)/(2*SC.resTarget)*100,2,100))+
-   G('c-ca','⚡','Capital',Math.round(S.g.ca)+' pts',S.g.ca,S.g.ca<20?'danger':S.g.ca<40?'fragile':S.g.ca<70?'solide':'fort',arrow(S.g.ca,nca,x=>Math.round(x)+' pts',nca>=S.g.ca),nca)+
-   G('c-cash','🏦','Trésorerie',mE(S.cash),cashW,`dette ${(S.debt/1000).toFixed(1).replace('.',',')} M€`,arrow(S.cash,ncash,mE,ncash>=S.cash),clamp((ncash-SC.bank)/(-SC.bank*2)*100,2,100))+
+   G('c-ca','⚡','Capital',Math.round(S.g.ca)+' pts',S.g.ca,S.g.ca<20?'danger':S.g.ca<40?'fragile':S.g.ca<70?'solide':'fort',arrow(S.g.ca,nca,x=>Math.round(x)+' pts',nca>=S.g.ca),nca,dlt('ca',S.g.ca))+
+   G('c-cash','🏦','Trésorerie',mE(S.cash),cashW,`dette ${(S.debt/1000).toFixed(1).replace('.',',')} M€`,arrow(S.cash,ncash,mE,ncash>=S.cash),clamp((ncash-SC.bank)/(-SC.bank*2)*100,2,100),dlt('cash',S.cash,d=>mE(d)))+
    G('c-rate','📈','Taux · banque',(S.rate*100).toFixed(1).replace('.',',')+' %',clamp(100-S.rate*800,5,100),S.rate<0.045?'AA':S.rate<0.065?'BBB':'B')+
-   G('c-etu','💚',SC.unit.charAt(0).toUpperCase()+SC.unit.slice(1),Math.round(S.g.etu)+' %',S.g.etu,fmt(S.students)+(SC.growth?' / '+fmt(SC.studentsTarget):''),arrow(S.g.etu,netu,x=>Math.round(x)+' %',netu>=S.g.etu),netu)+
-   G('c-com','💙','Commerciaux',Math.round(S.g.com)+' %',S.g.com,fmt(S.lastNew)+' inscr.',arrow(S.g.com,ncom,x=>Math.round(x)+' %',ncom>=S.g.com),ncom)+
-   G('c-cse','💜','CSE · salariés',Math.round(S.g.cse)+' %',S.g.cse,fmt(S.staff),arrow(S.g.cse,ncse,x=>Math.round(x)+' %',ncse>=S.g.cse),ncse)};
+   G('c-etu','💚',SC.unit.charAt(0).toUpperCase()+SC.unit.slice(1),Math.round(S.g.etu)+' %',S.g.etu,fmt(S.students)+(SC.growth?' / '+fmt(SC.studentsTarget):''),arrow(S.g.etu,netu,x=>Math.round(x)+' %',netu>=S.g.etu),netu,dlt('etu',S.g.etu))+
+   G('c-com','💙','Commerciaux',Math.round(S.g.com)+' %',S.g.com,fmt(S.lastNew)+' inscr.',arrow(S.g.com,ncom,x=>Math.round(x)+' %',ncom>=S.g.com),ncom,dlt('com',S.g.com))+
+   G('c-cse','💜','CSE · salariés',Math.round(S.g.cse)+' %',S.g.cse,fmt(S.staff),arrow(S.g.cse,ncse,x=>Math.round(x)+' %',ncse>=S.g.cse),ncse,dlt('cse',S.g.cse))};
 }
-function renderGauges(){ const el=$('#gauges'); if(!el) return; const g=gaugeHtml(); el.innerHTML=g.html; const p=$('#conj'); if(p){p.className='pill '+g.conj[0];p.textContent=g.conj[1];} }
+const LASTV={};
+function numIn(t){ const m=String(t).replace(/\u202f|\u00a0/g,' ').match(/([+−-]?)\s*(\d[\d ]*)(,(\d+))?/); if(!m) return null; const v=parseFloat(m[2].replace(/ /g,'')+(m[4]?'.'+m[4]:''))*(m[1]==='−'||m[1]==='-'?-1:1); return {v,dec:m[4]?m[4].length:0,sign:!!m[1],m}; }
+function fmtLike(t,v,info){ const neg=v<0, a=Math.abs(v); const body=info.dec?a.toFixed(info.dec).replace('.',','):new Intl.NumberFormat('fr-FR').format(Math.round(a)); const sg=info.sign?(neg?'−':'+'):(neg?'−':''); return String(t).replace(/\u202f|\u00a0/g,' ').replace(info.m[0],sg+body); }
+function animateGauges(){
+  document.querySelectorAll('.gauge .vv').forEach(el=>{ const k=el.dataset.k, nt=el.textContent, ot=LASTV[k]; LASTV[k]=nt; if(ot==null||ot===nt) return;
+    const a=numIn(ot), b=numIn(nt); if(!a||!b||a.v===b.v) return; const g=el.closest('.gauge'); g.classList.remove('fl-up','fl-dn'); void g.offsetWidth; g.classList.add(b.v>a.v?'fl-up':'fl-dn');
+    if(matchMedia('(prefers-reduced-motion: reduce)').matches) return; const t0=performance.now(), D=700;
+    const step=t=>{ const p=Math.min(1,(t-t0)/D), e=1-Math.pow(1-p,3); el.textContent=p<1?fmtLike(nt,a.v+(b.v-a.v)*e,b):nt; if(p<1) requestAnimationFrame(step); }; requestAnimationFrame(step); });
+}
+function runReveal(y){
+  const rm=matchMedia('(prefers-reduced-motion: reduce)').matches;
+  document.querySelectorAll('.reveal .cu').forEach(el=>{ const to=+el.dataset.to, f=el.dataset.f, d=+el.dataset.d||0; const out=v=>f==='ca'?(v/1000).toFixed(1).replace('.',',')+' M€':mE(v);
+    if(rm){el.textContent=out(to);return;} el.textContent=out(0); setTimeout(()=>{ const t0=performance.now(), D=900; const st=t=>{const p=Math.min(1,(t-t0)/D), e=1-Math.pow(1-p,3); el.textContent=out(to*e); if(p<1) requestAnimationFrame(st);}; requestAnimationFrame(st); },d); });
+  const bar=document.querySelector('.reveal .att i'); if(bar) setTimeout(()=>{bar.style.width=bar.dataset.w+'%';},rm?0:2300);
+  if(y.res>=SC.resTarget&&!S.tmp.conf){ S.tmp.conf=true; setTimeout(confetti,rm?0:2500); }
+}
+function renderGauges(){ const el=$('#gauges'); if(!el) return; const g=gaugeHtml(); el.innerHTML=g.html; animateGauges(); const p=$('#conj'); if(p){p.className='pill '+g.conj[0];p.textContent=g.conj[1];} }
 function flashGauge(k){ const el=document.querySelector(`.gauge[data-g="${k}"]`); if(el){el.classList.add('flash');setTimeout(()=>el.classList.remove('flash'),2500);} }
 
 function headlines(){
@@ -1170,6 +1224,7 @@ function headlines(){
 
 function renderGame(){
   toTop();
+  const sk=S.year+'-'+S.phase; if(S.snapKey!==sk){ S.snapKey=sk; S.snap={ca:S.g.ca,etu:S.g.etu,com:S.g.com,cse:S.g.cse,cash:S.cash}; }
   const g=gaugeHtml();
   app().innerHTML=`<div class="game">
     <div class="top"><div class="brand"><div class="logo">${LOGO}</div><div><div class="t">LE JEU DU DG</div><div class="s">${N.ecole} · Saison ${S.yi+1} · Exercice ${S.year}</div></div><span class="pill ${g.conj[0]}" id="conj" style="margin-left:8px">${g.conj[1]}</span></div>
@@ -1179,6 +1234,7 @@ function renderGame(){
     <div class="scene" id="scene"></div>
     <div class="budget" id="budget"></div>
   </div>`;
+  animateGauges();
   $('#reset').addEventListener('click',()=>modal(`<h3>Recommencer la série ?</h3><p class="mt">La partie en cours sera perdue.</p><div class="mf"><button class="lnk" id="mc">Annuler</button><button class="rbtn" id="mo">Recommencer</button></div>`,'gold'));
   document.getElementById('modal').onclick=(e=>{ if(e.target.id==='mc') closeModal(); if(e.target.id==='mo'){closeModal();newGame(S.sc);S.screen='intro';render();} });
   renderBudget();
@@ -1494,9 +1550,17 @@ function phEvent(silent){
 function phResultats(){
   if(!S.decided){ S.tmp={y:simulate()}; badgeSeason(S.tmp.y); if(S.tmp.y.norgeat){(S.log=S.log||[]).push({y:S.year,kind:'imprévu',n:'Effet Norgeat : '+(S.tmp.y.norgeat<0?'dotation ':'reprise de provision ')+kE(S.tmp.y.norgeat),eff:S.tmp.y.norgeat,cap:0,heart:0,bad:S.tmp.y.norgeat<0});} S.decided=true; save(); renderGauges(); renderBudget(); postScore('saison',{}); }
   const y=S.tmp.y; const ins=y.ins;
+  const att=y.res/SC.resTarget, attW=clamp(att*100,0,100);
+  const revealHtml=`<div class="reveal">
+    <div class="rv" style="animation-delay:.15s"><span>Chiffre d'affaires ${S.year}</span><b class="cu" data-to="${y.revenue}" data-f="ca" data-d="150">${(y.revenue/1000).toFixed(1).replace('.',',')} M€</b></div>
+    <div class="rv" style="animation-delay:.75s"><span>Charges de l'exercice</span><b class="cu" data-to="${-y.costs}" data-f="m" data-d="750" style="color:var(--rose)">${mE(-y.costs)}</b></div>
+    ${y.norgeat?`<div class="rv" style="animation-delay:1.25s"><span>🧮 Effet Norgeat</span><b style="color:var(--gold-hi)">${mE(y.norgeat)}</b></div>`:''}
+    <div class="rv big" style="animation-delay:1.6s"><span>Résultat net ${S.year}</span><b class="cu" data-to="${y.res}" data-f="m" data-d="1600" style="color:${y.res<0?'var(--rose)':'var(--green)'}">${mE(y.res)}</b></div>
+    <div class="att" style="animation-delay:2.2s"><i data-w="${attW}" style="background:${att>=1?'var(--gold-hi)':att>=0?'var(--green)':'var(--rose)'}"></i></div>
+    <div class="rv verdict" style="animation-delay:2.4s">${att>=1?'🏆 Objectif de résultat atteint : '+mE(y.res)+' pour '+tgt()+' demandés':att>=0?`🎯 ${Math.round(att*100)} % de l'objectif de résultat (${tgt()})`:`📉 En perte : l'objectif est à ${tgt()}`}</div></div>`;
   const norgHtml=y.norgeat?`<div class="resbox" style="background:#2a2410;border-color:var(--gold-dark)"><b>🧮 L'effet Norgeat : ${kE(y.norgeat)} sur le résultat</b>${y.norgeat<0?`« Ah, j'oubliais. Il a fallu passer une petite provision de ${fmt(-y.norgeat)} k€ hier soir, juste avant la clôture. Bah, je t'avais dit de ne pas trop t'habituer aux bonnes choses. » <span class="muted">Écriture comptable : le résultat baisse un peu, la trésorerie ne bouge pas.</span>`:`« Ah, j'oubliais. Une provision de ${fmt(y.norgeat)} k€ que j'avais passée il y a quelque temps n'avait plus lieu d'être. Je l'ai reprise hier soir, juste avant la clôture. ${y.norgeat/y.revenue>0.02?'Oui, c\'est beaucoup. Mais si tu te souviens…':'Trois fois rien, mais c\'est toujours ça.'} » <span class="muted">Écriture comptable : le résultat s'améliore, la trésorerie ne bouge pas.</span>`}</div>`:'';
   sceneShell(dlg(DAF,N.daf,N.dafRole+' · présente les comptes',`« Résultat net ${S.year} : <b style="color:${y.pct<0?'var(--rose)':'var(--green)'}">${mE(y.res)}</b>. ${y.res>=SC.resTarget?'Objectif de résultat atteint cette année.':y.pct>=0?(y.pct<3?'L\'école est à l\'équilibre. Reste à construire la marge.':'L\'école est rentable ; l\'objectif n\'est pas encore atteint.'):(S.yi===0&&SC.start>=0?'L\'école est passée dans le rouge.':'Encore une année en perte.')} ${N.president} ${y.dca>=0?'vous accorde '+y.dca+' points de capital, avec un mot de félicitations.':'vous retire '+(-y.dca)+' points de capital, sans plaisir, mais sans détour.'} »`)+
-   norgHtml+`<div class="tw"><table><tr><th>Canal</th><th>Budget</th><th>${SC.leadWord}</th><th>Inscriptions</th><th>Coût / inscrit</th></tr>${Object.keys(MEDIA).map(k=>`<tr><td>${MEDIA[k].ic} ${MEDIA[k].n}</td><td class="num">${fmt(y.media[k])} k€</td><td class="num">${fmt(ins.channels[k].leads)}</td><td class="num">${fmt(ins.channels[k].ins)}</td><td class="num">${ins.channels[k].cpi?fmt(ins.channels[k].cpi)+' €':'–'}</td></tr>`).join('')}<tr><td>🌱 Bouche-à-oreille et alumni</td><td class="num">–</td><td class="num">–</td><td class="num">${fmt(ins.organic)}</td><td class="num">0 €</td></tr></table></div>
+   revealHtml+norgHtml+`<details class="det"><summary>📊 Voir le détail des comptes et de la trésorerie</summary><div class="tw"><table><tr><th>Canal</th><th>Budget</th><th>${SC.leadWord}</th><th>Inscriptions</th><th>Coût / inscrit</th></tr>${Object.keys(MEDIA).map(k=>`<tr><td>${MEDIA[k].ic} ${MEDIA[k].n}</td><td class="num">${fmt(y.media[k])} k€</td><td class="num">${fmt(ins.channels[k].leads)}</td><td class="num">${fmt(ins.channels[k].ins)}</td><td class="num">${ins.channels[k].cpi?fmt(ins.channels[k].cpi)+' €':'–'}</td></tr>`).join('')}<tr><td>🌱 Bouche-à-oreille et alumni</td><td class="num">–</td><td class="num">–</td><td class="num">${fmt(ins.organic)}</td><td class="num">0 €</td></tr></table></div>
    <div class="tw"><table>
    <tr><td><b>Nouveaux inscrits</b></td><td class="num"><b>${fmt(y.newS)}</b></td></tr><tr><td>Abandons et sorties (${Math.round(y.churn*100)} %)</td><td class="num">−${fmt(y.left)}</td></tr><tr><td><b>${GN.etu} au 31 décembre</b></td><td class="num"><b>${fmt(y.students)}</b></td></tr>
    <tr><td>Chiffre d'affaires</td><td class="num">${fmt(y.revenue)} k€</td></tr><tr><td>Charges (dont ${SC.mediaWord} ${fmt(mkTotal())} k€ et intérêts ${fmt(y.interest)} k€)</td><td class="num">−${fmt(y.costs)} k€</td></tr><tr><td><b>Résultat net</b></td><td class="num"><b style="color:${y.res<0?'var(--rose)':'var(--green)'}">${kE(y.res)}</b></td></tr>
@@ -1519,7 +1583,8 @@ function phResultats(){
    ${y.norgeat?`<tr><td>${y.norgeat<0?'+':'−'} Neutralisation de la ${y.norgeat<0?'dotation':'reprise de provision'} (pas d'argent derrière)</td><td class="num">${kE(-y.norgeat)}</td></tr>`:''}
    <tr><td>± Mouvements exceptionnels (levées, investissements, indemnités, imprévus)</td><td class="num">${kE(y.once)}</td></tr>
    <tr><td><b>= Trésorerie au 31 décembre</b></td><td class="num"><b style="color:${S.cash<0?'var(--rose)':'var(--green)'}">${mE(S.cash)}</b></td></tr></table></div>
-   <p class="hint" style="margin-top:6px">${S.cash<0?'Sous zéro, la '+N.banque+' facture des agios et relève le taux ; à '+mE(SC.bank)+' elle coupe la ligne de crédit.':'Une trésorerie positive fait baisser le taux et rassure le conseil.'}</p></div>`,{title:'Les comptes de l\'exercice',tag:'Les chiffres tombent. Ils ne négocient pas.',ready:true});
+   <p class="hint" style="margin-top:6px">${S.cash<0?'Sous zéro, la '+N.banque+' facture des agios et relève le taux ; à '+mE(SC.bank)+' elle coupe la ligne de crédit.':'Une trésorerie positive fait baisser le taux et rassure le conseil.'}</p></div></details>`,{title:'Les comptes de l\'exercice',tag:'Les chiffres tombent. Ils ne négocient pas.',ready:true});
+  runReveal(y);
 }
 
 function phShow(){
