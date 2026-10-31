@@ -759,8 +759,8 @@ function badges(){ try{return JSON.parse(localStorage.getItem('bde-badges')||'{}
 function award(id){
   const B=badges(); if(B[id]) return; const b=BADGES.find(x=>x.id===id); if(!b) return;
   B[id]={date:new Date().toISOString().slice(0,10),dg:S.name||'',sc:SC?SC.name:'' }; try{localStorage.setItem('bde-badges',JSON.stringify(B));}catch(e){}
-  (S.trophSession=S.trophSession||[]).push(id); const t=document.createElement('div'); t.className='toast badge'; t.innerHTML=`<b>🏅 Trophée débloqué : ${b.ic} ${b.n}</b><small>${b.d}</small>`;
-  const box=document.getElementById('toasts'); if(box){while(box.children.length>=4) box.firstChild.remove(); box.appendChild(t); setTimeout(()=>t.remove(),5000);}
+  (S.trophSession=S.trophSession||[]).push(id); const t=document.createElement('div'); t.className='toast badge'; t.innerHTML=`<b>🏅 Trophée débloqué : ${b.ic} ${b.n}</b><small>${b.d}</small><small style="opacity:.7">Touchez pour fermer · visible dans la Galerie des trophées</small>`; t.style.cursor='pointer'; t.addEventListener('click',()=>t.remove());
+  const box=document.getElementById('toasts'); if(box){while(box.children.length>=4) box.firstChild.remove(); box.appendChild(t); setTimeout(()=>t.remove(),20000);}
 }
 function badgeSeason(y){ // appelé après la simulation de l'année
   award('first'); if(S.g.etu>=100) award('etu'); if(S.g.com>=100) award('com'); if(S.g.cse>=100) award('cse'); if(S.g.ca>=90) award('cap');
