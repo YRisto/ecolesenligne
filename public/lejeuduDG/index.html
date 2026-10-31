@@ -350,10 +350,10 @@ const SCENARIOS=[
   media:scaleMedia(MEDIA_XYN,0.36),
   mission:"doubler l'école en cinq ans et atteindre +20 % de résultat, sans trahir son âme", pitch:"ENACTO a traversé la tempête et en est sortie debout, avec des diplômés fidèles et une pédagogie que ses concurrents lui envient. Mon entrée au capital lui donne les moyens de ses ambitions ; Hélène Bellavenir, sa fondatrice, siège au conseil et veillera à ce que la croissance ne trahisse pas l'école. Objectif : 20 M€ et +20 % fin 2030."},
  {id:'cnf',name:"Centre National de Formation",ic:"🏛️",tag:"Le leader du secteur, solide, rentable, prêt pour un nouveau chapitre",
-  desc:"60 M€ de chiffre d'affaires, 24 000 étudiants, 700 salariés, +20 % de résultat et la première place du secteur. Après trois années stables, le conseil veut rouvrir le chapitre de la croissance : +50 % de chiffre d'affaires d'ici 2030, avec au moins +13,5 M€ de résultat net.",
-  base:{students:24000,price:2500,organic:2600,payrollOther:24000,payrollCom:6000,marketing:9000,platform:3000,other:6000,debt:0,rate:0.04,cash:8000,staff:700,com:150}, start:20, target:15, growth:1.5, bank:-15000, unit:'étudiants', mediaTitle:'Plan médias', mediaWord:'médias', leadWord:'leads', lead1:'lead', churn:0.35, sat:9800, eff:0.38, varc:0.7, capMod:-16,
+  desc:"60 M€ de chiffre d'affaires, 24 000 étudiants, 700 salariés, +20 % de résultat et la première place du secteur. Après trois années stables, le conseil veut rouvrir le chapitre de la croissance : +50 % de chiffre d'affaires d'ici 2030, et 20 M€ de résultat net.",
+  base:{students:24000,price:2500,organic:2600,payrollOther:24000,payrollCom:6000,marketing:9000,platform:3000,other:6000,debt:0,rate:0.04,cash:8000,staff:700,com:150}, start:20, target:22.2, resAbs:20000, growth:1.5, bank:-15000, unit:'étudiants', mediaTitle:'Plan médias', mediaWord:'médias', leadWord:'leads', lead1:'lead', churn:0.35, sat:9800, eff:0.38, varc:0.7, capMod:-16,
   media:scaleMedia(MEDIA_XYN,2),
-  mission:"relancer la croissance d'un leader installé : +50 % de chiffre d'affaires en cinq ans, sans descendre sous +15 %", pitch:"Le CNF est la référence : rentable, connu de tous, avec des équipes qui savent faire. Depuis trois ans, les inscriptions remplacent exactement les départs ; c'est confortable, ce n'est pas assez. Le conseil veut 90 M€ en 2030 avec au moins +15 % de résultat, sur un marché mûr où chaque étudiant de plus se gagne."},
+  mission:"relancer la croissance d'un leader installé : +50 % de chiffre d'affaires en cinq ans, avec 20 M€ de résultat net", pitch:"Le CNF est la référence : rentable, connu de tous, avec des équipes qui savent faire. Depuis trois ans, les inscriptions remplacent exactement les départs ; c'est confortable, ce n'est pas assez. Le conseil veut 90 M€ de chiffre d'affaires en 2030 et 20 M€ de résultat net, sur un marché mûr où chaque étudiant de plus se gagne."},
  {id:'hippocampus',name:"Hippocampus",ic:"🌿",tag:"La startup du bien-être ultra premium, un produit adoré, une trajectoire à construire",
   desc:"1 M€ de chiffre d'affaires, 170 étudiants à 6 000 € qui recommandent l'école les yeux fermés, 12 salariés, un positionnement ultra premium unique sur le marché. La startup investit encore (−50 % de résultat) ; les investisseurs y croient et veulent ×5 (5 M€ de CA) et +1,5 M€ de résultat net fin 2030, avec une condition : être revenu près de l'équilibre (pas plus de 5 % de perte) dès fin 2027.",
   base:{students:167,price:6000,organic:40,payrollOther:720,payrollCom:180,marketing:300,platform:120,other:180,debt:0,rate:0.06,cash:250,staff:12,com:3}, start:-50, target:30, growth:5, bank:-300, unit:'étudiants', mediaTitle:'Plan médias', mediaWord:'médias', leadWord:'leads', lead1:'lead', churn:0.25, sat:900, eff:2.05, varc:0.24, evMult:1.0, lossPenalty:6, milestone:2027, milestonePct:-5,
@@ -365,7 +365,7 @@ const SCENARIOS=[
 ];
 function applyScenario(i){
   SC=SCENARIOS[i]; BASE={...SC.base}; MEDIA=JSON.parse(JSON.stringify(SC.media)); N.ecole=SC.name;
-  SC.scale=BASE.students*BASE.price/1000/30000*(SC.eff||1); SC.ca0=BASE.students*BASE.price/1000; SC.caTarget=SC.growth?Math.round(SC.ca0*SC.growth):null; SC.studentsTarget=SC.growth?Math.round(BASE.students*SC.growth):null; SC.resTarget=Math.round((SC.caTarget||SC.ca0)*SC.target/100);
+  SC.scale=BASE.students*BASE.price/1000/30000*(SC.eff||1); SC.ca0=BASE.students*BASE.price/1000; SC.caTarget=SC.growth?Math.round(SC.ca0*SC.growth):null; SC.studentsTarget=SC.growth?Math.round(BASE.students*SC.growth):null; SC.resTarget=SC.resAbs||Math.round((SC.caTarget||SC.ca0)*SC.target/100);
   EPISODES[2][1]=SC.mediaTitle;
   const f=SC.scale;
   // Échelle selon la nature de la mesure : masse salariale (PAY), paie commerciale (COM), budget médias (MK) ou chiffre d'affaires (défaut)
@@ -1075,7 +1075,7 @@ function renderHof(){
     $('#src').textContent=online?'Classement partagé entre tous les joueurs · '+(scSel?'scénario : '+scSel.name:'toutes les écoles')+'.':'Classement local (cet appareil seulement) : le serveur de scores est injoignable.';
     if(scSel) rows=rows.filter(r=>!r.profil||r.profil.startsWith(scSel.name)||!SCENARIOS.some(c=>r.profil.startsWith(c.name)));
     // Classement commun à toutes les écoles : % de l'objectif de résultat net atteint
-    const att=r=>{const c=SCENARIOS.find(c=>String(r.profil||'').startsWith(c.name)); if(!c) return r.resultat_pct/20; const ca=c.base.students*c.base.price/1000, t=(c.growth?ca*c.growth:ca)*c.target/100;
+    const att=r=>{const c=SCENARIOS.find(c=>String(r.profil||'').startsWith(c.name)); if(!c) return r.resultat_pct/20; const ca=c.base.students*c.base.price/1000, t=c.resAbs||(c.growth?ca*c.growth:ca)*c.target/100;
       if(r.resultat_k==null){ // anciennes parties : CA estimé (étudiants × frais du scénario), résultat = taux × CA estimé
         r._est=true; r.ca_k=r.ca_k??Math.round((r.etudiants||c.base.students)*c.base.price/1000); r.resultat_k=Math.round(r.resultat_pct/100*r.ca_k); }
       return r.resultat_k/t;};
