@@ -292,8 +292,8 @@ const SCENARIOS=[
          salons:{n:"Salons et événements RH",ic:"🎪",d:"Visibilité et contacts qualifiés, à prix fort.",cpl:1200,conv:0.1,per:6,churn:0,base:50}},
   mission:"transformer un spécialiste rentable en leader : tripler le chiffre d'affaires sans sacrifier la marge", pitch:"LinguIA est rentable, respectée, et vient de se doter d'un produit que personne ne sait copier. C'est le moment d'accélérer : passer de 7 à 21 M€ en cinq ans à +20 % de résultat. Pas de médias ici : la croissance se gagne compte par compte, chez les clients fidèles et dans les DRH qu'il reste à convaincre."},
  {id:'enacto',name:"ENACTO Business School",ic:"🏫",tag:"La jolie école de commerce qui repart, avec sa fondatrice et un nouvel actionnaire",
-  desc:"10 M€ de chiffre d'affaires, 4 000 étudiants attachés à leur école, 130 salariés, et l'équilibre retrouvé après des années difficiles. Bernard Bugatti vient d'entrer au capital aux côtés de la fondatrice Hélène Bellavenir : les moyens sont là, l'âme aussi. Doubler et dégager +4 M€ de résultat net fin 2030.",
-  base:{students:4000,price:2500,organic:300,payrollOther:4300,payrollCom:1200,marketing:1620,platform:800,other:2100,debt:3000,rate:0.05,cash:600,staff:130,com:30}, start:0, target:20, growth:2, bank:-4000, unit:'étudiants', mediaTitle:'Plan médias', mediaWord:'médias', leadWord:'leads', lead1:'lead', churn:0.33, sat:4000, eff:0.75, varc:0.55, founder:true,
+  desc:"10 M€ de chiffre d'affaires, 4 000 étudiants attachés à leur école, 130 salariés, et l'équilibre retrouvé après des années difficiles. Bernard Bugatti vient d'entrer au capital aux côtés de la fondatrice Hélène Bellavenir : les moyens sont là, l'âme aussi. Doubler et dégager +4 M€ de résultat net fin 2030. Seule ombre : le prêt du rachat se rembourse chaque année et la trésorerie est courte, chaque pari se paie comptant.",
+  base:{students:4000,price:2500,organic:300,payrollOther:4300,payrollCom:1200,marketing:1620,platform:800,other:2100,debt:4500,rate:0.05,cash:200,staff:130,com:30}, start:0, target:20, growth:2, bank:-1500, amort:800, unit:'étudiants', mediaTitle:'Plan médias', mediaWord:'médias', leadWord:'leads', lead1:'lead', churn:0.33, sat:4500, eff:1.05, varc:0.52, founder:true, evMult:1.8,
   media:scaleMedia(MEDIA_XYN,0.36),
   mission:"doubler l'école en cinq ans et atteindre +20 % de résultat, sans trahir son âme", pitch:"ENACTO a traversé la tempête et en est sortie debout, avec des diplômés fidèles et une pédagogie que ses concurrents lui envient. Mon entrée au capital lui donne les moyens de ses ambitions ; Hélène Bellavenir, sa fondatrice, siège au conseil et veillera à ce que la croissance ne trahisse pas l'école. Objectif : 20 M€ et +20 % fin 2030."},
  {id:'cnf',name:"Centre National de Formation",ic:"🏛️",tag:"Le leader du secteur, solide, rentable, prêt pour un nouveau chapitre",
@@ -495,7 +495,6 @@ const EVENTS=[
  {grp:"cpf",ic:"📜",n:"Réforme du CPF : reste à charge et filtrage des formations",t:"Un décret restreint les financements publics. Les dossiers s'effondrent.",fx:{revY:-1260,g:{com:-8,ca:-3}},w:s=>s.flags.cpf?3:0.8},
  {ic:"⭐",n:"Polémique sur de faux avis en ligne",t:"Un article de presse accuse {ecole} d'avoir acheté des avis. Vrai ou faux, le mal est fait.",fx:{g:{etu:-8,ca:-4},stuY:0.93},w:()=>1},
  {ic:"🤖",n:"Vague d'IA générative : les devoirs rendus sont écrits par machine",t:"Vos enseignants ne savent plus ce qu'ils corrigent. Il faut repenser l'évaluation.",fx:{cost:350,g:{cse:-6}},w:()=>1.2},
- {ic:"🚪",n:"Départ de "+N.star+", enseignant star, vers un concurrent",t:"Il emmène sa communauté et ses 40 000 abonnés.",fx:{stuY:0.94,g:{etu:-6,cse:-4}},w:s=>s.g.cse<40?2:0.8},
  {pos:true,ic:"📺",n:"Reportage télévisé très favorable",t:"Vingt minutes sur une diplômée devenue cheffe d'entreprise. Le standard explose.",fx:{stuY:1.11,g:{ca:4,com:6,etu:3}},w:s=>s.g.etu>55?1.5:0.6},
  {ic:"🔍",n:"Contrôle de France Compétences",t:"Les inspecteurs vérifient la conformité des certifications.",fx:s=>s.flags.risque_qualiopi?{g:{ca:-11,etu:-7},revY:-1680,txt:"Sans mise en conformité, deux certifications sont suspendues. Les financements associés tombent."}:{g:{ca:3},txt:"Rapport sans réserve. Le conseil respire."},w:()=>1},
  {ic:"✊",n:"Grève des tuteurs pendant une semaine",t:"Le CSE appelle à cesser le travail. Les étudiants attendent leurs corrections.",fx:{g:{etu:-7,cse:4,ca:-4}},w:s=>s.g.cse<35?3:0.2},
@@ -677,7 +676,7 @@ function simulate(){
   const norg=S.yi>=YEARS.length-1?-Math.round(revenue*(0.002+Math.random()*0.006)):(Math.random()<0.5?Math.round(revenue*(Math.random()<0.6?0.001+Math.random()*0.005:0.03+Math.random()*0.05)):0); // dernière saison : une petite dotation, jamais une reprise
   const res=revenue-costs+norg; const pc=revenue>0?res/revenue*100:-100;
   const y={year:S.year,newS,ins,left,churn,students,revenue,costs,interest,res,pct:pc,once:S.yearFx.once,cashBefore:S.cash,media:{...S.media},payroll,mediaK:mkTotal(),platform:BASE.platform,other:BASE.other,measures:S.cost,scaleCost,tuition,revEff,revY:S.yearFx.revY};
-  y.norgeat=norg; S.cash+=res-norg; if(S.cashBackDue){S.cash+=S.cashBackDue; y.cashBack=S.cashBackDue; S.cashBackDue=0;} if(S.cashBack){S.cashBackDue=S.cashBack; S.cashBack=0;} y.cash=S.cash;
+  y.norgeat=norg; S.cash+=res-norg; if(S.cashBackDue){S.cash+=S.cashBackDue; y.cashBack=S.cashBackDue; S.cashBackDue=0;} if(S.cashBack){S.cashBackDue=S.cashBack; S.cashBack=0;} if(SC.amort&&S.debt>0){const am=Math.min(S.debt,SC.amort); S.debt-=am; S.cash-=am; y.amort=am;} y.cash=S.cash;
   const prev=S.lastResult;
   let dca=clamp((pc-prev.pct)*0.8,-8,8)+(res>=SC.resTarget?5:pc>=0?3:-3);
   if(S.mode==='fonds'&&pc<0) dca-=6;
@@ -855,12 +854,15 @@ function renderHof(){
     $('#src').textContent=online?'Classement partagé entre tous les joueurs · '+(scSel?'scénario : '+scSel.name:'toutes les écoles')+'.':'Classement local (cet appareil seulement) : le serveur de scores est injoignable.';
     if(scSel) rows=rows.filter(r=>!r.profil||r.profil.startsWith(scSel.name)||!SCENARIOS.some(c=>r.profil.startsWith(c.name)));
     // Classement commun à toutes les écoles : % de l'objectif de résultat net atteint
-    const att=r=>{const c=SCENARIOS.find(c=>String(r.profil||'').startsWith(c.name)); if(!c) return r.resultat_pct/20; const ca=c.base.students*c.base.price/1000, t=(c.growth?ca*c.growth:ca)*c.target/100; return r.resultat_k!=null?r.resultat_k/t:r.resultat_pct/c.target;};
+    const att=r=>{const c=SCENARIOS.find(c=>String(r.profil||'').startsWith(c.name)); if(!c) return r.resultat_pct/20; const ca=c.base.students*c.base.price/1000, t=(c.growth?ca*c.growth:ca)*c.target/100;
+      if(r.resultat_k==null){ // anciennes parties : CA estimé (étudiants × frais du scénario), résultat = taux × CA estimé
+        r._est=true; r.ca_k=r.ca_k??Math.round((r.etudiants||c.base.students)*c.base.price/1000); r.resultat_k=Math.round(r.resultat_pct/100*r.ca_k); }
+      return r.resultat_k/t;};
     rows.forEach(r=>r._att=att(r)); rows.sort((a,b)=>b._att-a._att||(b.capital||0)-(a.capital||0));
-    if(h.type==='archive'&&online) $('#src').textContent+=' Parties jouées avant le rééquilibrage de la difficulté du 31 octobre 2026 : hors classement.';
+    if(h.type==='archive'&&online) $('#src').textContent+=' Parties jouées avant le rééquilibrage de la difficulté du 31 octobre 2026 : hors classement. Les valeurs précédées de ≈ sont estimées (chiffre d\'affaires reconstitué à partir des étudiants et des frais du scénario).';
     if(!rows.length){$('#hof').innerHTML='<p class="muted" style="text-align:center">'+(h.type==='archive'?'Aucune partie archivée.':'Aucun score pour l\'instant. Soyez le premier DG inscrit !')+'</p>';return;}
     const st={objectif:'🏆 Objectif atteint',equilibre:'🟡 Équilibre',manque:'🔴 Objectif manqué',perdu:'💀 Révoqué·e'};
-    $('#hof').innerHTML=`<table><tr><th>#</th><th>DG</th><th>Profil</th>${h.type!=='saison'?'<th>Issue</th>':''}<th>Objectif</th><th>Résultat net</th><th>CA</th><th>⚡</th><th>Inscrits</th><th>Trésorerie</th></tr>${rows.map((r,i)=>`<tr${r.dg===S.name?' style="color:var(--gold-hi)"':''}><td class="num">${i+1}</td><td><b>${String(r.dg).replace(/[<>&]/g,'')}</b></td><td class="muted">${String(r.profil||'').replace(/[<>&]/g,'')}</td>${h.type!=='saison'?`<td>${st[r.statut]||''}</td>`:''}<td class="num" style="color:${r._att>=1?'var(--gold-hi)':r._att<0?'var(--rose)':'var(--fg)'}"><b>${Math.round(r._att*100)} %</b></td><td class="num" style="color:${r.resultat_pct<0?'var(--rose)':'var(--green)'}">${r.resultat_k!=null?mE(+r.resultat_k):pct(+r.resultat_pct)}</td><td class="num">${r.ca_k!=null?(r.ca_k/1000).toFixed(1).replace('.',',')+' M€':'–'}</td><td class="num">${r.capital??'–'}</td><td class="num">${r.etudiants?fmt(r.etudiants):'–'}</td><td class="num">${r.tresorerie_k!=null?mE(r.tresorerie_k):'–'}</td></tr>`).join('')}</table>`;
+    $('#hof').innerHTML=`<table><tr><th>#</th><th>DG</th><th>Profil</th>${h.type!=='saison'?'<th>Issue</th>':''}<th>Objectif</th><th>Résultat net</th><th>CA</th><th>⚡</th><th>Inscrits</th><th>Trésorerie</th></tr>${rows.map((r,i)=>`<tr${r.dg===S.name?' style="color:var(--gold-hi)"':''}><td class="num">${i+1}</td><td><b>${String(r.dg).replace(/[<>&]/g,'')}</b></td><td class="muted">${String(r.profil||'').replace(/[<>&]/g,'')}</td>${h.type!=='saison'?`<td>${st[r.statut]||''}</td>`:''}<td class="num" style="color:${r._att>=1?'var(--gold-hi)':r._att<0?'var(--rose)':'var(--fg)'}"><b>${r._est?'≈ ':''}${Math.round(r._att*100)} %</b></td><td class="num" style="color:${r.resultat_pct<0?'var(--rose)':'var(--green)'}">${r._est?'≈ ':''}${mE(+r.resultat_k)}</td><td class="num">${r.ca_k!=null?(r._est?'≈ ':'')+(r.ca_k/1000).toFixed(1).replace('.',',')+' M€':'–'}</td><td class="num">${r.capital??'–'}</td><td class="num">${r.etudiants?fmt(r.etudiants):'–'}</td><td class="num">${r.tresorerie_k!=null?mE(r.tresorerie_k):'–'}</td></tr>`).join('')}</table>`;
   });
 }
 
@@ -1277,7 +1279,7 @@ function phVote(){
   $('#c').appendChild(box);
 }
 
-function eventFx(e){ return scf(typeof e.fx==='function'?e.fx(S):e.fx); }
+function eventFx(e){ let fx=scf(typeof e.fx==='function'?e.fx(S):e.fx); const m=SC&&SC.evMult; if(m&&fx){ fx={...fx}; for(const k of ['rev','cost','once','revY','cashBack']) if(fx[k]) fx[k]=Math.round(fx[k]*m); if(fx.stuY) fx.stuY=1+(fx.stuY-1)*m; } return fx; } // évMult : scénario à forte volatilité (imprévus amplifiés)
 function halfFx(fx){ const o={...fx}; for(const k of ['rev','cost','mk','once','revY']) if(o[k]) o[k]=Math.round(o[k]/2); if(o.g){o.g={}; for(const k in fx.g) o.g[k]=Math.round(fx.g[k]/2);} if(o.stuY) o.stuY=1-(1-o.stuY)/2; if(o.stu) o.stu=1-(1-o.stu)/2; if(o.churn) o.churn=o.churn/2; if(o.price) o.price=o.price/2; if(o.media){o.media={}; for(const k in fx.media) o.media[k]=1+(fx.media[k]-1)/2;} if(o.cashBack) o.cashBack=Math.round(o.cashBack/2); if(o.rate) o.rate=o.rate/2; if(o.cap) o.cap=Math.round(o.cap/2); delete o.flag; return o; }
 function minorEvent(){ // un petit imprévu négatif de plus, à un moment aléatoire de l'année
   if(S.minor&&S.minor.y===S.year) return S.minor;
@@ -1326,6 +1328,7 @@ function phResultats(){
    <tr><td>− Intérêts (dette ${(S.debt/1000).toFixed(0)} M€${y.cashBefore<0?' + découvert':''} à ${(S.rate*100).toFixed(1).replace('.',',')} %)</td><td class="num" style="color:var(--rose)">${kE(-y.interest)}</td></tr>
    ${y.norgeat?`<tr><td>${y.norgeat<0?'− Dotation à une provision':'+ Reprise de provision'} (écriture comptable, sans effet sur la trésorerie)</td><td class="num" style="color:var(--gold-hi)">${kE(y.norgeat)}</td></tr>`:''}
    <tr><td><b>= Résultat de l'exercice</b></td><td class="num"><b style="color:${y.res<0?'var(--rose)':'var(--green)'}">${kE(y.res)}</b></td></tr>
+   ${y.amort?`<tr><td>− Remboursement du prêt du rachat (échéance annuelle)</td><td class="num">${kE(-y.amort)}</td></tr>`:''}
    ${y.norgeat?`<tr><td>${y.norgeat<0?'+':'−'} Neutralisation de la ${y.norgeat<0?'dotation':'reprise de provision'} (pas d'argent derrière)</td><td class="num">${kE(-y.norgeat)}</td></tr>`:''}
    <tr><td>± Mouvements exceptionnels (levées, investissements, indemnités, imprévus)</td><td class="num">${kE(y.once)}</td></tr>
    <tr><td><b>= Trésorerie au 31 décembre</b></td><td class="num"><b style="color:${S.cash<0?'var(--rose)':'var(--green)'}">${mE(S.cash)}</b></td></tr></table></div>
