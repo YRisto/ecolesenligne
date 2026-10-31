@@ -809,7 +809,8 @@ function postScore(type,extra){
 }
 async function fetchScores(type,annee,archive){
   try{const r=await fetch(API+'?type='+type+(annee?'&annee='+annee:'')+(archive?'&archive=1':''),{cache:'no-store'}); if(r.ok){const j=await r.json(); if(!j.offline&&!j.error) return {rows:j.rows,online:true};}}catch(e){}
-  const rows=localScores().filter(x=>x.type===type&&(!annee||x.annee===annee)).sort((a,b)=>b.resultat_pct-a.resultat_pct||(b.capital||0)-(a.capital||0));
+  const ARCH='2026-10-31T14:40:00Z'; // rééquilibrage de la difficulté : les parties antérieures sont archivées
+  const rows=localScores().filter(x=>x.type===type&&(!annee||x.annee===annee)&&(!!archive===((x.created_at||'')<ARCH))).sort((a,b)=>b.resultat_pct-a.resultat_pct||(b.capital||0)-(a.capital||0));
   return {rows,online:false};
 }
 function renderHof(){
