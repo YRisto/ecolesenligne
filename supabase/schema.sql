@@ -121,3 +121,7 @@ alter table jeu_dg_trophees enable row level security;
 grant select, insert, update on public.jeu_dg_trophees to service_role;
 grant usage, select on sequence public.jeu_dg_trophees_id_seq to service_role;
 notify pgrst, 'reload schema';
+alter table jeu_dg_scores add column if not exists resultat_k int;   -- résultat net en k€
+alter table jeu_dg_scores add column if not exists ca_k int;         -- chiffre d'affaires en k€
+alter table jeu_dg_scores add column if not exists details jsonb;    -- historique détaillé de la partie (jauges, école, médias, mesures, années, journal)
+notify pgrst, 'reload schema';

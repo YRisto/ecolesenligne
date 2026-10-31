@@ -33,10 +33,12 @@ export async function POST(req) {
     resultat_pct: num(b.resultat_pct, -100, 100) ?? 0, resultat_k: num(b.resultat_k, -1e7, 1e7), ca_k: num(b.ca_k, 0, 1e7), capital: num(b.capital, 0, 100), etudiants: num(b.etudiants, 0, 1e6),
     tresorerie_k: num(b.tresorerie_k, -1e6, 1e6), mesures: num(b.mesures, 0, 200), statut: clean(b.statut, 20) || null,
   };
+  // Historique détaillé de la partie (jauges, école, médias, mesures, années, journal) : objet JSON borné à 60 Ko
+  if (b.details && typeof b.details === "object" && !Array.isArray(b.details)) { const d = JSON.stringify(b.details).replace(/[<>]/g, ""); if (d.length <= 60000) row.details = JSON.parse(d); }
   if (!url || !key) { console.log("SCORE (Supabase non configuré)", JSON.stringify(row)); return NextResponse.json({ ok: true, offline: true }); }
   const post = (body) => fetch(`${url}/rest/v1/jeu_dg_scores?on_conflict=partie_id,type,saison`, { method: "POST", headers: { ...headers(), Prefer: "resolution=merge-duplicates,return=minimal" }, body: JSON.stringify(body) });
   let r = await post(row);
-  if (r.status === 400) { const { resultat_k, ca_k, ...rest } = row; r = await post(rest); } // colonnes pas encore créées
+  if (r.status === 400) { const { resultat_k, ca_k, details, ...rest } = row; r = await post(rest); } // colonnes pas encore créées
   if (!r.ok) { console.error("supabase jeudg", r.status, await r.text()); return NextResponse.json({ error: "Enregistrement impossible." }, { status: 500 }); }
   return NextResponse.json({ ok: true });
 }

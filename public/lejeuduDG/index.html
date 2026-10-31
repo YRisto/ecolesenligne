@@ -802,10 +802,21 @@ function trophyHolders(id){
 // ---------- Hall of Fame ----------
 const API='/api/jeudg';
 function localScores(){ try{return JSON.parse(localStorage.getItem('bde-hof')||'[]');}catch(e){return [];} }
+function snapshot(){ // tout ce qui permet de rejouer l'histoire d'une partie (stocké en base, colonne details)
+  const r=n=>Math.round(n||0);
+  return {v:2, scenario:SC.id, profil:S.profile, jauges:{etu:r(S.g.etu),com:r(S.g.com),cse:r(S.g.cse),capital:r(S.g.ca)},
+    ecole:{etudiants:S.students,frais:S.price,salaries:S.staff,dette:r(S.debt),taux:S.rate,tresorerie:r(S.cash),recettes_annexes:r(S.rev),couts_mesures:r(S.cost),churn_mesures:S.churn,stuMult:+(S.stuMult||1).toFixed(3)},
+    medias:{...S.media}, mesures:S.active.map(i=>MEASURES[i]&&MEASURES[i].n).filter(Boolean), flags:Object.keys(S.flags||{}),
+    prime:S.prime?{annee:S.prime.year,promesse:S.prime.promise,resolue:!!S.prime.resolved}:null, primes_versees:S.primeN||0, plans_forces:!!S.forcedOnce, hausses_prix:!!S.priceUp,
+    annees:(S.history||[]).map(y=>({annee:y.year,ca:r(y.revenue),couts:r(y.costs),resultat:r(y.res),inscriptions:y.newS,departs:y.left,abandons:+(y.churn||0).toFixed(3),etudiants:y.students,medias:r(y.mediaK),masse_salariale:r(y.payroll),interets:r(y.interest),tresorerie:r(y.cash),norgeat:r(y.norgeat),saturation:y.ins&&y.ins.sat!=null?+y.ins.sat.toFixed(2):null})),
+    journal:(S.log||[]).map(x=>({annee:x.y,type:x.kind,nom:x.n,effet:x.eff,capital:x.cap,coeurs:x.heart,negatif:!!x.bad})),
+    trophees:[...new Set(S.trophSession||[])], over:S.over?{perdu:!!S.over.lost,pourquoi:S.over.why||null}:null};
+}
 function postScore(type,extra){
   const row={partie_id:S.pid,type,dg:S.name,profil:SC.name+' · '+(S.profile!==null?PROFILES[S.profile][1]:''),annee:S.year,resultat_pct:+S.lastResult.pct.toFixed(2),resultat_k:Math.round(S.lastResult.res),ca_k:Math.round(S.lastResult.rev),capital:Math.round(S.g.ca),etudiants:S.students,tresorerie_k:Math.round(S.cash),mesures:S.active.length,saison:type==='saison'?S.yi+1:null,...extra};
+  let details=null; try{details=snapshot();}catch(e){}
   try{const l=localScores().filter(x=>!(x.partie_id===row.partie_id&&x.type===row.type&&x.saison===row.saison)); l.push({...row,created_at:new Date().toISOString()}); localStorage.setItem('bde-hof',JSON.stringify(l.slice(-300)));}catch(e){}
-  try{fetch(API,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(row)}).catch(()=>{});}catch(e){}
+  try{fetch(API,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({...row,details})}).catch(()=>{});}catch(e){}
 }
 async function fetchScores(type,annee,archive){
   try{const r=await fetch(API+'?type='+type+(annee?'&annee='+annee:'')+(archive?'&archive=1':''),{cache:'no-store'}); if(r.ok){const j=await r.json(); if(!j.offline&&!j.error) return {rows:j.rows,online:true};}}catch(e){}
