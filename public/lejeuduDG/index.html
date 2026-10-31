@@ -564,7 +564,7 @@ function pickEvent(kind){
 }
 function apply(fx,label){
   if(!fx) return;
-  if(fx.g) for(const k in fx.g){S.g[k]=clamp(S.g[k]+fx.g[k],0,100); toast(fx.g[k],GN[k],label);}
+  if(fx.g) for(const k in fx.g){S.g[k]=clamp(S.g[k]+fx.g[k],0,100); toast(fx.g[k],GN[k],label); if(S.g[k]>=100&&k!=='ca'&&typeof award==='function') award(k);}
   if(fx.cap){S.g.ca=clamp(S.g.ca+fx.cap,0,100); toast(fx.cap,'Capital',label);}
   if(fx.rev) S.rev+=fx.rev; if(fx.cost) S.cost+=fx.cost;
   if(fx.mk){const t=mkTotal(); const f=Math.max(0.2,(t+fx.mk)/t); for(const k in S.media) S.media[k]=Math.round(S.media[k]*f);}
@@ -695,30 +695,28 @@ function checkOver(){
 
 // ---------- Badges ----------
 const BADGES=[
- {id:'first',ic:'🎬',n:'Première saison',d:'Terminer une saison complète.'},
- {id:'five',ic:'🧭',n:'Cinq saisons',d:'Aller au bout des cinq exercices.'},
- {id:'win',ic:'🏆',n:'Mandat rempli',d:'Atteindre l\'objectif du conseil fin 2030.'},
- {id:'etu',ic:'💚',n:'Chouchou des étudiants',d:'Finir une saison avec les étudiants à 80 % ou plus.'},
- {id:'com',ic:'💙',n:'Patron·ne des ventes',d:'Finir une saison avec les commerciaux à 80 % ou plus.'},
- {id:'cse',ic:'💜',n:'Paix sociale',d:'Finir une saison avec le CSE à 80 % ou plus.'},
- {id:'cap',ic:'⚡',n:'Pleins pouvoirs',d:'Finir une saison avec 90 points de capital ou plus.'},
- {id:'poker',ic:'🃏',n:'Joueur·se de poker',d:'Faire adopter un coup de poker.'},
+ {id:'first',ic:'🎬',n:'Il est des nôtres',d:'Terminer une première saison.'},
+ {id:'five',ic:'🧭',n:'Il est vraiment des nôtres',d:'Boucler un premier mandat de cinq saisons.'},
+ {id:'tour',ic:'🌍',n:'Tour des écoles',d:'Terminer une partie dans chacun des cinq scénarios.'},
+ {id:'slam',ic:'👑',n:'Grand chelem',d:'Réaliser l\'objectif dans les cinq scénarios.'},
+ {id:'fired',ic:'🎭',n:'Sortie de scène',d:'Se faire révoquer par le conseil. Ça arrive aux meilleurs.'},
+ {id:'etu',ic:'💚',n:'El Profesor',d:'Atteindre 100 cœurs étudiants.'},
+ {id:'com',ic:'💙',n:'Le Loup de Wall Street',d:'Atteindre 100 cœurs commerciaux.'},
+ {id:'cse',ic:'💜',n:'Pourvu qu\'ils m\'aiment',d:'Atteindre 100 cœurs CSE.'},
+ {id:'cap',ic:'⚡',n:'C\'est fait pour cheffé',d:'Atteindre 90 points de capital ou plus.'},
+ {id:'poker',ic:'🃏',n:'Poker Face',d:'Faire adopter un coup de poker.'},
  {id:'unanime',ic:'🗳️',n:'Plébiscite',d:'Obtenir un vote unanime du conseil.'},
  {id:'phoenix',ic:'🔥',n:'Phénix',d:'Remplir le mandat après être descendu·e sous 20 points de capital.'},
- {id:'turn',ic:'📈',n:'Redressement',d:'Passer d\'une année en perte à une année bénéficiaire.'},
- {id:'cash',ic:'🏦',n:'Banquier serein',d:'Finir une saison avec une trésorerie supérieure au quart du chiffre d\'affaires.'},
- {id:'nodebt',ic:'🪙',n:'Sans dette',d:'Rembourser toute la dette de l\'école.'},
- {id:'prime',ic:'🤝',n:'Parole tenue',d:'Promettre une prime de participation en janvier et la verser en décembre.'},
- {id:'norgeat',ic:'🧮',n:'Effet Norgeat',d:'Bénéficier d\'une reprise de provision supérieure à 2 % du chiffre d\'affaires.'},
+ {id:'turn',ic:'📈',n:'Bernard B ou Bernard T ?',d:'Passer d\'une année en perte à une année bénéficiaire.'},
+ {id:'prime',ic:'🤝',n:'Parole tenue',d:'Promettre la prime de participation et la verser, au moins trois fois dans un mandat.'},
+ {id:'norgeat',ic:'🧮',n:'1er fan de l\'effet Norgeat',d:'Bénéficier d\'une reprise de provision supérieure à 2 % du chiffre d\'affaires.'},
  {id:'sober',ic:'🧊',n:'Sobriété',d:'Passer une saison sans aucune nouvelle mesure et rester rentable.'},
- {id:'tour',ic:'🌍',n:'Tour des écoles',d:'Terminer une partie dans chacun des cinq scénarios.'},
- {id:'slam',ic:'👑',n:'Grand chelem',d:'Remplir le mandat dans les cinq scénarios.'},
- {id:'compromis',ic:'🕊️',n:'L\'art du compromis',d:'Terminer le mandat sans jamais passer un plan en force.'},
+ {id:'nodebt',ic:'🪙',n:'Sans dette et sans reproche',d:'Rembourser toute la dette de l\'école.'},
+ {id:'compromis',ic:'🕊️',n:'En même temps',d:'Terminer le mandat sans jamais passer un plan en force.'},
  {id:'serre',ic:'😅',n:'Rescapé·e du vote',d:'Faire adopter un plan à une voix près.'},
  {id:'sanshausse',ic:'🚫',n:'Ni vu ni connu',d:'Remplir le mandat sans jamais augmenter les frais de scolarité.'},
- {id:'reformateur',ic:'🏗️',n:'Grand·e réformateur·rice',d:'Faire adopter au moins 3 réformes de structure dans un même mandat.'},
- {id:'tronconneuse',ic:'🪚',n:'La tronçonneuse',d:'Faire adopter au moins 3 coupes budgétaires dans une même année.'},
- {id:'fired',ic:'🎭',n:'Sortie de scène',d:'Se faire révoquer par le conseil. Ça arrive aux meilleurs.'},
+ {id:'reformateur',ic:'🏗️',n:'Le Kennedy du tapis rouge',d:'Faire adopter au moins 3 réformes de structure dans un même mandat.'},
+ {id:'tronconneuse',ic:'🪚',n:'L\'argentin',d:'Faire adopter au moins 3 coupes budgétaires dans une même année.'},
 ];
 function badges(){ try{return JSON.parse(localStorage.getItem('bde-badges')||'{}');}catch(e){return {};} }
 function award(id){
@@ -728,8 +726,8 @@ function award(id){
   const box=document.getElementById('toasts'); if(box){while(box.children.length>=4) box.firstChild.remove(); box.appendChild(t); setTimeout(()=>t.remove(),5000);}
 }
 function badgeSeason(y){ // appelé après la simulation de l'année
-  award('first'); if(S.g.etu>=80) award('etu'); if(S.g.com>=80) award('com'); if(S.g.cse>=80) award('cse'); if(S.g.ca>=90) award('cap');
-  if(S.cash>y.revenue*0.25) award('cash'); if(BASE.debt>0&&S.debt<=0) award('nodebt');
+  award('first'); if(S.g.etu>=100) award('etu'); if(S.g.com>=100) award('com'); if(S.g.cse>=100) award('cse'); if(S.g.ca>=90) award('cap');
+  if(BASE.debt>0&&S.debt<=0) award('nodebt');
   if(y.norgeat>y.revenue*0.02) award('norgeat');
   const prev=S.history.length>1?S.history[S.history.length-2]:null; if(prev&&prev.pct<0&&y.pct>=0) award('turn');
   if(!(S.log||[]).some(x=>x.kind==='mesure'&&x.y===S.year)&&y.pct>=0) award('sober');
@@ -737,7 +735,7 @@ function badgeSeason(y){ // appelé après la simulation de l'année
 }
 function badgeFinal(statut){
   const B=badges(); const done=B.done||{}; done[SC.id]={statut,date:new Date().toISOString().slice(0,10)}; B.done=done; try{localStorage.setItem('bde-badges',JSON.stringify(B));}catch(e){}
-  if(!S.over.lost) award('five'); if(statut==='objectif'){award('win'); if(S.lowCap) award('phoenix'); if(!S.priceUp) award('sanshausse');} if(!S.over.lost&&!S.forcedOnce) award('compromis'); if(statut==='perdu') award('fired');
+  if(!S.over.lost) award('five'); if(statut==='objectif'){ if(S.lowCap) award('phoenix'); if(!S.priceUp) award('sanshausse');} if(!S.over.lost&&!S.forcedOnce) award('compromis'); if(statut==='perdu') award('fired');
   if(SCENARIOS.every(c=>done[c.id])) award('tour'); if(SCENARIOS.every(c=>done[c.id]&&done[c.id].statut==='objectif')) award('slam');
 }
 function renderBadges(){
@@ -1233,12 +1231,12 @@ function phShow(){
   const P=S.prime&&S.prime.year===S.year?S.prime:null; const primeK=Math.round(S.staff*1.1);
   let primeHtml='';
   if(P&&!P.resolved){
-    if(P.promise==='cond'){ P.resolved=true; if(lr.pct>=0){apply({_abs:true,once:-primeK,g:{cse:8,com:4}},'Prime de participation'); award('prime'); primeHtml=`<div class="resbox"><b>💶 Prime de participation versée</b>L'école est à l'équilibre : la prime promise est versée, ${fmt(primeK)} k€.${chips({once:-primeK,g:{cse:8,com:4}})}</div>`;} else {apply({g:{cse:-4}},'Prime de participation'); primeHtml=`<div class="resbox bad"><b>💶 Pas de prime cette année</b>L'école reste en perte : la condition n'est pas remplie. Les équipes l'avaient compris, sans l'accepter.${chips({g:{cse:-4}})}</div>`;} }
+    if(P.promise==='cond'){ P.resolved=true; if(lr.pct>=0){apply({_abs:true,once:-primeK,g:{cse:8,com:4}},'Prime de participation'); S.primeN=(S.primeN||0)+1; if(S.primeN>=3) award('prime'); primeHtml=`<div class="resbox"><b>💶 Prime de participation versée</b>L'école est à l'équilibre : la prime promise est versée, ${fmt(primeK)} k€.${chips({once:-primeK,g:{cse:8,com:4}})}</div>`;} else {apply({g:{cse:-4}},'Prime de participation'); primeHtml=`<div class="resbox bad"><b>💶 Pas de prime cette année</b>L'école reste en perte : la condition n'est pas remplie. Les équipes l'avaient compris, sans l'accepter.${chips({g:{cse:-4}})}</div>`;} }
     else if(P.promise==='non'){ P.resolved=true; primeHtml=`<div class="resbox neu"><b>💶 Pas de prime, comme annoncé</b>Personne n'attendait rien. Personne n'applaudit non plus.</div>`; }
   }
   if(P&&P.promise==='oui'&&!P.resolved){
     sceneShell(dlg('🎤',N.comm,'Directeur de la communication · coulisses de la scène',`« Avant de monter sur scène : vous aviez promis une prime de participation à tous en janvier. Elle coûte ${fmt(primeK)} k€. ${S.cash<-3000?'La trésorerie est dans le rouge vif.':''} On la verse ? »`)+`<div class="prompt">La promesse de janvier :</div><div id="c"></div>`,{title:'Le grand show de fin d\'année',tag:'Une scène, des projecteurs, 400 salariés. Et une promesse à tenir.'});
-    choices($('#c'),[["Verser la prime à tous",()=>{award('prime');return {_abs:true,once:-primeK,g:{cse:10,com:6,ca:-2}};},"Promesse tenue. La salle le saura avant même que vous ne parliez."],["Ne pas la verser",{g:{cse:-18,com:-10,ca:-5}},"Promesse trahie. Le show commence dans un silence glacial, et le CSE prépare un tract."]],()=>{P.resolved=true;save();renderGame();},'Prime de participation');
+    choices($('#c'),[["Verser la prime à tous",()=>{S.primeN=(S.primeN||0)+1; if(S.primeN>=3) award('prime'); return {_abs:true,once:-primeK,g:{cse:10,com:6,ca:-2}};},"Promesse tenue. La salle le saura avant même que vous ne parliez."],["Ne pas la verser",{g:{cse:-18,com:-10,ca:-5}},"Promesse trahie. Le show commence dans un silence glacial, et le CSE prépare un tract."]],()=>{P.resolved=true;save();renderGame();},'Prime de participation');
     return;
   }
   sceneShell(primeHtml+dlg('🎤',N.comm,'Directeur de la communication · coulisses de la scène',`« 400 salariés sont connectés, 200 dans la salle, ${N.president} au premier rang. ${better?'Les résultats s\'améliorent.':'Les résultats n\'ont pas progressé.'} ${layoffs?'Des postes ont été supprimés cette année.':''} Qu'allez-vous leur dire ? »`)+`<div class="prompt">Votre show de fin d'année :</div><div id="c"></div>`,{title:'Le grand show de fin d\'année',tag:'Une scène, des projecteurs, 400 salariés. Le moment de vérité de l\'année.'});
