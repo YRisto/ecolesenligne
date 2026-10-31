@@ -1271,7 +1271,7 @@ function sceneShell(body,opts){
   const hl=headlines(); const tk=hl.concat(hl).join(' • ');
   $('#scene').innerHTML=`<div class="k"><div><div class="kicker">Saison ${S.yi+1} · Exercice ${S.year} · Épisode ${S.phase+1}</div><h2 class="serif">${e[0]} — ${opts.title||e[1]}</h2></div></div>
    ${opts.tag?`<div class="tag">« ${tx(opts.tag)} »</div>`:''}
-   <div class="ticker"><span class="d">● DIRECT</span><div class="tk"><span>${tk} • </span></div></div>
+   <div class="ticker"><span class="d">● DIRECT</span><div class="tk"><span style="animation-duration:${Math.max(45,Math.round((tk.length+80)/7))}s">${tk} • </span></div></div>
    <div id="body">${body}</div>
    <div class="foot"><button class="sbtn" disabled>↩ Retour</button><button class="mbtn" id="nextBtn" ${opts.ready?'':'disabled'}>▶ Épisode suivant</button></div>`;
   $('#nextBtn').addEventListener('click',()=>{ if(opts.onNext) opts.onNext(); else nextPhase(); });
