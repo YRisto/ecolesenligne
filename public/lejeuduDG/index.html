@@ -547,7 +547,7 @@ function newGame(sc){
   S={screen:'intro',sc:SCENARIOS.indexOf(SC),pid:(crypto.randomUUID?crypto.randomUUID():'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g,c=>{const r=Math.random()*16|0;return (c==='x'?r:(r&3|8)).toString(16)})),name:'',profile:null,year:2026,yi:0,phase:0,g:{ca:55,etu:55,com:50,cse:50},students:BASE.students,price:BASE.price,
      media:Object.fromEntries(Object.entries(MEDIA).map(([k,v])=>[k,v.base])),mediaMod:{},
      rev:0,cost:0,churn:0,stuMult:1,staff:BASE.staff,debt:BASE.debt,cash:BASE.cash,rate:BASE.rate,active:[],pending:[],flags:{},
-     used:{env:[],aud:[],amd:[],evt:[]},history:[],lastResult:{pct:SC.start,rev:SC.ca0,res:Math.round(SC.ca0*SC.start/100)},lastNew:4200,yearFx:{stuY:1,revY:0,once:0},target:SC.target,mode:null,sub:0,tmp:null,over:null,tuto:0,decided:false,log:[]};
+     used:{env:[],aud:[],amd:[],evt:[]},history:[],lastResult:{pct:SC.start,rev:SC.ca0,res:Math.round(SC.ca0*SC.start/100)},lastNew:Math.round(BASE.students*0.35),yearFx:{stuY:1,revY:0,once:0},target:SC.target,mode:null,sub:0,tmp:null,over:null,tuto:0,decided:false,log:[]};
   S.g={ca:55,etu:55,com:50,cse:50}; S.lastNew=inscriptions().total;
 }
 const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
@@ -628,7 +628,7 @@ function lecture(m){
   const cap=m.cap>0?`Rapporte ${m.cap} points de capital.`:`Coûte ${-m.cap} points de capital${who.length?' et mécontente '+who.join(', '):''}.`;
   return 'Lecture : '+(parts.length?parts.join(' ; '):'pas d\'effet financier direct')+'. '+cap;
 }
-function yearly(m){ const tu=S.students*S.price/1000; return (m.rev||0)-(m.cost||0)-(m.mk||0)+(m.price?tu*m.price/100:0)-(m.churn?tu*m.churn/100*(1+(m.price||0)/100):0)+(m.stu?(m.stu-1)*4200*S.price/1000:0); }
+function yearly(m){ const tu=S.students*S.price/1000; return (m.rev||0)-(m.cost||0)-(m.mk||0)+(m.price?tu*m.price/100:0)-(m.churn?tu*m.churn/100*(1+(m.price||0)/100):0)+(m.stu?(m.stu-1)*S.lastNew*S.price/1000:0); }
 
 // ---------- Médias et inscriptions ----------
 function marketSat(){ const over=Math.max(0,S.students-BASE.students)/SC.sat; return clamp(1-0.45*over*over+(S.students<BASE.students?(BASE.students-S.students)/BASE.students*0.3:0),0.5,1.2); } // à la cible de croissance (over=1), chaque inscription coûte ~2 fois plus
@@ -691,7 +691,7 @@ function projected(){
   const extra=pend.reduce((a,m)=>a+yearly(m),0);
   const rc=4000*SC.scale; const rev=S.students*S.price/1000+(S.rev>rc?rc+(S.rev-rc)*0.5:S.rev)+S.yearFx.revY;
   const costs=BASE.payrollOther+BASE.payrollCom+mkTotal()+BASE.platform+BASE.other+S.cost+(S.debt+Math.max(0,-S.cash))*S.rate+Math.max(0,S.students-BASE.students)*S.price*(SC.varc||0.55)/1000;
-  const revX=pend.reduce((a,m)=>a+(m.rev||0)+(m.price?S.students*S.price*m.price/100/1000:0)+(m.stu?(m.stu-1)*4200*SC.scale*S.price/1000:0),0);
+  const revX=pend.reduce((a,m)=>a+(m.rev||0)+(m.price?S.students*S.price*m.price/100/1000:0)+(m.stu?(m.stu-1)*S.lastNew*S.price/1000:0),0);
   const res=rev-costs+extra; return {res,pct:rev>0?res/rev*100:-100,extra,rev:rev+revX};
 }
 function capCost(ids){ return ids.map(i=>MEASURES[i]).reduce((a,m)=>a+Math.min(0,m.cap||0),0); }
@@ -982,7 +982,7 @@ function renderTuto(){
 function renderBudget(){
   const pend=S.pending.map(i=>MEASURES[i]); const act=S.active.map(i=>MEASURES[i]);
   const all=[...act,...pend];
-  const rec=all.reduce((a,m)=>a+(m.rev||0)+(m.price?Math.max(0,S.students*S.price*m.price/100/1000):0)+(m.stu&&m.stu>1?(m.stu-1)*4200*S.price/1000:0),0);
+  const rec=all.reduce((a,m)=>a+(m.rev||0)+(m.price?Math.max(0,S.students*S.price*m.price/100/1000):0)+(m.stu&&m.stu>1?(m.stu-1)*S.lastNew*S.price/1000:0),0);
   const eco=all.reduce((a,m)=>a+Math.max(0,-(m.cost||0)-(m.mk||0)),0);
   const dep=all.reduce((a,m)=>a+Math.max(0,(m.cost||0)+(m.mk||0))+(m.price&&m.price<0?Math.abs(S.students*S.price*m.price/100/1000):0),0);
   const once=pend.reduce((a,m)=>a+(m.once||0),0);
