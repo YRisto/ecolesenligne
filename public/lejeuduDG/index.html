@@ -293,17 +293,17 @@ const SCENARIOS=[
   mission:"transformer un spécialiste rentable en leader : tripler le chiffre d'affaires sans sacrifier la marge", pitch:"LinguIA est rentable, respectée, et vient de se doter d'un produit que personne ne sait copier. C'est le moment d'accélérer : passer de 7 à 21 M€ en cinq ans à +20 % de résultat. Pas de médias ici : la croissance se gagne compte par compte, chez les clients fidèles et dans les DRH qu'il reste à convaincre."},
  {id:'enacto',name:"ENACTO Business School",ic:"🏫",tag:"La jolie école de commerce qui repart, avec sa fondatrice et un nouvel actionnaire",
   desc:"10 M€ de chiffre d'affaires, 4 000 étudiants attachés à leur école, 130 salariés, et l'équilibre retrouvé après des années difficiles. Bernard Bugatti vient d'entrer au capital aux côtés de la fondatrice Hélène Bellavenir : les moyens sont là, l'âme aussi. Doubler et dégager +4 M€ de résultat net fin 2030.",
-  base:{students:4000,price:2500,organic:300,payrollOther:4300,payrollCom:1200,marketing:1600,platform:800,other:2100,debt:3000,rate:0.05,cash:600,staff:130,com:30}, start:0, target:20, growth:2, bank:-4000, unit:'étudiants', mediaTitle:'Plan médias', mediaWord:'médias', leadWord:'leads', lead1:'lead', churn:0.33, sat:4000, eff:0.8, varc:0.52, founder:true,
+  base:{students:4000,price:2500,organic:300,payrollOther:4300,payrollCom:1200,marketing:1600,platform:800,other:2100,debt:3000,rate:0.05,cash:600,staff:130,com:30}, start:0, target:20, growth:2, bank:-4000, unit:'étudiants', mediaTitle:'Plan médias', mediaWord:'médias', leadWord:'leads', lead1:'lead', churn:0.33, sat:4000, eff:0.88, varc:0.5, founder:true,
   media:scaleMedia(MEDIA_XYN,0.36),
   mission:"doubler l'école en cinq ans et atteindre +20 % de résultat, sans trahir son âme", pitch:"ENACTO a traversé la tempête et en est sortie debout, avec des diplômés fidèles et une pédagogie que ses concurrents lui envient. Mon entrée au capital lui donne les moyens de ses ambitions ; Hélène Bellavenir, sa fondatrice, siège au conseil et veillera à ce que la croissance ne trahisse pas l'école. Objectif : 20 M€ et +20 % fin 2030."},
  {id:'cnf',name:"Centre National de Formation",ic:"🏛️",tag:"Le leader du secteur, solide, rentable, prêt pour un nouveau chapitre",
   desc:"60 M€ de chiffre d'affaires, 24 000 étudiants, 700 salariés, +20 % de résultat et la première place du secteur. Après trois années stables, le conseil veut rouvrir le chapitre de la croissance : +50 % de chiffre d'affaires d'ici 2030, avec au moins +13,5 M€ de résultat net.",
-  base:{students:24000,price:2500,organic:2600,payrollOther:24000,payrollCom:6000,marketing:9000,platform:3000,other:6000,debt:0,rate:0.04,cash:8000,staff:700,com:150}, start:20, target:15, growth:1.5, bank:-15000, unit:'étudiants', mediaTitle:'Plan médias', mediaWord:'médias', leadWord:'leads', lead1:'lead', churn:0.35, sat:12000, eff:0.42, varc:0.7, capMod:-15,
+  base:{students:24000,price:2500,organic:2600,payrollOther:24000,payrollCom:6000,marketing:9000,platform:3000,other:6000,debt:0,rate:0.04,cash:8000,staff:700,com:150}, start:20, target:15, growth:1.5, bank:-15000, unit:'étudiants', mediaTitle:'Plan médias', mediaWord:'médias', leadWord:'leads', lead1:'lead', churn:0.35, sat:12000, eff:0.46, varc:0.68, capMod:-15,
   media:scaleMedia(MEDIA_XYN,2),
   mission:"relancer la croissance d'un leader installé : +50 % de chiffre d'affaires en cinq ans, sans descendre sous +15 %", pitch:"Le CNF est la référence : rentable, connu de tous, avec des équipes qui savent faire. Depuis trois ans, les inscriptions remplacent exactement les départs ; c'est confortable, ce n'est pas assez. Le conseil veut 90 M€ en 2030 avec au moins +15 % de résultat, sur un marché mûr où chaque étudiant de plus se gagne."},
  {id:'hippocampus',name:"Hippocampus",ic:"🌿",tag:"La startup du bien-être ultra premium, un produit adoré, une trajectoire à construire",
   desc:"1 M€ de chiffre d'affaires, 170 étudiants à 6 000 € qui recommandent l'école les yeux fermés, 12 salariés, un positionnement ultra premium unique sur le marché. La startup investit encore (−50 % de résultat) ; les investisseurs y croient et veulent ×5 (5 M€ de CA) et +1,5 M€ de résultat net fin 2030.",
-  base:{students:167,price:6000,organic:40,payrollOther:720,payrollCom:180,marketing:300,platform:120,other:180,debt:0,rate:0.06,cash:400,staff:12,com:3}, start:-50, target:30, growth:5, bank:-800, unit:'étudiants', mediaTitle:'Plan médias', mediaWord:'médias', leadWord:'leads', lead1:'lead', churn:0.25, sat:900, eff:1.8, varc:0.26,
+  base:{students:167,price:6000,organic:40,payrollOther:720,payrollCom:180,marketing:300,platform:120,other:180,debt:0,rate:0.06,cash:400,staff:12,com:3}, start:-50, target:30, growth:5, bank:-800, unit:'étudiants', mediaTitle:'Plan médias', mediaWord:'médias', leadWord:'leads', lead1:'lead', churn:0.25, sat:900, eff:2.0, varc:0.24,
   media:{google:{n:"Google Ads",ic:"🔍",d:"Recherche payante sur des mots-clés chers. Des prospects aisés, rares, exigeants.",cpl:380,conv:0.08,churn:0,base:100},
          hello:{n:"HelloFormation",ic:"🤝",d:"Broker généraliste : beaucoup de curieux, peu de clients à 6 000 €.",cpl:280,conv:0.042,churn:1,base:67},
          diplo:{n:"Diplomomo",ic:"🎓",d:"Broker diplômant, un peu mieux ciblé.",cpl:330,conv:0.06,churn:0,base:53},
@@ -474,6 +474,16 @@ const EVENTS=[
  {pos:true,ic:"📅",n:"Rythme trouvé : rentrée à plein régime, basse saison en 4 jours",t:"Deux ans après, tout le monde a pris le pli : septembre, la haute saison, passe sans intérim ni heures sup, et la semaine de 4 jours de la basse saison fait revenir les équipes en forme.",fx:{cost:-400,g:{cse:5,com:5,ca:3}},w:s=>s.flags.annualisation&&s.year>=((s.flagYear||{}).annualisation||99)+2?3.5:0},
  {pos:true,ic:"🤝",n:"Décembre au calme : l'école citée en exemple",t:"Les vacances de décembre sont devenues un argument de recrutement. Le CSE signe un avenant qui pérennise l'accord, la branche s'y intéresse.",fx:{g:{cse:7,com:3,ca:4}},w:s=>s.flags.annualisation&&s.year>=((s.flagYear||{}).annualisation||99)+2?3:0},
  {ic:"💥",n:"Panne majeure de la plateforme pendant les examens",t:"Trois jours sans accès en pleine session. Les réseaux sociaux s'en donnent à cœur joie.",fx:{g:{etu:-11,ca:-4},once:-280},w:s=>s.flags.vieux_lms?3:(s.flags.new_lms?0.2:1)},
+ {ic:"🏛️",n:"Contrôle fiscal : la TVA sur la formation remise en cause",t:"L'administration conteste l'exonération d'une partie des prestations. Redressement, honoraires d'avocats, et des nuits courtes pour "+N.daf+".",fx:{once:-600,g:{ca:-4,cse:-2}},w:()=>1},
+ {ic:"📵",n:"Panne nationale d'un opérateur télécom en pleine rentrée",t:"Trois jours sans classes virtuelles pour un tiers des étudiants. Les commerciaux passent la semaine à faire des gestes commerciaux.",fx:{once:-200,g:{etu:-6,com:-3}},w:()=>1},
+ {ic:"🧑‍⚖️",n:"Un ancien commercial gagne aux prud'hommes sur un obscur point de la convention collective",t:"Jurisprudence défavorable : la prime d'objectifs doit être intégrée au calcul des congés. Toute l'équipe commerciale est concernée, rétroactivement.",fx:{cost:100,g:{cse:-5,ca:-3}},w:()=>1},
+ {ic:"📰",n:"Enquête d'un média sur les « usines à diplômes » en ligne",t:"L'école est citée, à tort ou à raison. Les prospects posent des questions, les étudiants aussi.",fx:{stuY:0.94,g:{etu:-8,com:-5,ca:-4}},w:s=>s.g.etu<50?1.6:0.9},
+ {ic:"💸",n:"Un financeur paie avec neuf mois de retard",t:"Rien n'est perdu, mais 1,5 M€ de factures OPCO et Région dorment dans un circuit de validation. En attendant, la banque facture les agios.",fx:{once:-1500,revY:1500,g:{ca:-2},txt:"Trésorerie bloquée cette année, récupérée l'an prochain."},w:s=>s.cash<0?1.5:1},
+ {ic:"🎓",n:"Un diplôme concurrent reconnu par l'État au niveau supérieur",t:"Votre filière phare perd son argument principal. Les commerciaux doivent réécrire leur pitch.",fx:{stuY:0.92,g:{com:-6,ca:-3}},w:()=>1},
+ {ic:"🧑‍💻",n:"Départ du DSI avec toute l'équipe technique",t:N.dsi+" et ses quatre développeurs rejoignent une scale-up. La plateforme tourne sans pilote pendant six mois, avec des prestataires hors de prix.",fx:{once:-400,g:{etu:-4,cse:-4},flag:"risque_cyber"},w:s=>s.g.cse<45?1.8:0.8},
+ {ic:"🏦",n:"La banque réduit votre ligne de découvert",t:N.banquier+" n'aime ni vos chiffres, ni le secteur ce trimestre. Le plafond est resserré et chaque euro de découvert coûte plus cher.",fx:{rate:0.005,g:{ca:-5}},w:s=>s.cash<SC.bank*0.4?2:0.7},
+ {ic:"🧾",n:"Le cabinet Irias qui traite vos impayés perd ses deux meilleurs agents",t:"Les relances s'arrêtent, le bouche-à-oreille fait le reste : 8 % des étudiants ne paient plus, et la presse étudiante s'en mêle.",fx:{revY:-600,g:{etu:-6,cse:-3}},w:s=>s.g.etu<50?1.6:1},
+ {ic:"🤖",n:"Une IA gratuite fait aussi bien que votre filière la plus rentable",t:"Démos virales sur les réseaux : « pourquoi payer ? ». Les prospects posent la question à chaque appel, et les commerciaux n'ont pas encore la réponse.",fx:{stuY:0.9,g:{com:-7,etu:-4,ca:-3}},w:s=>s.flags.ia?0.7:1.2},
  {ic:"🔓",n:"Cyberattaque et fuite de données étudiantes",t:"Rançongiciel. La CNIL est prévenue, les étudiants aussi.",fx:{g:{etu:-14,ca:-8,cse:-4},once:-840},w:s=>s.flags.risque_cyber?4:(s.flags.secu?0.2:0.8)},
  {ic:"🆓",n:"Un géant du MOOC lance une offre gratuite diplômante",t:"Vos prospects comparent. Vos commerciaux aussi.",fx:{stuY:0.89,g:{com:-7}},w:()=>1},
  {ic:"📜",n:"Réforme du CPF : reste à charge et filtrage des formations",t:"Un décret restreint les financements publics. Les dossiers s'effondrent.",fx:{revY:-1260,g:{com:-8,ca:-3}},w:s=>s.flags.cpf?3:0.8},
@@ -1006,6 +1016,7 @@ function choices(container,list,after,label){
 }
 
 function renderPhase(silent){
+  if(!silent&&S.yi!==undefined&&!(S.tuto<TUTO_T().length&&S.yi===0&&S.phase===0)) setTimeout(maybeMinor,350);
   switch(S.phase){
     case 0: return phCadrage();
     case 1: return phMesures();
@@ -1205,6 +1216,16 @@ function phVote(){
 }
 
 function eventFx(e){ return scf(typeof e.fx==='function'?e.fx(S):e.fx); }
+function halfFx(fx){ const o={...fx}; for(const k of ['rev','cost','mk','once','revY']) if(o[k]) o[k]=Math.round(o[k]/2); if(o.g){o.g={}; for(const k in fx.g) o.g[k]=Math.round(fx.g[k]/2);} if(o.stuY) o.stuY=1-(1-o.stuY)/2; if(o.rate) o.rate=o.rate/2; if(o.cap) o.cap=Math.round(o.cap/2); delete o.flag; return o; }
+function minorEvent(){ // un petit imprévu négatif de plus, à un moment aléatoire de l'année
+  if(S.minor&&S.minor.y===S.year) return S.minor;
+  const phases=[1,2,4,5,8]; S.minor={y:S.year,at:phases[Math.floor(Math.random()*phases.length)],done:false}; return S.minor;
+}
+function maybeMinor(){
+  const m=minorEvent(); if(m.done||m.at!==S.phase||document.getElementById('modal').innerHTML) return false;
+  if(m.ev===undefined) m.ev=pickEvent('neg'); const e=EVENTS[m.ev]; const fx=halfFx(eventFx(e));
+  eventModal(e,fx,'Petit imprévu · '+EPISODES[S.phase][0],()=>{m.done=true;save();renderBudget();renderGauges();}); return true;
+}
 function isBad(fx){ return (fx.g&&Object.values(fx.g).some(v=>v<0))||(fx.once&&fx.once<0)||(fx.stuY&&fx.stuY<1)||fx.rate>0||fx.revY<0||fx.cost>0||(fx.media&&Object.values(fx.media).some(v=>v>1)); }
 function eventModal(e,fx,label,cb){
   modal(`<div class="ic">${e.ic}</div><div class="ml">${label}</div><div class="mt">${e.n}. ${e.t}</div><div class="eff">${fx.txt||''}</div><div>${chips(fx)}</div><div class="ms">Un aléa imprévu affecte l'exercice en cours.</div><div style="margin-top:8px"><button class="mbtn" id="ack">Prendre acte</button></div>`,isBad(fx)?'bad':'');
