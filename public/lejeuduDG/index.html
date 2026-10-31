@@ -581,7 +581,7 @@ function apply(fx,label){
   if(fx.rev) S.rev+=fx.rev; if(fx.cost) S.cost+=fx.cost;
   if(fx.mk){const t=mkTotal(); const f=Math.max(0.2,(t+fx.mk)/t); for(const k in S.media) S.media[k]=Math.round(S.media[k]*f);}
   if(fx.price){ if(!(S.mode==='univ'&&fx.price>0)) S.price=Math.round(S.price*(1+fx.price/100)); }
-  if(fx.stu) S.stuMult=clamp(S.stuMult*fx.stu,0.4,1.6); if(fx.churn) S.churn+=fx.churn; if(fx.hc) S.staff+=fx.hc;
+  if(fx.stu) S.stuMult=clamp(S.stuMult*fx.stu,0.4,1.6); if(fx.churn) S.churn+=fx.churn; if(fx.hc){S.staff+=fx.hc; S.hcAdj=(S.hcAdj||0)+fx.hc;}
   if(fx.once){S.cash+=fx.once; S.yearFx.once+=fx.once;} if(fx.debt!==undefined){ if(fx.debt===0) S.debt=0; else S.debt+=fx.debt; }
   if(fx.rate) S.rate=clamp(S.rate+fx.rate,0.01,0.15);
   if(fx.stuY) S.yearFx.stuY*=fx.stuY; if(fx.revY) S.yearFx.revY+=fx.revY;
@@ -684,6 +684,8 @@ function simulate(){
   g.cse=clamp(g.cse+(50-g.cse)*0.15+(pc<-5?-2:(pc>3?3:0)),0,100);
   if(S.rate>0.045&&S.cash>0) S.rate=Math.max(0.03,S.rate-0.005);
   if(S.cash<0) S.rate=clamp(S.rate+0.01,0.01,0.15);
+  // Les effectifs suivent l'activité : encadrement, support et administration grandissent (un peu moins vite) avec le nombre d'étudiants, en plus des postes créés ou supprimés par vos décisions
+  const staffBefore=S.staff; S.staff=Math.max(1,Math.round(BASE.staff*Math.pow(Math.max(students,1)/BASE.students,0.8))+(S.hcAdj||0)); y.staff=S.staff; y.staffDelta=S.staff-staffBefore;
   S.students=students; S.lastNew=newS; S.lastResult={pct:pc,rev:revenue,res}; S.history.push(y);
   S.yearFx={stuY:1,revY:0,once:0}; S.mediaMod={};
   return y;
@@ -1304,7 +1306,7 @@ function phResultats(){
    <tr><td>− Budget ${SC.mediaWord} (${Object.values(MEDIA).map(c=>c.n).join(', ')})</td><td class="num" style="color:var(--rose)">${kE(-y.mediaK)}</td></tr>
    <tr><td>− Plateforme et frais généraux</td><td class="num" style="color:var(--rose)">${kE(-(y.platform+y.other))}</td></tr>
    ${y.measures?`<tr><td>${y.measures>0?'−':'+'} Coût net des mesures en vigueur</td><td class="num" style="color:${y.measures>0?'var(--rose)':'var(--green)'}">${kE(-y.measures)}</td></tr>`:''}
-   ${y.scaleCost?`<tr><td>− Encadrement des ${SC.unit} au-delà de ${fmt(BASE.students)}</td><td class="num" style="color:var(--rose)">${kE(-y.scaleCost)}</td></tr>`:''}
+   ${y.scaleCost?`<tr><td>− Encadrement des ${SC.unit} au-delà de ${fmt(BASE.students)}${y.staffDelta?` (effectif ${y.staffDelta>0?'+':''}${y.staffDelta}, soit ${fmt(y.staff)} salariés)`:''}</td><td class="num" style="color:var(--rose)">${kE(-y.scaleCost)}</td></tr>`:''}
    <tr><td>− Intérêts (dette ${(S.debt/1000).toFixed(0)} M€${y.cashBefore<0?' + découvert':''} à ${(S.rate*100).toFixed(1).replace('.',',')} %)</td><td class="num" style="color:var(--rose)">${kE(-y.interest)}</td></tr>
    ${y.norgeat?`<tr><td>${y.norgeat<0?'− Dotation à une provision':'+ Reprise de provision'} (écriture comptable, sans effet sur la trésorerie)</td><td class="num" style="color:var(--gold-hi)">${kE(y.norgeat)}</td></tr>`:''}
    <tr><td><b>= Résultat de l'exercice</b></td><td class="num"><b style="color:${y.res<0?'var(--rose)':'var(--green)'}">${kE(y.res)}</b></td></tr>
