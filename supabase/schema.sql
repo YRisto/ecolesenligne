@@ -106,3 +106,18 @@ grant select, insert, update on public.jeu_dg_scores to service_role;
 grant usage, select on sequence public.jeu_dg_scores_id_seq to service_role;
 alter table jeu_dg_scores add column if not exists archive boolean not null default false; -- parties jouées avant le rééquilibrage de la difficulté
 notify pgrst, 'reload schema';
+
+-- Trophées du Jeu du DG partagés entre joueurs (route /api/jeudg/trophees)
+create table if not exists jeu_dg_trophees (
+  id bigint generated always as identity primary key,
+  created_at timestamptz not null default now(),
+  dg text not null,
+  trophee text not null,
+  scenario text,
+  unique (dg, trophee)
+);
+create index if not exists jeu_dg_trophees_idx on jeu_dg_trophees (trophee, created_at);
+alter table jeu_dg_trophees enable row level security;
+grant select, insert, update on public.jeu_dg_trophees to service_role;
+grant usage, select on sequence public.jeu_dg_trophees_id_seq to service_role;
+notify pgrst, 'reload schema';
