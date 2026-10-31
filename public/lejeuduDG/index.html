@@ -281,7 +281,7 @@ const scaleMedia=(m,f)=>Object.fromEntries(Object.entries(m).map(([k,v])=>[k,{..
 const SCENARIOS=[
  {id:'xyn',name:"Xyn and You",ic:"🎓",tag:"La grande école en ligne, tous secteurs, une marque forte à remettre sur les rails",
   desc:"30 M€ de chiffre d'affaires, 12 000 étudiants dans toutes les filières, 400 salariés dont 100 commerciaux, une notoriété nationale et une équipe soudée. Les comptes affichent −20 % : tout le reste est là pour atteindre +6 M€ de résultat net fin 2030.",
-  base:BASE_XYN, media:MEDIA_XYN, start:-20, target:20, growth:null, bank:-10000, unit:'étudiants', mediaTitle:'Plan médias', mediaWord:'médias', leadWord:'leads', lead1:'lead', churn:0.33, sat:10000, eff:0.82, varc:0.55,
+  base:BASE_XYN, media:MEDIA_XYN, start:-20, target:20, growth:null, bank:-10000, unit:'étudiants', mediaTitle:'Plan médias', mediaWord:'médias', leadWord:'leads', lead1:'lead', churn:0.33, sat:8000, eff:0.74, varc:0.58,
   mission:"faire adopter le plan de redressement 2026 et les suivants", pitch:"Xyn and You a tout pour réussir : la marque la plus connue du secteur, 12 000 étudiants, un catalogue qui couvre tous les métiers et des équipes qui tiennent à leur école. Il reste à faire ce que personne n'a encore fait : transformer cette force en résultats, de −20 % à +20 %."},
  {id:'linguia',name:"LinguIA",ic:"🗣️",tag:"Le spécialiste des langues en entreprise, et son agent IA qui change la donne",
   desc:"7 M€ de chiffre d'affaires, 3 500 apprenants dans les plus belles entreprises, 60 salariés passionnés, +5 % de résultat et vingt ans de réputation. L'agent IA maison vient de faire sauter le plafond du produit : le conseil veut en profiter pour tripler de taille d'ici 2030, avec +4,2 M€ de résultat net.",
@@ -298,7 +298,7 @@ const SCENARIOS=[
   mission:"doubler l'école en cinq ans et atteindre +20 % de résultat, sans trahir son âme", pitch:"ENACTO a traversé la tempête et en est sortie debout, avec des diplômés fidèles et une pédagogie que ses concurrents lui envient. Mon entrée au capital lui donne les moyens de ses ambitions ; Hélène Bellavenir, sa fondatrice, siège au conseil et veillera à ce que la croissance ne trahisse pas l'école. Objectif : 20 M€ et +20 % fin 2030."},
  {id:'cnf',name:"Centre National de Formation",ic:"🏛️",tag:"Le leader du secteur, solide, rentable, prêt pour un nouveau chapitre",
   desc:"60 M€ de chiffre d'affaires, 24 000 étudiants, 700 salariés, +20 % de résultat et la première place du secteur. Après trois années stables, le conseil veut rouvrir le chapitre de la croissance : +50 % de chiffre d'affaires d'ici 2030, avec au moins +13,5 M€ de résultat net.",
-  base:{students:24000,price:2500,organic:2600,payrollOther:24000,payrollCom:6000,marketing:9000,platform:3000,other:6000,debt:0,rate:0.04,cash:8000,staff:700,com:150}, start:20, target:15, growth:1.5, bank:-15000, unit:'étudiants', mediaTitle:'Plan médias', mediaWord:'médias', leadWord:'leads', lead1:'lead', churn:0.35, sat:10000, eff:0.4, varc:0.7, capMod:-16,
+  base:{students:24000,price:2500,organic:2600,payrollOther:24000,payrollCom:6000,marketing:9000,platform:3000,other:6000,debt:0,rate:0.04,cash:8000,staff:700,com:150}, start:20, target:15, growth:1.5, bank:-15000, unit:'étudiants', mediaTitle:'Plan médias', mediaWord:'médias', leadWord:'leads', lead1:'lead', churn:0.35, sat:9800, eff:0.38, varc:0.7, capMod:-16,
   media:scaleMedia(MEDIA_XYN,2),
   mission:"relancer la croissance d'un leader installé : +50 % de chiffre d'affaires en cinq ans, sans descendre sous +15 %", pitch:"Le CNF est la référence : rentable, connu de tous, avec des équipes qui savent faire. Depuis trois ans, les inscriptions remplacent exactement les départs ; c'est confortable, ce n'est pas assez. Le conseil veut 90 M€ en 2030 avec au moins +15 % de résultat, sur un marché mûr où chaque étudiant de plus se gagne."},
  {id:'hippocampus',name:"Hippocampus",ic:"🌿",tag:"La startup du bien-être ultra premium, un produit adoré, une trajectoire à construire",
@@ -317,7 +317,11 @@ function applyScenario(i){
   const f=SC.scale;
   // Échelle selon la nature de la mesure : masse salariale (PAY), paie commerciale (COM), budget médias (MK) ou chiffre d'affaires (défaut)
   const PAY=(BASE.payrollOther+BASE.payrollCom)/21200, COMP=BASE.payrollCom/4800, MK=BASE.marketing/4500;
-  MEASURES=MEASURES_T.map(m=>{const o={...m}; const fx=o.base==='pay'?PAY:o.base==='com'?COMP:o.base==='mk'?MK:f; const sc=v=>Math.round(v*fx);
+  const tu0=BASE.students*BASE.price/1000, ln0=BASE.students*0.35;
+  MEASURES=MEASURES_T.map(m=>{const o={...m};
+    if(o.sc){ o.g=o.g?{...o.g}:o.g; const imp=(o.stu?(o.stu-1)*ln0*BASE.price/1000:0)-(o.churn?tu0*o.churn/100:0); const direct=Math.round((o.net||0)-imp);
+      if(o.cat==='dep'||direct<0) o.cost=-direct; else o.rev=direct; o.n=tx(o.n); return o; }
+    const fx=o.base==='pay'?PAY:o.base==='com'?COMP:o.base==='mk'?MK:f; const sc=v=>Math.round(v*fx);
     for(const k of ['rev','cost','mk','once','debt','revY']) if(o[k]) o[k]=sc(o[k]); if(o.hc) o.hc=Math.sign(o.hc)*scaleN(Math.abs(o.hc)); o.g=o.g?{...o.g}:o.g;
     o.n=tx(o.n); return o;});
   GN.etu=SC.unit.charAt(0).toUpperCase()+SC.unit.slice(1);
@@ -333,6 +337,114 @@ const PROFILES=[
 ];
 
 // Mesures : cat rec/dep/str ; rev,cost k€/an ; mk = variation du budget médias ; price % ; stu = multiplicateur inscriptions ; churn pts ; once = cash immédiat ; cap = capital consommé (ou gagné) ; g = effets jauges
+// ---------- Mesures propres à chaque école (montants absolus en k€ de l'école ; net = effet annuel visé sur le résultat) ----------
+const MEASURES_SC=[
+ // Xyn and You
+ ["xyn","rec","Abonnement mensuel tout compris","Payer au mois, arrêter quand on veut. Plus d'inscrits, un peu plus de départs.",{cap:-5,net:450,stu:1.06,churn:2,g:{etu:-2,com:4}}],
+ ["xyn","rec","Licencier la marque à des centres franchisés","Des centres partenaires vendent des cursus Xyn and You sous licence.",{cap:-6,net:600,once:-150,g:{cse:-3}}],
+ ["xyn","rec","Pack « reconversion » financé par France Travail","Un parcours clé en main pour les demandeurs d'emploi, financé à 100 %.",{cap:-5,net:500,stu:1.03,g:{com:3}}],
+ ["xyn","rec","Boutique de micro-certifications à l'unité","Des modules courts vendus séparément, sans s'inscrire au cursus.",{cap:-4,net:380,g:{etu:-2}}],
+ ["xyn","rec","Stages de révision intensifs payants","Une semaine de bachotage avant les examens, en option.",{cap:-3,net:300,g:{etu:-2,cse:-1}}],
+ ["xyn","dep","Fusionner les 3 plateformes héritées","Trois outils pour le même métier depuis les rachats. On n'en garde qu'un.",{cap:-8,net:800,once:-600,g:{etu:-3,cse:-4}}],
+ ["xyn","dep","Passer le contrat HelloFormation au forfait","Un forfait annuel au lieu du paiement au lead. Moins cher, moins souple.",{cap:-5,net:400,g:{com:-4}}],
+ ["xyn","dep","Sous-louer la moitié du siège","Les bureaux sont vides trois jours sur cinq.",{cap:-4,net:350,g:{cse:-3}}],
+ ["xyn","dep","Geler les embauches administratives","Les départs ne sont plus remplacés dans les fonctions support.",{cap:-7,net:600,hc:-10,g:{cse:-6}}],
+ ["xyn","dep","Supprimer le magazine et les événements alumni","Les anciens n'auront plus de nouvelles que par e-mail.",{cap:-4,net:250,g:{etu:-3}}],
+ ["xyn","str","Cellule de rétention des étudiants à risque","Une équipe appelle chaque étudiant qui décroche avant qu'il abandonne.",{cap:-5,net:550,churn:-3,g:{etu:5,cse:1}}],
+ ["xyn","str","Recentrer sur les 5 filières les plus rentables","Fermer les petites filières, concentrer les moyens sur celles qui marchent.",{cap:-12,net:1100,stu:0.96,g:{etu:-6,cse:-8}}],
+ ["xyn","str","Rentrée en continu (12 sessions par an)","On peut commencer chaque mois. Les ventes s'étalent, les équipes aussi.",{cap:-8,net:700,once:-300,stu:1.05,g:{com:5,cse:-5}}],
+ ["xyn","str","Un CRM unique pour les commerciaux et la pédagogie","Enfin la même fiche étudiant pour tout le monde.",{cap:-6,net:500,once:-400,stu:1.03,g:{com:4,cse:2}}],
+ ["xyn","str","Tutorat par les pairs rémunéré","Les étudiants de deuxième année accompagnent les nouveaux.",{cap:-4,net:350,churn:-1,g:{etu:4,cse:-2}}],
+ ["xyn","str","Centre de services partagés en région","Comptabilité, paie, scolarité regroupées loin de Paris.",{cap:-9,net:900,once:-700,hc:-15,g:{cse:-6}}],
+ ["xyn","str","Label qualité indépendant","Un audit externe chaque année, publié sur le site.",{cap:-3,net:150,g:{etu:3,cse:2},flag:"qualite"}],
+ ["xyn","fou","Fusion avec un acteur de l'alternance","On rapproche les deux écoles : plus d'étudiants, deux cultures, un an de chantier.",{cap:-40,net:2800,once:-1500,stu:1.18,g:{com:8,cse:-10}}],
+ ["xyn","fou","Tout en anglais : l'école européenne","Tous les cursus passent en anglais pour recruter dans toute l'Europe.",{cap:-38,net:2200,once:-1000,stu:1.15,churn:3,g:{etu:-8,cse:-8}}],
+ ["xyn","fou","Devenir société à mission","Une mission inscrite dans les statuts, un comité qui la contrôle. Les équipes y croient.",{cap:-35,net:600,stu:1.05,g:{etu:10,com:5,cse:15}}],
+ // LinguIA
+ ["linguia","rec","L'agent IA en abonnement pour les DRH","Les collaborateurs des clients pratiquent avec l'agent toute l'année.",{cap:-6,net:260,g:{com:5,cse:-2}}],
+ ["linguia","rec","Certification TOEIC / Linguaskill intégrée","Le passage de la certification inclus et facturé dans le parcours.",{cap:-3,net:150,g:{etu:2}}],
+ ["linguia","rec","Cours de langue pour les expatriés des clients","Accompagner les salariés envoyés à l'étranger, et leur famille.",{cap:-4,net:170,g:{com:3}}],
+ ["linguia","rec","Préparation aux entretiens en anglais pour cadres","Un coaching court pour les cadres qui visent un poste international.",{cap:-3,net:120,g:{etu:2}}],
+ ["linguia","rec","Séminaire immersif à Londres","Trois jours d'immersion pour les comités de direction des clients.",{cap:-5,net:200,once:-50,g:{etu:3,cse:-2}}],
+ ["linguia","dep","Mini-groupes à la place des cours individuels","Trois à cinq apprenants par formateur au lieu d'un.",{cap:-8,net:220,hc:-3,g:{etu:-6,cse:-5}}],
+ ["linguia","dep","Formateurs freelances plutôt que salariés","Les départs sont remplacés par des indépendants.",{cap:-10,net:260,hc:-5,g:{cse:-10}}],
+ ["linguia","dep","Supprimer les salons RH les moins rentables","On ne garde que les deux salons qui signent vraiment.",{cap:-4,net:100,stu:0.98,g:{com:-4}}],
+ ["linguia","dep","Évaluation orale confiée à l'agent IA","Les tests de niveau passent par l'IA, relus en cas de doute.",{cap:-6,net:180,once:-40,g:{etu:-4,cse:-4}}],
+ ["linguia","dep","Réduire les remises grands comptes de 5 points","Les gros clients paient un peu plus. Certains le feront remarquer.",{cap:-7,net:250,stu:0.97,g:{com:-6}}],
+ ["linguia","str","Un account manager pour les 20 premiers clients","Un interlocuteur unique pour chaque grand compte : le farming devient un métier.",{cap:-4,net:200,stu:1.05,g:{com:8}}],
+ ["linguia","str","Ouvrir l'espagnol et l'allemand sur l'agent IA","L'agent parlait anglais. Il apprend deux langues de plus.",{cap:-6,net:180,once:-150,stu:1.04}],
+ ["linguia","str","Partenariat avec un éditeur de logiciel RH","LinguIA intégré dans le catalogue de formation d'un logiciel RH.",{cap:-5,net:190,once:-60,stu:1.04,g:{com:4}}],
+ ["linguia","str","Plateforme d'auto-apprentissage en marque blanche","Les clients la proposent sous leur propre marque.",{cap:-7,net:240,once:-200,g:{cse:-2}}],
+ ["linguia","str","Programme de fidélité clients","Les heures non utilisées sont reportées l'année suivante.",{cap:-4,net:160,churn:-2,g:{com:3}}],
+ ["linguia","str","Équipe dédiée aux appels d'offres publics","Ministères, hôpitaux, collectivités : un marché long mais fidèle.",{cap:-6,net:220,stu:1.04,g:{com:4,cse:-2}}],
+ ["linguia","str","Mesure d'impact linguistique pour les DRH","Un tableau de bord qui prouve les progrès de chaque collaborateur.",{cap:-3,net:100,once:-30,g:{etu:3,com:2}}],
+ ["linguia","fou","Racheter un réseau de formateurs à l'international","Des formateurs dans douze pays : LinguIA devient mondial, et endetté.",{cap:-42,net:850,once:-600,debt:1000,stu:1.2,g:{com:6,cse:-10}}],
+ ["linguia","fou","L'agent IA en libre-service pour les PME","Inscription en ligne, carte bancaire, zéro commercial. Le volume explose, la fidélité moins.",{cap:-40,net:700,once:-400,stu:1.25,churn:4,g:{com:-8,cse:-4}}],
+ ["linguia","fou","Coentreprise avec un géant de la traduction","Leurs clients, votre pédagogie. Et leurs exigences.",{cap:-38,net:600,stu:1.15,g:{com:5,cse:-6}}],
+ // ENACTO
+ ["enacto","rec","Executive MBA le week-end","Un cursus pour cadres en poste, deux week-ends par mois.",{cap:-5,net:250,g:{com:4,cse:-2}}],
+ ["enacto","rec","Club des anciens payant","Le réseau ENACTO devient un club avec cotisation.",{cap:-3,net:120,g:{etu:-2}}],
+ ["enacto","rec","Summer school internationale","Trois semaines en juillet pour des étudiants étrangers.",{cap:-4,net:160,once:-40,g:{etu:3,cse:-2}}],
+ ["enacto","rec","Campagne de taxe d'apprentissage","Aller chercher la taxe d'apprentissage des entreprises qui recrutent vos diplômés.",{cap:-3,net:130,g:{com:2}}],
+ ["enacto","rec","Bachelor en alternance","Un bachelor financé par les entreprises d'accueil.",{cap:-6,net:280,stu:1.04,g:{com:4,cse:-3}}],
+ ["enacto","dep","Ramener les spécialisations de 12 à 8","Moins de parcours, moins de cours à maintenir. Hélène Bellavenir n'aime pas ça.",{cap:-8,net:200,g:{etu:-4,cse:-4},founder:-12}],
+ ["enacto","dep","Mutualiser le campus avec une école voisine","Les salles servent le soir à une autre école.",{cap:-6,net:220,g:{cse:-4}}],
+ ["enacto","dep","Réduire les voyages d'étude","Un voyage par cursus au lieu de deux.",{cap:-4,net:120,g:{etu:-4}}],
+ ["enacto","dep","Externaliser la paie et la comptabilité","Un cabinet s'en charge.",{cap:-5,net:150,once:-50,hc:-3,g:{cse:-4}}],
+ ["enacto","dep","15 % d'heures de cours en présentiel en moins","Une partie des cours passe en ligne.",{cap:-9,net:300,g:{etu:-6,cse:-6},founder:-8}],
+ ["enacto","str","Double diplôme avec une université partenaire","Deux diplômes pour le prix d'un. Hélène Bellavenir applaudit.",{cap:-6,net:230,stu:1.06,g:{etu:6},founder:10}],
+ ["enacto","str","Renégocier le prêt du rachat sur 7 ans","Des échéances plus petites, plus longtemps, à un taux un peu plus élevé.",{cap:-8,net:0,amortCut:300,rate:0.005}],
+ ["enacto","str","Incubateur de startups étudiantes","Un lieu, des mentors, et une bonne raison de choisir ENACTO.",{cap:-5,net:150,once:-100,stu:1.03,g:{etu:5,com:2}}],
+ ["enacto","str","Chaire d'entreprise financée par un mécène","Une entreprise finance un professeur et un programme de recherche.",{cap:-4,net:180,g:{etu:2}}],
+ ["enacto","str","Accréditation internationale","Deux ans de dossier pour un label qui ouvre les classements.",{cap:-7,net:200,once:-300,stu:1.05,g:{etu:4,cse:2},flag:"qualite"}],
+ ["enacto","str","Un directeur des relations entreprises","Stages, alternances, recrutements : un seul interlocuteur pour les entreprises.",{cap:-4,net:170,stu:1.03,g:{com:4}}],
+ ["enacto","str","Charte de gouvernance entre la fondatrice et l'actionnaire","Qui décide de quoi, écrit noir sur blanc. Le conseil respire.",{cap:4,net:-30,g:{cse:3},founder:6}],
+ ["enacto","fou","Vendre les murs historiques et devenir locataire","De l'argent frais tout de suite, un loyer pour toujours. Hélène Bellavenir est contre.",{cap:-38,net:-250,once:2500,g:{etu:-8,cse:-6},founder:-20}],
+ ["enacto","fou","Racheter une école d'ingénieurs en difficulté","Une école complémentaire, des étudiants en plus, une dette en plus.",{cap:-42,net:900,once:-800,debt:2000,stu:1.2,g:{cse:-8}}],
+ ["enacto","fou","Ouvrir un campus à Casablanca","Le marché africain francophone, avec un partenaire local.",{cap:-40,net:700,once:-1200,stu:1.18,churn:2,g:{com:6,cse:-4}}],
+ // Centre National de Formation
+ ["cnf","rec","Offre dédiée aux trois fonctions publiques","État, territoriale, hospitalière : un catalogue et des tarifs dédiés.",{cap:-7,net:1400,stu:1.03,g:{com:4}}],
+ ["cnf","rec","Marque low-cost « CNF Essentiel »","Les mêmes cours, sans tutorat, à prix cassé.",{cap:-8,net:1200,stu:1.08,churn:2,g:{etu:-3,com:5}}],
+ ["cnf","rec","Préparation aux concours en ligne","Un marché fidèle, qui revient chaque année.",{cap:-5,net:900,stu:1.02,g:{etu:2}}],
+ ["cnf","rec","Formations obligatoires pour les entreprises","Sécurité, RGPD, harcèlement : des formations que les entreprises doivent acheter.",{cap:-6,net:1100,g:{com:3}}],
+ ["cnf","rec","Licence du catalogue aux régions","Les régions diffusent vos cours dans leurs propres dispositifs.",{cap:-4,net:700,g:{cse:-2}}],
+ ["cnf","dep","Fermer les 6 antennes régionales","Tout le monde en ligne, plus de bureaux en région.",{cap:-12,net:1800,once:-900,hc:-25,g:{cse:-12}}],
+ ["cnf","dep","Rationaliser le catalogue : 30 % de formations en moins","On supprime ce qui ne se vend plus.",{cap:-10,net:1500,stu:0.97,g:{etu:-6,cse:-6}}],
+ ["cnf","dep","Renégocier les contrats de tutorat externe","Les prestataires de tutorat sont remis en concurrence.",{cap:-6,net:900,g:{cse:-4}}],
+ ["cnf","dep","Centraliser les achats","Une seule direction des achats pour tout le groupe.",{cap:-4,net:600,once:-200}],
+ ["cnf","dep","Réduire l'équipe commerciale de 20 %","Moins de conseillers au téléphone, des scripts plus serrés.",{cap:-9,net:1200,hc:-30,stu:0.97,g:{com:-10}}],
+ ["cnf","str","Plateforme de recrutement pour les entreprises clientes","Les entreprises recrutent directement parmi vos diplômés, et paient pour ça.",{cap:-6,net:1100,once:-800,g:{com:3}}],
+ ["cnf","str","Racheter 3 petites écoles spécialisées","Trois niches rentables, trois intégrations à mener.",{cap:-10,net:1800,once:-1500,stu:1.06,g:{cse:-4}}],
+ ["cnf","str","Learning analytics : prédire les abandons","Un modèle repère les décrocheurs trois semaines avant qu'ils partent.",{cap:-6,net:1000,once:-600,churn:-2,g:{etu:4}}],
+ ["cnf","str","Une filiale B2B dédiée aux grands comptes","Une équipe, une marque et des tarifs pour les entreprises.",{cap:-8,net:1400,once:-500,stu:1.03,g:{com:6,cse:-3}}],
+ ["cnf","str","Partenariat avec France Travail","Le CNF devient prestataire de référence pour les reconversions.",{cap:-5,net:1000,stu:1.04,g:{com:3}}],
+ ["cnf","str","Programme d'intrapreneuriat","Les salariés proposent et lancent de nouvelles formations.",{cap:-4,net:500,g:{cse:5}}],
+ ["cnf","str","Refonte de la marque CNF","Un nouveau nom de gamme, un nouveau site, une campagne.",{cap:-7,net:800,once:-1200,stu:1.05,g:{com:4}}],
+ ["cnf","fou","Expansion en Afrique francophone","Six pays, un partenaire local, une marque qui voyage.",{cap:-40,net:4000,once:-6000,stu:1.25,churn:3,g:{com:10,cse:-6}}],
+ ["cnf","fou","Ouvrir 30 % du capital aux salariés","Chaque salarié devient actionnaire. Le résultat se partage, l'engagement aussi.",{cap:-35,net:-600,churn:-2,g:{com:10,cse:25}}],
+ ["cnf","fou","Racheter un concurrent coté","Le numéro deux du secteur, une OPA, une dette géante.",{cap:-45,net:5500,once:-3000,debt:15000,stu:1.22,g:{cse:-12}}],
+ // Hippocampus
+ ["hippocampus","rec","Week-ends de pratique en présentiel","Deux week-ends par an dans un lieu de retraite, facturés en plus du cursus.",{cap:-4,net:45,g:{etu:4,cse:-2}}],
+ ["hippocampus","rec","Certification « praticien Hippocampus »","Les diplômés paient pour un titre reconnu dans le réseau.",{cap:-3,net:30,g:{etu:2}}],
+ ["hippocampus","rec","Boutique en ligne (huiles, livres, matériel)","Les étudiants achètent ce que recommandent les intervenants.",{cap:-3,net:25,g:{cse:-1}}],
+ ["hippocampus","rec","Ateliers bien-être pour les entreprises","Des ateliers de gestion du stress vendus aux DRH.",{cap:-5,net:55,g:{com:3,cse:-2}}],
+ ["hippocampus","rec","Mentorat individuel premium à 1 500 €","Six séances avec une intervenante reconnue.",{cap:-4,net:40,g:{etu:2,cse:-2}}],
+ ["hippocampus","dep","Masterclasses en replay plutôt qu'en direct","Les intervenants enregistrent une fois, les étudiants regardent quand ils veulent.",{cap:-6,net:35,g:{etu:-5,cse:-3}}],
+ ["hippocampus","dep","Mutualiser les intervenants avec une autre école","Les mêmes experts, deux écoles, une facture partagée.",{cap:-5,net:30,g:{cse:-3}}],
+ ["hippocampus","dep","Un seul tournage vidéo par mois","Le studio tourne moins, les contenus vieillissent un peu.",{cap:-4,net:20,g:{etu:-3}}],
+ ["hippocampus","dep","Intervenants stars rémunérés en droits d'auteur","Moins de fixe, une part des ventes.",{cap:-6,net:35,g:{cse:-5}}],
+ ["hippocampus","dep","Supprimer le séminaire annuel de l'équipe","Douze salariés, plus de séminaire.",{cap:-3,net:15,g:{cse:-4}}],
+ ["hippocampus","str","Partenariat avec une mutuelle santé","La mutuelle rembourse une partie du cursus à ses adhérents.",{cap:-5,net:35,stu:1.08,g:{com:6}}],
+ ["hippocampus","str","Programme d'ambassadeurs anciens élèves","Les diplômés recommandent l'école et touchent une commission.",{cap:-4,net:40,stu:1.05,churn:-2,g:{etu:5}}],
+ ["hippocampus","str","Application mobile de pratique quotidienne","Dix minutes par jour, une communauté, moins d'abandons.",{cap:-6,net:40,once:-60,churn:-3,g:{etu:5}}],
+ ["hippocampus","str","Reconnaissance RNCP du cursus","Un titre reconnu par l'État : le CPF devient possible.",{cap:-7,net:50,once:-40,stu:1.06,g:{etu:4},flag:"cpf"}],
+ ["hippocampus","str","Recruter un directeur commercial","Un vrai professionnel de la vente premium, au téléphone.",{cap:-5,net:45,hc:1,stu:1.06,g:{com:8,cse:-2}}],
+ ["hippocampus","str","Podcast et chaîne YouTube de la fondatrice","Sa voix fait vendre. Il faut juste qu'elle trouve le temps.",{cap:-4,net:35,once:-15,stu:1.05,g:{com:3}}],
+ ["hippocampus","str","Lever 1 M€ auprès d'un business angel","Un investisseur passionné, une dilution sensible.",{cap:-15,net:0,once:1000,levee2:true}],
+ ["hippocampus","fou","Une version accessible à 1 900 € en parallèle","Un cursus allégé pour toucher un public plus large. L'image premium en prend un coup.",{cap:-40,net:120,stu:1.6,churn:6,g:{etu:-6,com:15}}],
+ ["hippocampus","fou","Ouvrir un centre physique à Bali","Des retraites de formation sur place. Le rêve, et la logistique.",{cap:-38,net:100,once:-250,stu:1.2,g:{etu:10,cse:5}}],
+ ["hippocampus","fou","Licencier la méthode à un réseau de spas","La méthode Hippocampus enseignée dans 40 spas. La marque se diffuse, le contrôle aussi.",{cap:-36,net:150,once:-30,g:{etu:-4,cse:-3}}],
+];
 const MEASURES_T=[
  ["rec","Hausser les frais de 5 %","Une rentrée à {p:1.05} au lieu de {p:1}. Les commerciaux grognent, les étudiants aussi.",{price:5,churn:1,cap:-8,g:{etu:-6,com:-8}}],
  ["rec","Hausser les frais de 12 %","Positionnement premium assumé. Risque réel sur les inscriptions.",{price:12,churn:4,cap:-17,g:{etu:-14,com:-18}}],
@@ -397,6 +509,7 @@ const MEASURES_T=[
  ["fou","Diplôme garanti ou remboursé","Celui qui échoue est remboursé. Les abandons chutent, l'encadrement coûte, les commerciaux ont un argument en or.",{churn:-8,cost:1800,stu:1.15,cap:-36,g:{etu:12,com:10}}],
  ["fou","Un campus de prestige à Paris","Retour au physique : un hôtel particulier, des amphis, une marque. {M:6} d'investissement.",{once:-6000,cost:1500,stu:1.12,churn:-2,cap:-39,g:{etu:8,cse:5}}],
 ].map((m,i)=>({id:i,cat:m[0],n:m[1],d:m[2],...m[3]}));
+MEASURES_SC.forEach(m=>MEASURES_T.push({id:MEASURES_T.length,sc:m[0],cat:m[1],n:m[2],d:m[3],...m[4]}));
 // MEASURES (à l'échelle du scénario) est construit par applyScenario()
 
 const ENVELOPPES=[
@@ -462,6 +575,42 @@ const AUDITIONS=[
      ["Montrer une version simplifiée",{g:{cse:-3}},"Quelqu'un fera le rapprochement."]]},
 ];
 
+// Variantes de dialogues propres à chaque école (remplacent les champs du dialogue générique)
+const ALT={
+ env:{
+  0:{linguia:{ask:"« Nos formateurs enchaînent huit heures de visio par jour, et les clients finissent par le sentir : ils renouvellent moins. Il me faut {n:15} formateurs de plus. Je sais ce que ça coûte, je sais aussi ce que coûte un grand compte perdu. »"},
+     enacto:{ask:"« À ENACTO, chaque étudiant a toujours eu un tuteur qui connaît son prénom. Hélène Bellavenir y tient, moi aussi, et on est en train de le perdre. Il me faut {n:15} tuteurs de plus. »"},
+     cnf:{ask:"« Avec {s:12000} inscrits, le tutorat est devenu une file d'attente, et le taux d'abandon remonte depuis trois ans. Il me faut {n:15} tuteurs de plus. »"},
+     hippocampus:{role:"Directrice pédagogique et cofondatrice",ask:"« Notre promesse, c'est une praticienne référente pour 25 élèves. On est à 40. Il me faut {n:15} intervenantes de plus, sinon notre premium n'en aura plus que le prix. »"}},
+  1:{linguia:{role:"Directrice du développement",ask:"« Les grands comptes renouvellent en mars, et les DRH qu'on n'appelle pas signent ailleurs. Avec 20 % de budget commercial en plus, je vous signe {s:300} apprenants de plus. Sans, je ferai de mon mieux. »"},
+     hippocampus:{ask:"« Une inscription à {p:1} se joue en trois appels d'une heure. Avec 20 % de budget en plus, je vais chercher les contacts qu'il faut pour {s:300} élèves de plus. »"}},
+  3:{linguia:{ask:"« Notre site parle encore aux particuliers alors que nos clients sont des DRH. Une refonte tournée vers les entreprises, c'est {k:350}, et des rendez-vous qualifiés en plus. »"},
+     hippocampus:{ask:"« Notre site ne ressemble pas à ce qu'on vend : un cursus à {p:1} présenté comme un tuto gratuit. Une refonte premium, c'est {k:350}. »"},
+     cnf:{ask:"« Le site du leader du secteur a dix ans de retard sur ses concurrents. Une refonte, c'est {k:350} pour quatre points d'inscriptions. »"}},
+  4:{linguia:{role:"Responsable du support clients",ask:"« Les RH de nos clients attendent six jours une réponse sur un planning. Il me faut {n:10} chargés de compte ; sinon, c'est le renouvellement qui en pâtira. »"}},
+  6:{linguia:{role:"Responsable des offres premium",ask:"« Un programme « Leadership in English » pour les comités de direction, à {p:2.4} par participant. {s:100} participants la première année, {k:600} de chiffre d'affaires et {k:300} de marge. »"},
+     hippocampus:{role:"Responsable des cursus",ask:"« Une formation de formateurs pour nos diplômées, à {p:2.4}. {s:100} inscrites la première année, {k:600} de chiffre d'affaires et {k:300} de marge. »"},
+     enacto:{ask:"« Un MBA executive ENACTO à {p:2.4}. {s:100} inscrits la première année, {k:600} de chiffre d'affaires et {k:300} de marge, et une vitrine pour l'école. »"}},
+  8:{linguia:{ask:"« Nos formateurs sont 12 % sous le marché, et les écoles de langues concurrentes les appellent tous les mois. Un rattrapage coûte cher ; les départs aussi. »"},
+     hippocampus:{ask:"« Nos intervenantes sont passionnées, pas millionnaires. Elles sont 12 % sous le marché, et deux m'ont déjà dit qu'on les sollicitait ailleurs. »"}}
+ },
+ aud:{
+  0:{linguia:{who:"Une formatrice",q:"« Merci de prendre la question. On entend parler d'agent IA partout. Est-ce qu'il y aura des suppressions de postes de formateurs cette année ? Oui ou non ? »"},
+     hippocampus:{kicker:"Réunion d'équipe · {staff} personnes",who:"Une intervenante",role:"Prend la parole",q:"« On est une petite équipe, alors je vous le demande en face : est-ce que quelqu'un va devoir partir cette année ? »"}},
+  1:{linguia:{kicker:"Comité client · un grand compte",who:"La DRH d'un client historique",role:"Cliente depuis huit ans",q:"« Vos formateurs changent tous les trois mois et vos tarifs montent. Expliquez-moi pourquoi je renouvellerais. »"},
+     hippocampus:{kicker:"Cercle de parole · promotion 2026",role:"Élève de la promotion 2026",q:"« J'ai payé {p:1}. J'aime ce que j'apprends, mais pourquoi les intervenantes sont-elles de moins en moins en direct ? »"},
+     enacto:{role:"Étudiante en deuxième année",q:"« On a choisi ENACTO pour l'esprit de l'école. Depuis l'arrivée du nouvel actionnaire, on a peur de devenir un numéro. Vous allez faire quoi, concrètement ? »"},
+     cnf:{role:"Stagiaire en reconversion",q:"« Je me forme le soir après le travail. Quand je pose une question, j'attends une semaine. Le leader du secteur, c'est ça ? »"}},
+  2:{linguia:{kicker:"Réunion d'équipe · développement",role:"Chargée de comptes senior, 12 ans de maison",q:"« Douze ans que je vends LinguIA aux DRH. Comment je leur vends un agent IA quand ils me demandent des formateurs ? »"},
+     hippocampus:{kicker:"Réunion d'équipe",role:"Conseillère en admissions",q:"« Je vends un accompagnement d'exception à {p:1}. Expliquez-moi comment je le vends si on le réduit. »"}},
+  4:{linguia:{kicker:"Comité client",who:"Un responsable formation",role:"Grand compte industriel",q:"« Une question directe : mes collaborateurs parlent surtout à votre agent IA. C'est ça, la formation que je paie ? »"},
+     hippocampus:{kicker:"Cercle de parole · promotion 2027",role:"Élève de première année",q:"« Une question directe : les retours sur nos pratiques, c'est une IA maintenant ? Trois d'entre nous ont eu le même mot pour mot. »"}},
+  5:{linguia:{role:"Responsable de l'offre anglais des affaires"},hippocampus:{role:"Intervenante référente"},enacto:{role:"Directrice du programme Grande École"},cnf:{role:"Responsable de la filière reconversion"}}
+ }
+};
+function altOf(kind,i,o){ const a=SC&&ALT[kind]&&ALT[kind][i]&&ALT[kind][i][SC.id]; return a?{...o,...a}:o; }
+// Une phrase de Bernard propre à chaque école, en fin de lettre annuelle
+const FLAVOR={xyn:"« Et n'oubliez jamais : douze mille étudiants comptent sur nous. »",linguia:"« Les grands comptes renouvellent en mars : c'est là que tout se joue. »",enacto:"« Hélène me demande chaque semaine si l'école garde son âme. Gardez-la, et remboursez la banque. »",cnf:"« Le leader ne peut pas se contenter de tenir : tout le secteur regarde si nous savons encore grandir. »",hippocampus:"« Les investisseurs ne regardent qu'une chose : la trajectoire vers la rentabilité. »"};
 const AMENDEMENTS=[
  {who:N.adminEtu,role:"Administrateur représentant les étudiants",ic:"👨‍🎓",ask:"Amendement : maintien du tutorat individuel pour toutes les filières, quel qu'en soit le coût.",y:{cost:400,g:{etu:5,ca:-2}},n:{g:{etu:-4}}},
  {who:N.adminEns,role:"Représentant les enseignants au conseil",ic:"🧑‍🏫",ask:"Amendement : aucune correction entièrement automatisée sans relecture humaine.",y:{cost:250,g:{cse:5,ca:-1}},n:{g:{cse:-5}}},
@@ -500,6 +649,15 @@ const EVENTS=[
  {ic:"✊",n:"Grève des tuteurs pendant une semaine",t:"Le CSE appelle à cesser le travail. Les étudiants attendent leurs corrections.",fx:{g:{etu:-7,cse:4,ca:-4}},w:s=>s.g.cse<35?3:0.2},
  {ic:"📈",n:"Hausse générale des taux d'intérêt",t:"La BCE resserre. La "+N.banque+" suit.",fx:{rate:0.01,g:{ca:-1}},w:()=>0.8},
  {ic:"💶",n:"Inflation : les salariés demandent un rattrapage",t:"Le CSE réclame 4 % pour tout le monde.",fx:s=>s.flags.gel?{g:{cse:-11},txt:"Avec le gel des salaires, la demande tourne à la colère."}:{cost:700,g:{cse:3},txt:"Vous accordez 2,5 %. Ni satisfait, ni révolté."},w:()=>1},
+ {ic:"📑",n:"Votre plus gros client lance un appel d'offres européen",t:"Le contrat est remis en jeu face à trois concurrents. Pour le garder, il faudra rogner les prix.",fx:{revY:-1800,g:{com:-6,ca:-2}},w:()=>SC.id==='linguia'?1.2:0},
+ {ic:"🏦",n:"Un grand OPCO plafonne la prise en charge des langues",t:"Les entreprises de la branche doivent désormais payer une partie des cours. Certaines renoncent.",fx:{stuY:0.92,g:{com:-4}},w:()=>SC.id==='linguia'?1.2:0},
+ {ic:"🔄",n:"La DRH qui vous soutenait chez un grand compte change de groupe",t:"Sa remplaçante arrive avec ses propres prestataires. Le renouvellement n'est plus acquis.",fx:{stuY:0.93,g:{com:-6,ca:-2}},w:()=>SC.id==='linguia'?1.2:0},
+ {ic:"🗣️",n:"Un concurrent offre l'IA vocale gratuite à vos clients",t:"Un géant du numérique glisse un tuteur vocal dans sa suite bureautique. Vos clients demandent pourquoi payer.",fx:{stuY:0.91,g:{com:-5,etu:-2}},w:s=>SC.id==='linguia'?(s.flags.ia?0.8:1.2):0},
+ {ic:"✊",n:"Vos formateurs indépendants s'organisent et réclament une hausse",t:"Un collectif de formateurs négocie un tarif minimum. Difficile de dire non sans perdre les meilleurs.",fx:{cost:600,g:{cse:-6}},w:s=>SC.id==='linguia'?(s.g.cse<45?1.8:1):0},
+ {pos:true,ic:"🌟",n:"Un client recommande LinguIA à tout son comité exécutif",t:"Le directeur général d'un client parle de vous en comité. Trois filiales vous appellent dans la semaine.",fx:{stuY:1.08,g:{com:6}},w:()=>SC.id==='linguia'?1.2:0},
+ {pos:true,ic:"🌍",n:"Nouvelle obligation de langues pour les métiers de l'export",t:"Une certification de langue devient exigée pour plusieurs métiers. Les entreprises doivent former vite.",fx:{stuY:1.1,g:{ca:3}},w:()=>SC.id==='linguia'?1.2:0},
+ {pos:true,ic:"🎤",n:"Salon RH : la démo de votre agent IA fait salle comble",t:"La file d'attente devant votre stand fait le tour des réseaux sociaux des DRH.",fx:{stuY:1.06,g:{com:5}},w:()=>SC.id==='linguia'?1.2:0},
+ {pos:true,ic:"📈",n:"Un grand compte double son volume en cours d'année",t:"Une fusion chez votre client : deux fois plus de collaborateurs à former, tout de suite.",fx:{revY:2000,g:{com:4}},w:()=>SC.id==='linguia'?1.2:0},
  {ic:"🔍",n:"Mise à jour de l'algorithme Google",t:"Vos campagnes perdent leur position. Le coût par lead Google bondit de 40 % cette année.",fx:{media:{google:1.4},g:{com:-4}},w:s=>mkx('google')>1.2?1.6:0.9},
  {ic:"🤝",n:"HelloFormation double ses tarifs",t:"Le broker, en position de force, renégocie : +60 % sur le coût du lead.",fx:{media:{hello:1.6},g:{com:-6}},w:s=>mkx('hello')>1.2?1.8:0.8},
  {ic:"🎓",n:"Diplomomo en redressement judiciaire",t:"Le broker ne livre plus de leads pendant six mois. Vos commerciaux attendent.",fx:{media:{diplo:2.5},g:{com:-7}},w:s=>mkx('diplo')>1.2?1.5:0.7},
@@ -553,7 +711,7 @@ function newGame(sc){
      media:Object.fromEntries(Object.entries(MEDIA).map(([k,v])=>[k,v.base])),mediaMod:{},
      rev:0,cost:0,churn:0,stuMult:1,staff:BASE.staff,debt:BASE.debt,cash:BASE.cash,rate:BASE.rate,active:[],pending:[],flags:{},
      used:{env:[],aud:[],amd:[],evt:[]},history:[],lastResult:{pct:SC.start,rev:SC.ca0,res:Math.round(SC.ca0*SC.start/100)},lastNew:Math.round(BASE.students*0.35),yearFx:{stuY:1,revY:0,once:0},target:SC.target,mode:null,sub:0,tmp:null,over:null,tuto:0,decided:false,log:[]};
-  S.g={ca:55,etu:55,com:50,cse:50}; S.lastNew=inscriptions().total;
+  S.g={ca:55,etu:55,com:50,cse:50}; S.lastNew=inscriptions().total; MEASURES.forEach(o=>{ if(!o.sc) return; delete o.rev; delete o.cost; const direct=Math.round((o.net||0)-yearly(o)); if(o.cat==='dep'||direct<0) o.cost=-direct; else o.rev=direct; }); // calibre l'effet annuel des mesures propres sur l'école réelle
 }
 const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
 const fmt=n=>new Intl.NumberFormat('fr-FR').format(Math.round(n));
@@ -585,7 +743,7 @@ function apply(fx,label){
   if(fx.mk){const t=mkTotal(); const f=Math.max(0.2,(t+fx.mk)/t); for(const k in S.media) S.media[k]=Math.round(S.media[k]*f);}
   if(fx.price){ if(!(S.mode==='univ'&&fx.price>0)) S.price=Math.round(S.price*(1+fx.price/100)); }
   if(fx.students) S.students=Math.max(0,S.students+fx.students); if(fx.stu) S.stuMult=clamp(S.stuMult*fx.stu,0.4,1.6); if(fx.churn) S.churn+=fx.churn; if(fx.hc){S.staff+=fx.hc; S.hcAdj=(S.hcAdj||0)+fx.hc;}
-  if(fx.once){S.cash+=fx.once; S.yearFx.once+=fx.once;} if(fx.cashBack) S.cashBack=(S.cashBack||0)+fx.cashBack; if(fx.debt!==undefined){ if(fx.debt===0) S.debt=0; else S.debt+=fx.debt; }
+  if(fx.once){S.cash+=fx.once; S.yearFx.once+=fx.once;} if(fx.cashBack) S.cashBack=(S.cashBack||0)+fx.cashBack; if(fx.amortCut) S.amortCut=(S.amortCut||0)+fx.amortCut; if(fx.debt!==undefined){ if(fx.debt===0) S.debt=0; else S.debt+=fx.debt; }
   if(fx.rate) S.rate=clamp(S.rate+fx.rate,0.01,0.15);
   if(fx.stuY) S.yearFx.stuY*=fx.stuY; if(fx.revY) S.yearFx.revY+=fx.revY;
   if(fx.media) for(const k in fx.media) if(MEDIA[k]) S.mediaMod[k]=(S.mediaMod[k]||1)*fx.media[k];
@@ -635,7 +793,15 @@ function lecture(m){
   const cap=m.cap>0?`Rapporte ${m.cap} points de capital.`:`Coûte ${-m.cap} points de capital${who.length?' et mécontente '+who.join(', '):''}.`;
   return 'Lecture : '+(parts.length?parts.join(' ; '):'pas d\'effet financier direct')+'. '+cap;
 }
-function yearly(m){ const tu=S.students*S.price/1000; return (m.rev||0)-(m.cost||0)-(m.mk||0)+(m.price?tu*m.price/100:0)-(m.churn?tu*m.churn/100*(1+(m.price||0)/100):0)+(m.stu?(m.stu-1)*S.lastNew*S.price/1000:0); }
+function yearly(m){ // effet annuel moyen sur 3 ans : suit l'évolution des effectifs (abandons, inscriptions, prix, coûts d'encadrement)
+  const direct=(m.rev||0)-(m.cost||0)-(m.mk||0);
+  if(!m.price&&!m.stu&&!m.churn&&!m.mk) return direct;
+  const varc=SC.varc||0.55, c0=clamp(SC.churn+(50-S.g.etu)/100*0.16+S.churn/100,Math.max(0.12,SC.churn*0.5),0.75), I0=S.lastNew||BASE.students*0.35, P0=S.price;
+  const mt=Math.max(1,mkTotal()); const mkF=m.mk?1+(Math.pow(Math.max(0.2,1+m.mk/mt),0.62)-1)*0.8:1;
+  const P1=P0*(1+(m.price||0)/100), c1=clamp(c0+(m.churn||0)/100,0.05,0.9), I1=I0*(m.stu||1)*mkF;
+  let a=0,b=0,Na=S.students,Nb=S.students;
+  for(let t=0;t<3;t++){ Nb=Nb*(1-c0)+I0; Na=Na*(1-c1)+I1; b+=Nb*P0-varc*P0*Math.max(0,Nb-BASE.students); a+=Na*P1-varc*P1*Math.max(0,Na-BASE.students); }
+  return direct+(a-b)/3/1000; }
 
 // ---------- Médias et inscriptions ----------
 function marketSat(){ const over=Math.max(0,S.students-BASE.students)/SC.sat; return clamp(1-0.45*over*over+(S.students<BASE.students?(BASE.students-S.students)/BASE.students*0.3:0),0.5,1.2); } // à la cible de croissance (over=1), chaque inscription coûte ~2 fois plus
@@ -676,7 +842,7 @@ function simulate(){
   const norg=S.yi>=YEARS.length-1?-Math.round(revenue*(0.002+Math.random()*0.006)):(Math.random()<0.5?Math.round(revenue*(Math.random()<0.6?0.001+Math.random()*0.005:0.03+Math.random()*0.05)):0); // dernière saison : une petite dotation, jamais une reprise
   const res=revenue-costs+norg; const pc=revenue>0?res/revenue*100:-100;
   const y={year:S.year,newS,ins,left,churn,students,revenue,costs,interest,res,pct:pc,once:S.yearFx.once,cashBefore:S.cash,media:{...S.media},payroll,mediaK:mkTotal(),platform:BASE.platform,other:BASE.other,measures:S.cost,scaleCost,tuition,revEff,revY:S.yearFx.revY};
-  y.norgeat=norg; S.cash+=res-norg; if(S.cashBackDue){S.cash+=S.cashBackDue; y.cashBack=S.cashBackDue; S.cashBackDue=0;} if(S.cashBack){S.cashBackDue=S.cashBack; S.cashBack=0;} if(SC.amort&&S.debt>0){const am=Math.min(S.debt,SC.amort); S.debt-=am; S.cash-=am; y.amort=am;} y.cash=S.cash;
+  y.norgeat=norg; S.cash+=res-norg; if(S.cashBackDue){S.cash+=S.cashBackDue; y.cashBack=S.cashBackDue; S.cashBackDue=0;} if(S.cashBack){S.cashBackDue=S.cashBack; S.cashBack=0;} if(SC.amort&&S.debt>0){const am=Math.min(S.debt,Math.max(0,SC.amort-(S.amortCut||0))); S.debt-=am; S.cash-=am; y.amort=am;} y.cash=S.cash;
   const prev=S.lastResult;
   let dca=clamp((pc-prev.pct)*0.8,-8,8)+(res>=SC.resTarget?5:pc>=0?3:-3);
   if(S.mode==='fonds'&&pc<0) dca-=6;
@@ -1092,6 +1258,7 @@ function presidentMood(tagOnly){
   else if(up){q=`« Belle progression. L'école est rentable, la courbe monte, et le conseil l'a remarqué. Il reste ${left} à aller chercher d'ici 2030 : gardons ce rythme${SC.growth&&!onTrack?', et remettons de l\'ambition sur le chiffre d\'affaires':''}. Bon travail. »`;t='Nouvelle saison. Le conseil est encourageant : la courbe va dans le bon sens.';}
   else{q=`« Rentable, c'est acquis. Mais on fait du surplace par rapport à l'an dernier, et je crois que vous valez mieux que ça. Il manque ${left} : il faut un coup d'accélérateur cette année. »`;t='Nouvelle saison. Le conseil veut voir la courbe repartir.';}
   if(S.cash<SC.bank*0.6&&!ok) q+=` « Et la trésorerie : ${N.banquier} m'a appelé, poliment, mais inquiet. Réglez ça en priorité. »`;
+  if(!tagOnly&&FLAVOR[SC.id]) q+=' '+FLAVOR[SC.id];
   return tagOnly?t:q;
 }
 function phCadrage(){
@@ -1126,7 +1293,7 @@ function phCadrage(){
 function buildOffer(){
   if(!S.offer) S.offer={};
   if(!S.offer[S.year]){
-    const pool=MEASURES.filter(m=>!S.active.includes(m.id));
+    const pool=MEASURES.filter(m=>!S.active.includes(m.id)&&(!m.sc||m.sc===SC.id));
     const take=(cat,n)=>{const l=pool.filter(m=>m.cat===cat).sort(()=>Math.random()-0.5);return l.slice(0,n).map(m=>m.id);};
     const Q=[[2,3,1,2],[3,3,2,2],[4,4,2,2],[4,4,4,2],[4,4,4,2]][Math.min(S.yi,4)];
     S.offer[S.year]=[...take('rec',Q[0]),...take('dep',Q[1]),...take('str',Q[2]),...take('fou',Q[3])];
@@ -1187,7 +1354,7 @@ function phMedias(){
 function phEnveloppes(){
   if(S.sub===0&&!S.tmp){ S.tmp={list:[pick(ENVELOPPES,'env'),pick(ENVELOPPES,'env')],spring:pickEvent(),springDone:false}; }
   if(!S.tmp.springDone){ const ev=EVENTS[S.tmp.spring]; const fx=eventFx(ev); S.tmp.springFx=fx; sceneShell(`<div class="resbox ${isBadE(ev,fx)?'bad':''}"><b>${ev.ic} ${tx(ev.n)}</b>${tx(ev.t)}${fx.txt?`<div style="margin-top:4px">${fx.txt}</div>`:''}<div>${chips(fx)}</div></div>`,{title:'Imprévu de printemps',tag:'Les directeurs attendent à la porte. Mais d\'abord, une nouvelle.'}); eventModal(ev,fx,'Imprévu de printemps',()=>{S.tmp.springDone=true;save();renderBudget();renderGame();}); return; }
-  const e=ENVELOPPES[S.tmp.list[S.sub]];
+  const e=altOf('env',S.tmp.list[S.sub],ENVELOPPES[S.tmp.list[S.sub]]);
   sceneShell(dlg(e.ic,e.who,e.role,e.ask)+`<div class="prompt">Arbitrage ${S.sub+1}/2 :</div><div id="c"></div>`,{title:'La guerre des enveloppes',tag:'Chaque directeur défend son budget avec conviction, et ira plaider sa cause chez '+N.president+' si vous dites non.',onNext:()=>{S.sub++; if(S.sub>=2) nextPhase(); else {S.decided=false;renderGame();}}});
   choices($('#c'),e.c.map(([l,fx,out])=>[l,fx,out]),null,e.who);
 }
@@ -1214,7 +1381,7 @@ function phGardiens(){
 
 function phAudition(){
   if(S.tmp===null) S.tmp={a:pick(AUDITIONS,'aud')};
-  const a=AUDITIONS[S.tmp.a];
+  const a=altOf('aud',S.tmp.a,AUDITIONS[S.tmp.a]);
   sceneShell(`<div class="kicker" style="color:var(--muted)">${tx(a.kicker)}</div>`+dlg(a.ic,a.who,a.role,a.q)+`<div class="prompt">Votre réponse :</div><div id="c"></div>`,{title:'L\'audition',tag:'Vérité ou langue de bois : chaque mot sera retenu contre vous.'});
   choices($('#c'),a.c.map(([l,fx,out])=>[l,fx,out]),null,'Audition');
 }
@@ -1231,7 +1398,7 @@ function boardVotes(chance,pend){
    {who:N.adminEtu,role:'Représentant des étudiants',mod:sum('etu')*1.2,p:sum('etu')>0?'Le plan améliore la vie étudiante.':'Le plan épargne les étudiants.',c:sum('etu')<0?'Le plan fait payer les étudiants.':'N\'y voit rien pour les étudiants.'},
    {who:N.adminEns,role:'Représente les enseignants',mod:sum('cse')*1.0,p:sum('cse')>0?'Les équipes y gagnent.':'Les équipes sont préservées.',c:sum('cse')<0?'Les équipes trinquent.':'Rien pour les équipes dans ce plan.'},
    {who:N.actionnaire,role:'Actionnaire minoritaire',mod:delta*2-(S.cash<0?8:0),p:delta>0?'Le résultat projeté s\'améliore.':'Fait confiance à la direction.',c:delta<2?'Pas assez d\'effet sur le résultat.':'Doute des chiffres annoncés.'},
-   SC.founder?{who:N.adminIndep,role:'Fondatrice historique · au conseil',mod:sum('etu')*1.5+(pend.some(m=>/tutorat|tuteurs|qualité|cours|alumni/i.test(m.n))?10:0),p:sum('etu')>0?'Le plan respecte les étudiants et la pédagogie.':'Rien ne trahit l\'école qu\'elle a fondée.',c:sum('etu')<0?'« Ce n\'est pas pour ça que j\'ai créé cette école. »':'Attend plus de pédagogie dans ce plan.'}
+   SC.founder?{who:N.adminIndep,role:'Fondatrice historique · au conseil',mod:sum('etu')*1.5+pend.reduce((a,m)=>a+(m.founder||0),0)+(pend.some(m=>/tutorat|tuteurs|qualité|cours|alumni/i.test(m.n))?10:0),p:sum('etu')>0?'Le plan respecte les étudiants et la pédagogie.':'Rien ne trahit l\'école qu\'elle a fondée.',c:sum('etu')<0?'« Ce n\'est pas pour ça que j\'ai créé cette école. »':'Attend plus de pédagogie dans ce plan.'}
    :{who:N.adminIndep,role:'Administratrice indépendante',mod:-pend.length*1.5-cap*0.2+(methode?12:0),p:methode?'Salue la transparence et la méthode.':'Plan raisonnable dans son périmètre.',c:pend.length>5?'Trop de chantiers à la fois.':'Manque de méthode et d\'indicateurs.'},
    {who:N.daf,role:'DAF et actionnaire',mod:delta*1.5+(S.cash<SC.bank*0.1?-10:S.cash>0?5:0)+(pend.length>6?-6:0),p:delta>2?'Les comptes y gagnent, il signe.':'Un plan qu\'il peut financer.',c:S.cash<SC.bank*0.1?'Ne sait pas comment financer le plan.':'Les chiffres ne tiennent pas à ses yeux.'},
    {who:N.banquier,role:'Censeur · '+N.banque,mod:(S.cash<SC.bank*0.2?-15:S.cash<0?-5:5)+(S.flags.plan_treso?6:0)+once/(200*SC.scale),p:'La trésorerie reste sous contrôle.',c:S.cash<SC.bank*0.2?'La trésorerie est hors des clauses du prêt.':once<-1000?'S\'inquiète des sorties de trésorerie immédiates.':'Juge le plan trop risqué pour la banque.'},
@@ -1266,7 +1433,7 @@ function phVote(){
   const V=S.tmp.votes||{list:[],ok:false}; const ok=V.ok||S.tmp.forced;
   const votesHtml=V.list.length?`<div class="tw"><table><tr><th>Administrateur</th><th>Vote</th><th>Motif</th></tr>${V.list.map(v=>`<tr><td><b>${v.who}</b><br><span class="muted" style="font-size:11px">${v.role}</span></td><td style="color:${v.pour?'var(--green)':'var(--rose)'};white-space:nowrap"><b>${v.pour?'✓ Pour':'✗ Contre'}</b></td><td style="text-align:left;color:var(--muted)">${v.why}</td></tr>`).join('')}<tr><td colspan="3" style="text-align:left"><b>${V.pour} pour · ${V.contre} contre</b>${V.tie?' · égalité : la voix du président tranche':''}</td></tr></table></div>`:'';
   if(ok){
-    if(!S.decided){ if(pend.some(m=>m.cat==='fou')) award('poker'); if(V.list.length&&V.list.every(v=>v.pour)) award('unanime'); if(!S.tmp.forced&&V.list.length&&V.pour-V.contre<=1) award('serre'); if(pend.filter(m=>m.cat==='dep').length>=3) award('tronconneuse'); if(S.tmp.forced) S.forcedOnce=true; if(pend.some(m=>m.price>0)) S.priceUp=true; S.nbStr=(S.nbStr||0)+pend.filter(m=>m.cat==='str').length; if(S.nbStr>=3) award('reformateur'); pend.forEach(m=>{(S.log=S.log||[]).push({y:S.year,kind:'mesure',n:tx(m.n),eff:Math.round(yearly(m)),cap:m.cap||0,heart:m.g?Object.values(m.g).reduce((a,b)=>a+b,0):0}); apply({cap:m.cap,g:m.g,rev:m.rev,cost:m.cost,mk:m.mk,price:m.price,stu:m.stu,churn:m.churn,hc:m.hc,once:m.once,debt:m.debt,rate:m.rate,flag:m.flag},m.n); S.active.push(m.id);}); S.pending=[]; S.decided=true; save(); renderBudget(); renderGauges(); }
+    if(!S.decided){ if(pend.some(m=>m.cat==='fou')) award('poker'); if(V.list.length&&V.list.every(v=>v.pour)) award('unanime'); if(!S.tmp.forced&&V.list.length&&V.pour-V.contre<=1) award('serre'); if(pend.filter(m=>m.cat==='dep').length>=3) award('tronconneuse'); if(S.tmp.forced) S.forcedOnce=true; if(pend.some(m=>m.price>0)) S.priceUp=true; S.nbStr=(S.nbStr||0)+pend.filter(m=>m.cat==='str').length; if(S.nbStr>=3) award('reformateur'); pend.forEach(m=>{(S.log=S.log||[]).push({y:S.year,kind:'mesure',n:tx(m.n),eff:Math.round(yearly(m)),cap:m.cap||0,heart:m.g?Object.values(m.g).reduce((a,b)=>a+b,0):0}); apply({cap:m.cap,g:m.g,rev:m.rev,cost:m.cost,mk:m.mk,price:m.price,stu:m.stu,churn:m.churn,hc:m.hc,once:m.once,debt:m.debt,rate:m.rate,flag:m.flag,amortCut:m.amortCut},m.n); S.active.push(m.id);}); S.pending=[]; S.decided=true; save(); renderBudget(); renderGauges(); }
     if(!S.tmp.forced&&!S.tmp.party){S.tmp.party=true;confetti();}
     sceneShell(votesHtml+`<div class="resbox ${S.tmp.forced?'bad':'pop'}"><b>${S.tmp.forced?'Plan imposé':'Plan adopté'}</b>${S.tmp.forced?'Vous avez usé de votre pouvoir de direction. Le plan s\'applique, mais le conseil et le CSE s\'en souviendront.':'Le conseil adopte le plan. Les mesures entrent en vigueur immédiatement et le capital est débité.'}</div>`,{title:S.tmp.forced?'Le passage en force':'Le plan est adopté',tag:'Les mesures entrent en vigueur. Reste à les faire vivre.',ready:true});
     return;
