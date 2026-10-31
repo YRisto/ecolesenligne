@@ -36,6 +36,11 @@ button:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
 .sbtn{background:#141c36;color:var(--fg);border:1px solid var(--line);border-radius:8px;font-weight:700;padding:11px 18px}
 .sbtn:hover{border-color:var(--gold)}
 .sbtn:disabled{opacity:.4;cursor:not-allowed}
+.bgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px}
+.bdg{background:var(--card2);border:1px solid var(--line);border-radius:12px;padding:14px 10px;text-align:center;display:grid;gap:4px;justify-items:center}
+.bdg .ic{font-size:34px;line-height:1} .bdg b{font-size:13px;color:var(--fg)} .bdg small{font-size:11px;color:var(--muted);line-height:1.35} .bdg em{font-size:10px;color:var(--gold);font-style:normal}
+.bdg.lock{opacity:.45;filter:grayscale(1)} .bdg.on{border-color:var(--gold);box-shadow:0 0 0 1px rgba(201,162,74,.35) inset}
+.toast.badge{border-color:var(--gold)} .toast.badge b,.toast.badge small{text-transform:none;letter-spacing:0} .toast.badge b{color:var(--gold-hi)}
 .rbtn{background:var(--red);color:#fff;border:0;border-radius:8px;font-weight:800;padding:11px 22px}
 .hidden{display:none!important}
 
@@ -688,6 +693,59 @@ function checkOver(){
   return null;
 }
 
+// ---------- Badges ----------
+const BADGES=[
+ {id:'first',ic:'🎬',n:'Première saison',d:'Terminer une saison complète.'},
+ {id:'five',ic:'🧭',n:'Cinq saisons',d:'Aller au bout des cinq exercices.'},
+ {id:'win',ic:'🏆',n:'Mandat rempli',d:'Atteindre l\'objectif du conseil fin 2030.'},
+ {id:'etu',ic:'💚',n:'Chouchou des étudiants',d:'Finir une saison avec les étudiants à 80 % ou plus.'},
+ {id:'com',ic:'💙',n:'Patron·ne des ventes',d:'Finir une saison avec les commerciaux à 80 % ou plus.'},
+ {id:'cse',ic:'💜',n:'Paix sociale',d:'Finir une saison avec le CSE à 80 % ou plus.'},
+ {id:'cap',ic:'⚡',n:'Pleins pouvoirs',d:'Finir une saison avec 90 points de capital ou plus.'},
+ {id:'poker',ic:'🃏',n:'Joueur·se de poker',d:'Faire adopter un coup de poker.'},
+ {id:'unanime',ic:'🗳️',n:'Plébiscite',d:'Obtenir un vote unanime du conseil.'},
+ {id:'phoenix',ic:'🔥',n:'Phénix',d:'Remplir le mandat après être descendu·e sous 20 points de capital.'},
+ {id:'turn',ic:'📈',n:'Redressement',d:'Passer d\'une année en perte à une année bénéficiaire.'},
+ {id:'cash',ic:'🏦',n:'Banquier serein',d:'Finir une saison avec une trésorerie supérieure au quart du chiffre d\'affaires.'},
+ {id:'nodebt',ic:'🪙',n:'Sans dette',d:'Rembourser toute la dette de l\'école.'},
+ {id:'prime',ic:'🤝',n:'Parole tenue',d:'Promettre une prime de participation en janvier et la verser en décembre.'},
+ {id:'norgeat',ic:'🧮',n:'Effet Norgeat',d:'Bénéficier d\'une reprise de provision supérieure à 2 % du chiffre d\'affaires.'},
+ {id:'sober',ic:'🧊',n:'Sobriété',d:'Passer une saison sans aucune nouvelle mesure et rester rentable.'},
+ {id:'tour',ic:'🌍',n:'Tour des écoles',d:'Terminer une partie dans chacun des cinq scénarios.'},
+ {id:'slam',ic:'👑',n:'Grand chelem',d:'Remplir le mandat dans les cinq scénarios.'},
+ {id:'fired',ic:'🎭',n:'Sortie de scène',d:'Se faire révoquer par le conseil. Ça arrive aux meilleurs.'},
+];
+function badges(){ try{return JSON.parse(localStorage.getItem('bde-badges')||'{}');}catch(e){return {};} }
+function award(id){
+  const B=badges(); if(B[id]) return; const b=BADGES.find(x=>x.id===id); if(!b) return;
+  B[id]={date:new Date().toISOString().slice(0,10),dg:S.name||'',sc:SC?SC.name:'' }; try{localStorage.setItem('bde-badges',JSON.stringify(B));}catch(e){}
+  const t=document.createElement('div'); t.className='toast badge'; t.innerHTML=`<b>🎖️ Badge débloqué : ${b.ic} ${b.n}</b><small>${b.d}</small>`;
+  const box=document.getElementById('toasts'); if(box){while(box.children.length>=4) box.firstChild.remove(); box.appendChild(t); setTimeout(()=>t.remove(),5000);}
+}
+function badgeSeason(y){ // appelé après la simulation de l'année
+  award('first'); if(S.g.etu>=80) award('etu'); if(S.g.com>=80) award('com'); if(S.g.cse>=80) award('cse'); if(S.g.ca>=90) award('cap');
+  if(S.cash>y.revenue*0.25) award('cash'); if(BASE.debt>0&&S.debt<=0) award('nodebt');
+  if(y.norgeat>y.revenue*0.02) award('norgeat');
+  const prev=S.history.length>1?S.history[S.history.length-2]:null; if(prev&&prev.pct<0&&y.pct>=0) award('turn');
+  if(!(S.log||[]).some(x=>x.kind==='mesure'&&x.y===S.year)&&y.pct>=0) award('sober');
+  if(S.g.ca<20) S.lowCap=true;
+}
+function badgeFinal(statut){
+  const B=badges(); const done=B.done||{}; done[SC.id]={statut,date:new Date().toISOString().slice(0,10)}; B.done=done; try{localStorage.setItem('bde-badges',JSON.stringify(B));}catch(e){}
+  if(!S.over.lost) award('five'); if(statut==='objectif'){award('win'); if(S.lowCap) award('phoenix');} if(statut==='perdu') award('fired');
+  if(SCENARIOS.every(c=>done[c.id])) award('tour'); if(SCENARIOS.every(c=>done[c.id]&&done[c.id].statut==='objectif')) award('slam');
+}
+function renderBadges(){
+  const B=badges(); const n=BADGES.filter(b=>B[b.id]).length;
+  app().innerHTML=`<div class="center"><div class="panel wide">
+    <div class="kicker" style="text-align:center">Le Jeu du DG · Badges</div>
+    <h1 class="serif title">🎖️ Vos badges</h1>
+    <p class="muted" style="text-align:center;margin-top:-6px">${n} badge${n>1?'s':''} sur ${BADGES.length} débloqué${n>1?'s':''} sur cet appareil.</p>
+    <div class="bgrid">${BADGES.map(b=>{const u=B[b.id];return `<div class="bdg ${u?'on':'lock'}"><span class="ic">${u?b.ic:'🔒'}</span><b>${b.n}</b><small>${b.d}</small>${u?`<em>${u.dg?u.dg+' · ':''}${u.sc||''}${u.date?' · '+u.date.split('-').reverse().join('/'):''}</em>`:''}</div>`;}).join('')}</div>
+    <div style="display:flex;justify-content:center" id="b"></div></div></div>`;
+  $('#b').appendChild(btn('↩ Retour',()=>{S.screen=S.hofBack||'intro';render();},'sbtn'));
+}
+
 // ---------- Hall of Fame ----------
 const API='/api/jeudg';
 function localScores(){ try{return JSON.parse(localStorage.getItem('bde-hof')||'[]');}catch(e){return [];} }
@@ -741,6 +799,7 @@ function render(){
   if(S.screen==='profile') return renderProfile();
   if(S.screen==='title') return renderTitle();
   if(S.screen==='hof') return renderHof();
+  if(S.screen==='badges') return renderBadges();
   if(S.screen==='final'||S.over) return renderFinal();
   renderGame();
 }
@@ -766,6 +825,7 @@ function renderIntro(){
   </div></div>`;
   $('#b').appendChild(btn('▶ Choisir mon école',()=>{S.screen='scenario';render();}));
   $('#b').appendChild(btn('🏆 Hall of Fame',()=>{S.hofBack='intro';S.screen='hof';render();},'sbtn'));
+  $('#b').appendChild(btn('🎖️ Badges',()=>{S.hofBack='intro';S.screen='badges';render();},'sbtn'));
 }
 
 function renderScenario(){
@@ -1100,7 +1160,7 @@ function phVote(){
   const V=S.tmp.votes||{list:[],ok:false}; const ok=V.ok||S.tmp.forced;
   const votesHtml=V.list.length?`<div class="tw"><table><tr><th>Administrateur</th><th>Vote</th><th>Motif</th></tr>${V.list.map(v=>`<tr><td><b>${v.who}</b><br><span class="muted" style="font-size:11px">${v.role}</span></td><td style="color:${v.pour?'var(--green)':'var(--rose)'};white-space:nowrap"><b>${v.pour?'✓ Pour':'✗ Contre'}</b></td><td style="text-align:left;color:var(--muted)">${v.why}</td></tr>`).join('')}<tr><td colspan="3" style="text-align:left"><b>${V.pour} pour · ${V.contre} contre</b>${V.tie?' · égalité : la voix du président tranche':''}</td></tr></table></div>`:'';
   if(ok){
-    if(!S.decided){ pend.forEach(m=>{(S.log=S.log||[]).push({y:S.year,kind:'mesure',n:m.n,eff:Math.round(yearly(m)),cap:m.cap||0,heart:m.g?Object.values(m.g).reduce((a,b)=>a+b,0):0}); apply({cap:m.cap,g:m.g,rev:m.rev,cost:m.cost,mk:m.mk,price:m.price,stu:m.stu,churn:m.churn,hc:m.hc,once:m.once,debt:m.debt,rate:m.rate,flag:m.flag},m.n); S.active.push(m.id);}); S.pending=[]; S.decided=true; save(); renderBudget(); renderGauges(); }
+    if(!S.decided){ if(pend.some(m=>m.cat==='fou')) award('poker'); if(V.list.length&&V.list.every(v=>v.pour)) award('unanime'); pend.forEach(m=>{(S.log=S.log||[]).push({y:S.year,kind:'mesure',n:m.n,eff:Math.round(yearly(m)),cap:m.cap||0,heart:m.g?Object.values(m.g).reduce((a,b)=>a+b,0):0}); apply({cap:m.cap,g:m.g,rev:m.rev,cost:m.cost,mk:m.mk,price:m.price,stu:m.stu,churn:m.churn,hc:m.hc,once:m.once,debt:m.debt,rate:m.rate,flag:m.flag},m.n); S.active.push(m.id);}); S.pending=[]; S.decided=true; save(); renderBudget(); renderGauges(); }
     if(!S.tmp.forced&&!S.tmp.party){S.tmp.party=true;confetti();}
     sceneShell(votesHtml+`<div class="resbox ${S.tmp.forced?'bad':'pop'}"><b>${S.tmp.forced?'Plan imposé':'Plan adopté'}</b>${S.tmp.forced?'Vous avez usé de votre pouvoir de direction. Le plan s\'applique, mais le conseil et le CSE s\'en souviendront.':'Le conseil adopte le plan. Les mesures entrent en vigueur immédiatement et le capital est débité.'}</div>`,{title:S.tmp.forced?'Le passage en force':'Le plan est adopté',tag:'Les mesures entrent en vigueur. Reste à les faire vivre.',ready:true});
     return;
@@ -1128,7 +1188,7 @@ function phEvent(silent){
   if(T.done<2&&!silent){ eventModal(e,T.fx[i],'Imprévu de la rentrée · '+(T.done+1)+'/2',()=>{T.done++;save();renderBudget();renderGauges();if(T.done>=2) S.decided=true; phEvent();}); }
 }
 function phResultats(){
-  if(!S.decided){ S.tmp={y:simulate()}; if(S.tmp.y.norgeat){(S.log=S.log||[]).push({y:S.year,kind:'imprévu',n:'Effet Norgeat : reprise de provision '+kE(S.tmp.y.norgeat),eff:S.tmp.y.norgeat,cap:0,heart:0,bad:false});} S.decided=true; save(); renderGauges(); renderBudget(); postScore('saison',{}); }
+  if(!S.decided){ S.tmp={y:simulate()}; badgeSeason(S.tmp.y); if(S.tmp.y.norgeat){(S.log=S.log||[]).push({y:S.year,kind:'imprévu',n:'Effet Norgeat : reprise de provision '+kE(S.tmp.y.norgeat),eff:S.tmp.y.norgeat,cap:0,heart:0,bad:false});} S.decided=true; save(); renderGauges(); renderBudget(); postScore('saison',{}); }
   const y=S.tmp.y; const ins=y.ins;
   const norgHtml=y.norgeat?`<div class="resbox" style="background:#2a2410;border-color:var(--gold-dark)"><b>🧮 L'effet Norgeat : ${kE(y.norgeat)} sur le résultat</b>« Ah, j'oubliais. Une provision de ${fmt(y.norgeat)} k€ que j'avais passée il y a quelque temps n'avait plus lieu d'être. Je l'ai reprise hier soir, juste avant la clôture. ${y.norgeat/y.revenue>0.02?'Oui, c\'est beaucoup. Mais si tu te souviens…':'Trois fois rien, mais c\'est toujours ça.'} » <span class="muted">Écriture comptable : le résultat s'améliore, la trésorerie ne bouge pas.</span></div>`:'';
   sceneShell(dlg(DAF,N.daf,N.dafRole+' · présente les comptes',`« Résultat net ${S.year} : <b style="color:${y.pct<0?'var(--rose)':'var(--green)'}">${mE(y.res)}</b> (${pct(y.pct)}). ${y.res>=SC.resTarget?'Objectif de résultat atteint cette année.':y.pct>=0?'L\'école est à l\'équilibre. Reste à construire la marge.':'Encore une année en perte.'} ${N.president} ${y.dca>=0?'vous accorde '+y.dca+' points de capital, avec un mot de félicitations.':'vous retire '+(-y.dca)+' points de capital, sans plaisir, mais sans détour.'} »`)+
@@ -1168,12 +1228,12 @@ function phShow(){
   const P=S.prime&&S.prime.year===S.year?S.prime:null; const primeK=Math.round(S.staff*1.1);
   let primeHtml='';
   if(P&&!P.resolved){
-    if(P.promise==='cond'){ P.resolved=true; if(lr.pct>=0){apply({_abs:true,once:-primeK,g:{cse:8,com:4}},'Prime de participation'); primeHtml=`<div class="resbox"><b>💶 Prime de participation versée</b>L'école est à l'équilibre : la prime promise est versée, ${fmt(primeK)} k€.${chips({once:-primeK,g:{cse:8,com:4}})}</div>`;} else {apply({g:{cse:-4}},'Prime de participation'); primeHtml=`<div class="resbox bad"><b>💶 Pas de prime cette année</b>L'école reste en perte : la condition n'est pas remplie. Les équipes l'avaient compris, sans l'accepter.${chips({g:{cse:-4}})}</div>`;} }
+    if(P.promise==='cond'){ P.resolved=true; if(lr.pct>=0){apply({_abs:true,once:-primeK,g:{cse:8,com:4}},'Prime de participation'); award('prime'); primeHtml=`<div class="resbox"><b>💶 Prime de participation versée</b>L'école est à l'équilibre : la prime promise est versée, ${fmt(primeK)} k€.${chips({once:-primeK,g:{cse:8,com:4}})}</div>`;} else {apply({g:{cse:-4}},'Prime de participation'); primeHtml=`<div class="resbox bad"><b>💶 Pas de prime cette année</b>L'école reste en perte : la condition n'est pas remplie. Les équipes l'avaient compris, sans l'accepter.${chips({g:{cse:-4}})}</div>`;} }
     else if(P.promise==='non'){ P.resolved=true; primeHtml=`<div class="resbox neu"><b>💶 Pas de prime, comme annoncé</b>Personne n'attendait rien. Personne n'applaudit non plus.</div>`; }
   }
   if(P&&P.promise==='oui'&&!P.resolved){
     sceneShell(dlg('🎤',N.comm,'Directeur de la communication · coulisses de la scène',`« Avant de monter sur scène : vous aviez promis une prime de participation à tous en janvier. Elle coûte ${fmt(primeK)} k€. ${S.cash<-3000?'La trésorerie est dans le rouge vif.':''} On la verse ? »`)+`<div class="prompt">La promesse de janvier :</div><div id="c"></div>`,{title:'Le grand show de fin d\'année',tag:'Une scène, des projecteurs, 400 salariés. Et une promesse à tenir.'});
-    choices($('#c'),[["Verser la prime à tous",{_abs:true,once:-primeK,g:{cse:10,com:6,ca:-2}},"Promesse tenue. La salle le saura avant même que vous ne parliez."],["Ne pas la verser",{g:{cse:-18,com:-10,ca:-5}},"Promesse trahie. Le show commence dans un silence glacial, et le CSE prépare un tract."]],()=>{P.resolved=true;save();renderGame();},'Prime de participation');
+    choices($('#c'),[["Verser la prime à tous",()=>{award('prime');return {_abs:true,once:-primeK,g:{cse:10,com:6,ca:-2}};},"Promesse tenue. La salle le saura avant même que vous ne parliez."],["Ne pas la verser",{g:{cse:-18,com:-10,ca:-5}},"Promesse trahie. Le show commence dans un silence glacial, et le CSE prépare un tract."]],()=>{P.resolved=true;save();renderGame();},'Prime de participation');
     return;
   }
   sceneShell(primeHtml+dlg('🎤',N.comm,'Directeur de la communication · coulisses de la scène',`« 400 salariés sont connectés, 200 dans la salle, ${N.president} au premier rang. ${better?'Les résultats s\'améliorent.':'Les résultats n\'ont pas progressé.'} ${layoffs?'Des postes ont été supprimés cette année.':''} Qu'allez-vous leur dire ? »`)+`<div class="prompt">Votre show de fin d'année :</div><div id="c"></div>`,{title:'Le grand show de fin d\'année',tag:'Une scène, des projecteurs, 400 salariés. Le moment de vérité de l\'année.'});
@@ -1211,7 +1271,7 @@ function renderFinal(){
   const lr=S.lastResult; let verdict,text,cls;
   const grown=!SC.growth||lr.rev>=SC.caTarget;
   const statut=S.over.lost?'perdu':(lr.res>=SC.resTarget&&grown)?'objectif':lr.pct>=0?'equilibre':'manque';
-  if(!S.over.posted){S.over.posted=true;postScore('partie',{statut});}
+  if(!S.over.posted){S.over.posted=true;postScore('partie',{statut});badgeFinal(statut);}
   if(S.over.lost){verdict="Fin de série";text=S.over.why;cls='bad';}
   else if(lr.res>=SC.resTarget&&grown){verdict="Objectif atteint";text=`Fin 2030, ${N.ecole} affiche ${mE(lr.res)} de résultat net (${pct(lr.pct)}), ${(lr.rev/1000).toFixed(1).replace('.',',')} M€ de chiffre d'affaires, ${fmt(S.students)} ${SC.unit} et ${fmt(S.staff)} salariés. Dix ans plus tard, les anciens élèves se souviennent ${S.g.etu>60?'d\'une école qui a tenu ses promesses.':'surtout des années de rigueur.'}`;cls='';}
   else if(lr.pct>=0){verdict="Demi-succès";text=lr.res>=SC.resTarget?`${N.ecole} tient ${mE(lr.res)} de résultat, mais le chiffre d'affaires (${(lr.rev/1000).toFixed(1).replace('.',',')} M€) reste loin des ${(SC.caTarget/1000).toFixed(0)} M€ demandés. Rentable, pas assez ambitieux : ${N.president} vous garde, et attend la suite.`:`${N.ecole} est rentable (${mE(lr.res)}) mais loin des ${tgt()} demandés. ${N.president} vous garde, sans cacher sa déception.`;cls='neu';}
@@ -1228,6 +1288,7 @@ function renderFinal(){
     <div style="display:flex;justify-content:center;gap:10px;flex-wrap:wrap" id="b"></div></div></div>`;
   $('#b').appendChild(btn('↺ Rejouer la série',()=>{newGame(S.sc);S.screen='intro';render();}));
   $('#b').appendChild(btn('🏆 Hall of Fame',()=>{S.hofBack='final';S.screen='hof';render();},'sbtn'));
+  $('#b').appendChild(btn('🎖️ Badges',()=>{S.hofBack='final';S.screen='badges';render();},'sbtn'));
   $('#b').appendChild(btn('📣 Partager mon score',()=>shareScore(verdict),'sbtn'));
 }
 function shareScore(verdict){
