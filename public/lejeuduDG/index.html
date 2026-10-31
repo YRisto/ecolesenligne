@@ -791,9 +791,10 @@ async function fetchScores(type,annee){
 }
 function renderHof(){
   if(!S.hof) S.hof={type:'saison',annee:2026};
-  const h=S.hof;
+  if(S.hofSc===undefined) S.hofSc=-1;
+  const h=S.hof; const scSel=S.hofSc>=0?SCENARIOS[S.hofSc]:null;
   app().innerHTML=`<div class="center"><div class="panel wide">
-    <div class="kicker" style="text-align:center">${N.ecole} · Hall of Fame</div>
+    <div class="kicker" style="text-align:center">Le Jeu du DG · Hall of Fame</div>
     <h1 class="serif title">🏆 Les meilleurs DG</h1>
     <div class="cat"><div class="tabs" id="sctabs"></div></div>
     <div class="cat"><div class="tabs" id="tabs"></div></div>
@@ -801,12 +802,12 @@ function renderHof(){
     <p class="credit" id="src"></p>
     <div style="display:flex;justify-content:center" id="b"></div></div></div>`;
   const tabs=[['saison',2026,'Saison 1 · 2026'],['saison',2027,'Saison 2 · 2027'],['saison',2028,'Saison 3 · 2028'],['saison',2029,'Saison 4 · 2029'],['saison',2030,'Saison 5 · 2030'],['partie',0,'🏁 Parties complètes']];
-  const st=$('#sctabs'); SCENARIOS.forEach((c,i)=>st.appendChild(btn(c.ic+' '+c.name,()=>{applyScenario(i);S.sc=i;renderHof();},SC===c?'tab on':'tab')));
+  const st=$('#sctabs'); st.appendChild(btn('🌍 Toutes les écoles',()=>{S.hofSc=-1;renderHof();},S.hofSc<0?'tab on':'tab')); SCENARIOS.forEach((c,i)=>st.appendChild(btn(c.ic+' '+c.name,()=>{S.hofSc=i;renderHof();},S.hofSc===i?'tab on':'tab')));
   const tb=$('#tabs'); tabs.forEach(([t,a,l])=>tb.appendChild(btn(l,()=>{S.hof={type:t,annee:a};renderHof();},(h.type===t&&h.annee===a)?'tab on':'tab')));
   $('#b').appendChild(btn('↩ Retour',()=>{S.screen=S.hofBack||'intro';render();},'sbtn'));
   fetchScores(h.type,h.type==='saison'?h.annee:0).then(({rows,online})=>{
-    $('#src').textContent=online?'Classement partagé entre tous les joueurs · scénario : '+SC.name+'.':'Classement local (cet appareil seulement) : le serveur de scores est injoignable.';
-    rows=rows.filter(r=>!r.profil||r.profil.startsWith(SC.name)||!SCENARIOS.some(c=>r.profil.startsWith(c.name)));
+    $('#src').textContent=online?'Classement partagé entre tous les joueurs · '+(scSel?'scénario : '+scSel.name:'toutes les écoles')+'.':'Classement local (cet appareil seulement) : le serveur de scores est injoignable.';
+    if(scSel) rows=rows.filter(r=>!r.profil||r.profil.startsWith(scSel.name)||!SCENARIOS.some(c=>r.profil.startsWith(c.name)));
     if(!rows.length){$('#hof').innerHTML='<p class="muted" style="text-align:center">Aucun score pour l\'instant. Soyez le premier DG inscrit !</p>';return;}
     const st={objectif:'🏆 Objectif atteint',equilibre:'🟡 Équilibre',manque:'🔴 Objectif manqué',perdu:'💀 Révoqué·e'};
     $('#hof').innerHTML=`<table><tr><th>#</th><th>DG</th><th>Profil</th>${h.type==='partie'?'<th>Issue</th>':''}<th>Résultat net</th><th>⚡</th><th>Étudiants</th><th>Trésorerie</th></tr>${rows.map((r,i)=>`<tr${r.dg===S.name?' style="color:var(--gold-hi)"':''}><td class="num">${i+1}</td><td><b>${String(r.dg).replace(/[<>&]/g,'')}</b></td><td class="muted">${String(r.profil||'').replace(/[<>&]/g,'')}</td>${h.type==='partie'?`<td>${st[r.statut]||''}</td>`:''}<td class="num" style="color:${r.resultat_pct<0?'var(--rose)':'var(--green)'}"><b>${pct(+r.resultat_pct)}</b></td><td class="num">${r.capital??'–'}</td><td class="num">${r.etudiants?fmt(r.etudiants):'–'}</td><td class="num">${r.tresorerie_k!=null?mE(r.tresorerie_k):'–'}</td></tr>`).join('')}</table>`;
