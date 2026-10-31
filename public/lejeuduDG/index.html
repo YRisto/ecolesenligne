@@ -219,7 +219,7 @@ th{font-size:10px;font-weight:900;letter-spacing:.1em;text-transform:uppercase;c
 .overlay{position:fixed;inset:0;background:rgba(5,8,18,.75);display:flex;align-items:center;justify-content:center;z-index:60;padding:16px}
 .modal{background:#151a2e;border:1.5px solid var(--green);border-radius:14px;padding:26px 28px;max-width:460px;width:100%;text-align:center;display:grid;gap:8px;justify-items:center;box-shadow:0 20px 60px rgba(0,0,0,.6)}
 .modal.bad{border-color:var(--rose)} .modal.gold{border-color:var(--gold);text-align:left;justify-items:stretch}
-.modal .ic{font-size:36px}
+.modal .ic{font-size:36px} .modal .ic svg{width:96px;height:96px}
 .modal .ml{font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);font-weight:700}
 .modal .mt{font-size:15px;color:var(--fg);max-width:40ch}
 .modal .eff{font-weight:800;color:var(--green);font-size:14px} .modal.bad .eff{color:var(--rose)}
@@ -759,6 +759,7 @@ function badges(){ try{return JSON.parse(localStorage.getItem('bde-badges')||'{}
 function award(id){
   const B=badges(); if(B[id]) return; const b=BADGES.find(x=>x.id===id); if(!b) return;
   B[id]={date:new Date().toISOString().slice(0,10),dg:S.name||'',sc:SC?SC.name:'' }; try{localStorage.setItem('bde-badges',JSON.stringify(B));}catch(e){}
+  if(S.name){ try{fetch('/api/jeudg/trophees',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({dg:S.name,trophee:id,scenario:SC?SC.name:''})}).catch(()=>{});}catch(e){} }
   (S.trophSession=S.trophSession||[]).push(id); const t=document.createElement('div'); t.className='toast badge'; t.innerHTML=`<b>🏅 Trophée débloqué : ${b.ic} ${b.n}</b><small>${b.d}</small><small style="opacity:.7">Touchez pour fermer · visible dans la Galerie des trophées</small>`; t.style.cursor='pointer'; t.addEventListener('click',()=>t.remove());
   const box=document.getElementById('toasts'); if(box){while(box.children.length>=4) box.firstChild.remove(); box.appendChild(t); setTimeout(()=>t.remove(),20000);}
 }
@@ -781,9 +782,21 @@ function renderBadges(){
     <div class="kicker" style="text-align:center">Le Jeu du DG · Galerie des trophées</div>
     <h1 class="serif title">🏅 Vos trophées</h1>
     <p class="muted" style="text-align:center;margin-top:-6px">${n} trophée${n>1?'s':''} sur ${BADGES.length} débloqué${n>1?'s':''} sur cet appareil.</p>
-    <div class="bgrid">${BADGES.map(b=>{const u=B[b.id];return `<div class="bdg ${u?'on':'lock'}"><span class="ic">${BADGE_ART[b.id]||b.ic}</span><b>${b.n}</b><small>${b.d}</small>${u?`<em>${u.dg?u.dg+' · ':''}${u.sc||''}${u.date?' · '+u.date.split('-').reverse().join('/'):''}</em>`:''}</div>`;}).join('')}</div>
+    <p class="muted" style="text-align:center;margin-top:-10px;font-size:12px">Touchez un trophée pour voir les DG qui l'ont décroché.</p>
+    <div class="bgrid">${BADGES.map(b=>{const u=B[b.id];return `<div class="bdg ${u?'on':'lock'}" data-id="${b.id}" style="cursor:pointer"><span class="ic">${BADGE_ART[b.id]||b.ic}</span><b>${b.n}</b><small>${b.d}</small><small class="cnt" data-cnt="${b.id}"></small>${u?`<em>${u.dg?u.dg+' · ':''}${u.sc||''}${u.date?' · '+u.date.split('-').reverse().join('/'):''}</em>`:''}</div>`;}).join('')}</div>
     <div style="display:flex;justify-content:center" id="b"></div></div></div>`;
   $('#b').appendChild(btn('↩ Retour',()=>{S.screen=S.hofBack||'intro';render();},'sbtn'));
+  document.querySelectorAll('.bdg[data-id]').forEach(el=>el.addEventListener('click',()=>trophyHolders(el.dataset.id)));
+  fetch('/api/jeudg/trophees',{cache:'no-store'}).then(r=>r.json()).then(j=>{ if(!j.counts) return; document.querySelectorAll('[data-cnt]').forEach(el=>{const c=j.counts[el.dataset.cnt]||0; el.textContent=c?`🧑‍💼 ${c} DG l'${c>1?'ont':'a'} décroché`:'Personne ne l\'a encore décroché';}); }).catch(()=>{});
+}
+function trophyHolders(id){
+  const b=BADGES.find(x=>x.id===id); if(!b) return;
+  modal(`<div class="ic" style="width:96px;height:96px;margin:0 auto">${BADGE_ART[id]||b.ic}</div><div class="ml">Trophée</div><div class="mt"><b>${b.n}</b><br><span class="muted">${b.d}</span></div><div class="tw" id="th" style="max-height:40vh;overflow:auto;text-align:left"><p class="muted" style="text-align:center">Chargement…</p></div><div style="margin-top:8px"><button class="mbtn" id="mc">Fermer</button></div>`,'gold');
+  document.getElementById('mc').onclick=closeModal;
+  fetch('/api/jeudg/trophees?id='+id,{cache:'no-store'}).then(r=>r.json()).then(j=>{ const box=document.getElementById('th'); if(!box) return; const rows=j.rows||[];
+    if(!rows.length){box.innerHTML='<p class="muted" style="text-align:center">Personne ne l\'a encore décroché. À vous de jouer.</p>';return;}
+    box.innerHTML=`<table><tr><th>#</th><th>DG</th><th>École</th><th>Date</th></tr>${rows.map((r,i)=>`<tr${r.dg===S.name?' style="color:var(--gold-hi)"':''}><td class="num">${i+1}</td><td><b>${String(r.dg).replace(/[<>&]/g,'')}</b></td><td class="muted">${String(r.scenario||'').replace(/[<>&]/g,'')}</td><td class="num">${(r.created_at||'').slice(0,10).split('-').reverse().join('/')}</td></tr>`).join('')}</table>`;
+  }).catch(()=>{const box=document.getElementById('th'); if(box) box.innerHTML='<p class="muted" style="text-align:center">Serveur injoignable.</p>';});
 }
 
 // ---------- Hall of Fame ----------
