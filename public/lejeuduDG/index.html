@@ -794,8 +794,8 @@ function postScore(type,extra){
   try{const l=localScores().filter(x=>!(x.partie_id===row.partie_id&&x.type===row.type&&x.saison===row.saison)); l.push({...row,created_at:new Date().toISOString()}); localStorage.setItem('bde-hof',JSON.stringify(l.slice(-300)));}catch(e){}
   try{fetch(API,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(row)}).catch(()=>{});}catch(e){}
 }
-async function fetchScores(type,annee){
-  try{const r=await fetch(API+'?type='+type+(annee?'&annee='+annee:''),{cache:'no-store'}); if(r.ok){const j=await r.json(); if(!j.offline&&!j.error) return {rows:j.rows,online:true};}}catch(e){}
+async function fetchScores(type,annee,archive){
+  try{const r=await fetch(API+'?type='+type+(annee?'&annee='+annee:'')+(archive?'&archive=1':''),{cache:'no-store'}); if(r.ok){const j=await r.json(); if(!j.offline&&!j.error) return {rows:j.rows,online:true};}}catch(e){}
   const rows=localScores().filter(x=>x.type===type&&(!annee||x.annee===annee)).sort((a,b)=>b.resultat_pct-a.resultat_pct||(b.capital||0)-(a.capital||0));
   return {rows,online:false};
 }
@@ -811,16 +811,17 @@ function renderHof(){
     <div class="tw" id="hof"><p class="muted" style="text-align:center">Chargement…</p></div>
     <p class="credit" id="src"></p>
     <div style="display:flex;justify-content:center" id="b"></div></div></div>`;
-  const tabs=[['saison',2026,'Saison 1 · 2026'],['saison',2027,'Saison 2 · 2027'],['saison',2028,'Saison 3 · 2028'],['saison',2029,'Saison 4 · 2029'],['saison',2030,'Saison 5 · 2030'],['partie',0,'🏁 Parties complètes']];
+  const tabs=[['saison',2026,'Saison 1 · 2026'],['saison',2027,'Saison 2 · 2027'],['saison',2028,'Saison 3 · 2028'],['saison',2029,'Saison 4 · 2029'],['saison',2030,'Saison 5 · 2030'],['partie',0,'🏁 Parties complètes'],['archive',0,'📜 Historique avant rééquilibrage']];
   const st=$('#sctabs'); st.appendChild(btn('🌍 Toutes les écoles',()=>{S.hofSc=-1;renderHof();},S.hofSc<0?'tab on':'tab')); SCENARIOS.forEach((c,i)=>st.appendChild(btn(c.ic+' '+c.name,()=>{S.hofSc=i;renderHof();},S.hofSc===i?'tab on':'tab')));
   const tb=$('#tabs'); tabs.forEach(([t,a,l])=>tb.appendChild(btn(l,()=>{S.hof={type:t,annee:a};renderHof();},(h.type===t&&h.annee===a)?'tab on':'tab')));
   $('#b').appendChild(btn('↩ Retour',()=>{S.screen=S.hofBack||'intro';render();},'sbtn'));
-  fetchScores(h.type,h.type==='saison'?h.annee:0).then(({rows,online})=>{
+  fetchScores(h.type==='archive'?'partie':h.type,h.type==='saison'?h.annee:0,h.type==='archive').then(({rows,online})=>{
     $('#src').textContent=online?'Classement partagé entre tous les joueurs · '+(scSel?'scénario : '+scSel.name:'toutes les écoles')+'.':'Classement local (cet appareil seulement) : le serveur de scores est injoignable.';
     if(scSel) rows=rows.filter(r=>!r.profil||r.profil.startsWith(scSel.name)||!SCENARIOS.some(c=>r.profil.startsWith(c.name)));
-    if(!rows.length){$('#hof').innerHTML='<p class="muted" style="text-align:center">Aucun score pour l\'instant. Soyez le premier DG inscrit !</p>';return;}
+    if(h.type==='archive'&&online) $('#src').textContent+=' Parties jouées avant le rééquilibrage de la difficulté du 31 octobre 2026 : hors classement.';
+    if(!rows.length){$('#hof').innerHTML='<p class="muted" style="text-align:center">'+(h.type==='archive'?'Aucune partie archivée.':'Aucun score pour l\'instant. Soyez le premier DG inscrit !')+'</p>';return;}
     const st={objectif:'🏆 Objectif atteint',equilibre:'🟡 Équilibre',manque:'🔴 Objectif manqué',perdu:'💀 Révoqué·e'};
-    $('#hof').innerHTML=`<table><tr><th>#</th><th>DG</th><th>Profil</th>${h.type==='partie'?'<th>Issue</th>':''}<th>Résultat net</th><th>⚡</th><th>Étudiants</th><th>Trésorerie</th></tr>${rows.map((r,i)=>`<tr${r.dg===S.name?' style="color:var(--gold-hi)"':''}><td class="num">${i+1}</td><td><b>${String(r.dg).replace(/[<>&]/g,'')}</b></td><td class="muted">${String(r.profil||'').replace(/[<>&]/g,'')}</td>${h.type==='partie'?`<td>${st[r.statut]||''}</td>`:''}<td class="num" style="color:${r.resultat_pct<0?'var(--rose)':'var(--green)'}"><b>${pct(+r.resultat_pct)}</b></td><td class="num">${r.capital??'–'}</td><td class="num">${r.etudiants?fmt(r.etudiants):'–'}</td><td class="num">${r.tresorerie_k!=null?mE(r.tresorerie_k):'–'}</td></tr>`).join('')}</table>`;
+    $('#hof').innerHTML=`<table><tr><th>#</th><th>DG</th><th>Profil</th>${h.type!=='saison'?'<th>Issue</th>':''}<th>Résultat net</th><th>⚡</th><th>Étudiants</th><th>Trésorerie</th></tr>${rows.map((r,i)=>`<tr${r.dg===S.name?' style="color:var(--gold-hi)"':''}><td class="num">${i+1}</td><td><b>${String(r.dg).replace(/[<>&]/g,'')}</b></td><td class="muted">${String(r.profil||'').replace(/[<>&]/g,'')}</td>${h.type!=='saison'?`<td>${st[r.statut]||''}</td>`:''}<td class="num" style="color:${r.resultat_pct<0?'var(--rose)':'var(--green)'}"><b>${pct(+r.resultat_pct)}</b></td><td class="num">${r.capital??'–'}</td><td class="num">${r.etudiants?fmt(r.etudiants):'–'}</td><td class="num">${r.tresorerie_k!=null?mE(r.tresorerie_k):'–'}</td></tr>`).join('')}</table>`;
   });
 }
 

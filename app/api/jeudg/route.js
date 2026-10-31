@@ -10,9 +10,10 @@ export async function GET(req) {
   const q = new URL(req.url).searchParams;
   const type = q.get("type") === "partie" ? "partie" : "saison";
   const annee = parseInt(q.get("annee") || "0", 10);
-  let filter = `type=eq.${type}`;
+  const archive = q.get("archive") === "1";
+  let filter = `type=eq.${type}&archive=eq.${archive}`;
   if (type === "saison" && annee) filter += `&annee=eq.${annee}`;
-  const r = await fetch(`${url}/rest/v1/jeu_dg_scores?${filter}&select=dg,profil,saison,annee,resultat_pct,capital,etudiants,tresorerie_k,mesures,statut,created_at&order=resultat_pct.desc,capital.desc,created_at.asc&limit=50`, { headers: headers(), cache: "no-store" });
+  const r = await fetch(`${url}/rest/v1/jeu_dg_scores?${filter}&select=dg,profil,saison,annee,resultat_pct,capital,etudiants,tresorerie_k,mesures,statut,archive,created_at&order=resultat_pct.desc,capital.desc,created_at.asc&limit=50`, { headers: headers(), cache: "no-store" });
   if (!r.ok) { const t = await r.text(); console.error("supabase jeudg GET", r.status, t); return NextResponse.json({ rows: [], error: true, status: r.status, detail: t.slice(0, 300) }, { status: 500 }); }
   return NextResponse.json({ rows: await r.json() });
 }

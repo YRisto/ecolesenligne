@@ -104,4 +104,5 @@ alter table jeu_dg_scores enable row level security;  -- accès uniquement via l
 -- Droits pour la clé service (le projet n'accorde pas de privilèges par défaut sur les nouvelles tables)
 grant select, insert, update on public.jeu_dg_scores to service_role;
 grant usage, select on sequence public.jeu_dg_scores_id_seq to service_role;
+alter table jeu_dg_scores add column if not exists archive boolean not null default false; -- parties jouées avant le rééquilibrage de la difficulté
 notify pgrst, 'reload schema';
