@@ -1271,10 +1271,11 @@ function sceneShell(body,opts){
   const hl=headlines(); const tk=hl.concat(hl).join(' • ');
   $('#scene').innerHTML=`<div class="k"><div><div class="kicker">Saison ${S.yi+1} · Exercice ${S.year} · Épisode ${S.phase+1}</div><h2 class="serif">${e[0]} — ${opts.title||e[1]}</h2></div></div>
    ${opts.tag?`<div class="tag">« ${tx(opts.tag)} »</div>`:''}
-   <div class="ticker"><span class="d">● DIRECT</span><div class="tk"><span style="animation-duration:${Math.max(45,Math.round((tk.length+80)/7))}s">${tk} • </span></div></div>
+   <div class="ticker"><span class="d">● DIRECT</span><div class="tk"><span>${tk} • </span></div></div>
    <div id="body">${body}</div>
    <div class="foot"><button class="sbtn" disabled>↩ Retour</button><button class="mbtn" id="nextBtn" ${opts.ready?'':'disabled'}>▶ Épisode suivant</button></div>`;
   $('#nextBtn').addEventListener('click',()=>{ if(opts.onNext) opts.onNext(); else nextPhase(); });
+  const tsp=document.querySelector('#scene .tk span'); if(tsp) tsp.style.animationDuration=Math.max(20,tsp.offsetWidth/80)+'s'; // vitesse constante, rythme d'un bandeau de chaîne info (~80 px/s)
 }
 // Textes à l'échelle du scénario : {k:300} = 300 k€ chez Xyn, {M:8} = 8 M€, {n:15} = 15 salariés, {s:2000} = 2 000 étudiants, {com:5} = 5 commerciaux, {p:1.05} = frais ×1,05, {staff}, {comN}
 function nice(v){ return v>=1000?Math.round(v/100)*100:v>=200?Math.round(v/10)*10:v>=30?Math.round(v/5)*5:Math.max(1,Math.round(v)); }
