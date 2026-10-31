@@ -1166,7 +1166,7 @@ function phMedias(){
 
 function phEnveloppes(){
   if(S.sub===0&&!S.tmp){ S.tmp={list:[pick(ENVELOPPES,'env'),pick(ENVELOPPES,'env')],spring:pickEvent(),springDone:false}; }
-  if(!S.tmp.springDone){ const ev=EVENTS[S.tmp.spring]; const fx=eventFx(ev); S.tmp.springFx=fx; sceneShell(`<div class="resbox ${isBad(fx)?'bad':''}"><b>${ev.ic} ${tx(ev.n)}</b>${tx(ev.t)}${fx.txt?`<div style="margin-top:4px">${fx.txt}</div>`:''}<div>${chips(fx)}</div></div>`,{title:'Imprévu de printemps',tag:'Les directeurs attendent à la porte. Mais d\'abord, une nouvelle.'}); eventModal(ev,fx,'Imprévu de printemps',()=>{S.tmp.springDone=true;save();renderBudget();renderGame();}); return; }
+  if(!S.tmp.springDone){ const ev=EVENTS[S.tmp.spring]; const fx=eventFx(ev); S.tmp.springFx=fx; sceneShell(`<div class="resbox ${isBadE(ev,fx)?'bad':''}"><b>${ev.ic} ${tx(ev.n)}</b>${tx(ev.t)}${fx.txt?`<div style="margin-top:4px">${fx.txt}</div>`:''}<div>${chips(fx)}</div></div>`,{title:'Imprévu de printemps',tag:'Les directeurs attendent à la porte. Mais d\'abord, une nouvelle.'}); eventModal(ev,fx,'Imprévu de printemps',()=>{S.tmp.springDone=true;save();renderBudget();renderGame();}); return; }
   const e=ENVELOPPES[S.tmp.list[S.sub]];
   sceneShell(dlg(e.ic,e.who,e.role,e.ask)+`<div class="prompt">Arbitrage ${S.sub+1}/2 :</div><div id="c"></div>`,{title:'La guerre des enveloppes',tag:'Chaque directeur défend son budget avec conviction, et ira plaider sa cause chez '+N.president+' si vous dites non.',onNext:()=>{S.sub++; if(S.sub>=2) nextPhase(); else {S.decided=false;renderGame();}}});
   choices($('#c'),e.c.map(([l,fx,out])=>[l,fx,out]),null,e.who);
@@ -1270,16 +1270,17 @@ function maybeMinor(){
   if(m.ev===undefined) m.ev=pickEvent('neg'); const e=EVENTS[m.ev]; const fx=halfFx(eventFx(e));
   eventModal(e,fx,'Petit imprévu · '+EPISODES[S.phase][0],()=>{m.done=true;save();renderBudget();renderGauges();}); return true;
 }
+function isBadE(e,fx){ return e&&e.pos?false:isBad(fx); } // un imprévu annoncé positif reste vert même s'il coûte un peu
 function isBad(fx){ return (fx.g&&Object.values(fx.g).some(v=>v<0))||(fx.once&&fx.once<0)||(fx.stuY&&fx.stuY<1)||fx.rate>0||fx.revY<0||fx.cost>0||(fx.media&&Object.values(fx.media).some(v=>v>1)); }
 function eventModal(e,fx,label,cb){
-  modal(`<div class="ic">${e.ic}</div><div class="ml">${label}</div><div class="mt">${tx(e.n)}. ${tx(e.t)}</div><div class="eff">${fx.txt||''}</div><div>${chips(fx)}</div><div class="ms">Un aléa imprévu affecte l'exercice en cours.</div><div style="margin-top:8px"><button class="mbtn" id="ack">Prendre acte</button></div>`,isBad(fx)?'bad':'');
-  document.getElementById('ack').onclick=()=>{closeModal();(S.log=S.log||[]).push({y:S.year,kind:'imprévu',n:e.n,eff:Math.round((fx.revY||0)+(fx.once||0)-(fx.cost||0)),cap:(fx.g&&fx.g.ca)||0,heart:fx.g?Object.values(fx.g).reduce((a,b)=>a+b,0):0,bad:isBad(fx)});apply(fx,e.n);cb();};
+  modal(`<div class="ic">${e.ic}</div><div class="ml">${label}</div><div class="mt">${tx(e.n)}. ${tx(e.t)}</div><div class="eff">${fx.txt||''}</div><div>${chips(fx)}</div><div class="ms">Un aléa imprévu affecte l'exercice en cours.</div><div style="margin-top:8px"><button class="mbtn" id="ack">Prendre acte</button></div>`,isBadE(e,fx)?'bad':'');
+  document.getElementById('ack').onclick=()=>{closeModal();(S.log=S.log||[]).push({y:S.year,kind:'imprévu',n:e.n,eff:Math.round((fx.revY||0)+(fx.once||0)-(fx.cost||0)),cap:(fx.g&&fx.g.ca)||0,heart:fx.g?Object.values(fx.g).reduce((a,b)=>a+b,0):0,bad:isBadE(e,fx)});apply(fx,e.n);cb();};
 }
 function phEvent(silent){
   if(S.tmp===null){ const a=pickEvent('neg'), b=pickEvent('pos'); S.tmp={list:Math.random()<0.5?[a,b]:[b,a],fx:[null,null],done:0}; }
   const T=S.tmp; const i=Math.min(T.done,1); const e=EVENTS[T.list[i]];
   if(!T.fx[i]) T.fx[i]=eventFx(e);
-  const boxes=T.list.map((ei,k)=>{const ev=EVENTS[ei]; const fx=T.fx[k]; if(!fx) return ''; return `<div class="resbox ${isBad(fx)?'bad':''}"><b>${ev.ic} ${tx(ev.n)}</b>${tx(ev.t)}${fx.txt?`<div style="margin-top:4px">${fx.txt}</div>`:''}<div>${chips(fx)}</div></div>`;}).join('');
+  const boxes=T.list.map((ei,k)=>{const ev=EVENTS[ei]; const fx=T.fx[k]; if(!fx) return ''; return `<div class="resbox ${isBadE(ev,fx)?'bad':''}"><b>${ev.ic} ${tx(ev.n)}</b>${tx(ev.t)}${fx.txt?`<div style="margin-top:4px">${fx.txt}</div>`:''}<div>${chips(fx)}</div></div>`;}).join('');
   sceneShell(`<p class="muted">Deux imprévus cette rentrée, ${T.done}/2 pris en compte.</p><div class="opts">${boxes}</div>`,{title:'Les imprévus',tag:'Il y a toujours des imprévus. Ils tombent toujours en septembre.',ready:T.done>=2});
   if(T.done<2&&!silent){ eventModal(e,T.fx[i],'Imprévu de la rentrée · '+(T.done+1)+'/2',()=>{T.done++;save();renderBudget();renderGauges();if(T.done>=2) S.decided=true; phEvent();}); }
 }
