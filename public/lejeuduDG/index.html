@@ -1569,7 +1569,13 @@ function renderHof(){
 // ---------- Rendu ----------
 const $=s=>document.querySelector(s);
 const app=()=>document.getElementById('app');
-function save(){ try{localStorage.setItem('bde-save',JSON.stringify(S));}catch(e){} }
+// Une sauvegarde par école (jusqu'à 5 parties en parallèle)
+const SAVE_KEY=id=>'bde-save-'+id;
+function save(){ try{ if(!S||S.sc===undefined||!SCENARIOS[S.sc]) return; if(['intro','scenario','profile'].includes(S.screen)||S.profile==null||!S.name) return;
+  const id=SCENARIOS[S.sc].id; localStorage.setItem(SAVE_KEY(id),JSON.stringify(S)); localStorage.setItem('bde-last',id); }catch(e){} }
+function readSave(id){ try{ const t=localStorage.getItem(SAVE_KEY(id)); if(!t) return null; const o=JSON.parse(t); return (o&&o.g&&o.used&&o.media&&o.sc!==undefined)?o:null; }catch(e){ return null; } }
+function saveInfo(o){ if(!o) return null; if(o.over) return {done:true,txt:'🏁 Partie terminée'+(o.over.lost?' (révoqué·e)':'')}; const ep=EPISODES[o.phase||0]; return {done:false,txt:'💾 Partie en cours · Saison '+((o.yi||0)+1)+' · '+(ep?ep[0]:'')+' '+(o.year||'')}; }
+function resume(o){ S=o; applyScenario(S.sc); if(['title','hof','badges','intro','scenario','profile'].includes(S.screen)) S.screen=S.over?'final':'game'; S.epKey=undefined; render(); }
 function btn(label,fn,cls){ const b=document.createElement('button'); b.innerHTML=label; b.className=cls||'mbtn'; b.addEventListener('click',fn); return b; }
 const ZOOM=()=>{ try{ return localStorage.getItem('bde-zoom')==='1'; }catch(e){ return false; } };
 function applyZoom(){ document.documentElement.classList.toggle('zoom',ZOOM()); }
@@ -1635,8 +1641,10 @@ function renderScenario(){
     <div class="opts" id="sc"></div>
     <div style="display:flex;justify-content:center" id="b"></div></div></div>`;
   const box=$('#sc'); let sel=S.sc;
-  const draw=()=>{box.innerHTML=''; SCENARIOS.forEach((c,i)=>{const b=btn(`${c.ic} ${c.name}${i===0?'<span class="badge">Recommandé</span>':''}<small><b style="color:var(--fg)">${c.tag}</b></small><small>${c.desc}</small>`,()=>{sel=i;draw();},'opt'+(sel===i?' sel':'')); b.style.borderLeft='5px solid '+SCCOL[c.id]; box.appendChild(b);});
-    $('#b').innerHTML=''; $('#b').appendChild(btn('Confirmer : '+SCENARIOS[sel].name+' →',e=>{flood(SCCOL[SCENARIOS[sel].id],e,()=>{newGame(sel);S.screen='profile';render();},SCENARIOS[sel]);}));};
+  const draw=()=>{box.innerHTML=''; SCENARIOS.forEach((c,i)=>{const inf=saveInfo(readSave(c.id)); const b=btn(`${c.ic} ${c.name}${i===0?'<span class="badge">Recommandé</span>':''}${inf?`<span class="badge" style="background:${inf.done?'#1b2550':'#1f6b3a'};color:#fff">${inf.txt}</span>`:''}<small><b style="color:var(--fg)">${c.tag}</b></small><small>${c.desc}</small>`,()=>{sel=i;draw();},'opt'+(sel===i?' sel':'')); b.style.borderLeft='5px solid '+SCCOL[c.id]; box.appendChild(b);});
+    $('#b').innerHTML=''; const sv=readSave(SCENARIOS[sel].id), inf=saveInfo(sv);
+    if(sv&&!inf.done){ $('#b').appendChild(btn('▶ Reprendre ma partie · '+SCENARIOS[sel].name,e=>{flood(SCCOL[SCENARIOS[sel].id],e,()=>resume(sv),SCENARIOS[sel]);})); $('#b').appendChild(btn('Nouvelle partie',()=>modal(`<h3>Nouvelle partie à ${SCENARIOS[sel].name} ?</h3><p class="mt">La partie en cours dans cette école sera remplacée dès que vous entrerez en scène. Vos parties dans les autres écoles ne bougent pas.</p><div class="mf"><button class="lnk" id="mc">Annuler</button><button class="rbtn" id="mo">Nouvelle partie</button></div>`,'gold'),'sbtn')); document.getElementById('modal').onclick=(ev=>{ if(ev.target.id==='mc') closeModal(); if(ev.target.id==='mo'){ closeModal(); newGame(sel); S.screen='profile'; render(); } }); }
+    else $('#b').appendChild(btn('Confirmer : '+SCENARIOS[sel].name+' →',e=>{flood(SCCOL[SCENARIOS[sel].id],e,()=>{newGame(sel);S.screen='profile';render();},SCENARIOS[sel]);}));};
   draw();
 }
 function renderProfile(){
@@ -1765,7 +1773,7 @@ function renderGame(){
   const g=gaugeHtml();
   app().innerHTML=`<div class="game">
     <div class="top"><div class="brand"><div class="logo">${LOGO}</div><div><div class="t">LE JEU DU DG</div><div class="s">${N.ecole} · Saison ${S.yi+1} · Exercice ${S.year}</div></div><span class="pill ${g.conj[0]}" id="conj" style="margin-left:8px">${g.conj[1]}</span></div>
-      <div class="icons"><button title="Recommencer" aria-label="Recommencer la partie" id="reset">↺</button><button title="Agrandir le texte" aria-label="Agrandir le texte" id="zoomBtn" aria-pressed="${ZOOM()?'true':'false'}">A+</button><button title="Partie sauvegardée automatiquement" aria-label="Partie sauvegardée automatiquement">💾</button></div></div>
+      <div class="icons"><button title="Recommencer" aria-label="Recommencer la partie" id="reset">↺</button><button title="Agrandir le texte" aria-label="Agrandir le texte" id="zoomBtn" aria-pressed="${ZOOM()?'true':'false'}">A+</button><button title="Changer d'école (la partie est sauvegardée)" aria-label="Changer d'école, la partie est sauvegardée" id="schoolBtn">🏫</button><button title="Partie sauvegardée automatiquement" aria-label="Partie sauvegardée automatiquement">💾</button></div></div>
     <div class="episodes">${EPISODES.map((e,i)=>`<div class="ep ${i===S.phase?'on':(i<S.phase?'done':'')}"><span class="st">${i<S.phase?'✓':i===S.phase?'▶':'🔒'}</span><span class="ic">${e[2]}</span><span class="m">E${i+1} · ${e[0]}</span><span class="n">${e[1]}</span></div>`).join('')}</div><div class="yearbar"><span>${EPISODES[S.phase][2]} Épisode <b>${S.phase+1}</b>/${EPISODES.length}</span><span class="yb"><i style="width:${((S.phase+1)/EPISODES.length*100).toFixed(1)}%"></i></span><span>${S.year}</span></div>
     <div class="gauges" id="gauges">${g.html}</div>
     <div class="scene" id="scene"></div>
@@ -1774,8 +1782,9 @@ function renderGame(){
   if(showEp) epCard(); { const on=document.querySelector('.ep.on'), st=on&&on.parentElement; if(st&&st.scrollWidth>st.clientWidth) st.scrollLeft=on.offsetLeft-st.offsetLeft-(st.clientWidth-on.offsetWidth)/2; }
   if(!S.booted){ S.booted=true; const gg=$('#gauges'); if(gg){ gg.classList.add('boot'); if(MOB()&&!RM()&&gg.scrollWidth>gg.clientWidth+2){ setTimeout(()=>gg.scrollTo({left:gg.scrollWidth,behavior:'smooth'}),1500); setTimeout(()=>gg.scrollTo({left:0,behavior:'smooth'}),3600); } } }
   animateGauges();
-  $('#reset').addEventListener('click',()=>modal(`<h3>Recommencer la série ?</h3><p class="mt">La partie en cours sera perdue.</p><div class="mf"><button class="lnk" id="mc">Annuler</button><button class="rbtn" id="mo">Recommencer</button></div>`,'gold'));
-  document.getElementById('modal').onclick=(e=>{ if(e.target.id==='mc') closeModal(); if(e.target.id==='mo'){closeModal();newGame(S.sc);S.screen='intro';render();} });
+  $('#schoolBtn').addEventListener('click',()=>{ save(); S.screen='scenario'; render(); });
+  $('#reset').addEventListener('click',()=>modal(`<h3>Recommencer la série ?</h3><p class="mt">La partie en cours dans cette école sera perdue. Vos parties dans les autres écoles sont conservées.</p><div class="mf"><button class="lnk" id="mc">Annuler</button><button class="rbtn" id="mo">Recommencer</button></div>`,'gold'));
+  document.getElementById('modal').onclick=(e=>{ if(e.target.id==='mc') closeModal(); if(e.target.id==='mo'){closeModal(); try{localStorage.removeItem(SAVE_KEY(SCENARIOS[S.sc].id));}catch(_){} newGame(S.sc);S.screen='intro';render();} });
   renderBudget();
   if(S.tuto<TUTO_T().length&&S.yi===0&&S.phase===0) return renderTuto();
   renderPhase();
@@ -2448,11 +2457,12 @@ function shareScore(verdict){
 function start(data){
   let loaded=null;
   if(data&&data.S) loaded=data.S;
-  else { try{const s=localStorage.getItem('bde-save'); if(s) loaded=JSON.parse(s);}catch(e){} }
+  else { try{ const old=localStorage.getItem('bde-save'); if(old){ const o=JSON.parse(old); if(o&&o.sc!==undefined&&SCENARIOS[o.sc]){ const id=SCENARIOS[o.sc].id; if(!localStorage.getItem(SAVE_KEY(id))) localStorage.setItem(SAVE_KEY(id),old); localStorage.setItem('bde-last',id); } localStorage.removeItem('bde-save'); }
+    const last=localStorage.getItem('bde-last'); if(last) loaded=readSave(last); }catch(e){} }
   applyScenario(loaded&&loaded.sc!==undefined?loaded.sc:0);
   if(loaded&&loaded.screen&&loaded.g&&loaded.used&&loaded.media&&loaded.sc!==undefined) S=loaded; else newGame(0);
   if(!S.pid){const t=S; newGame(); t.pid=S.pid; S=t;}
-  if(S.screen==='title') S.screen='game';
+  if(S.screen==='title'||S.screen==='hof'||S.screen==='badges') S.screen=S.over?'final':'game';
   if(S.screen==='scenario'||S.screen==='profile') S.screen='intro';
   render();
 }
