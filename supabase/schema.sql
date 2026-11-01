@@ -125,3 +125,5 @@ alter table jeu_dg_scores add column if not exists resultat_k int;   -- résulta
 alter table jeu_dg_scores add column if not exists ca_k int;         -- chiffre d'affaires en k€
 alter table jeu_dg_scores add column if not exists details jsonb;    -- historique détaillé de la partie (jauges, école, médias, mesures, années, journal)
 notify pgrst, 'reload schema';
+
+alter table jeu_dg_scores add column if not exists masque boolean not null default false; -- parties retirées du Hall of Fame à la demande du joueur (lignes conservées)
