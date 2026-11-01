@@ -682,17 +682,16 @@ html[data-sc] .titlecard .big{color:var(--sc-hi);text-shadow:0 0 30px var(--sc)}
  .dlg{gap:2px 10px;align-items:center} .dlg .avatar{grid-row:1} .dlg .avatar.sm{width:44px;height:44px;font-size:20px} .dlg .who>small{margin-bottom:0} .dlg .body{grid-column:1/-1;margin-top:8px} .dlg .body .msg{max-width:100%}
  .speech{flex-direction:column;align-items:center;gap:8px} .speech .avatar{width:64px;height:64px}}
 
-/* Volets entre épisodes : fond à la couleur de l'école */
-.epcard{background:radial-gradient(ellipse 70% 55% at 50% 42%,color-mix(in srgb,var(--sc,#3352c0) 82%,#fff),var(--sc,#3352c0) 55%,color-mix(in srgb,var(--sc,#3352c0) 62%,#000));color:#fff}
-.epcard .kick,.epcard .num,.epcard p,.epcard h2 small{color:rgba(255,255,255,.88)}
-.epcard h2{color:#fff;text-shadow:0 2px 18px rgba(0,0,0,.25)}
-.epcard .track:before{background:rgba(255,255,255,.3)}
-.epcard .track .fill{background:#fff}
-.epcard .dot{color:rgba(255,255,255,.65)} .epcard .dot.done,.epcard .dot.on{color:#fff}
-.epcard .dot i{background:rgba(0,0,0,.22);border-color:rgba(255,255,255,.4);color:#fff}
-.epcard .dot.done i{background:#fff;border-color:#fff;color:var(--sc,#3352c0)}
-.epcard .dot.on i{background:#fff;border-color:#fff;color:var(--sc,#3352c0);box-shadow:0 0 0 6px rgba(255,255,255,.18),0 0 24px rgba(255,255,255,.6)}
-.epcard .skip{color:rgba(255,255,255,.7)}
+/* Volets entre épisodes : base sombre d'origine, dégradé marqué de la couleur de l'école */
+.epcard{background:
+  radial-gradient(ellipse 55% 40% at 50% 46%,color-mix(in srgb,var(--sc-line,#3352c0) 70%,transparent),transparent 72%),
+  radial-gradient(ellipse 90% 60% at 50% 115%,color-mix(in srgb,var(--sc-line,#3352c0) 85%,transparent),transparent 70%),
+  linear-gradient(170deg,color-mix(in srgb,var(--sc,#1f3a93) 55%,#05070f) 0%,#070a16 42%,#070a16 58%,color-mix(in srgb,var(--sc,#1f3a93) 75%,#05070f) 100%)}
+.epcard::before{content:'';position:absolute;inset:0;background:linear-gradient(100deg,transparent 30%,rgba(255,255,255,.08) 50%,transparent 70%);transform:translateX(-100%);animation:tsweep 1.4s .15s ease-in-out;pointer-events:none}
+.epcard .track:before{background:color-mix(in srgb,var(--sc-hi,#7b97f2) 30%,#1b2340)}
+.epcard h2{text-shadow:0 0 28px color-mix(in srgb,var(--sc-line,#3352c0) 70%,transparent)}
+.epcard .skip{color:rgba(255,255,255,.6)}
+.epcard .dot.on i{box-shadow:0 0 0 6px color-mix(in srgb,var(--sc-hi,#7b97f2) 25%,transparent),0 0 26px var(--sc-hi,#e8c15a)}
 </style>
 
 </head>
