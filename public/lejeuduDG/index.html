@@ -18,7 +18,8 @@
   color-scheme:dark;
 }
 *{box-sizing:border-box}
-html,body{height:100%}
+html,body{height:100%;overscroll-behavior-y:none}
+input[type=range]{touch-action:pan-x}
 body{margin:0;background:var(--bg) radial-gradient(ellipse 60% 40% at 50% 30%,#1e2a58 0%,transparent 70%);background-attachment:fixed;color:var(--fg);font-family:var(--sans);font-size:14px;line-height:1.5;
   padding-block:0 40px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
 body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--bg)}
@@ -1700,7 +1701,7 @@ const app=()=>document.getElementById('app');
 // Une sauvegarde par école (jusqu'à 5 parties en parallèle)
 const SAVE_KEY=id=>'bde-save-'+id;
 function save(){ try{ if(!S||S.sc===undefined||!SCENARIOS[S.sc]) return; if(['intro','scenario','profile'].includes(S.screen)||S.profile==null||!S.name) return;
-  const id=SCENARIOS[S.sc].id; localStorage.setItem(SAVE_KEY(id),JSON.stringify(S)); localStorage.setItem('bde-last',id); if(typeof saveFlash==='function') saveFlash(); }catch(e){} }
+  const id=SCENARIOS[S.sc].id; localStorage.setItem(SAVE_KEY(id),JSON.stringify(S)); localStorage.setItem('bde-last',id); try{ sessionStorage.setItem('bde-live',id); }catch(_){} if(typeof saveFlash==='function') saveFlash(); }catch(e){} }
 function readSave(id){ try{ const t=localStorage.getItem(SAVE_KEY(id)); if(!t) return null; const o=JSON.parse(t); return (o&&o.g&&o.used&&o.media&&o.sc!==undefined)?o:null; }catch(e){ return null; } }
 function saveInfo(o){ if(!o) return null; if(o.over) return {done:true,txt:'🏁 Partie terminée'+(o.over.lost?' (révoqué·e)':'')}; const ep=EPISODES[o.phase||0]; return {done:false,txt:'💾 Partie en cours · Saison '+((o.yi||0)+1)+' · '+(ep?ep[0]:'')+' '+(o.year||'')}; }
 function resume(o){ S=o; applyScenario(S.sc); if(['title','hof','badges','intro','scenario','profile'].includes(S.screen)) S.screen=S.over?'final':'game'; S.epKey=undefined; render(); }
@@ -1917,7 +1918,7 @@ function renderGame(){
   animateGauges();
   $('#schoolBtn').addEventListener('click',()=>{ saveToast(); S.screen='scenario'; render(); });
   $('#saveBtn').addEventListener('click',saveToast);
-  $('#homeBtn').addEventListener('click',()=>{ saveToast(); newGame(0); S.screen='intro'; render(); });
+  $('#homeBtn').addEventListener('click',()=>{ saveToast(); try{ sessionStorage.removeItem('bde-live'); }catch(_){} newGame(0); S.screen='intro'; render(); });
   $('#reset').addEventListener('click',()=>modal(`<h3>Recommencer la série ?</h3><p class="mt">La partie en cours dans cette école sera perdue. Vos parties dans les autres écoles sont conservées.</p><div class="mf"><button class="lnk" id="mc">Annuler</button><button class="rbtn" id="mo">Recommencer</button></div>`,'gold'));
   document.getElementById('modal').onclick=(e=>{ if(e.target.id==='mc') closeModal(); if(e.target.id==='mo'){closeModal(); try{localStorage.removeItem(SAVE_KEY(SCENARIOS[S.sc].id));}catch(_){} newGame(S.sc);S.screen='intro';render();} });
   renderBudget();
@@ -2141,11 +2142,16 @@ function phMedias(){
   const body=dlg('👩‍🎨',N.mkt,SC.mediaWord==='commercial'?'Directrice du développement':'Directrice marketing',(S.yi===0?`« Voici le ${SC.mediaTitle.toLowerCase()} ${S.year}. Chaque canal a son coût par ${SC.lead1} et sa qualité ; ce sont les commerciaux de ${N.com} qui transforment, et leur moral (${Math.round(S.g.com)} %) joue autant que le budget. Les rendements sont décroissants : doubler un canal ne double pas ses ${SC.leadWord}. »`:`« Le ${SC.mediaTitle.toLowerCase()} ${S.year}. Moral des commerciaux : ${Math.round(S.g.com)} %. »`))+
    `<div class="media" id="media"></div><div class="mtot" id="mtot"></div>${S.yi===0?`<div class="hint">Le budget ${SC.mediaWord} est une charge de l'exercice : il pèse sur le résultat et la trésorerie. Le bouche-à-oreille et les anciens apportent en plus environ ${fmt(inscriptions().organic)} inscriptions sans dépense.</div>`:''}`;
   sceneShell(body,{title:'Le '+SC.mediaTitle.toLowerCase(),tag:'Des '+SC.leadWord+', encore des '+SC.leadWord+'. Et des commerciaux pour les transformer.',ready:true});
-  const draw=()=>{
+  let mRaf=0;
+  const draw=(partial)=>{
     const ins=inscriptions();
-    $('#media').innerHTML=Object.keys(MEDIA).map(k=>{const c=MEDIA[k];const r=ins.channels[k];const mod=S.mediaMod[k]||1;return `<div class="mch ${mod>1.2?'warn':''}"><div class="h"><b>${c.ic} ${c.n}</b><span>coût par ${SC.lead1} ${fmt(r.cpl)} € · transformation ${Math.round(c.conv*100)} %${c.per?` · ${c.per} ${SC.unit} par contrat`:''}${c.churn?` · abandons +${c.churn} pt`:''}</span></div><div class="d">${c.d}${mod!==1?` <b style="color:${mod>1?'var(--rose)':'var(--green)'}">Cette année : coût par ${SC.lead1} ${pct((mod-1)*100)}.</b>`:''}</div>
+    const mHtml=Object.keys(MEDIA).map(k=>{const c=MEDIA[k];const r=ins.channels[k];const mod=S.mediaMod[k]||1;return `<div class="mch ${mod>1.2?'warn':''}"><div class="h"><b>${c.ic} ${c.n}</b><span>coût par ${SC.lead1} ${fmt(r.cpl)} € · transformation ${Math.round(c.conv*100)} %${c.per?` · ${c.per} ${SC.unit} par contrat`:''}${c.churn?` · abandons +${c.churn} pt`:''}</span></div><div class="d">${c.d}${mod!==1?` <b style="color:${mod>1?'var(--rose)':'var(--green)'}">Cette année : coût par ${SC.lead1} ${pct((mod-1)*100)}.</b>`:''}</div>
       <input type="range" id="r-${k}" min="0" max="${Math.max(Math.round(3000*SC.scale/50)*50,Math.round(MEDIA[k].base*2.5/50)*50)||300}" step="${SC.scale<0.5?10:50}" value="${S.media[k]}" data-k="${k}"><div class="stats"><span class="amt num">${fmt(S.media[k])} k€</span><span>${SC.leadWord.charAt(0).toUpperCase()+SC.leadWord.slice(1)} <b class="num">${fmt(r.leads)}</b></span><span>Inscriptions <b class="num">${fmt(r.ins)}</b></span><span>Coût par inscrit <b class="num">${r.cpi?fmt(r.cpi)+' €':'–'}</b></span></div></div>`;}).join('');
-    $('#media').querySelectorAll('input[type=range]').forEach(r=>r.addEventListener('input',e=>{S.media[e.target.dataset.k]=+e.target.value;draw();renderBudget();save();}));
+    if(partial){ /* pendant le glissement : on ne recrée pas les curseurs (sinon le doigt « lâche » le curseur et le navigateur mobile peut recharger la page) */
+      const tmp=document.createElement('div'); tmp.innerHTML=mHtml; const olds=$('#media').querySelectorAll('.mch'), news=tmp.querySelectorAll('.mch');
+      news.forEach((n,i)=>{ const o=olds[i]; if(!o) return; o.className=n.className; [...o.children].forEach((ch,j)=>{ if(ch.tagName!=='INPUT'&&n.children[j]) ch.outerHTML=n.children[j].outerHTML; }); }); }
+    else { $('#media').innerHTML=mHtml;
+      $('#media').querySelectorAll('input[type=range]').forEach(r=>{ r.addEventListener('input',e=>{S.media[e.target.dataset.k]=+e.target.value; if(!mRaf) mRaf=requestAnimationFrame(()=>{ mRaf=0; draw(true); renderBudget(); }); }); r.addEventListener('change',()=>save()); }); }
     const tot=mkTotal();
     $('#mtot').innerHTML=`<div class="btile o"><div class="l">Budget ${SC.mediaWord}</div><div class="v num">${(tot/1000).toFixed(2).replace('.',',')}</div><div class="s">M€ · ${pct((tot/BASE.marketing-1)*100)} vs 2025</div></div><div class="btile b"><div class="l">${SC.leadWord} attendus</div><div class="v num">${fmt(ins.leads)}</div><div class="s">tous canaux</div></div><div class="btile g"><div class="l">Inscriptions attendues</div><div class="v num">${fmt(ins.total)}</div><div class="s">dont ${fmt(ins.organic)} organiques</div></div><div class="btile c"><div class="l">Coût moyen par inscrit</div><div class="v num">${fmt(tot*1000/Math.max(1,ins.paid))}</div><div class="s">€ · prix de vente ${fmt(S.price)} €</div></div>`+(ins.sat<0.95?`<div class="note" style="grid-column:1/-1">⚠️ Marché saturé : avec ${fmt(S.students)} ${SC.unit}, chaque euro ${SC.mediaWord} rapporte ${Math.round(ins.sat*100)} % de ce qu'il rapportait en 2025. Les chiffres ci-dessus en tiennent compte.</div>`:'');
   };
@@ -2637,7 +2643,9 @@ function start(data){
   else { try{ const old=localStorage.getItem('bde-save'); if(old){ const o=JSON.parse(old); if(o&&o.sc!==undefined&&SCENARIOS[o.sc]){ const id=SCENARIOS[o.sc].id; if(!localStorage.getItem(SAVE_KEY(id))) localStorage.setItem(SAVE_KEY(id),old); localStorage.setItem('bde-last',id); } localStorage.removeItem('bde-save'); }
     const last=localStorage.getItem('bde-last'); if(last) loaded=readSave(last); }catch(e){} }
   applyScenario(loaded&&loaded.sc!==undefined?loaded.sc:0);
-  if(data&&data.S&&loaded&&loaded.screen&&loaded.g&&loaded.used&&loaded.media&&loaded.sc!==undefined) S=loaded; else { newGame(0); S.screen='intro'; } /* au chargement : toujours l'accueil, avec la liste des parties sauvegardées */
+  let live=null; try{ const lv=sessionStorage.getItem('bde-live'); if(lv&&!(data&&data.S)) live=readSave(lv); }catch(e){} /* simple rechargement de l'onglet en pleine partie : on reprend directement */
+  if(live){ loaded=live; applyScenario(live.sc); }
+  if(((data&&data.S)||live)&&loaded&&loaded.screen&&loaded.g&&loaded.used&&loaded.media&&loaded.sc!==undefined) S=loaded; else { newGame(0); S.screen='intro'; } /* au chargement : toujours l'accueil, avec la liste des parties sauvegardées */
   if(!S.pid){const t=S; newGame(); t.pid=S.pid; S=t;}
   if(S.screen==='title'||S.screen==='hof'||S.screen==='badges') S.screen=S.over?'final':'game';
   if(S.screen==='scenario'||S.screen==='profile') S.screen='intro';
