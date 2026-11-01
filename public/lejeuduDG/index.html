@@ -142,9 +142,9 @@ input[type=range]{width:100%;accent-color:var(--gold)}
 .ticker .tk span{display:inline-block;padding-left:100%;animation:tick 40s linear infinite}
 @keyframes tick{to{transform:translateX(-100%)}}
 @media (prefers-reduced-motion:reduce){.ticker .tk span{animation:none;padding-left:0}}
-.dlg{display:flex;gap:14px;align-items:flex-start}
+.dlg{display:grid;grid-template-columns:auto 1fr;gap:4px 14px;align-items:start} .dlg .avatar{grid-row:1/3} .dlg .who,.dlg .body{grid-column:2;min-width:0}
 .dlg .who>b{display:block;font-size:15px} .dlg .who>small{color:var(--muted);font-size:12px;display:block;margin-bottom:6px}
-.dlg .who p{font-size:14.5px;max-width:110ch}
+.dlg .body p{font-size:14.5px;max-width:110ch}
 .prompt{color:var(--gold);font-weight:700;font-size:13.5px}
 .note{background:#16204a;border:1px solid var(--line);border-radius:10px;padding:12px 14px;font-size:13px;color:var(--fg)}
 .note .h{color:var(--blue);font-weight:700;margin-bottom:4px}
@@ -266,12 +266,12 @@ details.det[open]>summary{margin-bottom:10px} details.det{display:grid;gap:10px}
 @media (prefers-reduced-motion:reduce){.scene,.reveal .rv,.reveal .att,.titlecard *,.titlecard::after,.gauge.fl-up,.gauge.fl-dn{animation:none!important;opacity:1!important;transform:none!important}}
 
 /* Dialogues en bulles successives */
-.dlg .who .msg{background:#1c2752;border:1px solid var(--line);border-radius:4px 14px 14px 14px;padding:8px 12px;margin:0 0 6px;width:fit-content;max-width:min(100%,72ch);opacity:0;transform:translateY(6px);animation:msgin .35s ease-out forwards}
-.dlg .who .msg .kchips{display:flex;flex-wrap:wrap;gap:6px}
+.dlg .body .msg{background:#1c2752;border:1px solid var(--line);border-radius:4px 14px 14px 14px;padding:8px 12px;margin:0 0 6px;width:fit-content;max-width:min(100%,72ch);opacity:0;transform:translateY(6px);animation:msgin .35s ease-out forwards}
+.dlg .body .msg .kchips{display:flex;flex-wrap:wrap;gap:6px}
 .kchips span{background:#0f1631;border:1px solid var(--line);border-radius:999px;padding:4px 10px;font-weight:800;font-size:13px;white-space:nowrap} .kchips span.neg{color:var(--rose);border-color:rgba(255,107,122,.5)} .kchips span.pos{color:var(--green);border-color:rgba(126,224,160,.5)}
-.dlg .who .typing{display:flex;gap:4px;height:22px;align-items:center;padding:0 12px;overflow:hidden;animation:typ .3s .35s forwards}
-.dlg .who .typing i{width:6px;height:6px;border-radius:50%;background:var(--muted);animation:dot .9s infinite} .dlg .who .typing i:nth-child(2){animation-delay:.15s} .dlg .who .typing i:nth-child(3){animation-delay:.3s}
-.dlg .who details.more>summary{cursor:pointer;color:var(--sc-hi,var(--gold));font-weight:700;font-size:13px;margin:2px 0 6px;list-style:none} .dlg .who details.more>summary::-webkit-details-marker{display:none} .dlg .who details.more .msg{animation:none;opacity:1;transform:none}
+.dlg .body .typing{display:flex;gap:4px;height:22px;align-items:center;padding:0 12px;overflow:hidden;animation:typ .3s .35s forwards}
+.dlg .body .typing i{width:6px;height:6px;border-radius:50%;background:var(--muted);animation:dot .9s infinite} .dlg .body .typing i:nth-child(2){animation-delay:.15s} .dlg .body .typing i:nth-child(3){animation-delay:.3s}
+.dlg .body details.more>summary{cursor:pointer;color:var(--sc-hi,var(--gold));font-weight:700;font-size:13px;margin:2px 0 6px;list-style:none} .dlg .body details.more>summary::-webkit-details-marker{display:none} .dlg .body details.more .msg{animation:none;opacity:1;transform:none}
 @keyframes msgin{to{opacity:1;transform:none}} @keyframes typ{to{height:0;opacity:0}} @keyframes dot{0%,100%{opacity:.3;transform:none}50%{opacity:1;transform:translateY(-3px)}}
 .dlg .avatar{animation:avpop .5s ease-out}
 @keyframes avpop{0%{transform:scale(.6);opacity:0}70%{transform:scale(1.08)}100%{transform:none;opacity:1}}
@@ -299,7 +299,7 @@ details.det[open]>summary{margin-bottom:10px} details.det{display:grid;gap:10px}
 /* Révélation en attente tant que le bloc n'est pas visible */
 .reveal.wait .rv,.reveal.wait .att{animation-play-state:paused}
 @media (hover:none),(max-width:720px){.mrow .mfx .d{display:none} .mrow.sel .mfx .d{display:block}}
-@media (prefers-reduced-motion:reduce){.dlg .who .msg{animation:none;opacity:1;transform:none}.dlg .who .typing{display:none}.letter .sig{clip-path:none;animation:none}.letter .stamp{animation:none;opacity:.92;transform:rotate(-14deg)}.flood,.gauges.boot *,.dlg .avatar{animation:none!important}}
+@media (prefers-reduced-motion:reduce){.dlg .body .msg{animation:none;opacity:1;transform:none}.dlg .body .typing{display:none}.letter .sig{clip-path:none;animation:none}.letter .stamp{animation:none;opacity:.92;transform:rotate(-14deg)}.flood,.gauges.boot *,.dlg .avatar{animation:none!important}}
 
 /* ── Bouquet final du show de fin d'année ── */
 .sfx{position:fixed;inset:0;z-index:60;background:#05070f;color:#eef2fb;display:flex;align-items:center;justify-content:center;overflow:hidden;cursor:pointer;animation:sfxin .4s ease both}
@@ -397,7 +397,9 @@ html[data-sc] .titlecard .big{color:var(--sc-hi);text-shadow:0 0 30px var(--sc)}
  .gauges::-webkit-scrollbar{display:none}
  .gauge{flex:0 0 auto;width:118px;padding:5px 8px;border-radius:8px}
  .gauge .l{font-size:8px;letter-spacing:.06em} .gauge .v{font-size:13px;margin:1px 0 3px} .gauge .v small{display:none} .gauge .v .pv{display:block;font-size:10px;margin-left:0;line-height:1.1} .gauge .bar{height:3px}
- .episodes{display:flex;overflow-x:auto;gap:6px;scrollbar-width:none} .episodes::-webkit-scrollbar{display:none} .ep{flex:0 0 auto;width:104px}.tiles,.profiles,.btiles,.media,.mtot{grid-template-columns:1fr}.panel{padding:18px}.scene{padding:14px}.ticker{margin-inline:-14px}.scene h2{font-size:20px}.toasts{left:auto;right:12px;width:200px;bottom:12px;gap:4px} .toast{padding:4px 10px;min-width:0} .toast b{font-size:13px} .toast small{font-size:10px}.mrow{grid-template-columns:auto 1fr auto}.mrow .cap{grid-column:2;text-align:left}}
+ .episodes{display:flex;overflow-x:auto;gap:6px;scrollbar-width:none} .episodes::-webkit-scrollbar{display:none} .ep{flex:0 0 auto;width:104px}.tiles,.profiles,.btiles,.media,.mtot{grid-template-columns:1fr}.panel{padding:18px}.scene{padding:14px}.ticker{margin-inline:-14px}.scene h2{font-size:20px}.toasts{left:auto;right:12px;width:200px;bottom:12px;gap:4px} .toast{padding:4px 10px;min-width:0} .toast b{font-size:13px} .toast small{font-size:10px}.mrow{grid-template-columns:auto 1fr auto}.mrow .cap{grid-column:2;text-align:left}
+ .dlg{gap:2px 10px;align-items:center} .dlg .avatar{grid-row:1} .dlg .avatar.sm{width:44px;height:44px;font-size:20px} .dlg .who>small{margin-bottom:0} .dlg .body{grid-column:1/-1;margin-top:8px} .dlg .body .msg{max-width:100%}
+ .speech{flex-direction:column;align-items:center;gap:8px} .speech .avatar{width:64px;height:64px}}
 </style>
 
 </head>
@@ -1420,7 +1422,7 @@ function bubbles(text){ // découpe un dialogue en messages courts (2 phrases ma
   return out; }
 function dlg(ic,who,role,text){ const bs=bubbles(tx(text)); const m=(b,i)=>`<p class="msg" style="animation-delay:${(0.4+Math.min(i,3)*0.45).toFixed(2)}s">${b}</p>`;
   const vis=bs.length>4?bs.slice(0,3):bs, rest=bs.length>4?bs.slice(3):[];
-  return `<div class="dlg"><div class="avatar sm">${ic}</div><div class="who"><b>${who}</b><small>${role}</small><p class="typing"><i></i><i></i><i></i></p>${vis.map(m).join('')}${rest.length?`<details class="more"><summary>Lire la suite ▸</summary>${rest.map(b=>`<p class="msg">${b}</p>`).join('')}</details>`:''}</div></div>`; }
+  return `<div class="dlg"><div class="avatar sm">${ic}</div><div class="who"><b>${who}</b><small>${role}</small></div><div class="body"><p class="typing"><i></i><i></i><i></i></p>${vis.map(m).join('')}${rest.length?`<details class="more"><summary>Lire la suite ▸</summary>${rest.map(b=>`<p class="msg">${b}</p>`).join('')}</details>`:''}</div></div>`; }
 function ready(){ const b=$('#nextBtn'); if(b) b.disabled=false; S.decided=true; save(); }
 function confetti(){
   if(matchMedia('(prefers-reduced-motion: reduce)').matches) return;
