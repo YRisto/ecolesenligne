@@ -838,7 +838,7 @@ let BASE=BASE_XYN, MEDIA=null, SC=null, MEASURES=null;
 const YEARS=[2026,2027,2028,2029,2030];
 const EPISODES=[
  ["Janvier","Cadrage","🏛️"],["Février","Les mesures","📋"],["Mars","Plan médias","📣"],["Avril","Guerre des enveloppes","⚔️"],["Mai","Les gardiens","🔎"],["Juin","Questions du CSE et des salariés","🎙️"],
- ["Juillet","Vote du CA","🗳️"],["Septembre","Imprévu","⚡"],["Novembre","Résultats","📊"],["Décembre","Grand show","🎤"],["Bilan","Fin de saison","🏁"]];
+ ["Juillet","Vote du conseil","🗳️"],["Septembre","Imprévu","⚡"],["Novembre","Résultats","📊"],["Décembre","Grand show","🎤"],["Bilan","Fin de saison","🏁"]];
 const MAXM=99;
 // Canaux médias : cpl = coût par lead (€), conv = taux de transformation par les commerciaux, churn = surcroît d'abandon des inscrits (pts)
 const MEDIA_XYN={
@@ -872,8 +872,8 @@ const SCENARIOS=[
   media:scaleMedia(MEDIA_XYN,2),
   mission:"relancer la croissance d'un leader installé et porter son résultat net à 25 M€ en cinq ans", pitch:"Le CNF est la référence : rentable, connu de tous, avec des équipes qui savent faire. Depuis trois ans, les inscriptions remplacent exactement les départs ; c'est confortable, ce n'est pas assez. Le conseil veut 25 M€ de résultat net en 2030, et une croissance qui le prouve : 72,5 M€ de chiffre d'affaires dès 2028, sur un marché mûr où chaque étudiant de plus se gagne."},
  {id:'hippocampus',name:"Hippocampus",ic:"🌿",tag:"La startup du bien-être ultra premium, un produit adoré, une trajectoire à construire",
-  desc:"1 M€ de chiffre d'affaires, 170 étudiants à 6 000 € qui recommandent l'école les yeux fermés, 12 salariés, un positionnement ultra premium unique sur le marché. La startup investit encore (−50 % de résultat) ; les investisseurs y croient et veulent ×5 (5 M€ de CA) et +1,5 M€ de résultat net fin 2030, avec une condition : être revenu près de l'équilibre (pas plus de 1 % de perte) dès fin 2027.",
-  base:{students:167,price:6000,organic:40,payrollOther:720,payrollCom:180,marketing:300,platform:120,other:180,debt:0,rate:0.06,cash:250,staff:12,com:3}, start:-50, target:30, growth:5, bank:-300, unit:'étudiants', mediaTitle:'Plan médias', mediaWord:'médias', leadWord:'leads', lead1:'lead', churn:0.25, sat:900, eff:2.05, varc:0.39, evMult:1.0, lossPenalty:6, milestone:2027, milestonePct:-1,
+  desc:"1 M€ de chiffre d'affaires, 167 élèves à 6 000 € qui recommandent l'école les yeux fermés, 12 salariés, un positionnement ultra premium unique sur le marché. La startup investit encore (−50 % de résultat) ; les investisseurs y croient et veulent ×5 (5 M€ de CA) et +1,5 M€ de résultat net fin 2030, avec une condition : être revenu près de l'équilibre (pas plus de 1 % de perte) dès fin 2027.",
+  base:{students:167,price:6000,organic:40,payrollOther:720,payrollCom:180,marketing:300,platform:120,other:180,debt:0,rate:0.06,cash:250,staff:12,com:3}, start:-50, target:30, growth:5, bank:-300, unit:'élèves', mediaTitle:'Plan médias', mediaWord:'médias', leadWord:'leads', lead1:'lead', churn:0.25, sat:900, eff:2.05, varc:0.39, evMult:1.0, lossPenalty:6, milestone:2027, milestonePct:-1,
   media:{google:{n:"Google Ads",ic:"🔍",d:"Recherche payante sur des mots-clés chers. Des prospects aisés, rares, exigeants.",cpl:380,conv:0.08,churn:0,base:100},
          hello:{n:"HelloFormation",ic:"🤝",d:"Broker généraliste : beaucoup de curieux, peu de clients à 6 000 €.",cpl:280,conv:0.042,churn:1,base:67},
          diplo:{n:"Diplomomo",ic:"🎓",d:"Broker diplômant, un peu mieux ciblé.",cpl:330,conv:0.06,churn:0,base:53},
@@ -928,7 +928,7 @@ function applyScenario(i){ try{ setTimeout(()=>{ try{ SND.setRoot(SC&&SC.id); }c
 // Mise à l'échelle d'un paquet d'effets (montants en k€ et effectifs) selon la taille de l'école
 // Effectifs à l'échelle de l'école : garde des écarts lisibles même dans une petite structure (15 → 2, 5 → 1, 60 → 4 chez Hippocampus)
 function scaleN(v){ const fs=BASE.staff/400; const x=v*fs; if(x>=2) return v>=1000?Math.round(x/100)*100:x>=200?Math.round(x/10)*10:x>=30?Math.round(x/5)*5:Math.round(x); return v>=50?4:v>=25?3:v>=8?2:1; }
-function scf(fx){ if(!fx||!SC) return fx; if(fx.mkPct){fx={...fx,mk:Math.round(fx.mkPct*BASE.marketing)}; delete fx.mkPct;} if(fx.students){fx={...fx,students:Math.round(fx.students*BASE.students/12000)};} if(fx._abs||SC.scale===1) return fx; const o={...fx}; const f=SC.scale; for(const k of ['rev','cost','mk','once','revY','cashBack']) if(o[k]) o[k]=Math.round(o[k]*f); if(o.debt) o.debt=Math.round(o.debt*f); if(o.hc) o.hc=Math.sign(o.hc)*scaleN(Math.abs(o.hc)); return o; }
+function scf(fx){ if(!fx||!SC) return fx; let mkAbs=false; if(fx.mkPct){fx={...fx,mk:Math.round(fx.mkPct*BASE.marketing)}; delete fx.mkPct; mkAbs=true;} if(fx.students){fx={...fx,students:Math.round(fx.students*BASE.students/12000)};} if(fx._abs||SC.scale===1) return fx; const o={...fx}; const f=SC.scale; for(const k of ['rev','cost','mk','once','revY','cashBack']) if(o[k]&&!(k==='mk'&&mkAbs)) o[k]=Math.round(o[k]*f); if(o.debt) o.debt=Math.round(o.debt*f); if(o.hc) o.hc=Math.sign(o.hc)*scaleN(Math.abs(o.hc)); return o; }
 const PROFILES=[
  ["🎓","Pédagogue réputé·e","Ancien·ne directeur·rice des études. Les équipes vous font confiance, le conseil attend des preuves.",{ca:52,etu:62,com:46,cse:60}],
  ["💼","Gestionnaire aguerri·e","Venu·e d'un groupe de formation. Le conseil adore, les équipes se méfient.",{ca:70,etu:50,com:50,cse:44}],
@@ -1076,9 +1076,9 @@ const MEASURES_SC=[
  ["paysans","fou","Contrat national avec un géant de la grande distribution","Il forme ses futurs fournisseurs chez vous. L'image en prend un coup.",{cap:-40,net:1100,stu:1.1,g:{etu:-6,cse:-4,com:6}}],
 ];
 const MEASURES_T=[
- ["rec","Hausser les frais de 5 %","Une rentrée à {p:1.05} au lieu de {p:1}. Les commerciaux grognent, les étudiants aussi.",{price:5,churn:1,cap:-8,g:{etu:-6,com:-8}}],
- ["rec","Hausser les frais de 12 %","Positionnement premium assumé. Risque réel sur les inscriptions.",{price:12,churn:4,cap:-17,g:{etu:-14,com:-18}}],
- ["rec","Baisser les frais de 8 %","Prix d'appel pour relancer les inscriptions. Le conseil y voit une fuite en avant.",{price:-8,churn:-2,cap:-14,g:{etu:6,com:8}}],
+ ["rec","Hausser le prix de vente de 5 %","Une rentrée à {p:1.05} au lieu de {p:1}. Les commerciaux grognent, les étudiants aussi.",{price:5,churn:1,cap:-8,g:{etu:-6,com:-8}}],
+ ["rec","Hausser le prix de vente de 12 %","Positionnement premium assumé. Risque réel sur les inscriptions.",{price:12,churn:4,cap:-17,g:{etu:-14,com:-18}}],
+ ["rec","Baisser le prix de vente de 8 %","Prix d'appel pour relancer les inscriptions. Le conseil y voit une fuite en avant.",{price:-8,churn:-2,cap:-14,g:{etu:6,com:8}}],
  ["rec","Frais de dossier de {p:0.06}","Chaque nouvelle inscription paie des frais. Petite recette, petite irritation.",{rev:600,cap:-4,g:{etu:-4,com:-4}}],
  ["rec","Options payantes (coaching, certifications)","Vendre de l'accompagnement individuel en plus du cursus.",{rev:900,cost:300,cap:-3,g:{etu:-3,com:2}}],
  ["rec","Offre B2B de formation continue","Vendre des parcours aux entreprises. Les commerciaux adorent, l'équipe péda doit suivre.",{rev:1500,cost:600,cap:-7,g:{com:4,cse:1}}],
@@ -1132,7 +1132,7 @@ const MEASURES_T=[
  ["fou","Racheter le concurrent direct","{M:8} de dette en plus, son chiffre d'affaires et ses équipes à intégrer, deux cultures à fusionner.",{debt:8000,once:-500,rev:7000,cost:5200,stu:1.2,cap:-44,g:{cse:-12,com:6,etu:-4}}],
  ["fou","Tout-IA : 60 % des cours générés et corrigés par IA","{n:120} postes supprimés, une plateforme réinventée. Le CSE parlera de carnage, le conseil de modernité.",{cost:-6500,once:-2500,hc:-120,churn:6,cap:-49,g:{cse:-52,etu:-22},base:"pay"}],
  ["fou","Lever {M:20} en bourse","Introduction sur le marché. L'argent coule, les exigences de reporting aussi, et chaque trimestre devient public.",{once:20000,cost:500,cap:-42,g:{cse:-6,com:4}}],
- ["fou","Doubler les frais : l'école d'élite","{p:2} l'année, promotions divisées par deux, accompagnement de luxe. Une partie des étudiants en place ne suivra pas, et les commerciaux changent de métier.",{price:100,stu:0.5,churn:15,cost:800,cap:-47,g:{etu:-18,com:-42,cse:-6}}],
+ ["fou","Doubler le prix de vente : l'école d'élite","{p:2} l'année, promotions divisées par deux, accompagnement de luxe. Une partie des étudiants en place ne suivra pas, et les commerciaux changent de métier.",{price:100,stu:0.5,churn:15,cost:800,cap:-47,g:{etu:-18,com:-42,cse:-6}}],
  ["fou","Campagne nationale à {mkk:3000}","TV en prime time, affichage dans toutes les gares. Les inscriptions explosent, la trésorerie aussi.",{mk:3000,stu:1.35,cap:-34,g:{com:14},base:"mk"}],
  ["fou","Semaine de 4 jours et +10 % de salaire pour tous","Le pari social : attirer et garder les meilleurs, et le faire savoir.",{cost:2000,churn:-2,stu:1.04,cap:-31,g:{cse:30,etu:4,com:8},base:"pay"}],
  ["fou","Supprimer la force de vente : 100 % inbound","Les {comN} commerciaux partent. Le marketing et le site doivent tout faire.",{cost:-4800,once:-2000,hc:-100,stu:0.55,cap:-52,g:{com:-90,cse:-22},base:"com"}],
@@ -1193,7 +1193,7 @@ const ENVELOPPES=[
   c:[["Lancer le programme",{cost:150,stu:1.03,g:{com:3}},"Les premiers parrainages arrivent dès la rentrée."],
      ["Refuser",{g:{com:-3}},"« On continuera donc de tout payer à Google. »"],
      ["Compromis : un test sur une filière",{cost:60,stu:1.01,g:{com:1}},"Un pilote. Si ça marche, on élargira."]]},
- {who:N.peda,role:"Directrice pédagogique",ic:"👩‍🏫",ask:"« La moitié de nos cours ont plus de cinq ans. Les étudiants le voient, les abandons aussi. Il me faut {n:6} concepteurs pédagogiques pendant un an pour tout refaire. »",
+ {who:N.peda,role:"Directrice pédagogique",ic:"👩‍🏫",ask:"« La moitié de nos cours ont plus de cinq ans. Les étudiants le voient, les abandons aussi. Il me faut {n:6} concepteurs pédagogiques pour tout refaire. »",
   c:[["Accorder les {n:6} concepteurs",{cost:420,hc:6,churn:-1.5,g:{etu:4,ca:-1}},"La refonte démarre par les cours les plus suivis."],
      ["Refuser",{g:{etu:-4,cse:-2},flag:"cours_vieux"},"« Alors ne vous étonnez pas des abandons. »"],
      ["Compromis : {n:2} concepteurs",{cost:150,hc:2,churn:-0.5,g:{etu:1}},"On refera les dix cours les plus critiqués."]]},
@@ -1417,15 +1417,18 @@ function newGame(sc){
 const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
 const fmt=n=>new Intl.NumberFormat('fr-FR').format(Math.round(n));
 const kE=n=>(n>=0?'+':'−')+fmt(Math.abs(n))+' k€';
+const M1=v=>(v/1000).toFixed(1).replace('.',',').replace(/,0$/,'')+' M€';
 const mE=n=>(n>=0?'+':'−')+(Math.abs(n)/1000).toFixed(1).replace('.',',')+' M€';
 const pct=n=>(n>=0?'+':'−')+Math.abs(n).toFixed(1).replace('.',',')+' %';
 const tgt=()=>mE(SC.resTarget);
 const GN={ca:'Capital',etu:'Étudiants',com:'Commerciaux',cse:'CSE'};
 const GI={ca:'⚡',etu:'💚',com:'💙',cse:'💜'};
 const mkTotal=()=>Object.values(S.media).reduce((a,b)=>a+b,0);
+function xynOnly(x){ if(!SC||!SC.weekly) return false; const t=JSON.stringify(x,(k,v)=>typeof v==='function'?String(v):v); return [N.fil1,N.fil2,N.fil3,N.mba,N.filiere,'filière','MBA','Amphi'].some(w=>w&&t.includes(w)); } // écoles du défi : pas de filières ni de MBA hérités de Xyn
 function pick(pool,key){
-  const avail=pool.map((x,i)=>i).filter(i=>!S.used[key].includes(i));
-  const src=avail.length?avail:pool.map((x,i)=>i);
+  const ok=pool.map((x,i)=>i).filter(i=>!xynOnly(pool[i])); const all=ok.length?ok:pool.map((x,i)=>i);
+  const avail=all.filter(i=>!S.used[key].includes(i));
+  const src=avail.length?avail:all;
   const i=src[Math.floor(Math.random()*src.length)];
   S.used[key].push(i); return i;
 }
@@ -1438,10 +1441,10 @@ function pickEvent(kind){
 }
 function apply(fx,label){
   if(!fx) return;
-  if(fx.g) for(const k in fx.g){S.g[k]=clamp(S.g[k]+fx.g[k],0,100); toast(fx.g[k],GN[k],label); if(S.g[k]>=100&&k!=='ca'&&typeof award==='function') award(k);}
+  if(fx.g) for(const k in fx.g){S.g[k]=clamp(S.g[k]+fx.g[k],0,100); if(S.g[k]<=0&&(k==='cse'||k==='etu')) (S.zero=S.zero||{})[k]=true; toast(fx.g[k],GN[k],label); if(S.g[k]>=100&&k!=='ca'&&typeof award==='function') award(k);}
   if(fx.cap){S.g.ca=clamp(S.g.ca+fx.cap,0,100); toast(fx.cap,'Capital',label);} if(typeof award==='function'){ if(S.g.ca>=90) award('cap'); if(S.g.ca<20) S.lowCap=true; }
   if(fx.rev) S.rev+=fx.rev; if(fx.cost) S.cost+=fx.cost;
-  if(fx.mk){const t=mkTotal(); const f=Math.max(0.2,(t+fx.mk)/t); for(const k in S.media) S.media[k]=Math.round(S.media[k]*f);}
+  if(fx.mk){const t=mkTotal(); if(t>0){ const f=Math.max(0.2,(t+fx.mk)/t); for(const k in S.media) S.media[k]=Math.round(S.media[k]*f);} else if(fx.mk>0){ const bt=Object.values(MEDIA).reduce((a,m)=>a+(m.base||0),0)||1; for(const k in S.media) S.media[k]=Math.round(fx.mk*(MEDIA[k].base||0)/bt); } }
   if(fx.price){ if(!(S.mode==='univ'&&fx.price>0)) S.price=Math.round(S.price*(1+fx.price/100)); }
   if(fx.students) S.students=Math.max(0,S.students+fx.students); if(fx.stu) S.stuMult=clamp(S.stuMult*fx.stu,0.4,1.6); if(fx.churn) S.churn+=fx.churn; if(fx.hc){S.staff+=fx.hc; S.hcAdj=(S.hcAdj||0)+fx.hc;}
   if(fx.once){S.cash+=fx.once; S.yearFx.once+=fx.once;} if(fx.cashBack) S.cashBack=(S.cashBack||0)+fx.cashBack; if(fx.amortCut) S.amortCut=(S.amortCut||0)+fx.amortCut; if(fx.debt!==undefined){ if(fx.debt===0) S.debt=0; else S.debt+=fx.debt; }
@@ -1485,7 +1488,7 @@ function chips(fx){
 function lecture(m){
   const parts=[]; const tu=S.students*S.price/1000;
   if(m.rev) parts.push(`rapporte ${kE(m.rev)}/an de recettes nouvelles`);
-  if(m.price) parts.push(m.price>0?`${pct(m.price)} sur les frais : ${kE(tu*m.price/100)}/an sur les étudiants en place, mais des abandons en plus et des ventes plus dures`:`${pct(m.price)} sur les frais : ${kE(tu*m.price/100)}/an de manque à gagner, compensé seulement si les inscriptions suivent`);
+  if(m.price) parts.push(m.price>0?`${pct(m.price)} sur les frais : ${kE(tu*m.price/100)}/an sur les ${SC.unit} en place, mais des abandons en plus et des ventes plus dures`:`${pct(m.price)} sur les frais : ${kE(tu*m.price/100)}/an de manque à gagner, compensé seulement si les inscriptions suivent`);
   if(m.cost) parts.push(m.cost<0?`économise ${kE(-m.cost)}/an de charges`:`coûte ${kE(m.cost)}/an de charges`);
   if(m.mk) parts.push(m.mk>0?`ajoute ${kE(m.mk)}/an de médias, donc des leads en plus`:`retire ${kE(-m.mk)}/an de médias, donc des leads en moins`);
   if(m.stu) parts.push(`${m.stu>1?'+':''}${Math.round((m.stu-1)*100)} % d'inscriptions chaque année`);
@@ -1564,7 +1567,7 @@ function simulate(){
   g.cse=clamp(g.cse+(50-g.cse)*0.15+(pc<-5?-2:(pc>3?3:0)),0,100);
   if(S.rate>0.045&&S.cash>0) S.rate=Math.max(0.03,S.rate-0.005);
   if(S.cash<0) S.rate=clamp(S.rate+0.01,0.01,0.15);
-  // Les effectifs suivent l'activité : encadrement, support et administration grandissent (un peu moins vite) avec le nombre d'étudiants, en plus des postes créés ou supprimés par vos décisions
+  // Les effectifs suivent l'activité : encadrement, support et administration grandissent (un peu moins vite) avec le nombre d'${SC.unit}, en plus des postes créés ou supprimés par vos décisions
   const staffBefore=S.staff; S.staff=Math.max(1,Math.round(BASE.staff*Math.pow(Math.max(students,1)/BASE.students,0.8))+(S.hcAdj||0)); y.staff=S.staff; y.staffDelta=S.staff-staffBefore;
   S.students=students; S.lastNew=newS; S.lastResult={pct:pc,rev:revenue,res}; S.history.push(y);
   S.yearFx={stuY:1,revY:0,once:0}; S.mediaMod={};
@@ -1584,12 +1587,12 @@ function projected(){
 function capCost(ids){ return ids.map(i=>MEASURES[i]).reduce((a,m)=>a+Math.min(0,m.cap||0),0); }
 function checkOver(){
   if(S.g.ca<=0) return N.president+" n'a plus pu vous défendre devant le conseil, et il en est le premier désolé. Vous êtes révoqué·e ; un cabinet de redressement prend la direction.";
-  if(SC.caMs&&S.history.length&&S.history[S.history.length-1].year===SC.caMs&&S.history[S.history.length-1].revenue<SC.caMsVal) return "Fin "+SC.caMs+", le chiffre d'affaires plafonne à "+(S.history[S.history.length-1].revenue/1000).toFixed(1).replace('.',',')+" M€. Le conseil avait fixé une étape à mi-parcours : "+(SC.caMsVal/1000).toFixed(0)+" M€. "+N.president+" ne peut plus vous couvrir ; un autre dirigeant reprend le plan de croissance.";
+  if(SC.caMs&&S.history.length&&S.history[S.history.length-1].year===SC.caMs&&S.history[S.history.length-1].revenue<SC.caMsVal) return "Fin "+SC.caMs+", le chiffre d'affaires plafonne à "+(S.history[S.history.length-1].revenue/1000).toFixed(1).replace('.',',')+" M€. Le conseil avait fixé une étape à mi-parcours : "+M1(SC.caMsVal)+". "+N.president+" ne peut plus vous couvrir ; un autre dirigeant reprend le plan de croissance.";
   if(SC.milestone&&S.year>=SC.milestone&&S.history.length&&S.history[S.history.length-1].year>=SC.milestone&&S.lastResult.pct<(SC.milestonePct||0)) return "Fin "+S.year+", "+N.ecole+(S.lastResult.pct<0?" perd encore trop d'argent (":" n'est pas assez rentable (")+pct(S.lastResult.pct)+"). Les investisseurs avaient fixé une condition : "+((SC.milestonePct||0)>0?"être rentable, au moins +"+SC.milestonePct+" % de marge":"être revenu près de l'équilibre")+". Ils ne remettent pas au pot et nomment un autre dirigeant.";
   if(S.cash<SC.bank) return "La "+N.banque+" a coupé la ligne de crédit. "+N.ecole+" dépose le bilan.";
-  if(S.g.cse<=0) return "Grève illimitée. Après six semaines sans cours, le conseil vous a remplacé·e.";
-  if(S.g.etu<=0) return "Hémorragie d'étudiants et plainte collective. "+N.ecole+" perd son habilitation.";
-  return null;
+  if(S.g.cse<=0||(S.zero&&S.zero.cse)) return "Grève illimitée. Après six semaines sans cours, le conseil vous a remplacé·e.";
+  if(S.g.etu<=0||(S.zero&&S.zero.etu)) return "Hémorragie "+(/^[aeéèiouy]/i.test(SC.unit)?"d'":"de ")+SC.unit+" et plainte collective. "+N.ecole+" perd son habilitation.";
+  S.zero=null; return null;
 }
 
 // ---------- Badges ----------
@@ -1713,7 +1716,7 @@ async function fetchScores(type,annee,archive){
 }
 function renderHof(){
   if(!S.hof) S.hof={type:'saison',annee:2026};
-  if(S.hofSc===undefined) S.hofSc=-1;
+  if(S.hofSc===undefined||(S.hofSc>=0&&(!SCENARIOS[S.hofSc]||!scVisible(SCENARIOS[S.hofSc])))) S.hofSc=-1;
   const h=S.hof; const scSel=S.hofSc>=0?SCENARIOS[S.hofSc]:null;
   app().innerHTML=`<div class="center"><div class="panel wide">
     <div class="kicker" style="text-align:center">Le Jeu du DG · Hall of Fame</div>
@@ -1724,7 +1727,7 @@ function renderHof(){
     <p class="credit" id="src"></p>
     <div style="display:flex;justify-content:center" id="b"></div></div></div>`;
   const tabs=[['saison',2026,'Saison 1 · 2026'],['saison',2027,'Saison 2 · 2027'],['saison',2028,'Saison 3 · 2028'],['saison',2029,'Saison 4 · 2029'],['saison',2030,'Saison 5 · 2030'],['partie',0,'🏁 Parties complètes'],['archive',0,'📜 Historique avant rééquilibrage de la difficulté']];
-  const st=$('#sctabs'); st.appendChild(btn('🌍 Toutes les écoles',()=>{S.hofSc=-1;renderHof();},S.hofSc<0?'tab on':'tab')); SCENARIOS.forEach((c,i)=>scVisible(c)&&st.appendChild(btn(c.ic+' '+c.name+(c.weekly?' ⚡':''),()=>{S.hofSc=i;renderHof();},S.hofSc===i?'tab on':'tab')));
+  const st=$('#sctabs'); st.appendChild(btn('🌍 Toutes les écoles',()=>{S.hofSc=-1;renderHof();},S.hofSc<0?'tab on':'tab')); SCENARIOS.forEach((c,i)=>scVisible(c)&&st.appendChild(btn(c.ic+' '+c.name+(c.weekly?' 📅':''),()=>{S.hofSc=i;renderHof();},S.hofSc===i?'tab on':'tab')));
   const tb=$('#tabs'); tabs.forEach(([t,a,l])=>tb.appendChild(btn(l,()=>{S.hof={type:t,annee:a};renderHof();},(h.type===t&&h.annee===a)?'tab on':'tab')));
   $('#b').appendChild(btn('↩ Retour',()=>{S.screen=S.hofBack||'intro';render();},'sbtn'));
   fetchScores(h.type==='archive'?'partie':h.type,h.type==='saison'?h.annee:0,h.type==='archive').then(({rows,online})=>{
@@ -1748,11 +1751,12 @@ const $=s=>document.querySelector(s);
 const app=()=>document.getElementById('app');
 // Une sauvegarde par école (jusqu'à 5 parties en parallèle)
 const SAVE_KEY=id=>'bde-save-'+id;
-function save(){ try{ if(!S||S.sc===undefined||!SCENARIOS[S.sc]) return; if(['intro','scenario','profile'].includes(S.screen)||S.profile==null||!S.name) return;
-  const id=SCENARIOS[S.sc].id; localStorage.setItem(SAVE_KEY(id),JSON.stringify(S)); localStorage.setItem('bde-last',id); try{ sessionStorage.setItem('bde-live',id); }catch(_){} if(typeof saveFlash==='function') saveFlash(); }catch(e){} }
+let SAVE_OK=true;
+function save(){ SAVE_OK=true; try{ if(!S||S.sc===undefined||!SCENARIOS[S.sc]) return; if(['intro','scenario','profile'].includes(S.screen)||S.profile==null||!S.name) return;
+  const id=SCENARIOS[S.sc].id; localStorage.setItem(SAVE_KEY(id),JSON.stringify(S)); localStorage.setItem('bde-last',id); try{ sessionStorage.setItem('bde-live',id); }catch(_){} if(typeof saveFlash==='function') saveFlash(); }catch(e){ SAVE_OK=false; } }
 function readSave(id){ try{ const t=localStorage.getItem(SAVE_KEY(id)); if(!t) return null; const o=JSON.parse(t); return (o&&o.g&&o.used&&o.media&&o.sc!==undefined)?o:null; }catch(e){ return null; } }
 function saveInfo(o){ if(!o) return null; if(o.over) return {done:true,txt:'🏁 Partie terminée'+(o.over.lost?' (révoqué·e)':'')}; const ep=EPISODES[o.phase||0]; return {done:false,txt:'💾 Partie en cours · Saison '+((o.yi||0)+1)+' · '+(ep?ep[0]:'')+' '+(o.year||'')}; }
-function resume(o){ S=o; applyScenario(S.sc); if(['title','hof','badges','intro','scenario','profile'].includes(S.screen)) S.screen=S.over?'final':'game'; S.epKey=undefined; render(); }
+function resume(o){ newGame(o.sc); /* recalibre les mesures propres comme en début de partie */ S=o; applyScenario(S.sc); if(['title','hof','badges','intro','scenario','profile'].includes(S.screen)) S.screen=S.over?'final':'game'; S.epKey=undefined; render(); }
 function btn(label,fn,cls){ const b=document.createElement('button'); b.innerHTML=label; b.className=cls||'mbtn'; b.addEventListener('click',fn); return b; }
 const ZOOM=()=>{ try{ return localStorage.getItem('bde-zoom')==='1'; }catch(e){ return false; } };
 function applyZoom(){ document.documentElement.classList.toggle('zoom',ZOOM()); }
@@ -1791,14 +1795,14 @@ function renderIntro(){
       <p class="sub">Vous prenez la direction générale. Les étudiants, les commerciaux, le CSE et le conseil vous jugent chaque année. Fin 2030, on compte.</p>
     </div>
     <div class="speech"><div class="avatar">${PRES}</div><div>
-      <p>« Je suis ${N.president}. J'investis dans des écoles en ligne parce que je crois à ce qu'elles font, et j'ai besoin d'un directeur général pour chacune. Cinq écoles, cinq situations : une à redresser, une à faire tripler, une à relancer, un leader à remettre en mouvement, une startup à faire décoller. Choisissez la vôtre. »</p>
-      <p>« Vous avez cinq exercices, de 2026 à 2030. Le conseil d'administration, les étudiants, les commerciaux et le CSE vous jugeront chaque année. Choisissez votre école. »</p>
+      <p>« Je suis ${N.president}. J'investis dans des écoles en ligne parce que je crois à ce qu'elles font, et j'ai besoin d'une directrice ou un directeur général pour chacune. Cinq écoles, cinq situations : une à redresser, une à faire tripler, une à relancer, un leader à remettre en mouvement, une startup à faire décoller. Et chaque semaine, un défi inédit. Choisissez la vôtre. »</p>
+      <p>« Vous avez cinq exercices, de 2026 à 2030. Le conseil d'administration, les étudiants, les commerciaux et le CSE vous jugeront chaque année. »</p>
     </div></div>
     <div class="tiles">
       <div class="tile rose"><b>🎯 Votre objectif</b>Chaque scénario fixe un résultat net à atteindre fin 2030, parfois avec un objectif de croissance, sans vous faire révoquer.</div>
       <div class="tile"><b>⚡ Votre capital</b>Chaque mesure consomme du capital auprès du conseil. Les résultats, la transparence et les bons choix en rapportent. À zéro, c'est la fin.</div>
-      <div class="tile cyan"><b>📣 Vos leads</b>Google, HelloFormation, Diplomomo, Meta : vous répartissez le budget, les commerciaux transforment. Hunting et Farming possibles en BtoB.</div>
-      <div class="tile green"><b>📅 Chaque année</b>11 épisodes : cadrage, mesures, plan médias, guerre des enveloppes, gardiens, questions du CSE et des salariés, vote du conseil, imprévu, résultats, grand show de fin d'année, bilan.</div>
+      <div class="tile cyan"><b>📣 Vos leads</b>Médias, brokers, prospection ou partenariats selon l'école : vous répartissez le budget, les commerciaux transforment.</div>
+      <div class="tile green"><b>📅 Chaque année</b>11 épisodes : cadrage, mesures, plan médias, guerre des enveloppes, gardiens, questions du CSE et des salariés, vote du conseil, imprévu, résultats, grand show de fin d'année, bilan. Et trois imprévus : une décision express chronométrée à un moment surprise, un imprévu moyen en avril, le plus lourd à la rentrée.</div>
     </div>
     <div id="mysaves"></div>
     <div style="display:flex;justify-content:center;gap:10px;flex-wrap:wrap;margin-top:4px" id="b"></div>
@@ -1811,11 +1815,11 @@ function renderIntro(){
   { const box=$('#mysaves'); const list=SCENARIOS.map((c,i)=>({c,i,o:readSave(c.id)})).filter(x=>x.o);
     if(box&&list.length){ box.innerHTML=`<div class="note" style="border-color:var(--green);text-align:left"><div class="h" style="color:#9df0b8">💾 Mes parties sauvegardées</div><div id="svl" style="display:grid;gap:8px;margin-top:6px"></div></div>`;
       const svl=box.querySelector('#svl');
-      list.forEach(({c,i,o})=>{ const inf=saveInfo(o); const b=btn(`<span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:${SCCOL[c.id]};margin-right:8px"></span>${inf.done?'🏁 Revoir':'▶ Reprendre'} · ${c.ic} ${c.name}${c.weekly?' ⚡':''}<small style="display:block;color:var(--muted);font-weight:500;margin-top:2px">${inf.txt.replace(/^💾 |^🏁 /,'')}${o.name?' · '+String(o.name).replace(/[<>&]/g,''):''}</small>`,e=>{ flood(SCCOL[c.id],e,()=>resume(o),c); },'opt'); b.style.borderLeft='5px solid '+SCCOL[c.id]; svl.appendChild(b); }); const hero=document.querySelector('.panel .hero'); if(hero) hero.after(box); box.style.margin='4px 0 6px'; } }
+      list.forEach(({c,i,o})=>{ const inf=saveInfo(o); const b=btn(`<span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:${SCCOL[c.id]};margin-right:8px"></span>${inf.done?'🏁 Revoir':'▶ Reprendre'} · ${c.ic} ${c.name}${c.weekly?' 📅':''}<small style="display:block;color:var(--muted);font-weight:500;margin-top:2px">${inf.txt.replace(/^💾 |^🏁 /,'')}${o.name?' · '+String(o.name).replace(/[<>&]/g,''):''}</small>`,e=>{ flood(SCCOL[c.id],e,()=>resume(o),c); },'opt'); b.style.borderLeft='5px solid '+SCCOL[c.id]; svl.appendChild(b); }); const hero=document.querySelector('.panel .hero'); if(hero) hero.after(box); box.style.margin='4px 0 6px'; } }
   $('#b').appendChild(btn('▶ Je prends le poste',()=>{S.screen='scenario';render();},'mbtn cta'));
   $('#b').appendChild(btn('🏆 Hall of Fame',()=>{S.hofBack='intro';S.screen='hof';render();},'sbtn'));
   $('#b').appendChild(btn('🏅 Trophées ('+BADGES.filter(b=>badges()[b.id]).length+'/'+BADGES.length+')',()=>{S.hofBack='intro';S.screen='badges';render();},'sbtn'));
-  { const sb=btn(SND.label(),()=>{},'sbtn'); sb.id='sndBtn'; sb.title=SND.title(); sb.setAttribute('aria-label','Son : '+SND.title()); $('#b').appendChild(sb); bindSnd(); const ib=installBtn(); if(ib) $('#b').appendChild(ib); }
+  { const sb=btn(SND.label()+' Son',()=>{},'sbtn'); sb.id='sndBtn'; sb.title=SND.title(); sb.setAttribute('aria-label','Son : '+SND.title()); $('#b').appendChild(sb); bindSnd(); const ib=installBtn(); if(ib) $('#b').appendChild(ib); }
   fetchScores('partie').then(r=>{ const el=document.getElementById('played'); if(!el||!r||!r.online||!r.rows||r.rows.length<5) return; const n=r.rows.length, w=r.rows.filter(x=>x.statut==='objectif').length; el.innerHTML=`<b>${n}</b> DG ont déjà pris le poste · <b>${w}</b> ${w>1?'ont':'a'} rempli ${w>1?'leur':'son'} mandat. Et vous ?`; }).catch(()=>{});
 }
 
@@ -1824,9 +1828,10 @@ function renderScenario(){
     <div class="kicker" style="text-align:center">Choisissez votre scénario</div>
     <p class="muted" style="text-align:center;margin-top:-6px">L'école de départ change tout : taille, marge, objectif, leviers.</p>
     <div class="opts" id="sc"></div>
-    <div style="display:flex;justify-content:center" id="b"></div></div></div>`;
+    <div style="display:flex;justify-content:center;gap:10px;flex-wrap:wrap" id="b"></div><div style="display:flex;justify-content:center;gap:10px;flex-wrap:wrap;margin-top:8px" id="bk"></div></div></div>`;
+  { const bk=$('#bk'); const last=(()=>{ try{ return localStorage.getItem('bde-last'); }catch(e){ return null; } })(); const lo=last&&readSave(last); if(S.fromGame&&lo&&!lo.over) bk.appendChild(btn('↩ Revenir à ma partie',e=>{ const o=lo; flood(SCCOL[o&&SCENARIOS[o.sc]?SCENARIOS[o.sc].id:'xyn'],e,()=>resume(o)); },'sbtn')); bk.appendChild(btn('🏠 Accueil',()=>{ newGame(0); S.screen='intro'; render(); },'sbtn')); }
   const box=$('#sc'); let sel=null; /* aucune école présélectionnée : on choisit explicitement */
-  const draw=()=>{box.innerHTML=''; SCENARIOS.map((c,i)=>[c,i]).sort((x,y)=>(x[0].weekly?1:0)-(y[0].weekly?1:0)).forEach(([c,i])=>{ if(!scVisible(c)) return; const inf=saveInfo(readSave(c.id)); const dl=weeklyDaysLeft(); const b=btn(`${c.weekly?`<span class="badge" style="background:linear-gradient(90deg,#ffd76a,#ff8a5a);color:#1a1408">⚡ Défi de la semaine · encore ${dl} jour${dl>1?'s':''}</span><br>`:''}${c.ic} ${c.name}${i===0?'<span class="badge">Recommandé</span>':''}${inf?`<span class="badge" style="background:${inf.done?'#1b2550':'#1f6b3a'};color:#fff">${inf.txt}</span>`:''}<small><b style="color:var(--fg)">${c.tag}</b></small><small>${c.desc}</small>`,()=>{sel=i;draw();},'opt'+(sel===i?' sel':'')); b.style.borderLeft='5px solid '+SCCOL[c.id]; box.appendChild(b);});
+  const draw=()=>{box.innerHTML=''; SCENARIOS.map((c,i)=>[c,i]).sort((x,y)=>(x[0].weekly?1:0)-(y[0].weekly?1:0)).forEach(([c,i])=>{ if(!scVisible(c)&&!(readSave(c.id)&&!saveInfo(readSave(c.id)).done)) return; /* un défi passé reste accessible tant qu'une partie y est en cours */ const inf=saveInfo(readSave(c.id)); const dl=weeklyDaysLeft(); const b=btn(`${c.weekly?`<span class="badge" style="background:linear-gradient(90deg,#ffd76a,#ff8a5a);color:#1a1408">📅 Défi de la semaine · encore ${dl} jour${dl>1?'s':''}</span><br>`:''}${c.ic} ${c.name}${i===0?'<span class="badge">Recommandé</span>':''}${inf?`<span class="badge" style="background:${inf.done?'#1b2550':'#1f6b3a'};color:#fff">${inf.txt}</span>`:''}<small><b style="color:var(--fg)">${c.tag}</b></small><small>${c.desc}</small>`,()=>{sel=i;draw();},'opt'+(sel===i?' sel':'')); b.style.borderLeft='5px solid '+SCCOL[c.id]; box.appendChild(b);});
     $('#b').innerHTML=''; if(sel===null){ const w=btn('Choisissez une école ci-dessus',()=>{},'mbtn'); w.disabled=true; $('#b').appendChild(w); return; } const sv=readSave(SCENARIOS[sel].id), inf=saveInfo(sv);
     if(sv&&!inf.done){ $('#b').appendChild(btn('▶ Reprendre ma partie · '+SCENARIOS[sel].name,e=>{flood(SCCOL[SCENARIOS[sel].id],e,()=>resume(sv),SCENARIOS[sel]);})); $('#b').appendChild(btn('Nouvelle partie',()=>modal(`<h3>Nouvelle partie à ${SCENARIOS[sel].name} ?</h3><p class="mt">La partie en cours dans cette école sera remplacée dès que vous entrerez en scène. Vos parties dans les autres écoles ne bougent pas.</p><div class="mf"><button class="lnk" id="mc">Annuler</button><button class="rbtn" id="mo">Nouvelle partie</button></div>`,'gold'),'sbtn')); document.getElementById('modal').onclick=(ev=>{ if(ev.target.id==='mc') closeModal(); if(ev.target.id==='mo'){ closeModal(); newGame(sel); S.screen='profile'; render(); } }); }
     else $('#b').appendChild(btn('Confirmer : '+SCENARIOS[sel].name+' →',e=>{flood(SCCOL[SCENARIOS[sel].id],e,()=>{newGame(sel);S.screen='profile';render();},SCENARIOS[sel]);}));};
@@ -1839,14 +1844,15 @@ function renderProfile(){
     <p class="muted" style="text-align:center;margin-top:-6px">${SC.ic} ${SC.name} · Avant que ${N.president} n'appelle, composez votre personnage.</p>
     <div><label class="lab" for="nm">Nom de la directrice ou du directeur général</label><input type="text" id="nm" placeholder="Saisissez un nom…" value="${S.name.replace(/"/g,'&quot;')}"></div>
     <div><label class="lab">Profil de départ</label><div class="profiles" id="pf"></div></div>
-    <div style="display:flex;justify-content:center" id="b"></div>
+    <div style="display:flex;justify-content:center;gap:10px;flex-wrap:wrap" id="b"></div>
     <p class="credit" id="hint">Choisissez un nom et un profil pour continuer.</p>
+    <div style="display:flex;justify-content:center;margin-top:6px" id="bk"></div>
   </div></div>`;
   const pf=$('#pf');
-  const draw=()=>{pf.innerHTML='';PROFILES.forEach((p,i)=>{const d=btn(`<span class="ic">${p[0]}</span><b>${p[1]}</b><span>${p[2]}</span><span>${Object.entries(p[3]).map(([k,v])=>`<span class="chip ${k==='ca'?'cap':''}">${v} ${GN[k]}</span>`).join('')}</span>`,()=>{S.profile=i;draw();upd();},'prof'+(S.profile===i?' sel':''));pf.appendChild(d);});};
+  const draw=()=>{pf.innerHTML='';PROFILES.forEach((p,i)=>{const d=btn(`<span class="ic">${p[0]}</span><b>${p[1]}</b><span>${p[2]}</span><span>${Object.entries(p[3]).map(([k,v])=>`<span class="chip ${k==='ca'?'cap':''}">${k==='ca'?clamp(v+(SC.capMod||0),10,100):v} ${GN[k]}</span>`).join('')}</span>`,()=>{S.profile=i;draw();upd();},'prof'+(S.profile===i?' sel':''));pf.appendChild(d);});};
   const go=btn('▶ Entrer en scène',()=>{S.g={...PROFILES[S.profile][3]};S.g.ca=clamp(S.g.ca+(SC.capMod||0),10,100);mandate(()=>{S.screen='title';render();});});
   const upd=()=>{S.name=$('#nm').value.trim();go.disabled=!(S.name&&S.profile!==null);$('#hint').textContent=go.disabled?'Choisissez un nom et un profil pour continuer.':'';save();};
-  $('#nm').addEventListener('input',upd); $('#b').appendChild(go); draw(); upd();
+  $('#nm').addEventListener('input',upd); $('#b').appendChild(go); $('#bk').appendChild(btn('↩ Changer d\'école',()=>{ S.screen='scenario'; render(); },'sbtn')); draw(); upd();
 }
 
 function renderTitle(){
@@ -1870,7 +1876,7 @@ function gaugeHtml(){
   const G=(cls,ic,l,v,w,sub,pvh,w2,dh)=>`<div class="gauge ${cls}${pvh?' has-pv':''}" data-g="${cls.slice(2)}" role="group" aria-label="${String(l).replace(/<[^>]+>/g,'')} : ${String(v).replace(/<[^>]+>/g,'')}${sub?' · '+String(sub).replace(/<[^>]+>/g,''):''}"><div class="l"><span class="gi">${ic}</span> ${l}</div><div class="v num"><span class="vv" data-k="${cls.slice(2)}">${v}</span>${dh||''}${pvh||(sub?`<small> · ${sub}</small>`:'')}</div><div class="bar" style="--z:${ZONE[cls.slice(2)]||0}%"><i style="width:${w}%"></i>${pvh?`<em style="left:${Math.min(w,w2)}%;width:${Math.abs(w2-w)}%"></em>`:''}</div></div>`;
   const nca=clamp(S.g.ca+d.ca,0,100),netu=clamp(S.g.etu+d.etu,0,100),ncom=clamp(S.g.com+d.com,0,100),ncse=clamp(S.g.cse+d.cse,0,100),ncash=S.cash+d.once;
   return {conj,html:
-   G('c-rev','💶','Chiffre d\'aff.',(lr.rev/1000).toFixed(1).replace('.',',')+' M€',clamp(lr.rev/(SC.caTarget||SC.ca0*1.5)*100,2,100),SC.growth?`cible ${(SC.caTarget/1000).toFixed(0)} M€`:`2025 : ${(SC.ca0/1000).toFixed(0)} M€`,pv?arrow(lr.rev,pj.rev,x=>(x/1000).toFixed(1).replace('.',',')+' M€',pj.rev>=lr.rev):'',clamp(pj.rev/(SC.caTarget||SC.ca0*1.5)*100,2,100))+
+   G('c-rev','💶','Chiffre d\'aff.',(lr.rev/1000).toFixed(1).replace('.',',')+' M€',clamp(lr.rev/(SC.caTarget||SC.ca0*1.5)*100,2,100),SC.growth?`cible ${M1(SC.caTarget)}`:`2025 : ${M1(SC.ca0)}`,pv?arrow(lr.rev,pj.rev,x=>(x/1000).toFixed(1).replace('.',',')+' M€',pj.rev>=lr.rev):'',clamp(pj.rev/(SC.caTarget||SC.ca0*1.5)*100,2,100))+
    G('c-res','📉','Résultat net',mE(lr.res),resW,`cible ${tgt()}`,pv?arrow(lr.res,pj.res,mE,pj.res>lr.res):'',clamp((pj.res+SC.resTarget)/(2*SC.resTarget)*100,2,100))+
    G('c-ca','⚡','Capital',Math.round(S.g.ca)+' pts',S.g.ca,S.g.ca<20?'danger':S.g.ca<40?'fragile':S.g.ca<70?'solide':'fort',arrow(S.g.ca,nca,x=>Math.round(x)+' pts',nca>=S.g.ca),nca,dlt('ca',S.g.ca))+
    G('c-cash','🏦','Trésorerie',mE(S.cash),cashW,`dette ${(S.debt/1000).toFixed(1).replace('.',',')} M€`,arrow(S.cash,ncash,mE,ncash>=S.cash),clamp((ncash-SC.bank)/(-SC.bank*2)*100,2,100),dlt('cash',S.cash,d=>mE(d)))+
@@ -1907,11 +1913,12 @@ function showGauge(g,cb){ // sur mobile, fait défiler la bande de jauges jusqu'
   const sr=strip.getBoundingClientRect(), r=g.getBoundingClientRect(); if(r.left>=sr.left-2&&r.right<=sr.right+2) return cb(0);
   strip.scrollTo({left:strip.scrollLeft+(r.left-sr.left)-(sr.width-r.width)/2,behavior:RM()?'auto':'smooth'}); setTimeout(()=>cb(1),420);
   clearTimeout(showGauge.t); showGauge.t=setTimeout(()=>{ const st=document.getElementById('gauges'); if(st) st.scrollTo({left:0,behavior:'smooth'}); },2600); }
-function mandate(cb){ try{ SND.play('stamp',0.6); }catch(_){} const d=document.createElement('div'); d.className='mandate';
+function mandate(cb){ if(Date.now()<BUSY) return; BUSY=Date.now()+6000; const cb1=cb; cb=()=>{ BUSY=0; cb1(); }; try{ SND.play('stamp',0.6); }catch(_){} const d=document.createElement('div'); d.className='mandate';
   d.innerHTML=`<div class="letter"><div class="lh">${SC.ic} ${N.ecole} · Conseil d'administration</div><h3>Lettre de mission</h3><p>Le conseil d'administration confie à</p><div class="sig">${String(S.name||'').replace(/[<>&]/g,'')}</div><p>la direction générale de ${N.ecole}, de 2026 à 2030.</p><p class="pres">${N.president}, président</p><div class="stamp">MANDAT<br>ACCORDÉ</div></div>`;
   document.body.appendChild(d); let done=false; const end=()=>{ if(done) return; done=true; d.classList.add('out'); setTimeout(()=>d.remove(),400); cb(); };
   d.addEventListener('click',end); setTimeout(end,RM()?900:(MOB()?4300:3400)); }
-function flood(col,e,cb,sc){ if(RM()) return cb(); const d=document.createElement('div'); d.className='flood'; d.style.left=((e&&e.clientX)||innerWidth/2)+'px'; d.style.top=((e&&e.clientY)||innerHeight/2)+'px'; d.style.background=col;
+let BUSY=0;
+function flood(col,e,cb,sc){ if(Date.now()<BUSY) return; BUSY=Date.now()+2600; const cb0=cb; cb=()=>{ BUSY=0; cb0(); }; if(RM()) return cb(); const d=document.createElement('div'); d.className='flood'; d.style.left=((e&&e.clientX)||innerWidth/2)+'px'; d.style.top=((e&&e.clientY)||innerHeight/2)+'px'; d.style.background=col;
   document.body.appendChild(d); const t1=MOB()?900:560; let nm=null;
   setTimeout(()=>{ if(sc){ nm=document.createElement('div'); nm.className='floodname'; nm.innerHTML=`<span class="ic">${sc.ic}</span>${sc.name}<small>Votre école</small>`; document.body.appendChild(nm); } },t1-150);
   setTimeout(()=>{ cb(); d.classList.add('out'); if(nm) nm.classList.add('out'); setTimeout(()=>{d.remove(); if(nm) nm.remove();},480); },t1+(sc?1100:0)); }
@@ -1940,7 +1947,7 @@ function headlines(){
   return h;
 }
 
-const EPDESC=["Fixer votre cap pour l'année","Choisir les mesures de votre plan","Répartir le budget d'acquisition","Arbitrer les demandes des directeurs","Convaincre ceux que le conseil écoute","Répondre au CSE et aux salariés, en direct","Le conseil vote votre plan","La rentrée réserve des surprises","Les comptes de l'année tombent","Votre discours devant toutes les équipes","Ce que le conseil retient de l'année"];
+const EPDESC=["Fixer votre cap pour l'année","Choisir les mesures de votre plan","Répartir le budget d'acquisition","Un imprévu, puis les demandes des directeurs","Convaincre ceux que le conseil écoute","Répondre au CSE et aux salariés, en direct","Le conseil vote votre plan","La rentrée réserve des surprises","Les comptes de l'année tombent","Votre discours devant toutes les équipes","Ce que le conseil retient de l'année"];
 function epCard(){ try{ if(!RM()) SND.play('whoosh'); }catch(_){} const ph=S.phase, e=EPISODES[ph]; const prev=Math.max(0,ph-1);
   const pct=i=>(i/10*91)+'%';
   document.querySelectorAll('.epcard').forEach(x=>x.remove());
@@ -1967,7 +1974,7 @@ function renderGame(){
   if(showEp) epCard(); { const on=document.querySelector('.ep.on'), st=on&&on.parentElement; if(st&&st.scrollWidth>st.clientWidth) st.scrollLeft=on.offsetLeft-st.offsetLeft-(st.clientWidth-on.offsetWidth)/2; }
   if(!S.booted){ S.booted=true; const gg=$('#gauges'); if(gg){ gg.classList.add('boot'); if(MOB()&&!RM()&&gg.scrollWidth>gg.clientWidth+2){ setTimeout(()=>gg.scrollTo({left:gg.scrollWidth,behavior:'smooth'}),1500); setTimeout(()=>gg.scrollTo({left:0,behavior:'smooth'}),3600); } } }
   animateGauges();
-  $('#schoolBtn').addEventListener('click',()=>{ saveToast(); S.screen='scenario'; render(); });
+  $('#schoolBtn').addEventListener('click',()=>{ saveToast(); try{ localStorage.setItem('bde-last',SCENARIOS[S.sc].id); }catch(e){} const g=S; newGame(S.sc); S.fromGame=true; S.screen='scenario'; render(); });
   $('#saveBtn').addEventListener('click',saveToast); bindSnd();
   $('#homeBtn').addEventListener('click',()=>{ saveToast(); try{ sessionStorage.removeItem('bde-live'); }catch(_){} newGame(0); S.screen='intro'; render(); });
   $('#reset').addEventListener('click',()=>modal(`<h3>Recommencer la série ?</h3><p class="mt">La partie en cours dans cette école sera perdue. Vos parties dans les autres écoles sont conservées.</p><div class="mf"><button class="lnk" id="mc">Annuler</button><button class="rbtn" id="mo">Recommencer</button></div>`,'gold'));
@@ -1998,7 +2005,7 @@ function renderBudget(){
    <div class="btile b"><div class="l">Effort net</div><div class="v num">${((rec+eco-dep)/1000).toFixed(1).replace('.',',')}</div><div class="s">M€ d'amélioration du résultat</div></div>
    <div class="btile c"><div class="l">Capital engagé</div><div class="v num">${cap}${capGain?` <span style="font-size:14px;color:var(--green)">+${capGain}</span>`:''}</div><div class="s">sur ${Math.round(S.g.ca)} pts disponibles</div></div></div>
    <div class="blines"><div><span>Dépenses nouvelles engagées</span><span class="num" style="color:var(--rose)">${kE(-dep)}</span></div><div><span>Budget ${SC.mediaWord} ${S.year}</span><span class="num">${fmt(mkTotal())} k€ · ${fmt(ins.leads)} ${SC.leadWord} · ${fmt(ins.total)} inscriptions attendues</span></div><div><span>Mouvements de trésorerie immédiats (mesures à voter)</span><span class="num">${kE(once)}</span></div><div class="tot"><span>Résultat projeté pour ${S.year}</span><span class="num" style="color:${pj.pct<0?'var(--rose)':'var(--green)'}">${mE(pj.res)}</span></div></div>
-   <div class="proj">Cible 2030 <b class="num">${tgt()} de résultat</b>${SC.growth?` <span style="margin-left:12px">CA cible 2030 <b class="num" style="font-size:15px">${(SC.caTarget/1000).toFixed(0)} M€</b></span>`:''} <span style="margin-left:12px">Prix de vente <b class="num" style="font-size:15px">${fmt(S.price)} €</b></span> <span style="margin-left:12px">${SC.unit.charAt(0).toUpperCase()+SC.unit.slice(1)} <b class="num" style="font-size:15px">${fmt(S.students)}</b></span></div>`;
+   <div class="proj">Cible 2030 <b class="num">${tgt()} de résultat</b>${SC.growth?` <span style="margin-left:12px">CA cible 2030 <b class="num" style="font-size:15px">${M1(SC.caTarget)}</b></span>`:''} <span style="margin-left:12px">Prix de vente <b class="num" style="font-size:15px">${fmt(S.price)} €</b></span> <span style="margin-left:12px">${SC.unit.charAt(0).toUpperCase()+SC.unit.slice(1)} <b class="num" style="font-size:15px">${fmt(S.students)}</b></span></div>`;
 }
 
 function sceneShell(body,opts){
@@ -2008,7 +2015,7 @@ function sceneShell(body,opts){
    ${opts.tag?`<div class="tag">« ${tx(opts.tag)} »</div>`:''}
    <div class="ticker"><span class="d">● DIRECT</span><div class="tk"><span>${tk} • </span></div></div>
    <div id="body">${body}</div>
-   <div class="foot"><button class="sbtn" disabled>↩ Retour</button><button class="mbtn" id="nextBtn" ${opts.ready?'':'disabled'}>▶ Épisode suivant</button></div>`;
+   <div class="foot"><span></span><button class="mbtn" id="nextBtn" ${opts.ready?'':'disabled'}>▶ Épisode suivant</button></div>`;
   $('#nextBtn').addEventListener('click',()=>{ if(opts.onNext) opts.onNext(); else nextPhase(); });
   const tsp=document.querySelector('#scene .tk span'); if(tsp) tsp.style.animationDuration=Math.max(20,tsp.offsetWidth/80)+'s'; // vitesse constante, rythme d'un bandeau de chaîne info (~80 px/s)
 }
@@ -2016,7 +2023,7 @@ function sceneShell(body,opts){
 function nice(v){ return v>=1000?Math.round(v/100)*100:v>=200?Math.round(v/10)*10:v>=30?Math.round(v/5)*5:Math.max(1,Math.round(v)); }
 function money(k){ return Math.abs(k)>=1000?(k/1000).toFixed(1).replace('.',',').replace(',0','')+' M€':fmt(Math.round(k))+' k€'; }
 function tx(t){ if(!t||!SC||typeof t!=='string') return t; const f=SC.scale, fs=BASE.staff/400, fe=BASE.students/12000;
-  return t.replace(/\{k:([\d.]+)\}/g,(_,v)=>money(nice(+v*f))).replace(/\{M:([\d.]+)\}/g,(_,v)=>money(nice(+v*1000*f))).replace(/\{n:(\d+)\}/g,(_,v)=>fmt(scaleN(+v))).replace(/\{s:(\d+)\}/g,(_,v)=>fmt(nice(+v*fe))).replace(/\{com:(\d+)\}/g,(_,v)=>fmt(Math.max(1,Math.round(+v*BASE.com/100)))).replace(/\{p:([\d.]+)\}/g,(_,v)=>fmt(Math.round(((S&&S.price)||BASE.price)*+v/10)*10)+' €').replace(/\{mkk:(\d+)\}/g,(_,v)=>money(nice(+v*BASE.marketing/4500))).replace(/\{staff\}/g,fmt(BASE.staff)).replace(/\{comN\}/g,fmt(BASE.com)).replace(/\{ecole\}/g,N.ecole).replace(/\{medias\}/g,SC.mediaWord).replace(/\{leads\}/g,SC.leadWord).replace(/\b1 commerciaux\b/g,'1 commercial').replace(/\b1 ([a-zéè]{3,})s\b/g,'1 $1'); }
+  return t.replace(/(^|[^\wÀ-ÿ])([éÉ])tudiants(?![\wÀ-ÿ])/g,(m0,a,e)=>a+(SC.unit==='étudiants'?e+'tudiants':(e==='É'?SC.unit.charAt(0).toUpperCase()+SC.unit.slice(1):SC.unit))).replace(/\{k:([\d.]+)\}/g,(_,v)=>money(nice(+v*f))).replace(/\{M:([\d.]+)\}/g,(_,v)=>money(nice(+v*1000*f))).replace(/\{n:(\d+)\}/g,(_,v)=>fmt(scaleN(+v))).replace(/\{s:(\d+)\}/g,(_,v)=>fmt(nice(+v*fe))).replace(/\{com:(\d+)\}/g,(_,v)=>fmt(Math.max(1,Math.round(+v*BASE.com/100)))).replace(/\{p:([\d.]+)\}/g,(_,v)=>fmt(Math.round(((S&&S.price)||BASE.price)*+v/10)*10)+' €').replace(/\{mkk:(\d+)\}/g,(_,v)=>money(nice(+v*BASE.marketing/4500))).replace(/\{staff\}/g,fmt(BASE.staff)).replace(/\{comN\}/g,fmt(BASE.com)).replace(/\{ecole\}/g,N.ecole).replace(/\{medias\}/g,SC.mediaWord).replace(/\{leads\}/g,SC.leadWord).replace(/\b1 commerciaux\b/g,'1 commercial').replace(/\b1 ([a-zéè]{3,})s\b/g,'1 $1'); }
 function bubbles(text){ // découpe un dialogue en messages courts (2 phrases max), sans casser le HTML
   const out=[]; String(text).split(/<br\s*\/?>/).forEach(ch=>{ ch=ch.trim(); if(!ch) return;
     if(/^«/.test(ch)&&/»$/.test(ch)) ch=ch.replace(/^«\s*/,'').replace(/\s*»$/,'');
@@ -2037,8 +2044,10 @@ function confetti(){
 function nextPhase(){ S.phase++; S.sub=0; S.tmp=null; S.decided=false; renderGame(); }
 function choices(container,list,after,label){
   const box=document.createElement('div'); box.className='opts';
-  list.forEach(([l,fx,out,sub,pre])=>{ l=tx(l); out=tx(out); sub=tx(sub);
+  const ckey=S.year+'|'+S.phase+'|'+(S.sub||0)+'|'+(label||''); const prev=S.decided&&S.chosen&&S.chosen[ckey]; /* déjà répondu (rechargement) : on n'applique pas une seconde fois */
+  list.forEach(([l,fx,out,sub,pre],bi)=>{ l=tx(l); out=tx(out); sub=tx(sub);
     const b=btn(`${l}${sub?`<small>${sub}</small>`:''}${(typeof fx!=='function'&&fx)?`<small>${chips(scf(fx))}</small>`:''}`,()=>{
+      if(box.dataset.done) return; box.dataset.done='1'; (S.chosen=S.chosen||{})[ckey]={i:bi,out:(typeof fx!=='function'&&fx&&fx.txt)?tx(fx.txt):out};
       box.querySelectorAll('button').forEach(x=>{x.disabled=true;}); b.classList.add('sel');
       const go=()=>{ const f=scf(typeof fx==='function'?fx():fx); apply(f,label);
       const r=document.createElement('div'); r.className='resbox'+(f&&f.g&&Object.values(f.g).some(v=>v<0)&&!Object.values(f.g).some(v=>v>0)?' bad':'');
@@ -2048,6 +2057,7 @@ function choices(container,list,after,label){
     },'opt'); box.appendChild(b);
   });
   container.appendChild(box);
+  if(prev){ box.dataset.done='1'; box.querySelectorAll('button').forEach((x,j)=>{ x.disabled=true; if(j===prev.i) x.classList.add('sel'); }); const r=document.createElement('div'); r.className='resbox'; r.innerHTML=`<b>${prev.out||'Décision prise.'}</b>`; box.after(r); ready(); }
 }
 
 // Suites des choix : une promesse ou un refus d'une année revient l'année suivante (une seule fois, au plus une suite par épisode)
@@ -2067,7 +2077,7 @@ const CALLBACKS=[
  {id:'managers',flag:'managers_seuls',who:()=>N.rh,role:'Responsable des ressources humaines',ic:'👩‍💼',t:"« Deux équipes ont demandé à changer de manager. L'ambiance se dégrade là où personne n'a été formé. »",fx:{g:{cse:-4,etu:-1}}},
  {id:'rncp',flag:'rncp',who:()=>N.filiere,role:'Responsable de la filière '+N.fil3,ic:'👩‍🏫',t:"« Le titre RNCP est accordé ! Les financements suivent, et les commerciaux ont enfin un argument massue. »",fx:{stu:1.03,g:{etu:3,com:3}}},
  {id:'risque_ia',flag:'risque_ia',who:()=>N.dsi,role:"Directeur des systèmes d'information",ic:'🧑‍💻',t:"« Un étudiant a publié comment il a validé tout son cursus avec une IA, sans être détecté. Le jury de certification demande des explications. »",fx:{g:{etu:-3,ca:-4}}},
- {id:'covenant',flag:'covenant',when:s=>s.lastResult&&s.lastResult.res<0,who:()=>N.banquier,role:'Représentant de la '+N.banque,ic:'🏦',t:"« Vous vous étiez engagé à un résultat positif. Il est négatif. Le taux est relevé, comme prévu. »",fx:{rate:0.01,g:{ca:-3}}},
+ {id:'covenant',flag:'covenant',when:s=>s.lastResult&&s.lastResult.res<0,who:()=>N.banquier,role:'Représentant de la '+N.banque,ic:'🏦',t:"« Vous vous étiez engagé·e à un résultat positif. Il est négatif. Le taux est relevé, comme prévu. »",fx:{rate:0.01,g:{ca:-3}}},
 ];
 function maybeCallback(){
   if(document.getElementById('modal').innerHTML||document.querySelector('.sfx')) return false;
@@ -2105,7 +2115,7 @@ function presidentMood(tagOnly){
   const left=mE(SC.resTarget-lr.res).slice(1);
   let q,t;
   if(ok&&onTrack){q='« Objectif atteint, et avec de la marge. Le conseil est ravi, et je le suis aussi. Maintenant, on consolide : pas de relâchement, et gardez un œil sur les équipes, c\'est elles qui ont fait le travail. »';t='Nouvelle saison. Le conseil est satisfait, et '+N.president+' le dit volontiers.';}
-  else if(ok&&!onTrack){q=`« Le résultat est là, bravo. Il manque l'autre moitié du mandat : ${(SC.caTarget/1000).toFixed(0)} M€ de chiffre d'affaires en 2030. Vous avez montré que vous saviez tenir les comptes ; montrez maintenant que vous savez faire grandir l'école. Cette année, on accélère. »`;t='Nouvelle saison. Rentable ; le conseil attend la croissance.';}
+  else if(ok&&!onTrack){q=`« Le résultat est là, bravo. Il manque l'autre moitié du mandat : ${M1(SC.caTarget)} de chiffre d'affaires en 2030. Vous avez montré que vous saviez tenir les comptes ; montrez maintenant que vous savez faire grandir l'école. Cette année, on accélère. »`;t='Nouvelle saison. Rentable ; le conseil attend la croissance.';}
   else if(lr.pct<0&&S.g.ca<35){q='« Je serai franc : l\'école perd de l\'argent, le conseil s\'impatiente, et cette année est celle de la dernière chance. Je n\'ai pas misé sur vous par hasard, mais je ne pourrai pas vous défendre indéfiniment. Montrez-leur ce que vous valez. »';t='Nouvelle saison, sous pression. '+N.president+' y croit encore.';}
   else if(lr.pct<0){q=`« ${SC.start<0||S.yi>1?'Encore une année en perte.':'L\'école est passée dans le rouge.'} ${up?'La tendance est bonne, je le vois, et ça compte.':'Et sans amélioration, ce qui m\'inquiète davantage.'} Le conseil veut voir l'équilibre cette année : ${left} nous séparent de l'objectif. Je pense que c'est à votre portée. »`;t='Nouvelle saison. Le conseil attend l\'équilibre.';}
   else if(up){q=`« Belle progression. L'école est rentable, la courbe monte, et le conseil l'a remarqué. Il reste ${left} à aller chercher d'ici 2030 : gardons ce rythme${SC.growth&&!onTrack?', et remettons de l\'ambition sur le chiffre d\'affaires':''}. Bon travail. »`;t='Nouvelle saison. Le conseil est encourageant : la courbe va dans le bon sens.';}
@@ -2121,11 +2131,11 @@ function phCadrage(){
     choices($('#c'),SHAREHOLDER.c.map(([ic,l,sub,fx])=>[ic+' '+l,fx,'Le conseil suit votre avis. Les règles changent dès cette année.',sub]),()=>{ if(S.mode==='univ') S.target=8; ready(); },'Rachat de l\'école');
     return;
   }
-  const quote=first?`« Voilà le mandat. Cinq saisons. Fin 2030, ${tgt()} de résultat net${SC.growth&&SC.caReq!==false?' et '+(SC.caTarget/1000).toFixed(0)+' M€ de chiffre d\'affaires (×'+SC.growth.toString().replace('.',',')+')':''}${SC.caMs?' ; et en chemin, '+(SC.caMsVal/1000).toFixed(0)+' M€ de chiffre d\'affaires fin '+SC.caMs:''}, sans casser ce qui fait cette école : ni scandale, ni grève, ni exode des ${SC.unit}. C'est exigeant, je le sais. Je crois que vous pouvez le faire, et vous m'aurez à vos côtés. »`
+  const quote=first?`« Voilà le mandat. Cinq saisons. Fin 2030, ${tgt()} de résultat net${SC.growth&&SC.caReq!==false?' et '+M1(SC.caTarget)+' de chiffre d\'affaires (×'+SC.growth.toString().replace('.',',')+')':''}${SC.caMs?' ; et en chemin, '+M1(SC.caMsVal)+' de chiffre d\'affaires fin '+SC.caMs:''}, sans casser ce qui fait cette école : ni scandale, ni grève, ni exode des ${SC.unit}. C'est exigeant, je le sais. Je crois que vous pouvez le faire, et vous m'aurez à vos côtés. »`
     :presidentMood();
-  const extra=[S.cash<0?'La trésorerie est négative : les agios pèsent et la '+N.banque+' surveille chaque mouvement.':'',S.mode==='edtech'?'Le groupe edtech rappelle son exigence : +10 % d\'étudiants cette année.':'',S.mode==='fonds'?'Le fonds rappelle qu\'une année en perte ne sera pas tolérée.':'',S.mode==='univ'?'L\'université rappelle le gel des frais de scolarité.':''].filter(Boolean);
+  const extra=[S.cash<0?'La trésorerie est négative : les agios pèsent et la '+N.banque+' surveille chaque mouvement.':'',S.mode==='edtech'?'Le groupe edtech rappelle son exigence : +10 % d\''+SC.unit+' cette année.':'',S.mode==='fonds'?'Le fonds rappelle qu\'une année en perte ne sera pas tolérée.':'',S.mode==='univ'?'L\'université rappelle le gel des frais de scolarité.':''].filter(Boolean);
   const speaker=S.mode?['🕴️','Le nouvel actionnaire','Président du conseil']:[PRES,N.president,N.presidentRole+' · vous reçoit dans son bureau'];
-  const body=dlg(speaker[0],speaker[1],speaker[2],(first?`« Bonjour ${S.name.replace(/\.$/,'')}. Voici les comptes 2025 que ${N.daf} vous a préparés. »<br><span class="kchips"><span>💶 ${(SC.ca0/1000).toFixed(0)} M€ de CA</span><span>🎓 ${fmt(BASE.students)} ${SC.unit}</span><span>👥 ${BASE.staff} salariés</span><span>📞 ${BASE.com} commerciaux</span><span class="${SC.start<0?'neg':'pos'}">${SC.start<0?'📉':'📈'} ${mE(SC.ca0*SC.start/100)} de résultat</span></span><br>« ${SC.pitch} »<br>`:`« Résultat ${S.year-1} : <b style="color:${lr.pct<0?'var(--rose)':'var(--green)'}">${mE(lr.res)}</b>. ${lr.res>=SC.resTarget?'L\'objectif est atteint, il s\'agit de le tenir.':`Il manque ${mE(SC.resTarget-lr.res).slice(1)} de résultat avant fin 2030.`} »<br>`)+quote)+
+  const body=dlg(speaker[0],speaker[1],speaker[2],(first?`« Bonjour ${S.name.replace(/\.$/,'')}. Voici les comptes 2025 que ${N.daf} vous a préparés. »<br><span class="kchips"><span>💶 ${M1(SC.ca0)} de CA</span><span>🎓 ${fmt(BASE.students)} ${SC.unit}</span><span>👥 ${BASE.staff} salariés</span><span>📞 ${BASE.com} commerciaux</span><span class="${SC.start<0?'neg':'pos'}">${SC.start<0?'📉':'📈'} ${mE(SC.ca0*SC.start/100)} de résultat</span></span><br>« ${SC.pitch} »<br>`:`« Résultat ${S.year-1} : <b style="color:${lr.pct<0?'var(--rose)':'var(--green)'}">${mE(lr.res)}</b>. ${lr.res>=SC.resTarget?'L\'objectif est atteint, il s\'agit de le tenir.':`Il manque ${mE(SC.resTarget-lr.res).slice(1)} de résultat avant fin 2030.`} »<br>`)+quote)+
    (extra.length?`<div class="note">${extra.map(x=>`<div>${x}</div>`).join('')}</div>`:'')+
    `<div class="prompt">Votre discours de prise de fonction — fixez le cap :</div><div id="c"></div>`;
   const mood=first?null:presidentMood(true);
@@ -2162,7 +2172,7 @@ function phMesures(){
   const avail=S.offer[S.year].map(i=>MEASURES[i]).filter(m=>!S.active.includes(m.id));
   const cats=[['rec','Recettes nouvelles','var(--green)'],['dep','Économies et coupes','var(--gold)'],['str','Réformes de structure','var(--violet)'],['fou','Coups de poker — effets massifs, capital massif','var(--rose)']];
   const body=`<div class="note" style="border-left:3px solid var(--sc-hi,var(--gold))"><div class="h">📋 ${avail.length} mesures sur la table cette année</div><p style="margin:4px 0">${S.yi===0?`Retenez-en autant que votre capital le permet, ou aucune. Chaque mesure consomme du capital auprès de ${N.president} et reste en vigueur les années suivantes.`:`Retenez-en autant que votre capital le permet, ou aucune.`}</p></div>`+
-   `${S.yi>0?'<details class="det"><summary>📗 Sans mesure nouvelle, résultat '+S.year+' à '+mE(projected().res)+' · rappel de la mécanique ▸</summary>':''}<div class="daf"><div class="h">📗 Sans mesure nouvelle</div><div class="big">Résultat ${S.year} ≈ <b style="color:${projected().res<0?'var(--rose)':'var(--green)'}">${Math.abs(projected().res)<1000?kE(Math.round(projected().res)):mE(projected().res)}</b>${SC.growth?` <span class="muted">· cap CA 2030 : ${(SC.caTarget/1000).toFixed(0)} M€</span>`:''}</div><div class="k3"><span>🚪 <b>${Math.round(SC.churn*100)} %</b> d'abandons</span><span>👥 salaires = <b>${Math.round((BASE.payrollOther+BASE.payrollCom)/SC.ca0*100)} %</b> du CA</span><span>${BASE.debt?`🏦 dette <b>${(BASE.debt/1000).toFixed(1).replace('.',',')} M€</b> à ${(S.rate*100).toFixed(1).replace('.',',')} %`:`🏦 découvert max <b>${mE(SC.bank)}</b>`}</span></div>${S.yi===0?`<details><summary>Pourquoi ces trois chiffres ▸</summary><ul><li><b>Les abandons.</b> ${Math.round(SC.churn*100)} % des ${SC.unit} ne vont pas au bout : chaque départ est un chiffre d'affaires perdu.</li><li><b>La masse salariale.</b> ${BASE.staff} salariés et ${((BASE.payrollOther+BASE.payrollCom)/1000).toFixed(1).replace('.',',')} M€ de salaires pour ${(SC.ca0/1000).toFixed(0)} M€ de chiffre d'affaires.</li><li><b>${BASE.debt?'La dette.':'La trésorerie.'}</b> ${BASE.debt?'Chaque euro de découvert coûte plus cher.':'Pas de dette, mais la banque coupe à '+mE(SC.bank)+' de découvert.'}</li></ul></details>`:''}</div>${S.yi>0?'</details>':''}
+   `${S.yi>0?'<details class="det"><summary>📗 Sans mesure nouvelle, résultat '+S.year+' à '+mE(projected().res)+' · rappel de la mécanique ▸</summary>':''}<div class="daf"><div class="h">📗 Sans mesure nouvelle</div><div class="big">Résultat ${S.year} ≈ <b style="color:${projected().res<0?'var(--rose)':'var(--green)'}">${Math.abs(projected().res)<1000?kE(Math.round(projected().res)):mE(projected().res)}</b>${SC.growth?` <span class="muted">· cap CA 2030 : ${M1(SC.caTarget)}</span>`:''}</div><div class="k3"><span>🚪 <b>${Math.round(SC.churn*100)} %</b> d'abandons</span><span>👥 salaires = <b>${Math.round((BASE.payrollOther+BASE.payrollCom)/SC.ca0*100)} %</b> du CA</span><span>${BASE.debt?`🏦 dette <b>${(BASE.debt/1000).toFixed(1).replace('.',',')} M€</b> à ${(S.rate*100).toFixed(1).replace('.',',')} %`:`🏦 découvert max <b>${mE(SC.bank)}</b>`}</span></div>${S.yi===0?`<details><summary>Pourquoi ces trois chiffres ▸</summary><ul><li><b>Les abandons.</b> ${Math.round(SC.churn*100)} % des ${SC.unit} ne vont pas au bout : chaque départ est un chiffre d'affaires perdu.</li><li><b>La masse salariale.</b> ${BASE.staff} salariés et ${((BASE.payrollOther+BASE.payrollCom)/1000).toFixed(1).replace('.',',')} M€ de salaires pour ${M1(SC.ca0)} de chiffre d'affaires.</li><li><b>${BASE.debt?'La dette.':'La trésorerie.'}</b> ${BASE.debt?'Chaque euro de découvert coûte plus cher.':'Pas de dette, mais la banque coupe à '+mE(SC.bank)+' de découvert.'}</li></ul></details>`:''}</div>${S.yi>0?'</details>':''}
    ${S.yi===0?`<div class="hint">💡 À droite de chaque mesure : <b>effet estimé sur le résultat (k€/an)</b> et <b>coût en capital</b>. Touchez une mesure pour le détail.</div>`:''}
    <div class="capbar" id="capbar"></div>
    <div id="cat"></div><div class="hint" id="tally"></div>`;
@@ -2191,7 +2201,7 @@ function phMesures(){
 
 function phMedias(){
   const body=dlg('👩‍🎨',N.mkt,SC.mediaWord==='commercial'?'Directrice du développement':'Directrice marketing',(S.yi===0?`« Voici le ${SC.mediaTitle.toLowerCase()} ${S.year}. Chaque canal a son coût par ${SC.lead1} et sa qualité ; ce sont les commerciaux de ${N.com} qui transforment, et leur moral (${Math.round(S.g.com)} %) joue autant que le budget. Les rendements sont décroissants : doubler un canal ne double pas ses ${SC.leadWord}. »`:`« Le ${SC.mediaTitle.toLowerCase()} ${S.year}. Moral des commerciaux : ${Math.round(S.g.com)} %. »`))+
-   `${(()=>{ const st=marketSat(); if(st>=0.92) return ''; const x=(1/st).toFixed(1).replace('.',','); return `<div class="note" style="border-color:${st<=0.6?'var(--rose)':'var(--gold)'};text-align:left;margin-bottom:10px"><div class="h">📈 Votre marché se sature</div>Avec ${fmt(S.students)} ${SC.unit} (${fmt(BASE.students)} au départ), il faut aller chercher des profils plus rares : chaque inscription coûte <b>×${x}</b> par rapport à 2026. Le coût par ${SC.lead1} des canaux, lui, ne bouge pas.</div>`; })()}<div class="media" id="media"></div><div class="mtot" id="mtot"></div>${S.yi===0?`<div class="hint">Le budget ${SC.mediaWord} est une charge de l'exercice : il pèse sur le résultat et la trésorerie. Le bouche-à-oreille et les anciens apportent en plus environ ${fmt(inscriptions().organic)} inscriptions sans dépense.</div>`:''}`;
+   `${(()=>{ const st=marketSat(); if(st>=0.92) return ''; const x=(1/st).toFixed(1).replace('.',','); return `<div class="note" style="border-color:${st<=0.6?'var(--rose)':'var(--gold)'};text-align:left;margin-bottom:10px"><div class="h">📈 Votre marché se sature</div>Avec ${fmt(S.students)} ${SC.unit} (${fmt(BASE.students)} au départ), il faut aller chercher des profils plus rares : chaque inscription coûte <b>×${x}</b> par rapport à 2025. Les chiffres ci-dessous en tiennent compte. Le coût par ${SC.lead1} des canaux, lui, ne bouge pas.</div>`; })()}<div class="media" id="media"></div><div class="mtot" id="mtot"></div>${S.yi===0?`<div class="hint">Le budget ${SC.mediaWord} est une charge de l'exercice : il pèse sur le résultat et la trésorerie. Le bouche-à-oreille et les anciens apportent en plus environ ${fmt(inscriptions().organic)} inscriptions sans dépense.</div>`:''}`;
   sceneShell(body,{title:'Le '+SC.mediaTitle.toLowerCase(),tag:'Des '+SC.leadWord+', encore des '+SC.leadWord+'. Et des commerciaux pour les transformer.',ready:true});
   let mRaf=0;
   const draw=(partial)=>{
@@ -2204,7 +2214,7 @@ function phMedias(){
     else { $('#media').innerHTML=mHtml;
       $('#media').querySelectorAll('input[type=range]').forEach(r=>{ r.addEventListener('input',e=>{S.media[e.target.dataset.k]=+e.target.value; if(!mRaf) mRaf=requestAnimationFrame(()=>{ mRaf=0; draw(true); renderBudget(); }); }); r.addEventListener('change',()=>save()); }); }
     const tot=mkTotal();
-    $('#mtot').innerHTML=`<div class="btile o"><div class="l">Budget ${SC.mediaWord}</div><div class="v num">${(tot/1000).toFixed(2).replace('.',',')}</div><div class="s">M€ · ${pct((tot/BASE.marketing-1)*100)} vs 2025</div></div><div class="btile b"><div class="l">${SC.leadWord} attendus</div><div class="v num">${fmt(ins.leads)}</div><div class="s">tous canaux</div></div><div class="btile g"><div class="l">Inscriptions attendues</div><div class="v num">${fmt(ins.total)}</div><div class="s">dont ${fmt(ins.organic)} organiques</div></div><div class="btile c"><div class="l">Coût moyen par inscrit</div><div class="v num">${fmt(tot*1000/Math.max(1,ins.paid))}</div><div class="s">€ · prix de vente ${fmt(S.price)} €</div></div>`+(ins.sat<0.95?`<div class="note" style="grid-column:1/-1">⚠️ Marché saturé : avec ${fmt(S.students)} ${SC.unit}, chaque euro ${SC.mediaWord} rapporte ${Math.round(ins.sat*100)} % de ce qu'il rapportait en 2025. Les chiffres ci-dessus en tiennent compte.</div>`:'');
+    $('#mtot').innerHTML=`<div class="btile o"><div class="l">Budget ${SC.mediaWord}</div><div class="v num">${(tot/1000).toFixed(2).replace('.',',')}</div><div class="s">M€ · ${pct((tot/BASE.marketing-1)*100)} vs 2025</div></div><div class="btile b"><div class="l">${SC.leadWord.charAt(0).toUpperCase()+SC.leadWord.slice(1)} attendu${/(ités|tions|ées|es)$/.test(SC.leadWord)&&!/^(leads|contacts)$/.test(SC.leadWord)?'e':''}s</div><div class="v num">${fmt(ins.leads)}</div><div class="s">tous canaux</div></div><div class="btile g"><div class="l">Inscriptions attendues</div><div class="v num">${fmt(ins.total)}</div><div class="s">dont ${fmt(ins.organic)} organiques</div></div><div class="btile c"><div class="l">Coût moyen par inscrit</div><div class="v num">${fmt(tot*1000/Math.max(1,ins.paid))}</div><div class="s">€ · prix de vente ${fmt(S.price)} €</div></div>`;
   };
   draw();
 }
@@ -2253,10 +2263,10 @@ function boardVotes(chance,pend){
   const methode=pend.some(m=>/Audit|qualité|Plan stratégique/i.test(m.n));
   const members=[
    {who:pres[0],role:pres[1],mod:(S.g.ca-50)*0.5,p:S.g.ca>=60?'Fait confiance à la direction.':'Soutient le plan, par devoir plus que par conviction.',c:S.g.ca<40?'Ne fait plus confiance à la direction.':'Attend un plan plus convaincant.'},
-   {who:N.adminEtu,role:'Représentant des étudiants',mod:sum('etu')*1.2,p:sum('etu')>0?'Le plan améliore la vie étudiante.':'Le plan épargne les étudiants.',c:sum('etu')<0?'Le plan fait payer les étudiants.':'N\'y voit rien pour les étudiants.'},
+   {who:N.adminEtu,role:tx('Représentant des étudiants'),mod:sum('etu')*1.2,p:sum('etu')>0?'Le plan améliore la vie étudiante.':tx('Le plan épargne les étudiants.'),c:sum('etu')<0?'Le plan fait payer les étudiants.':'N\'y voit rien pour les étudiants.'},
    {who:N.adminEns,role:'Représente les enseignants',mod:sum('cse')*1.0,p:sum('cse')>0?'Les équipes y gagnent.':'Les équipes sont préservées.',c:sum('cse')<0?'Les équipes trinquent.':'Rien pour les équipes dans ce plan.'},
    {who:N.actionnaire,role:'Actionnaire minoritaire',mod:delta*2-(S.cash<0?8:0),p:delta>0?'Le résultat projeté s\'améliore.':'Fait confiance à la direction.',c:delta<2?'Pas assez d\'effet sur le résultat.':'Doute des chiffres annoncés.'},
-   SC.founder?{who:N.adminIndep,role:'Fondatrice historique · au conseil',mod:sum('etu')*1.5+pend.reduce((a,m)=>a+(m.founder||0),0)+(pend.some(m=>/tutorat|tuteurs|qualité|cours|alumni/i.test(m.n))?10:0),p:sum('etu')>0?'Le plan respecte les étudiants et la pédagogie.':'Rien ne trahit l\'école qu\'elle a fondée.',c:sum('etu')<0?'« Ce n\'est pas pour ça que j\'ai créé cette école. »':'Attend plus de pédagogie dans ce plan.'}
+   SC.founder?{who:N.adminIndep,role:'Fondatrice historique · au conseil',mod:sum('etu')*1.5+pend.reduce((a,m)=>a+(m.founder||0),0)+(pend.some(m=>/tutorat|tuteurs|qualité|cours|alumni/i.test(m.n))?10:0),p:sum('etu')>0?tx('Le plan respecte les étudiants et la pédagogie.'):'Rien ne trahit l\'école qu\'elle a fondée.',c:sum('etu')<0?'« Ce n\'est pas pour ça que j\'ai créé cette école. »':'Attend plus de pédagogie dans ce plan.'}
    :{who:N.adminIndep,role:'Administratrice indépendante',mod:-pend.length*1.5-cap*0.2+(methode?12:0),p:methode?'Salue la transparence et la méthode.':'Plan raisonnable dans son périmètre.',c:pend.length>5?'Trop de chantiers à la fois.':'Manque de méthode et d\'indicateurs.'},
    {who:N.daf,role:'DAF et actionnaire',mod:delta*1.5+(S.cash<SC.bank*0.1?-10:S.cash>0?5:0)+(pend.length>6?-6:0),p:delta>2?'Les comptes y gagnent, il signe.':'Un plan qu\'il peut financer.',c:S.cash<SC.bank*0.1?'Ne sait pas comment financer le plan.':'Les chiffres ne tiennent pas à ses yeux.'},
    {who:N.banquier,role:'Censeur · '+N.banque,mod:(S.cash<SC.bank*0.2?-15:S.cash<0?-5:5)+(S.flags.plan_treso?6:0)+once/(200*SC.scale),p:'La trésorerie reste sous contrôle.',c:S.cash<SC.bank*0.2?'La trésorerie est hors des clauses du prêt.':once<-1000?'S\'inquiète des sorties de trésorerie immédiates.':'Juge le plan trop risqué pour la banque.'},
@@ -2269,7 +2279,7 @@ function boardVotes(chance,pend){
 }
 function phVote(){
   if(S.sub<2){
-    if(S.sub===0&&!S.tmp) S.tmp={list:[pick(AMENDEMENTS,'amd'),pick(AMENDEMENTS,'amd')],bonus:0,amd:{}};
+    if(S.sub===0&&!S.tmp){ const a1=pick(AMENDEMENTS,'amd'); let a2=pick(AMENDEMENTS,'amd'); for(let t=0;t<6&&AMENDEMENTS[a2].who===AMENDEMENTS[a1].who;t++) a2=pick(AMENDEMENTS,'amd'); S.tmp={list:[a1,a2],bonus:0,amd:{}}; }
     const a=AMENDEMENTS[S.tmp.list[S.sub]];
     sceneShell(dlg(a.ic,a.who,a.role+' · dépose un amendement',a.ask)+`<div class="prompt">Amendement ${S.sub+1}/2 :</div><div id="c"></div>`,{title:'La grande bidouille',tag:'Avant le vote, chacun négocie sa ligne. Rejeter un amendement, c\'est perdre une voix.',onNext:()=>{S.sub++;S.decided=false;renderGame();}});
     choices($('#c'),[["✓ Accepter l'amendement",()=>{S.tmp.bonus+=12;S.tmp.amd[a.who]=true;return a.y;},"L'amendement est intégré au plan."],["✗ Rejeter l'amendement",()=>{S.tmp.bonus-=5;S.tmp.amd[a.who]=false;return a.n;},"Rejeté. Son auteur s'en souviendra au moment du vote."]],null,a.who);
@@ -2288,19 +2298,19 @@ function phVote(){
     $('#c').appendChild(btn('🗳️ Appeler au vote',()=>{S.sub=3;S.tmp.votes=boardVotes(chance,pend);renderGame();}));
     return;
   }
-  const V=S.tmp.votes||{list:[],ok:false}; const ok=V.ok||S.tmp.forced;
+  const V=S.tmp.votes||{list:[],ok:false}; const ok=V.ok||S.tmp.forced||S.tmp.amputated;
   const votesHtml=V.list.length?`<div class="tw"><table><tr><th>Administrateur</th><th>Vote</th><th>Motif</th></tr>${V.list.map(v=>`<tr><td><b>${v.who}</b><br><span class="muted" style="font-size:11px">${v.role}</span></td><td style="color:${v.pour?'var(--green)':'var(--rose)'};white-space:nowrap"><b>${v.pour?'✓ Pour':'✗ Contre'}</b></td><td style="text-align:left;color:var(--muted)">${v.why}</td></tr>`).join('')}<tr><td colspan="3" style="text-align:left"><b>${V.pour} pour · ${V.contre} contre</b>${V.tie?' · égalité : la voix du président tranche':''}</td></tr></table></div>`:'';
   if(ok){
     if(!S.decided){ if(pend.some(m=>m.cat==='fou')) award('poker'); if(V.list.length&&V.list.every(v=>v.pour)) award('unanime'); if(!S.tmp.forced&&V.list.length&&V.pour-V.contre<=1) award('serre'); if(pend.filter(m=>m.cat==='dep').length>=3) award('tronconneuse'); if(S.tmp.forced) S.forcedOnce=true; if(pend.some(m=>m.price>0)) S.priceUp=true; S.nbStr=(S.nbStr||0)+pend.filter(m=>m.cat==='str').length; if(S.nbStr>=3) award('reformateur'); pend.forEach(m=>{(S.log=S.log||[]).push({y:S.year,kind:'mesure',n:tx(m.n),eff:Math.round(yearly(m)),cap:m.cap||0,heart:m.g?Object.values(m.g).reduce((a,b)=>a+b,0):0}); apply({cap:m.cap,g:m.g,rev:m.rev,cost:m.cost,mk:m.mk,price:m.price,stu:m.stu,churn:m.churn,hc:m.hc,once:m.once,debt:m.debt,rate:m.rate,flag:m.flag,amortCut:m.amortCut},m.n); S.active.push(m.id);}); S.pending=[]; S.decided=true; save(); renderBudget(); renderGauges(); }
     if(!S.tmp.forced&&!S.tmp.party){S.tmp.party=true;confetti();}
-    sceneShell(votesHtml+`<div class="resbox ${S.tmp.forced?'bad':'pop'}"><b>${S.tmp.forced?'Plan imposé':'Plan adopté'}</b>${S.tmp.forced?'Vous avez usé de votre pouvoir de direction. Le plan s\'applique, mais le conseil et le CSE s\'en souviendront.':'Le conseil adopte le plan. Les mesures entrent en vigueur immédiatement et le capital est débité.'}</div>`,{title:S.tmp.forced?'Le passage en force':'Le plan est adopté',tag:'Les mesures entrent en vigueur. Reste à les faire vivre.',ready:true});
+    sceneShell(votesHtml+`<div class="resbox ${S.tmp.forced?'bad':'pop'}"><b>${S.tmp.forced?'Plan imposé':S.tmp.amputated?'Plan adopté après retrait':'Plan adopté'}</b>${S.tmp.amputated&&!S.tmp.forced?'Vous avez retiré la mesure qui bloquait. Le conseil adopte le plan amputé ; les mesures restantes entrent en vigueur.':''}${S.tmp.amputated&&!S.tmp.forced?'':S.tmp.forced?'Vous avez usé de votre pouvoir de direction. Le plan s\'applique, mais le conseil et le CSE s\'en souviendront.':'Le conseil adopte le plan. Les mesures entrent en vigueur immédiatement et le capital est débité.'}</div>`,{title:S.tmp.forced?'Le passage en force':'Le plan est adopté',tag:'Les mesures entrent en vigueur. Reste à les faire vivre.',ready:true});
     return;
   }
   const worst=pend.slice().sort((a,b)=>(a.cap||0)-(b.cap||0))[0];
   sceneShell(votesHtml+`<div class="resbox bad"><b>Le plan est rejeté</b>Le vote est perdu. Deux issues : passer en force, ou retirer la mesure la plus coûteuse en capital et refaire voter.</div><div id="c"></div>`,{title:'Le plan est rejeté',tag:'Le conseil a dit non. Vous avez une nuit pour trouver une issue.'});
   const box=document.createElement('div'); box.className='opts';
   box.appendChild(btn(`Passer en force<small>Le plan s'applique intégralement.</small><small>${chips({g:{ca:-15,cse:-6}})}</small>`,()=>{apply({g:{ca:-15,cse:-6}},'Passage en force');S.tmp.forced=true;renderGame();},'opt'));
-  if(worst) box.appendChild(btn(`Retirer « ${tx(worst.n)} » et refaire voter<small>Le plan amputé est adopté.</small><small>${chips({g:{ca:-2}})}</small>`,()=>{S.pending=S.pending.filter(i=>i!==worst.id);apply({g:{ca:-2}},'Retrait d\'une mesure');S.tmp.forced=true;renderGame();},'opt'));
+  if(worst) box.appendChild(btn(`Retirer « ${tx(worst.n)} » et refaire voter<small>Le plan amputé est adopté.</small><small>${chips({g:{ca:-2}})}</small>`,()=>{S.pending=S.pending.filter(i=>i!==worst.id);apply({g:{ca:-2}},'Retrait d\'une mesure');S.tmp.amputated=true;renderGame();},'opt'));
   $('#c').appendChild(box);
 }
 
@@ -2371,7 +2381,7 @@ const SND=(()=>{
   // Musique d'ambiance : nappes lentes + petit arpège, tonalité propre à chaque école
   const PROG=[[0,3,7],[-4,0,3],[-9,-5,-2],[-2,2,5]];
   function startMusic(){ if(!ctx||musTimer) return; musG.gain.setTargetAtTime(0.5,T(),1.5); musStep=0; const bar=4.8;
-    const sched=()=>{ if(!ctx) return; const t=T()+0.1, ch=PROG[musStep%PROG.length], r=48+musRoot;
+    const sched=()=>{ if(!ctx||ctx.state!=='running'||document.hidden) return; const t=T()+0.1, ch=PROG[musStep%PROG.length], r=48+musRoot;
       ch.forEach(n=>{ [0,12].forEach(o=>tone(N2F(r+n+o),t,bar,{type:o?'sine':'triangle',vol:o?0.025:0.04,att:1.4,rel:bar+0.8,dest:musG})); });
       [0,1,2,1,0,2,1,2].forEach((k,i)=>tone(N2F(r+24+ch[k]),t+i*bar/8,0.5,{type:'sine',vol:0.022,att:0.02,rel:0.9,dest:musG}));
       musStep++; };
@@ -2389,10 +2399,10 @@ const SND=(()=>{
   ['pointerdown','touchend','click','keydown'].forEach(ev=>document.addEventListener(ev,unlock,{capture:true,passive:true}));
   document.addEventListener('click',e=>{ const b=e.target.closest&&e.target.closest('button'); if(!b||b.id==='sndBtn') return; play(b.classList.contains('opt')||b.classList.contains('prof')?'pick':'click'); },{capture:true});
   document.addEventListener('visibilitychange',()=>{ if(!ctx) return; if(document.hidden) ctx.suspend(); else if(mode()>=1) ctx.resume(); });
-  return {play,mode,setMode,setRoot,label:()=>['🔇','🔊','🎵'][mode()],title:()=>['Son coupé','Effets sonores','Effets sonores et musique'][mode()]};
+  return {play,unlock,mode,setMode,setRoot,label:()=>['🔇','🔊','🎵'][mode()],title:()=>['Son coupé','Effets sonores','Effets sonores et musique'][mode()]};
 })();
 function sndBtnHtml(){ return `<button title="${SND.title()} (toucher pour changer)" aria-label="Son : ${SND.title()}" id="sndBtn">${SND.label()}</button>`; }
-function bindSnd(){ const b=document.getElementById('sndBtn'); if(!b) return; b.onclick=()=>{ const m=(SND.mode()+1)%3; SND.setMode(m); document.querySelectorAll('#sndBtn').forEach(x=>{ x.textContent=SND.label(); x.title=SND.title(); x.setAttribute('aria-label','Son : '+SND.title()); }); if(m) SND.play('ok'); toast2(SND.label()+' '+SND.title()); }; }
+function bindSnd(){ const b=document.getElementById('sndBtn'); if(!b) return; b.onclick=()=>{ const m=(SND.mode()+1)%3; SND.setMode(m); document.querySelectorAll('#sndBtn').forEach(x=>{ x.textContent=SND.label()+(x.classList.contains('sbtn')?' Son':''); x.title=SND.title(); x.setAttribute('aria-label','Son : '+SND.title()); }); if(m){ try{ SND.unlock(); }catch(e){} SND.play('ok'); } toast2(SND.label()+' '+SND.title()); }; }
 function toast2(txt){ const t=document.createElement('div'); t.className='toast'; t.innerHTML=`<b>${txt}</b>`; const box=document.getElementById('toasts'); if(box){ box.appendChild(t); setTimeout(()=>t.remove(),2200); } }
 // sons des animations d'imprévus, par thème
 const EVSND={glitch:'error',stamp:'stamp',news:'news',money:'cash',signs:'crowd',alert:'alarm',buzz:'pop',contract:'stamp',medal:'fanfare',cpl:'coin',ia:'error',price:'coin',exit:'door',calendar:'whoosh',shutter:'thud',handshake:'good',cloud:'whoosh',dossiers:'whoosh',zen:'chime',podium:'fanfare'};
@@ -2401,8 +2411,9 @@ const EVSND={glitch:'error',stamp:'stamp',news:'news',money:'cash',signs:'crowd'
 const IS_SITE=/^\/lejeududg/i.test(location.pathname);
 let INSTALL_EV=null;
 try{ if(IS_SITE&&'serviceWorker' in navigator) navigator.serviceWorker.register('/lejeuduDG/sw.js',{scope:'/lejeuduDG'}).catch(()=>{}); }catch(e){}
-const BUILD='20261101230143';
-function checkUpdate(){ if(!IS_SITE||BUILD==='dev') return; fetch('/lejeuduDG?v='+Date.now(),{cache:'no-store'}).then(r=>r.text()).then(t=>{ const m=t.match(/const BUILD='([^']+)'/); if(m&&m[1]!==BUILD&&!document.getElementById('updBar')){ const d=document.createElement('div'); d.id='updBar'; d.className='savetoast'; d.style.cursor='pointer'; d.innerHTML='✨ <b>Nouvelle version du jeu disponible</b><br><span style="font-size:12px;color:var(--muted)">Touchez pour mettre à jour (votre partie est sauvegardée)</span>'; d.onclick=()=>{ try{ save(); }catch(e){} location.reload(); }; document.body.appendChild(d); } }).catch(()=>{}); }
+const BUILD='20261101232234';
+let UPD_T=0;
+function checkUpdate(){ if(!IS_SITE||BUILD==='dev'||Date.now()-UPD_T<600000) return; UPD_T=Date.now(); fetch('/lejeuduDG/version.json',{cache:'no-store'}).then(r=>r.json()).then(v=>{ const m=[0,v&&v.build]; if(m[1]&&m[1]!==BUILD&&!document.getElementById('updBar')){ const d=document.createElement('div'); d.id='updBar'; d.className='savetoast'; d.style.cursor='pointer'; d.innerHTML='✨ <b>Nouvelle version du jeu disponible</b><br><span style="font-size:12px;color:var(--muted)">Touchez pour mettre à jour (votre partie est sauvegardée)</span>'; d.onclick=()=>{ try{ save(); }catch(e){} location.reload(); }; document.body.appendChild(d); } }).catch(()=>{}); }
 setTimeout(checkUpdate,4000); document.addEventListener('visibilitychange',()=>{ if(!document.hidden) checkUpdate(); });
 window.addEventListener('beforeinstallprompt',e=>{ e.preventDefault(); INSTALL_EV=e; });
 window.addEventListener('appinstalled',()=>{ INSTALL_EV=null; document.querySelectorAll('#instBtn').forEach(b=>b.remove()); });
@@ -2419,18 +2430,19 @@ function installBtn(){ if(!IS_SITE||STANDALONE()) return null;
   },'sbtn'); b.id='instBtn'; return b; }
 
 // ── Décision express : remplace l'imprévu faible. Une situation, trois réponses, un compte à rebours. Sans réponse, c'est la dernière ligne (« t ») qui s'applique.
+function unitOne(fem){ const u=(SC&&SC.unit)||'étudiants'; const sg=u.replace(/s$/,''); const f={'étudiant':'étudiante','apprenant':'apprenante','élève':'élève','stagiaire':'stagiaire'}[sg]||sg; return (fem?'Une ':'Un ')+(fem?f:sg); }
 const CRISES=[
  {ic:'📰',who:()=>'Une journaliste du Parisien',role:'au téléphone',t:()=>`« Je publie demain un article sur des ${SC.unit} mécontents de ${N.ecole}. Vous avez un commentaire ? »`,
   c:[['Répondre franchement, chiffres à l\'appui',{g:{etu:2,ca:1}},'L\'article cite votre réponse. Il reste critique, mais équilibré.'],
      ['« Pas de commentaire »',{g:{etu:-3},stuY:0.99},'« La direction n\'a pas souhaité répondre. » La phrase tourne en boucle.'],
      ['Menacer de poursuites',{once:-40,g:{etu:-5,ca:-3}},'L\'article sort quand même, avec un encadré sur vos menaces.']],
   to:[{g:{etu:-4},stuY:0.985},'Vous n\'avez pas rappelé : « La direction n\'a pas répondu à nos sollicitations. »']},
- {ic:'💥',who:()=>N.dsi,role:'Directeur des systèmes',t:()=>`« La plateforme est tombée la veille des examens. Un ${SC.unit.replace(/s$/,'')} a filmé l'écran d'erreur : 80 000 vues. On fait quoi ? »`,
+ {ic:'💥',who:()=>N.dsi,role:'Directeur des systèmes d\'information',t:()=>`« La plateforme est tombée la veille des examens. ${unitOne(false)} a filmé l'écran d'erreur : 80 000 vues. On fait quoi ? »`,
   c:[['Reporter l\'examen et s\'excuser publiquement',{once:-60,g:{etu:4}},'Les excuses sont reprises comme un exemple de gestion de crise.'],
      ['Offrir un mois à tous les inscrits',{revY:-200,g:{etu:5,ca:-1}},'Ça coûte cher, mais la vidéo devient « ils ont assuré ».'],
      ['Laisser passer, ça va retomber',{g:{etu:-5}},'Ça ne retombe pas. Les commentaires s\'accumulent.']],
   to:[{g:{etu:-6,ca:-1}},'Silence radio pendant que la vidéo tourne. Le pire des scénarios.']},
- {ic:'🤝',who:()=>N.business,role:'Directrice grands comptes',t:()=>`« Notre plus gros client veut 15 % de remise. Il attend une réponse avant ce soir, sinon il signe chez le concurrent. »`,
+ {ic:'🤝',who:()=>N.com,role:'Directrice commerciale',t:()=>`« Notre plus gros client veut 15 % de remise. Il attend une réponse avant ce soir, sinon il signe chez le concurrent. »`,
   c:[['Accepter les 15 %',{revY:-150,g:{com:2}},'Le client reste. Votre marge, un peu moins.'],
      ['Contre-proposer 8 % et un service en plus',{revY:-80,g:{com:1}},'Il hésite, puis signe. Bien joué.'],
      ['Refuser',{revY:-300,g:{com:-2}},'Il part. L\'équipe commerciale encaisse le coup.']],
@@ -2440,23 +2452,23 @@ const CRISES=[
      ['Lui proposer de prendre une équipe',{g:{com:2,ca:-1}},'Elle accepte le défi. Il faudra tenir la promesse.'],
      ['La laisser partir',{revY:-200,g:{com:-4}},'Elle part avec deux clients et le moral de l\'équipe.']],
   to:[{revY:-220,g:{com:-5}},'18 h passe. Elle envoie sa démission à 18 h 02.']},
- {ic:'🔓',who:()=>N.dsi,role:'Directeur des systèmes',t:()=>`« On a peut-être une fuite de données : des adresses de ${SC.unit} circulent sur un forum. Je coupe la plateforme ? »`,
+ {ic:'🔓',who:()=>N.dsi,role:'Directeur des systèmes d\'information',t:()=>`« On a peut-être une fuite de données : des adresses de ${SC.unit} circulent sur un forum. Je coupe la plateforme ? »`,
   c:[['Couper 24 h et vérifier',{revY:-80,g:{etu:-2,ca:2}},'Fausse alerte partielle. Le conseil apprécie la prudence.'],
      ['Prévenir la CNIL et les inscrits',{once:-40,g:{etu:1,ca:3}},'La transparence paie : peu de désinscriptions.'],
      ['Enquêter sans rien dire',{once:-100,g:{etu:-1,ca:-1}},'La fuite était réelle. Elle sort quand même, plus tard.']],
   to:[{once:-250,g:{etu:-4,ca:-3}},'Personne n\'a décidé. Les données ont continué de fuiter toute la nuit.']},
- {ic:'📺',who:()=>N.president,role:N.presidentRole||'Président',t:()=>`« Je passe sur BFM Business demain matin. Je veux annoncer une nouvelle filière. Vous êtes d'accord ? »`,
+ {ic:'📺',who:()=>N.president,role:N.presidentRole||'Président',t:()=>`« Je passe sur BFM Business demain matin. Je veux annoncer une nouvelle formation. Vous êtes d'accord ? »`,
   c:[['Valider, on suivra',{cost:80,g:{ca:3,com:3}},'L\'annonce fait du bruit. Il faudra la financer.'],
      ['Lui proposer d\'annoncer vos résultats à la place',{g:{ca:1,etu:1}},'Moins spectaculaire, mais il est content de sa matinée.'],
      ['Refuser : rien n\'est prêt',{g:{ca:-5,cse:2}},'Il raccroche sèchement. Il s\'en souviendra.']],
-  to:[{cost:100,g:{ca:-2,cse:-2}},'Sans réponse de votre part, il annonce une filière… que personne n\'a préparée.']},
- {ic:'✊',who:()=>N.cse,role:'Secrétaire du CSE',t:()=>`« Si on n'a pas de réponse sur les titres-restaurant ce soir, c'est débrayage demain matin. »`,
+  to:[{cost:100,g:{ca:-2,cse:-2}},'Sans réponse de votre part, il annonce une formation… que personne n\'a préparée.']},
+ {ic:'✊',who:()=>N.cse,role:'Secrétaire du CSE',t:()=>`« Si on n'a pas de réponse ce soir sur la hausse des titres-restaurant, c'est débrayage demain matin. »`,
   c:[['Accorder la hausse',{cost:90,g:{cse:6}},'Le débrayage est annulé. Le CSE note le geste.'],
      ['Proposer une réunion lundi, ordre du jour écrit',{g:{cse:1,ca:-1}},'Ils acceptent d\'attendre lundi. Il faudra arriver avec du concret.'],
      ['Refuser',{g:{cse:-6},stuY:0.99},'Débrayage d\'une heure. Les cours du matin sautent.']],
   to:[{g:{cse:-7,com:-2},stuY:0.99},'Pas de réponse : le débrayage commence à 9 h, devant les caméras.']},
- {ic:'🤳',who:()=>N.mkt,role:'Directrice marketing',t:()=>`« Une influenceuse à 900 000 abonnés veut parler de nous cette semaine. Elle demande 70 k€, réponse ce soir. »`,
-  c:[['Payer les 70 k€',{once:-70,stuY:1.02},'La vidéo cartonne, les contacts arrivent.'],
+ {ic:'🤳',who:()=>N.mkt,role:()=>SC.mediaWord==='commercial'?'Directrice du développement':'Directrice marketing',t:()=>tx(`« Une influenceuse à 900 000 abonnés veut parler de nous cette semaine. Elle demande {k:70}, réponse ce soir. »`),
+  c:[['Payer ce qu\'elle demande',{once:-70,stuY:1.02},'La vidéo cartonne, les contacts arrivent.'],
      ['Proposer une commission par inscription',{stuY:1.01,g:{com:2}},'Elle accepte, moins motivée. Ça marche quand même.'],
      ['Décliner poliment',{},'Elle parle d\'une autre école. Rien de perdu, rien de gagné.']],
   to:[{g:{com:-1}},'Pas de réponse : elle signe avec votre concurrent.']},
@@ -2465,47 +2477,47 @@ const CRISES=[
      ['Déposer un dossier minimal',{revY:100},'Accepté, pour une petite partie de l\'enveloppe.'],
      ['Laisser passer cette année',{},'D\'autres écoles se partagent l\'enveloppe.']],
   to:[{g:{ca:-1}},'Minuit passe. Le portail ferme sans votre dossier.']},
- {ic:'🧾',who:()=>N.rh,role:'Directrice des ressources humaines',t:()=>`« Le prestataire de paie a planté : les salaires ne sont pas partis. Les équipes s'en aperçoivent ce matin. »`,
+ {ic:'🧾',who:()=>N.rh,role:'Responsable des ressources humaines',t:()=>`« Le prestataire de paie a planté : les salaires ne sont pas partis. Les équipes s'en aperçoivent ce matin. »`,
   c:[['Virements manuels d\'urgence aujourd\'hui',{once:-30,g:{cse:3}},'Tout le monde est payé le soir même. Le CSE remercie.'],
      ['Un mail d\'excuses, paiement lundi',{g:{cse:-3}},'Ça grince, surtout chez ceux qui ont un prélèvement.'],
      ['Attendre que le prestataire corrige',{g:{cse:-6,com:-2}},'Trois jours sans salaire. La colère monte.']],
   to:[{g:{cse:-7,com:-2}},'Personne n\'a tranché. Les messages furieux s\'empilent.']},
- {ic:'🏷️',who:()=>N.mkt,role:'Directrice marketing',t:()=>`« Notre concurrent lance −30 % ce soir à minuit. Je prépare quelque chose ? »`,
+ {ic:'🏷️',who:()=>N.mkt,role:()=>SC.mediaWord==='commercial'?'Directrice du développement':'Directrice marketing',t:()=>`« Notre concurrent lance −30 % ce soir à minuit. Je prépare quelque chose ? »`,
   c:[['S\'aligner sur le prix',{revY:-250,stuY:1.03},'Vous gardez les volumes, pas la marge.'],
      ['Campagne « la qualité, ça se paie »',{once:-80,g:{com:2}},'Le message passe auprès des bons profils.'],
      ['Ne rien faire',{stuY:0.97},'Une partie des indécis part chez lui.']],
   to:[{stuY:0.965,g:{com:-1}},'Minuit : sa promo est en ligne, vous n\'avez rien préparé.']},
- {ic:'🔎',who:()=>N.qualite,role:'Responsable qualité',t:()=>`« L'auditeur ${N.qualiopi||'Qualiopi'} arrive demain matin, sans prévenir. On n'est pas prêts sur deux indicateurs. »`,
+ {ic:'🔎',who:()=>N.qualite,role:'Directrice qualité',t:()=>`« L'auditeur ${N.qualiopi||'Qualiopi'} arrive demain matin, sans prévenir. On n'est pas prêts sur deux indicateurs. »`,
   c:[['Nuit blanche pour l\'équipe qualité',{g:{cse:-3,ca:2}},'Audit passé. L\'équipe dort jusqu\'à midi le lendemain.'],
      ['Demander un report',{g:{ca:-3}},'Accordé, mais noté. Le conseil n\'aime pas ça.'],
      ['Y aller tel quel',{once:-120,g:{ca:-2}},'Deux non-conformités et un plan d\'action payant.']],
   to:[{once:-150,g:{ca:-3}},'Personne n\'a rien préparé. Trois non-conformités.']},
- {ic:'🗣️',who:()=>N.etuF,role:'Représentante des inscrits',t:()=>`« Une ${SC.unit.replace(/s$/,'')} accuse un formateur de propos humiliants, sur LinkedIn. Le post monte vite. »`,
+ {ic:'🗣️',who:()=>N.etuF,role:'Représentante des inscrits',t:()=>`« ${unitOne(true)} accuse un formateur de propos humiliants, sur LinkedIn. Le post monte vite. »`,
   c:[['Suspendre le formateur, enquête indépendante',{g:{etu:4,cse:-2,ca:1}},'Une réaction jugée sérieuse par tout le monde.'],
      ['Enquête interne discrète',{g:{etu:-3}},'Vu de l\'extérieur, l\'école ne fait rien.'],
      ['Un communiqué de soutien, sans plus',{g:{etu:-5,ca:-2}},'« Des mots, pas d\'actes » : le post redouble.']],
   to:[{g:{etu:-6,ca:-2}},'Aucune réaction officielle. Le post atteint la presse.']},
- {ic:'🏦',who:()=>N.banquier,role:N.banque,t:()=>`« Je peux renouveler votre ligne de crédit, mais à +1 point. Il me faut votre signature avant ce soir. »`,
+ {ic:'🏦',who:()=>N.banquier,role:N.banque,t:()=>`« Je peux renouveler votre ligne de crédit, mais à +0,5 point. Il me faut votre signature avant ce soir. »`,
   c:[['Signer',{rate:0.005,g:{ca:1}},'La ligne est sécurisée, un peu plus chère.'],
-     ['Négocier à +0,5 point',{rate:0.0025,g:{ca:-1}},'Il cède, en vous le faisant sentir.'],
+     ['Négocier à +0,25 point',{rate:0.0025,g:{ca:-1}},'Il cède, en vous le faisant sentir.'],
      ['Chercher une autre banque',{once:-40,g:{ca:-3}},'Des semaines de dossiers. Le conseil s\'inquiète.']],
   to:[{once:-100,g:{ca:-3}},'Sans signature, la ligne est réduite de moitié. Il faut payer des frais de découvert.']},
 ];
 function crisisFx(f){ const o={...f}; if(f.g){ o.g={}; for(const k in f.g) o.g[k]=f.g[k]>0?Math.round(f.g[k]*0.6):f.g[k]; } if(o.revY>0) o.revY=Math.round(o.revY*0.6); if(o.stuY>1) o.stuY=1+(o.stuY-1)*0.6; return scf(o); } // une crise reste une crise : les bonnes réponses limitent la casse plus qu'elles ne rapportent
 function crisisSecs(){ return MOB()?26:20; }
 function maybeMinor(){
-  const m=minorEvent(); if(m.done||m.at!==S.phase||document.getElementById('modal').innerHTML) return false;
+  const m=minorEvent(); if(m.done||m.at!==S.phase||S.screen!=='game'||document.getElementById('modal').innerHTML) return false;
   if(document.querySelector('.epcard:not(.out)')){ const S0=S; setTimeout(()=>{ if(S===S0&&S.screen==='game'&&S.phase===m.at&&!m.done) maybeMinor(); },500); return true; }
   S.used.cr=S.used.cr||[]; if(m.cr===undefined){ let pool=CRISES.map((_,i)=>i).filter(i=>!S.used.cr.includes(i)); if(!pool.length) pool=CRISES.map((_,i)=>i); m.cr=pool[Math.floor(Math.random()*pool.length)]; S.used.cr.push(m.cr); }
-  m.done=true; save(); crisisModal(CRISES[m.cr],'Décision express · '+EPISODES[S.phase][0],()=>{save();renderBudget();renderGauges();}); return true;
+  save(); crisisModal(CRISES[m.cr],'Décision express · '+EPISODES[S.phase][0],()=>{save();renderBudget();renderGauges();},m); return true; /* « done » n'est posé qu'à la réponse : recharger ne permet pas d'esquiver */
 }
 let CR_T=null;
-function crisisModal(cr,label,cb){
+function crisisModal(cr,label,cb,m){
   const esc=x=>String(x).replace(/[<>&]/g,''); const secs=crisisSecs();
   modal(`<div class="crisis"><div class="crtop"><span class="ml">⏱ ${label}</span><span class="crn" id="crn">${secs}</span></div><div class="crbar"><i id="crbar"></i></div>
-    <div class="crwho"><span class="ic">${cr.ic}</span><div><b>${esc(cr.who())}</b><small>${esc(cr.role)}</small></div></div><div class="mt">${cr.t()}</div><div class="opts" id="cro"></div><div class="ms">Sans réponse avant la fin du compte à rebours, la situation décide pour vous.</div></div>`,'gold crisism');
+    <div class="crwho"><span class="ic">${cr.ic}</span><div><b>${esc(cr.who())}</b><small>${esc(typeof cr.role==='function'?cr.role():cr.role)}</small></div></div><div class="mt">${cr.t()}</div><div class="opts" id="cro"></div><div class="ms">Sans réponse avant la fin du compte à rebours, la situation décide pour vous.</div></div>`,'gold crisism');
   const S0=S; const box=document.getElementById('cro'); let done=false, left=secs*1000, last=performance.now(), tick=Math.ceil(secs);
-  const finish=(fx,txt,timeout,lab)=>{ if(done) return; if(S!==S0||S.screen!=='game'){ done=true; clearInterval(CR_T); return; } done=true; clearInterval(CR_T); fx=crisisFx(fx); try{ SND&&SND.play(timeout?'buzzer':'pick'); }catch(e){}
+  const finish=(fx,txt,timeout,lab)=>{ if(done) return; if(S!==S0||S.screen!=='game'){ done=true; clearInterval(CR_T); closeModal(); return; } if(m) m.done=true; done=true; clearInterval(CR_T); fx=crisisFx(fx); try{ SND&&SND.play(timeout?'buzzer':'pick'); }catch(e){}
     (S.log=S.log||[]).push({y:S.year,kind:'décision',n:lab,eff:Math.round((fx.revY||0)+(fx.once||0)-(fx.cost||0)),cap:(fx.g&&fx.g.ca)||0,heart:fx.g?Object.values(fx.g).reduce((a,b)=>a+b,0):0,bad:isBad(fx)});
     apply(fx,lab);
     modal(`<div class="ic">${timeout?'⌛':cr.ic}</div><div class="ml">${label}${timeout?' · temps écoulé':''}</div><div class="mt">${esc(txt)}</div><div>${chips(fx)}</div><div style="margin-top:10px"><button class="mbtn" id="ack">Continuer</button></div>`,isBad(fx)?'bad':'');
@@ -2656,7 +2668,7 @@ function phResultats(){
     <div class="att" style="animation-delay:2.2s"><i data-w="${attW}" style="background:${att>=1?'var(--gold-hi)':att>=0?'var(--green)':'var(--rose)'}"></i></div>
     <div class="rv verdict" style="animation-delay:2.4s">${att>=1?'🏆 Objectif de résultat atteint : '+mE(y.res)+' pour '+tgt()+' demandés':att>=0?`🎯 ${Math.round(att*100)} % de l'objectif de résultat (${tgt()})`:`📉 En perte : l'objectif est à ${tgt()}`}</div></div>`;
   const capHtml=y.refused?`<div class="resbox bad"><b>🚪 Capacité d'accueil atteinte</b>${fmt(y.refused)} ${SC.unit} inscrits n'ont pas pu être accueillis : les équipes pédagogiques ne peuvent pas absorber plus de ${Math.round(SC.maxGrow*100)} % d'${SC.unit} en plus par an. Le budget médias qui les a attirés est perdu.</div>`:'';
-  const norgHtml=y.norgeat?`<div class="resbox" style="background:#2a2410;border-color:var(--gold-dark)"><b>🧮 L'effet Norgeat : ${kE(y.norgeat)} sur le résultat</b>${y.norgeat<0?`« Ah, j'oubliais. Il a fallu passer une petite provision de ${fmt(-y.norgeat)} k€ hier soir, juste avant la clôture. Bah, je t'avais dit de ne pas trop t'habituer aux bonnes choses. » <span class="muted">Écriture comptable : le résultat baisse un peu, la trésorerie ne bouge pas.</span>`:`« Ah, j'oubliais. Une provision de ${fmt(y.norgeat)} k€ que j'avais passée il y a quelque temps n'avait plus lieu d'être. Je l'ai reprise hier soir, juste avant la clôture. ${y.norgeat/y.revenue>0.02?'Oui, c\'est beaucoup. Mais si tu te souviens…':'Trois fois rien, mais c\'est toujours ça.'} » <span class="muted">Écriture comptable : le résultat s'améliore, la trésorerie ne bouge pas.</span>`}</div>`:'';
+  const norgHtml=y.norgeat?`<div class="resbox" style="background:#2a2410;border-color:var(--gold-dark)"><b>🧮 L'effet Norgeat : ${kE(y.norgeat)} sur le résultat</b>${y.norgeat<0?`« Ah, j'oubliais. Il a fallu passer une petite provision de ${fmt(-y.norgeat)} k€ hier soir, juste avant la clôture. Bah, je vous avais dit de ne pas trop vous habituer aux bonnes choses. » <span class="muted">Écriture comptable : le résultat baisse un peu, la trésorerie ne bouge pas.</span>`:`« Ah, j'oubliais. Une provision de ${fmt(y.norgeat)} k€ que j'avais passée il y a quelque temps n'avait plus lieu d'être. Je l'ai reprise hier soir, juste avant la clôture. ${y.norgeat/y.revenue>0.02?'Oui, c\'est beaucoup. Mais si vous vous souvenez…':'Trois fois rien, mais c\'est toujours ça.'} » <span class="muted">Écriture comptable : le résultat s'améliore, la trésorerie ne bouge pas.</span>`}</div>`:'';
   sceneShell(dlg(DAF,N.daf,N.dafRole+' · présente les comptes',`« Résultat net ${S.year} : <b style="color:${y.pct<0?'var(--rose)':'var(--green)'}">${mE(y.res)}</b>. ${y.res>=SC.resTarget?'Objectif de résultat atteint cette année.':y.pct>=0?(y.pct<3?'L\'école est à l\'équilibre. Reste à construire la marge.':'L\'école est rentable ; l\'objectif n\'est pas encore atteint.'):(S.yi===0&&SC.start>=0?'L\'école est passée dans le rouge.':'Encore une année en perte.')} ${N.president} ${y.dca>=0?'vous accorde '+y.dca+' points de capital, avec un mot de félicitations.':'vous retire '+(-y.dca)+' points de capital, sans plaisir, mais sans détour.'} »`)+
    revealHtml+capHtml+norgHtml+waterfallHtml(y)+`<details class="det"><summary>📊 Voir le détail des comptes et de la trésorerie</summary><div class="tw"><table><tr><th>Canal</th><th>Budget</th><th>${SC.leadWord}</th><th>Inscriptions</th><th>Coût / inscrit</th></tr>${Object.keys(MEDIA).map(k=>`<tr><td>${MEDIA[k].ic} ${MEDIA[k].n}</td><td class="num">${fmt(y.media[k])} k€</td><td class="num">${fmt(ins.channels[k].leads)}</td><td class="num">${fmt(ins.channels[k].ins)}</td><td class="num">${ins.channels[k].cpi?fmt(ins.channels[k].cpi)+' €':'–'}</td></tr>`).join('')}<tr><td>🌱 Bouche-à-oreille et alumni</td><td class="num">–</td><td class="num">–</td><td class="num">${fmt(ins.organic)}</td><td class="num">0 €</td></tr></table></div>
    <div class="tw"><table>
@@ -2674,7 +2686,7 @@ function phResultats(){
    <tr><td>− Plateforme et frais généraux</td><td class="num" style="color:var(--rose)">${kE(-(y.platform+y.other))}</td></tr>
    ${y.measures?`<tr><td>${y.measures>0?'−':'+'} Coût net des mesures en vigueur</td><td class="num" style="color:${y.measures>0?'var(--rose)':'var(--green)'}">${kE(-y.measures)}</td></tr>`:''}
    ${y.scaleCost?`<tr><td>− Encadrement des ${SC.unit} au-delà de ${fmt(BASE.students)}${y.staffDelta?` (effectif ${y.staffDelta>0?'+':''}${y.staffDelta}, soit ${fmt(y.staff)} salariés)`:''}</td><td class="num" style="color:var(--rose)">${kE(-y.scaleCost)}</td></tr>`:''}
-   <tr><td>− Intérêts (dette ${(S.debt/1000).toFixed(0)} M€${y.cashBefore<0?' + découvert':''} à ${(S.rate*100).toFixed(1).replace('.',',')} %)</td><td class="num" style="color:var(--rose)">${kE(-y.interest)}</td></tr>
+   <tr><td>− Intérêts (dette ${M1(S.debt)}${y.cashBefore<0?' + découvert':''} à ${(S.rate*100).toFixed(1).replace('.',',')} %)</td><td class="num" style="color:var(--rose)">${kE(-y.interest)}</td></tr>
    ${y.norgeat?`<tr><td>${y.norgeat<0?'− Dotation à une provision':'+ Reprise de provision'} (écriture comptable, sans effet sur la trésorerie)</td><td class="num" style="color:var(--gold-hi)">${kE(y.norgeat)}</td></tr>`:''}
    <tr><td><b>= Résultat de l'exercice</b></td><td class="num"><b style="color:${y.res<0?'var(--rose)':'var(--green)'}">${kE(y.res)}</b></td></tr>
    ${y.amort?`<tr><td>− Remboursement du prêt du rachat (échéance annuelle)</td><td class="num">${kE(-y.amort)}</td></tr>`:''}
@@ -2745,7 +2757,7 @@ function showFX(kind,ctx,cb){ try{ if(!RM()) SND.play('show'); }catch(_){}
       sfxBox('',`<div class="stage"><div class="mapw"><div class="map" style="grid-template-columns:repeat(${W},1fr)">${cells.map(c=>`<i${c?'':' style="opacity:0"'}></i>`).join('')}</div><svg viewBox="0 0 ${W} 12" preserveAspectRatio="none">${dest.map((q,k)=>`<path d="M${fr[0]+.5} ${fr[1]+.5} Q ${(fr[0]+q[0])/2+.5} ${Math.min(fr[1],q[1])-3} ${q[0]+.5} ${q[1]+.5}" style="animation-delay:${1.6+k*0.25}s"/>`).join('')}</svg></div></div>${cap(3.8,g,esc(N.ecole)+', partout dans le monde.'+(ctx.layoffs?' Sauf ici.':''))}`,6200,d=>{ const is=[...d.querySelectorAll('.map i')]; cells.forEach((c,k)=>{ if(!c) return; const dist=Math.hypot(c[0]-fr[0],(c[1]-fr[1])*2); setTimeout(()=>{ if(!d.isConnected) return; is[k].classList.add('on'); if(ctx.layoffs&&dist<2.5) setTimeout(()=>{is[k].classList.remove('on');is[k].classList.add('off');},900); },400+dist*100); }); },cb); }
     else { sfxBox('',`<div class="stage"><div class="slide" id="sfxS1"><h2>Vision 2030</h2><p>${esc(N.ecole)} · Séminaire de fin d'année</p><svg viewBox="0 0 400 200" preserveAspectRatio="none"><path d="M10 190 C120 185 200 150 280 90 S370 -20 420 -60"/></svg></div></div>`,6400,d=>{ setTimeout(()=>{ const sl=d.querySelector('#sfxS1'); if(!sl) return; sl.className='slide q'; sl.innerHTML='<h2>Questions ?</h2>'; const c=document.createElement('span'); c.className='cricket'; c.textContent='🦗'; d.appendChild(c); },2700); setTimeout(()=>{ if(!d.isConnected) return; d.insertAdjacentHTML('beforeend',cap(0,g,'📊 Les commerciaux applaudissent. Le reste attend le buffet.')); },4000); },cb); }
   } else { const body=`Objet : Show de fin d'année\n\nBonjour à toutes et à tous,\nCette année, pas de show : nous économisons ${tx('{k:150}')}.\nMerci pour votre engagement.\n\n${S.name||'La direction'}`;
-    sfxBox('',`<div class="stage"><div class="mail"><div class="bar"><i></i><i></i><i></i> Nouveau message</div><div class="f">À : tous@${esc(N.ecole).toLowerCase().replace(/[^a-z]/g,'')}.fr</div><div class="b" id="sfxB"></div><span class="send" id="sfxSend">Envoyer</span><div class="read" id="sfxR" style="display:none">Lu par <b id="sfxN">0</b> / ${fmt(S.staff)}<div class="rb"><i id="sfxRB"></i></div><div class="noreply">Aucune réponse.</div></div></div><span class="cur" id="sfxC" style="left:60%;top:70%">🖱️</span></div><div class="reacts" id="sfxRe"></div>`,9000,d=>{ const el=d.querySelector('#sfxB'); let k=0;
+    sfxBox('',`<div class="stage"><div class="mail"><div class="bar"><i></i><i></i><i></i> Nouveau message</div><div class="f">À : tous@${esc(N.ecole).normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/[^a-z]/g,'')}.fr</div><div class="b" id="sfxB"></div><span class="send" id="sfxSend">Envoyer</span><div class="read" id="sfxR" style="display:none">Lu par <b id="sfxN">0</b> / ${fmt(S.staff)}<div class="rb"><i id="sfxRB"></i></div><div class="noreply">Aucune réponse.</div></div></div><span class="cur" id="sfxC" style="left:60%;top:70%">🖱️</span></div><div class="reacts" id="sfxRe"></div>`,9000,d=>{ const el=d.querySelector('#sfxB'); let k=0;
       const press=()=>{ const sb=d.querySelector('#sfxSend'), c=d.querySelector('#sfxC'); if(!sb||!c||!d.isConnected) return; const sr=sb.getBoundingClientRect(), dr=d.querySelector('.stage').getBoundingClientRect(); c.style.left=(sr.left-dr.left+sr.width*0.5)+'px'; c.style.top=(sr.top-dr.top+sr.height*0.4)+'px';
         setTimeout(()=>{ sb.classList.add('hit'); setTimeout(()=>{ const r=d.querySelector('#sfxR'); if(!r) return; r.style.display='block'; const n=d.querySelector('#sfxN'), bar=d.querySelector('#sfxRB'); const tot=S.staff, to=Math.round(tot*0.62); requestAnimationFrame(()=>{bar.style.width=(to/tot*100)+'%';}); count(n,to,x=>fmt(Math.round(x)),2200);
           const re=d.querySelector('#sfxRe'); ['👀 vu','😶','ok.','c\'est tout ?','#show-annulé 🔒'].forEach((t,q)=>setTimeout(()=>{ if(!re||!d.isConnected) return; const sp=document.createElement('span'); sp.textContent=t; re.appendChild(sp); },900+q*550)); },300); },1200); };
@@ -2761,7 +2773,9 @@ function bilanVerdict(){ // verdict de Bernard selon la trajectoire vers l'objec
   else if(prog>=exp-0.06){ ic='✅';col='var(--green)';msg=`${N.president} est confiant : vous êtes dans les temps. « Pas de relâchement, mais on est sur la bonne route. »`; }
   else if(prog>0){ ic=S.g.ca<30?'⏳':'⚠️';col='var(--gold)';msg=S.g.ca<30?`Le conseil s'impatiente : l'école progresse, mais trop lentement, et votre capital est bas. ${N.president} vous défend encore. C'est un sursis.`:`${N.president} est inquiet : ça progresse, mais en retard sur la trajectoire. « Il va falloir accélérer l'an prochain. »`; }
   else { ic='🔥';col='var(--rose)';msg=S.g.ca<30?`L'école recule et le conseil gronde. ${N.president} obtient pour vous un dernier sursis, sans garantie pour la suite.`:`L'école a reculé par rapport à 2025. ${N.president} reste à vos côtés, mais le conseil attend un vrai redressement.`; }
-  if(caLate&&lr.res<SC.resTarget) msg+=(prog>=exp-0.06?' Mais attention : le chiffre d\'affaires est en retard':' Et le chiffre d\'affaires est lui aussi en retard')+` sur l'objectif de ${(SC.caTarget/1000).toFixed(0)} M€.`;
+  const msLate=SC.caMs&&S.year<SC.caMs&&lr.rev<SC.ca0+(SC.caMsVal-SC.ca0)*(S.yi+1)/(SC.caMs-2025);
+  if(msLate) msg+=` Attention à l'étape de ${SC.caMs} : ${M1(SC.caMsVal)} de chiffre d'affaires exigés, vous êtes à ${M1(lr.rev)} et en retard sur le rythme nécessaire.`;
+  else if(caLate&&lr.res<SC.resTarget) msg+=(prog>=exp-0.06?' Mais attention : le chiffre d\'affaires est en retard':' Et le chiffre d\'affaires est lui aussi en retard')+` sur l'objectif de ${M1(SC.caTarget)}.`;
   return `<div class="note" style="margin-top:18px;border-color:${col}"><div class="h" style="color:${col}">${ic} Le verdict de ${N.president}</div><p style="margin:4px 0 10px">${msg}</p>
     <div style="font-size:12px;color:var(--muted);display:flex;justify-content:space-between;gap:4px 12px;flex-wrap:wrap"><span>Chemin parcouru vers ${tgt()} : <b style="color:${col}">${P(prog)} %</b></span><span>attendu fin ${S.year} : ${P(exp)} %</span></div>
     <div style="position:relative;height:8px;border-radius:4px;background:#1b2340;margin-top:5px"><i style="position:absolute;left:0;top:0;bottom:0;width:${clamp(prog,0,1)*100}%;background:${col};border-radius:4px"></i><i style="position:absolute;top:-4px;bottom:-4px;left:${exp*100}%;width:2px;background:#eef2fb"></i></div></div>`; }
@@ -2787,14 +2801,15 @@ function bilanHtml(){
   if(costly.length) lines.push(`<b>Celles qui ont coûté cher en cœurs :</b> ${costly.map(x=>`${x.n} (${x.heart} au total)`).join(' · ')}.`);
   if(worst.length) lines.push(`<b>Les coups durs :</b> ${worst.map(x=>`${x.n} (${x.y})`).join(' · ')}.`);
   if(best.length) lines.push(`<b>Le coup de chance :</b> ${best[0].n} (${best[0].y}).`);
-  if(h0&&hN) lines.push(`<b>En chiffres :</b> ${fmt(BASE.students)} ${SC.unit} en 2025, ${fmt(hN.students)} fin 2030 ; ${fmt(h0.newS)} inscriptions en 2026, ${fmt(hN.newS)} en 2030 ; taux d'abandon de ${Math.round(h0.churn*100)} % à ${Math.round(hN.churn*100)} % ; budget ${SC.mediaWord} de ${(h0.mediaK/1000).toFixed(1).replace('.',',')} M€ à ${(hN.mediaK/1000).toFixed(1).replace('.',',')} M€, soit ${fmt(h0.mediaK*1000/Math.max(1,h0.ins.paid||h0.newS))} € puis ${fmt(hN.mediaK*1000/Math.max(1,hN.ins.paid||hN.newS))} € par inscription payante${hN.ins.sat<0.9?' (marché saturé : chaque inscription coûte plus cher à mesure que l\'école grossit)':''}.`);
-  const lesson=S.g.ca<25?'Vous avez fini à court de capital : le conseil ne suivait plus. Garder une réserve de capital, c\'est garder la main.':S.g.cse<30?'Le climat social a été sacrifié : les économies ont tenu, pas les équipes.':S.g.etu<35?'Les étudiants ont payé le redressement : abandons élevés, bouche-à-oreille en berne.':hN&&hN.res>=SC.resTarget?'Un redressement équilibré : les comptes, les équipes et les étudiants ont tenu ensemble.':'Les comptes ont progressé, mais pas assez vite : les premières années pèsent le plus, chaque mesure prise tôt rapporte cinq fois.';
+  if(h0&&hN) lines.push(`<b>En chiffres :</b> ${fmt(BASE.students)} ${SC.unit} en 2025, ${fmt(hN.students)} fin ${hN.year} ; ${fmt(h0.newS)} inscriptions en 2026, ${fmt(hN.newS)} en ${hN.year} ; taux d'abandon de ${Math.round(h0.churn*100)} % à ${Math.round(hN.churn*100)} % ; budget ${SC.mediaWord} de ${(h0.mediaK/1000).toFixed(1).replace('.',',')} M€ à ${(hN.mediaK/1000).toFixed(1).replace('.',',')} M€, soit ${fmt(h0.mediaK*1000/Math.max(1,h0.ins.paid||h0.newS))} € puis ${fmt(hN.mediaK*1000/Math.max(1,hN.ins.paid||hN.newS))} € par inscription payante${hN.ins.sat<0.9?' (marché saturé : chaque inscription coûte plus cher à mesure que l\'école grossit)':''}.`);
+  const lesson=S.g.ca<25?'Vous avez fini à court de capital : le conseil ne suivait plus. Garder une réserve de capital, c\'est garder la main.':S.g.cse<30?'Le climat social a été sacrifié : les économies ont tenu, pas les équipes.':S.g.etu<35?tx('Les étudiants ont payé le redressement : abandons élevés, bouche-à-oreille en berne.'):hN&&hN.res>=SC.resTarget?tx('Un redressement équilibré : les comptes, les équipes et les étudiants ont tenu ensemble.'):'Les comptes ont progressé, mais pas assez vite : les premières années pèsent le plus, chaque mesure prise tôt rapporte cinq fois.';
   lines.push(`<b>La leçon :</b> ${lesson}`);
   return `<div class="note" style="text-align:left"><div class="h">📘 Ce que cette partie raconte</div>${lines.map(l=>`<p style="margin:4px 0">${l}</p>`).join('')}</div>`;
 }
 // ── Sauvegarde visible ──
 function saveToast(){ try{ save(); }catch(e){} try{ SND.play('ok'); }catch(_){} document.querySelectorAll('.savetoast').forEach(x=>x.remove()); const ep=EPISODES[S.phase||0];
   const t=document.createElement('div'); t.className='savetoast'; t.setAttribute('role','status');
+  if(!SAVE_OK){ t.style.borderColor='var(--rose)'; t.innerHTML=`⚠️ <b>Sauvegarde impossible</b><br><span style="color:var(--muted);font-size:12px">Le navigateur refuse d'enregistrer (navigation privée ou mémoire pleine). La partie continue, mais elle sera perdue si vous fermez le jeu.</span>`; document.body.appendChild(t); setTimeout(()=>{t.classList.add('out'); setTimeout(()=>t.remove(),450);},4500); return; }
   t.innerHTML=`✅ <b>Partie sauvegardée</b> · ${SC.ic} ${N.ecole} · Saison ${S.yi+1} · ${ep?ep[0]:''} ${S.year}<br><span style="color:var(--muted);font-size:12px">Vous la retrouverez sur l'accueil (🏠, « Mes parties sauvegardées »), même après avoir fermé le jeu.</span>`;
   document.body.appendChild(t); setTimeout(()=>{t.classList.add('out'); setTimeout(()=>t.remove(),450);},3200);
   const b=document.getElementById('saveBtn'); if(b){ b.classList.remove('ok'); void b.offsetWidth; b.classList.add('ok'); setTimeout(()=>b.classList.remove('ok'),2500); } }
@@ -2841,7 +2856,7 @@ function journalData(kind){
   const mois=['janvier','février','mars','avril','mai','juin','juillet','septembre','novembre','décembre','décembre'];
   const date=lost?`${(S.phase>=8?28:15)} ${mois[S.phase]||'décembre'} ${S.year}`:`31 décembre ${S.year}`;
   const H={win:[`${ec} : le pari gagné de ${nm}`,`Fin ${S.year}, l'école affiche ${mE(lr.res)} de résultat net pour ${tgt()} demandés. Le conseil d'administration est unanime.`,'🏆',`${nm} et ${pr}, hier soir, au siège de ${ec}.`],
-    demi:[`${ec} rentable, sans l'éclat espéré`,`${mE(lr.res)} de résultat net fin ${S.year}, loin des ${tgt()} visés. ${pr} garde ${nm}, « en attendant mieux ».`,'🍾',`Une coupe de champagne, mais pas deux.`],
+    demi:[`${ec} rentable, sans l'éclat espéré`,lr.res>=SC.resTarget?`${mE(lr.res)} de résultat net fin ${S.year} : l'objectif est tenu, mais le chiffre d'affaires (${M1(lr.rev)}) reste loin des ${M1(SC.caTarget)} demandés. ${pr} garde ${nm}, « en attendant mieux ».`:`${mE(lr.res)} de résultat net fin ${S.year}, loin des ${tgt()} visés. ${pr} garde ${nm}, « en attendant mieux ».`,'🍾',`Une coupe de champagne, mais pas deux.`],
     manque:[`${nm} quitte ${ec} sans prolongation`,`Avec ${mE(lr.res)} de résultat net, l'école reste loin de l'objectif fixé par le conseil. Le mandat n'est pas renouvelé.`,'📦',`Le carton de ${nm}, hier, sur le parking.`],
     revoque:[`${nm} révoqué·e par le conseil`,why||`Le conseil d'administration a mis fin au mandat avec effet immédiat.`,'🔨',`La salle du conseil, juste après le vote.`],
     faillite:[`${ec} au bord du dépôt de bilan`,why||`La banque a coupé la ligne de crédit.`,'🚧',`Le siège de ${ec}, portes closes ce matin.`],
@@ -2852,7 +2867,7 @@ function journalData(kind){
     [esc(N.cse),'Secrétaire du CSE',q(S.g.cse,'« Le dialogue social a été réel. On s\'en souviendra. »','« Un mandat en demi-teinte pour les salariés. »','« Personne ne regrettera cette période au CSE. »')],
     [esc(N.etuF),'Représentante des inscrits',q(S.g.etu,'« On a senti que la direction nous écoutait. »','« Des hauts, des bas, beaucoup de mails. »','« On avait l\'impression d\'être des numéros. »')],
     [esc(N.com),'Directrice commerciale',q(S.g.com,'« L\'équipe aurait suivi ce DG n\'importe où. »','« On a fait le job, sans plus. »','« Les meilleurs sont partis les premiers. »')]];
-  const log=(S.log||[]).filter(x=>x&&x.n); const best=log.slice().sort((a,b)=>b.eff-a.eff)[0], worst=log.slice().sort((a,b)=>a.eff-b.eff)[0];
+  const log=(S.log||[]).filter(x=>x&&x.n&&(x.kind==='mesure'||x.kind==='décision')); const best=log.slice().sort((a,b)=>b.eff-a.eff)[0], worst=log.slice().sort((a,b)=>a.eff-b.eff)[0];
   const stats=[['Résultat net',mE(lr.res)],['Chiffre d\'affaires',(lr.rev/1000).toFixed(1).replace('.',',')+' M€'],[SC.unit.charAt(0).toUpperCase()+SC.unit.slice(1),fmt(S.students)],['Salariés',fmt(S.staff)]];
   const also=[...new Set(S.trophSession||[])].map(id=>BADGES.find(b=>b.id===id)).filter(Boolean).slice(0,2).map(b=>`${b.ic} Trophée : ${b.n}`);
   const fill=['Formation en ligne : le marché dépasse les campus','Météo sociale : éclaircies le vendredi','Mercato : les DG d\'école s\'arrachent','Courrier des lecteurs : « Rendez-nous le présentiel »'];
@@ -2892,10 +2907,10 @@ function renderFinal(){
   const lr=S.lastResult; let verdict,text,cls;
   const grown=!SC.growth||SC.caReq===false||lr.rev>=SC.caTarget;
   const statut=S.over.lost?'perdu':(lr.res>=SC.resTarget&&grown)?'objectif':lr.pct>=0?'equilibre':'manque';
-  if(!S.over.posted){S.over.posted=true;postScore('partie',{statut});badgeFinal(statut); const fk=finaleKind(statut); setTimeout(()=>finale(fk),80);}
+  if(!S.over.posted){S.over.posted=true;save();postScore('partie',{statut});badgeFinal(statut); const fk=finaleKind(statut); setTimeout(()=>finale(fk),80);}
   if(S.over.lost){verdict="Fin de série";text=S.over.why;cls='bad';}
   else if(lr.res>=SC.resTarget&&grown){verdict="Objectif atteint";text=`Fin 2030, ${N.ecole} affiche ${mE(lr.res)} de résultat net, ${(lr.rev/1000).toFixed(1).replace('.',',')} M€ de chiffre d'affaires, ${fmt(S.students)} ${SC.unit} et ${fmt(S.staff)} salariés. Dix ans plus tard, les anciens élèves se souviennent ${S.g.etu>60?'d\'une école qui a tenu ses promesses.':'surtout des années de rigueur.'}`;cls='';}
-  else if(lr.pct>=0){verdict="Demi-succès";text=lr.res>=SC.resTarget?`${N.ecole} tient ${mE(lr.res)} de résultat, mais le chiffre d'affaires (${(lr.rev/1000).toFixed(1).replace('.',',')} M€) reste loin des ${(SC.caTarget/1000).toFixed(0)} M€ demandés. Rentable, pas assez ambitieux : ${N.president} vous garde, et attend la suite.`:`${N.ecole} est rentable (${mE(lr.res)}) mais loin des ${tgt()} demandés. ${N.president} vous garde, sans cacher sa déception.`;cls='neu';}
+  else if(lr.pct>=0){verdict="Demi-succès";text=lr.res>=SC.resTarget?`${N.ecole} tient ${mE(lr.res)} de résultat, mais le chiffre d'affaires (${(lr.rev/1000).toFixed(1).replace('.',',')} M€) reste loin des ${M1(SC.caTarget)} demandés. Rentable, pas assez ambitieux : ${N.president} vous garde, et attend la suite.`:`${N.ecole} est rentable (${mE(lr.res)}) mais loin des ${tgt()} demandés. ${N.president} vous garde, sans cacher sa déception.`;cls='neu';}
   else{verdict="Objectif manqué";text=`Toujours en perte (${mE(lr.res)}) fin ${S.year}. ${N.president} ne renouvelle pas votre mandat : « Ce n'est pas de gaieté de cœur, mais le conseil ne peut pas faire autrement. »`;cls='bad';}
   // « Presque » : distance à l'objectif, record personnel sur l'école, coup qui a coûté le plus cher
   const att=lr.res/SC.resTarget, caAtt=SC.growth?lr.rev/SC.caTarget:null, attP=Math.round(att*100);
@@ -2917,7 +2932,7 @@ function renderFinal(){
     ${journalHtml(finaleKind(statut))}
     ${histHtml()}
     <div class="tw" style="margin-top:20px"><table><tr><th>Indicateur</th><th>2025</th><th>Fin de série</th></tr>
-    <tr><td>Résultat net</td><td class="num">${mE(SC.ca0*SC.start/100)}</td><td class="num">${mE(lr.res)} <span class="muted">(cible ${tgt()})</span></td></tr><tr><td>Chiffre d'affaires</td><td class="num">${(SC.ca0/1000).toFixed(1).replace('.',',')} M€</td><td class="num">${(lr.rev/1000).toFixed(1).replace('.',',')} M€${SC.growth?' <span class="muted">(cible '+(SC.caTarget/1000).toFixed(0)+')</span>':''}</td></tr><tr><td>Capital</td><td class="num">–</td><td class="num">${Math.round(S.g.ca)} pts</td></tr><tr><td>${SC.unit.charAt(0).toUpperCase()+SC.unit.slice(1)}</td><td class="num">${fmt(BASE.students)}</td><td class="num">${fmt(S.students)}</td></tr><tr><td>Salariés</td><td class="num">${BASE.staff}</td><td class="num">${fmt(S.staff)}</td></tr><tr><td>Prix de vente</td><td class="num">${fmt(BASE.price)} €</td><td class="num">${fmt(S.price)} €</td></tr><tr><td>Budget ${SC.mediaWord}</td><td class="num">${(BASE.marketing/1000).toFixed(1).replace('.',',')} M€</td><td class="num">${(mkTotal()/1000).toFixed(1).replace('.',',')} M€</td></tr><tr><td>Trésorerie</td><td class="num">${mE(BASE.cash)}</td><td class="num">${mE(S.cash)}</td></tr><tr><td>Mesures adoptées</td><td>–</td><td class="num">${S.active.length}</td></tr></table></div>
+    <tr><td>Résultat net</td><td class="num">${mE(SC.ca0*SC.start/100)}</td><td class="num">${mE(lr.res)} <span class="muted">(cible ${tgt()})</span></td></tr><tr><td>Chiffre d'affaires</td><td class="num">${(SC.ca0/1000).toFixed(1).replace('.',',')} M€</td><td class="num">${(lr.rev/1000).toFixed(1).replace('.',',')} M€${SC.growth?' <span class="muted">(cible '+M1(SC.caTarget)+')</span>':''}</td></tr><tr><td>Capital</td><td class="num">–</td><td class="num">${Math.round(S.g.ca)} pts</td></tr><tr><td>${SC.unit.charAt(0).toUpperCase()+SC.unit.slice(1)}</td><td class="num">${fmt(BASE.students)}</td><td class="num">${fmt(S.students)}</td></tr><tr><td>Salariés</td><td class="num">${BASE.staff}</td><td class="num">${fmt(S.staff)}</td></tr><tr><td>Prix de vente</td><td class="num">${fmt(BASE.price)} €</td><td class="num">${fmt(S.price)} €</td></tr><tr><td>Budget ${SC.mediaWord}</td><td class="num">${(BASE.marketing/1000).toFixed(1).replace('.',',')} M€</td><td class="num">${(mkTotal()/1000).toFixed(1).replace('.',',')} M€</td></tr><tr><td>Trésorerie</td><td class="num">${mE(BASE.cash)}</td><td class="num">${mE(S.cash)}</td></tr><tr><td>Mesures adoptées</td><td>–</td><td class="num">${S.active.length}</td></tr></table></div>
     ${nearHtml}
     ${bilanHtml()}
     ${(S.trophSession||[]).length?`<div class="note" style="text-align:left;border-color:var(--gold)"><div class="h">🏅 Trophées débloqués pendant cette partie</div>${[...new Set(S.trophSession)].map(id=>BADGES.find(b=>b.id===id)).filter(Boolean).map(b=>`<p style="margin:4px 0"><b>${b.ic} ${b.n}</b> <span class="muted">· ${b.d}</span></p>`).join('')}</div>`:''}
@@ -2954,8 +2969,8 @@ function start(data){
     const last=localStorage.getItem('bde-last'); if(last) loaded=readSave(last); }catch(e){} }
   applyScenario(loaded&&loaded.sc!==undefined?loaded.sc:0);
   let live=null; try{ const lv=sessionStorage.getItem('bde-live'); if(lv&&!(data&&data.S)) live=readSave(lv); }catch(e){} /* simple rechargement de l'onglet en pleine partie : on reprend directement */
-  if(live){ loaded=live; applyScenario(live.sc); }
-  if(((data&&data.S)||live)&&loaded&&loaded.screen&&loaded.g&&loaded.used&&loaded.media&&loaded.sc!==undefined) S=loaded; else { newGame(0); S.screen='intro'; } /* au chargement : toujours l'accueil, avec la liste des parties sauvegardées */
+  if(live){ loaded=live; newGame(live.sc); }
+  if(((data&&data.S)||live)&&loaded&&loaded.screen&&loaded.g&&loaded.used&&loaded.media&&loaded.sc!==undefined){ if(!live) newGame(loaded.sc); S=loaded; } else { newGame(0); S.screen='intro'; } /* au chargement : toujours l'accueil, avec la liste des parties sauvegardées */
   if(!S.pid){const t=S; newGame(); t.pid=S.pid; S=t;}
   if(S.screen==='title'||S.screen==='hof'||S.screen==='badges') S.screen=S.over?'final':'game';
   if(S.screen==='scenario'||S.screen==='profile') S.screen='intro';

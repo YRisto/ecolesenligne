@@ -16,12 +16,15 @@ export async function GET(req) {
   let filter = archive ? `type=eq.${type}&or=(archive.eq.true,created_at.lt.${CUTOFF})` : `type=eq.${type}&archive=eq.false&created_at=gte.${CUTOFF}`;
   filter += `&masque=eq.false`; // parties retirées à la demande du joueur (colonne masque, lignes conservées)
   if (type === "saison" && annee) filter += `&annee=eq.${annee}`;
-  const base = "dg,profil,saison,annee,resultat_pct,capital,etudiants,tresorerie_k,mesures,statut,archive,created_at";
-  let r = await fetch(`${url}/rest/v1/jeu_dg_scores?${filter}&select=${base},resultat_k,ca_k&order=resultat_k.desc.nullslast,resultat_pct.desc,capital.desc,created_at.asc&limit=300`, { headers: headers(), cache: "no-store" });
-  if (r.status === 400) { filter = filter.replace("&masque=eq.false", ""); r = await fetch(`${url}/rest/v1/jeu_dg_scores?${filter}&select=${base},resultat_k,ca_k&order=resultat_k.desc.nullslast,resultat_pct.desc,capital.desc,created_at.asc&limit=300`, { headers: headers(), cache: "no-store" }); }
-  if (r.status === 400) r = await fetch(`${url}/rest/v1/jeu_dg_scores?${filter}&select=${base}&order=resultat_pct.desc,capital.desc,created_at.asc&limit=300`, { headers: headers(), cache: "no-store" }); // colonnes resultat_k / ca_k pas encore créées
+  const base = "partie_id,dg,profil,saison,annee,resultat_pct,capital,etudiants,tresorerie_k,mesures,statut,archive,created_at";
+  let r = await fetch(`${url}/rest/v1/jeu_dg_scores?${filter}&select=${base},resultat_k,ca_k&order=resultat_k.desc.nullslast,resultat_pct.desc,capital.desc,created_at.asc&limit=1000`, { headers: headers(), cache: "no-store" });
+  if (r.status === 400) { filter = filter.replace("&masque=eq.false", ""); r = await fetch(`${url}/rest/v1/jeu_dg_scores?${filter}&select=${base},resultat_k,ca_k&order=resultat_k.desc.nullslast,resultat_pct.desc,capital.desc,created_at.asc&limit=1000`, { headers: headers(), cache: "no-store" }); }
+  if (r.status === 400) r = await fetch(`${url}/rest/v1/jeu_dg_scores?${filter}&select=${base}&order=resultat_pct.desc,capital.desc,created_at.asc&limit=1000`, { headers: headers(), cache: "no-store" }); // colonnes resultat_k / ca_k pas encore créées
   if (!r.ok) { const t = await r.text(); console.error("supabase jeudg GET", r.status, t); return NextResponse.json({ rows: [], error: true, status: r.status, detail: t.slice(0, 300) }, { status: 500 }); }
-  return NextResponse.json({ rows: await r.json() });
+  // une partie complète ne compte qu'une fois (anciens doublons de « Revoir »), et l'identifiant de partie ne sort pas du serveur
+  const seen = new Set(); const rows = [];
+  for (const x of await r.json()) { const k = x.partie_id + "|" + x.type + "|" + (x.saison ?? 0) + "|" + type; if (x.partie_id && seen.has(k)) continue; seen.add(k); const { partie_id, ...rest } = x; rows.push(rest); }
+  return NextResponse.json({ rows });
 }
 
 
@@ -30,7 +33,7 @@ const ECOLES = { "Xyn and You": 30000, "LinguIA": 7000, "ENACTO Business School"
 function plausible(row, details) {
   const ecole = Object.keys(ECOLES).find((n) => String(row.profil || "").startsWith(n));
   if (!ecole) return "école inconnue";
-  const ca0 = ECOLES[ecole], caMax = ca0 * 5;
+  const ca0 = ECOLES[ecole], caMax = ca0 * 12; // Hippocampus vise ×5 : de la marge pour les meilleures parties
   const an = details && Array.isArray(details.annees) ? details.annees : null;
   if (!an || !an.length) return "historique manquant";
   if (an.length > 5) return "trop d'années";
@@ -40,7 +43,7 @@ function plausible(row, details) {
     const ca = Number(y.ca), res = Number(y.resultat);
     if (!Number.isFinite(ca) || !Number.isFinite(res)) return "valeurs invalides";
     if (ca < 0 || ca > caMax) return "chiffre d'affaires hors limites";
-    if (res > ca * 0.6 || res < -ca0 * 3) return "résultat hors limites";
+    if (res > ca * 0.6 || res < -Math.max(ca0, prevCa) * 3) return "résultat hors limites";
     if (ca > prevCa * 1.9 + ca0 * 0.1) return "croissance impossible";
     prevCa = ca;
   }
@@ -61,9 +64,9 @@ export async function POST(req) {
   const dg = clean(b.dg, 40); if (!dg) return NextResponse.json({ error: "Nom manquant." }, { status: 400 });
   const num = (v, lo, hi) => { const n = Number(v); return Number.isFinite(n) ? Math.max(lo, Math.min(hi, n)) : null; };
   const row = {
-    partie_id: b.partie_id, type, dg, profil: clean(b.profil, 60),
-    saison: type === "saison" ? num(b.saison, 1, 5) : null, annee: num(b.annee, 2026, 2030),
-    resultat_pct: num(b.resultat_pct, -100, 100) ?? 0, resultat_k: num(b.resultat_k, -1e7, 1e7), ca_k: num(b.ca_k, 0, 1e7), capital: num(b.capital, 0, 100), etudiants: num(b.etudiants, 0, 1e6),
+    partie_id: b.partie_id, type, dg, profil: clean(b.profil, 100),
+    saison: type === "saison" ? num(b.saison, 1, 5) : 0, // 0 pour une partie complète : la contrainte unique joue aussi (NULL ne la déclenche pas) annee: num(b.annee, 2026, 2030),
+    resultat_pct: num(b.resultat_pct, -9000, 100) ?? 0, resultat_k: num(b.resultat_k, -1e7, 1e7), ca_k: num(b.ca_k, 0, 1e7), capital: num(b.capital, 0, 100), etudiants: num(b.etudiants, 0, 1e6),
     tresorerie_k: num(b.tresorerie_k, -1e6, 1e6), mesures: num(b.mesures, 0, 200), statut: clean(b.statut, 20) || null,
   };
   // Historique détaillé de la partie (jauges, école, médias, mesures, années, journal) : objet JSON borné à 60 Ko
