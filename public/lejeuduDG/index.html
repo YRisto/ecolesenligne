@@ -1763,6 +1763,8 @@ function closeModal(){ document.getElementById('modal').innerHTML=''; try{ if(MO
 
 function toTop(){ try{window.scrollTo({top:0,left:0,behavior:'instant'});document.documentElement.scrollTop=0;document.body.scrollTop=0;}catch(e){window.scrollTo(0,0);} }
 function render(){ if(S.screen!=='intro') document.querySelectorAll('.sparks').forEach(x=>x.remove());
+  if(['intro','scenario','profile'].includes(S.screen)){ /* hors partie : plus de reprise automatique au rechargement, et plus rien de l'ancienne partie à l'écran */
+    try{ sessionStorage.removeItem('bde-live'); }catch(e){} try{ clearInterval(CR_T); }catch(e){} const md=document.getElementById('modal'); if(md&&md.innerHTML) md.innerHTML=''; document.querySelectorAll('.sfx,.epcard,.savetoast:not(#updBar)').forEach(x=>x.remove()); }
   save(); toTop();
   try{ if(['intro','scenario','hof','badges'].includes(S.screen)||!SC) document.documentElement.removeAttribute('data-sc'); else document.documentElement.setAttribute('data-sc',SC.id); }catch(e){}
   if(S.screen==='intro') return renderIntro();
@@ -2391,7 +2393,7 @@ const EVSND={glitch:'error',stamp:'stamp',news:'news',money:'cash',signs:'crowd'
 const IS_SITE=/^\/lejeududg/i.test(location.pathname);
 let INSTALL_EV=null;
 try{ if(IS_SITE&&'serviceWorker' in navigator) navigator.serviceWorker.register('/lejeuduDG/sw.js',{scope:'/lejeuduDG'}).catch(()=>{}); }catch(e){}
-const BUILD='20261101224854';
+const BUILD='20261101225426';
 function checkUpdate(){ if(!IS_SITE||BUILD==='dev') return; fetch('/lejeuduDG?v='+Date.now(),{cache:'no-store'}).then(r=>r.text()).then(t=>{ const m=t.match(/const BUILD='([^']+)'/); if(m&&m[1]!==BUILD&&!document.getElementById('updBar')){ const d=document.createElement('div'); d.id='updBar'; d.className='savetoast'; d.style.cursor='pointer'; d.innerHTML='✨ <b>Nouvelle version du jeu disponible</b><br><span style="font-size:12px;color:var(--muted)">Touchez pour mettre à jour (votre partie est sauvegardée)</span>'; d.onclick=()=>{ try{ save(); }catch(e){} location.reload(); }; document.body.appendChild(d); } }).catch(()=>{}); }
 setTimeout(checkUpdate,4000); document.addEventListener('visibilitychange',()=>{ if(!document.hidden) checkUpdate(); });
 window.addEventListener('beforeinstallprompt',e=>{ e.preventDefault(); INSTALL_EV=e; });
@@ -2485,7 +2487,7 @@ function crisisFx(f){ const o={...f}; if(f.g){ o.g={}; for(const k in f.g) o.g[k
 function crisisSecs(){ return MOB()?26:20; }
 function maybeMinor(){
   const m=minorEvent(); if(m.done||m.at!==S.phase||document.getElementById('modal').innerHTML) return false;
-  if(document.querySelector('.epcard:not(.out)')){ setTimeout(()=>{ if(S.phase===m.at&&!m.done) maybeMinor(); },500); return true; }
+  if(document.querySelector('.epcard:not(.out)')){ const S0=S; setTimeout(()=>{ if(S===S0&&S.screen==='game'&&S.phase===m.at&&!m.done) maybeMinor(); },500); return true; }
   S.used.cr=S.used.cr||[]; if(m.cr===undefined){ let pool=CRISES.map((_,i)=>i).filter(i=>!S.used.cr.includes(i)); if(!pool.length) pool=CRISES.map((_,i)=>i); m.cr=pool[Math.floor(Math.random()*pool.length)]; S.used.cr.push(m.cr); }
   m.done=true; save(); crisisModal(CRISES[m.cr],'Décision express · '+EPISODES[S.phase][0],()=>{save();renderBudget();renderGauges();}); return true;
 }
@@ -2494,8 +2496,8 @@ function crisisModal(cr,label,cb){
   const esc=x=>String(x).replace(/[<>&]/g,''); const secs=crisisSecs();
   modal(`<div class="crisis"><div class="crtop"><span class="ml">⏱ ${label}</span><span class="crn" id="crn">${secs}</span></div><div class="crbar"><i id="crbar"></i></div>
     <div class="crwho"><span class="ic">${cr.ic}</span><div><b>${esc(cr.who())}</b><small>${esc(cr.role)}</small></div></div><div class="mt">${cr.t()}</div><div class="opts" id="cro"></div><div class="ms">Sans réponse avant la fin du compte à rebours, la situation décide pour vous.</div></div>`,'gold crisism');
-  const box=document.getElementById('cro'); let done=false, left=secs*1000, last=performance.now(), tick=Math.ceil(secs);
-  const finish=(fx,txt,timeout,lab)=>{ if(done) return; done=true; clearInterval(CR_T); fx=crisisFx(fx); try{ SND&&SND.play(timeout?'buzzer':'pick'); }catch(e){}
+  const S0=S; const box=document.getElementById('cro'); let done=false, left=secs*1000, last=performance.now(), tick=Math.ceil(secs);
+  const finish=(fx,txt,timeout,lab)=>{ if(done) return; if(S!==S0||S.screen!=='game'){ done=true; clearInterval(CR_T); return; } done=true; clearInterval(CR_T); fx=crisisFx(fx); try{ SND&&SND.play(timeout?'buzzer':'pick'); }catch(e){}
     (S.log=S.log||[]).push({y:S.year,kind:'décision',n:lab,eff:Math.round((fx.revY||0)+(fx.once||0)-(fx.cost||0)),cap:(fx.g&&fx.g.ca)||0,heart:fx.g?Object.values(fx.g).reduce((a,b)=>a+b,0):0,bad:isBad(fx)});
     apply(fx,lab);
     modal(`<div class="ic">${timeout?'⌛':cr.ic}</div><div class="ml">${label}${timeout?' · temps écoulé':''}</div><div class="mt">${esc(txt)}</div><div>${chips(fx)}</div><div style="margin-top:10px"><button class="mbtn" id="ack">Continuer</button></div>`,isBad(fx)?'bad':'');
