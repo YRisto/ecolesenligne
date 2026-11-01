@@ -691,7 +691,7 @@ const BASE_XYN = {students:12000, price:2500, organic:1200, payrollOther:16400, 
 let BASE=BASE_XYN, MEDIA=null, SC=null, MEASURES=null;
 const YEARS=[2026,2027,2028,2029,2030];
 const EPISODES=[
- ["Janvier","Cadrage","🏛️"],["Février","Les mesures","📋"],["Mars","Plan médias","📣"],["Avril","Guerre des enveloppes","⚔️"],["Mai","Les gardiens","🔎"],["Juin","Audition","🎙️"],
+ ["Janvier","Cadrage","🏛️"],["Février","Les mesures","📋"],["Mars","Plan médias","📣"],["Avril","Guerre des enveloppes","⚔️"],["Mai","Les gardiens","🔎"],["Juin","Questions du CSE et des salariés","🎙️"],
  ["Juillet","Vote du CA","🗳️"],["Septembre","Imprévu","⚡"],["Novembre","Résultats","📊"],["Décembre","Grand show","🎤"],["Bilan","Fin de saison","🏁"]];
 const MAXM=99;
 // Canaux médias : cpl = coût par lead (€), conv = taux de transformation par les commerciaux, churn = surcroît d'abandon des inscrits (pts)
@@ -997,6 +997,46 @@ const AUDITIONS=[
  {kicker:"Town hall · fin de trimestre",who:N.filiere,role:"Responsable de la filière "+N.fil3,ic:"👩‍🏫",q:"« On est de votre côté, mais on a besoin de savoir : les chiffres que vous nous montrez sont-ils ceux du conseil, ou une version adoucie ? »",
   c:[["Montrer les mêmes chiffres qu'au conseil",{g:{cse:5,ca:3,com:-2}},"Crédibilité acquise, quelques visages blêmes."],
      ["Montrer une version simplifiée",{g:{cse:-3}},"Quelqu'un fera le rapprochement."]]},
+ {kicker:"Réunion CSE ordinaire",who:N.cse,role:"Secrétaire du CSE",ic:"👩",q:"« Les équipes demandent un troisième jour de télétravail par semaine. Elles l'ont prouvé : le travail est fait. On peut l'acter ? »",
+  c:[["Accepter les trois jours",{g:{cse:7,com:2,ca:-2}},"Le CSE salue « une direction qui fait confiance ». Le conseil, lui, hausse un sourcil."],
+     ["Deux jours fixes, plus de souplesse en basse saison",{g:{cse:3}},"Un compromis qui s'accorde bien avec l'annualisation."],
+     ["Refuser : le présentiel compte",{g:{cse:-7,ca:2}},"Message reçu. Deux managers commencent à regarder ailleurs."]]},
+ {kicker:"Town hall · {staff} salariés en visio",who:N.rh,role:"Responsable des ressources humaines",ic:"👩‍💼",q:"« La mutuelle augmente de 12 % au 1er janvier. La question remonte de partout : qui paie la hausse ? »",
+  c:[["L'entreprise l'absorbe entièrement",{cost:120,g:{cse:6,ca:-1}},"Applaudissements dans le chat. La ligne de charges grossit un peu."],
+     ["Moitié entreprise, moitié salariés",{cost:60,g:{cse:1}},"Personne n'est ravi, personne n'est trahi."],
+     ["La hausse est répercutée sur les salariés",{g:{cse:-6,ca:1}},"Les fiches de paie de janvier vont faire parler."]]},
+ {kicker:"Town hall · équipe support",who:N.support,role:"Responsable du support étudiants",ic:"🎧",q:"« Les tickets s'accumulent et des étudiants attendent une semaine avant d'avoir une réponse. Soit on recrute, soit on ferme le chat le soir. Vous choisissez quoi ? »",
+  c:[["Recruter {n:3} personnes au support",{cost:110,hc:3,g:{etu:5,cse:3}},"Le délai de réponse redescend sous les 48 heures."],
+     ["Fermer le chat après 18 h",{g:{etu:-5,cse:2}},"Les équipes respirent. Les étudiants qui travaillent la journée, beaucoup moins."],
+     ["Mettre un assistant IA en première ligne",{cost:40,g:{etu:-1,cse:1,ca:1}},"Il répond vite. Pas toujours juste."]]},
+ {kicker:"Réunion CSE · égalité professionnelle",who:N.cse,role:"Secrétaire du CSE",ic:"👩",q:"« L'index égalité est à 78 sur 100. À poste égal, les femmes gagnent 9 % de moins. Qu'est-ce que vous comptez faire ? »",
+  c:[["Une enveloppe de rattrapage dès cette année",{cost:180,g:{cse:8,ca:-1}},"Le CSE le relaie partout. L'image employeur y gagne aussi."],
+     ["Commander d'abord un audit indépendant",{once:-40,g:{cse:2}},"Sérieux, mais lent. On vous reparlera de cet audit."],
+     ["« C'est le marché qui fixe les salaires »",{g:{cse:-9,etu:-2}},"La phrase sort de la réunion avant vous."]]},
+ {kicker:"Town hall · équipe commerciale",who:N.comSenior,role:"Commerciale senior, 12 ans de maison",ic:"📞",q:"« On passe nos journées au téléphone avec un CRM qui plante deux fois par jour. Chaque appel perdu, c'est une inscription perdue. Il nous faut un vrai outil. »",
+  c:[["Changer de CRM cette année",{once:-150,g:{com:7}},"Trois mois de migration, puis des appels qui s'enchaînent enfin."],
+     ["Former l'équipe à mieux utiliser l'outil actuel",{cost:30,g:{com:1}},"Utile, mais le CRM plante toujours."],
+     ["« Faites avec, comme tout le monde »",{g:{com:-6}},"Les meilleurs vendeurs prennent des notes. Sur leur CV."]]},
+ {kicker:"Réunion CSE · santé au travail",who:N.rh,role:"Responsable des ressources humaines",ic:"👩‍💼",q:"« Trois arrêts maladie pour épuisement en un mois dans l'équipe pédagogique. Le CSE demande des mesures avant l'été. »",
+  c:[["Soutien psychologique et charge allégée",{cost:120,g:{cse:6,etu:1}},"Les équipes voient qu'on les a entendues."],
+     ["Lancer une enquête sur la qualité de vie au travail",{once:-30,g:{cse:2}},"Un premier pas. On attend la suite."],
+     ["Considérer que ce sont des cas individuels",{g:{cse:-8,etu:-2}},"Le CSE déclenche une alerte pour danger grave. Ambiance."]]},
+ {kicker:"Town hall · équipe commerciale",who:"Un commercial",role:"Prend la parole dans le chat",ic:"🧑‍💼",q:"« Une rumeur court : les primes seraient plafonnées cette année. C'est vrai ou pas ? On veut savoir pour quoi on se bat. »",
+  c:[["« Non, les primes restent déplafonnées »",{cost:100,g:{com:6,ca:-2}},"L'équipe repart au téléphone avec le sourire."],
+     ["Plafonner, mais baisser le seuil de déclenchement",{g:{com:-1,ca:1}},"Plus de commerciaux touchent une prime, les meilleurs un peu moins."],
+     ["« Oui, c'est nécessaire cette année »",{g:{com:-8,ca:3}},"Le conseil apprécie. Le plateau commercial, nettement moins."]]},
+ {kicker:"Town hall · équipes pédagogiques",who:N.peda,role:"Directrice pédagogique",ic:"👩‍🏫",q:"« Vous nous demandez d'utiliser l'IA pour corriger plus vite. Très bien. Mais personne ne nous a formés, et on a peur de mal faire. »",
+  c:[["Un vrai plan de formation pour tous",{cost:90,g:{cse:4,etu:2}},"Les corrections gagnent en vitesse sans perdre en qualité."],
+     ["Des tutoriels internes et un référent IA",{cost:20,g:{cse:1}},"Ça dépanne. Ça ne rassure pas tout à fait."],
+     ["« Vous êtes des adultes, débrouillez-vous »",{g:{cse:-5,etu:-2}},"Chacun bricole de son côté. Les étudiants le voient."]]},
+ {kicker:"Town hall · {staff} salariés en visio",who:"Une salariée",role:"Pose la question en direct",ic:"🙋‍♀️",q:"« On nous demande des efforts. Alors une question simple : combien gagnez-vous, et toucherez-vous un bonus cette année ? »",
+  c:[["Donner le chiffre, bonus compris",{g:{cse:5,ca:-2}},"Le chat se tait une seconde, puis salue la franchise."],
+     ["« C'est le conseil qui fixe ma rémunération »",{g:{cse:-3}},"Vrai, et parfaitement inaudible."],
+     ["Renoncer publiquement à votre bonus cette année",{g:{cse:8,com:3,ca:2}},"Le geste fait le tour de l'école. "+N.president+" apprécie l'exemple."]]},
+ {kicker:"Réunion CSE · négociation annuelle",who:N.cse,role:"Secrétaire du CSE",ic:"👩",q:"« Les managers ont été augmentés en janvier, pas les équipes. Les salariés veulent comprendre pourquoi. »",
+  c:[["Publier la grille des salaires et des augmentations",{g:{cse:4,ca:-1}},"Transparence totale. Quelques discussions tendues dans les équipes."],
+     ["Geler aussi les managers et redistribuer l'enveloppe",{g:{cse:6,com:-2,ca:1}},"Les équipes approuvent. Certains managers, beaucoup moins."],
+     ["« Les rémunérations sont confidentielles »",{g:{cse:-6}},"Le CSE parle désormais de « deux poids, deux mesures »."]]},
 ];
 
 // Variantes de dialogues propres à chaque école (remplacent les champs du dialogue générique)
@@ -1503,7 +1543,7 @@ function renderIntro(){
       <div class="tile rose"><b>🎯 Votre objectif</b>Chaque scénario fixe un résultat net à atteindre fin 2030, parfois avec un objectif de croissance, sans vous faire révoquer.</div>
       <div class="tile"><b>⚡ Votre capital</b>Chaque mesure consomme du capital auprès du conseil. Les résultats, la transparence et les bons choix en rapportent. À zéro, c'est la fin.</div>
       <div class="tile cyan"><b>📣 Vos leads</b>Google, HelloFormation, Diplomomo, Meta : vous répartissez le budget, les commerciaux transforment. Hunting et Farming possibles en BtoB.</div>
-      <div class="tile green"><b>📅 Chaque année</b>11 épisodes : cadrage, mesures, plan médias, guerre des enveloppes, gardiens, audition, vote du conseil, imprévu, résultats, grand show de fin d'année, bilan.</div>
+      <div class="tile green"><b>📅 Chaque année</b>11 épisodes : cadrage, mesures, plan médias, guerre des enveloppes, gardiens, questions du CSE et des salariés, vote du conseil, imprévu, résultats, grand show de fin d'année, bilan.</div>
     </div>
     <div style="display:flex;justify-content:center;gap:10px;flex-wrap:wrap;margin-top:4px" id="b"></div>
     <div class="played" id="played"></div>
@@ -1636,7 +1676,7 @@ function headlines(){
   return h;
 }
 
-const EPDESC=["Fixer votre cap pour l'année","Choisir les mesures de votre plan","Répartir le budget d'acquisition","Arbitrer les demandes des directeurs","Convaincre ceux que le conseil écoute","Affronter les questions des équipes","Le conseil vote votre plan","La rentrée réserve des surprises","Les comptes de l'année tombent","Votre discours devant toutes les équipes","Ce que le conseil retient de l'année"];
+const EPDESC=["Fixer votre cap pour l'année","Choisir les mesures de votre plan","Répartir le budget d'acquisition","Arbitrer les demandes des directeurs","Convaincre ceux que le conseil écoute","Répondre au CSE et aux salariés, en direct","Le conseil vote votre plan","La rentrée réserve des surprises","Les comptes de l'année tombent","Votre discours devant toutes les équipes","Ce que le conseil retient de l'année"];
 function epCard(){ const ph=S.phase, e=EPISODES[ph]; const prev=Math.max(0,ph-1);
   const pct=i=>(i/10*91)+'%';
   document.querySelectorAll('.epcard').forEach(x=>x.remove());
@@ -1897,8 +1937,8 @@ function phGardiens(){
 function phAudition(){
   if(S.tmp===null) S.tmp={a:pick(AUDITIONS,'aud')};
   const a=altOf('aud',S.tmp.a,AUDITIONS[S.tmp.a]);
-  sceneShell(`<div class="kicker" style="color:var(--muted)">${tx(a.kicker)}</div>`+dlg(a.ic,a.who,a.role,a.q)+`<div class="prompt">Votre réponse :</div><div id="c"></div>`,{title:'L\'audition',tag:'Vérité ou langue de bois : chaque mot sera retenu contre vous.'});
-  choices($('#c'),a.c.map(([l,fx,out])=>[l,fx,out]),null,'Audition');
+  sceneShell(`<div class="kicker" style="color:var(--muted)">${tx(a.kicker)}</div>`+dlg(a.ic,a.who,a.role,a.q)+`<div class="prompt">Votre réponse :</div><div id="c"></div>`,{title:'Les questions du CSE et des salariés',tag:'Vérité ou langue de bois : chaque mot sera retenu contre vous.'});
+  choices($('#c'),a.c.map(([l,fx,out])=>[l,fx,out]),null,'Questions du CSE');
 }
 
 // Vote nominatif du conseil : chaque administrateur a sa grille de lecture
