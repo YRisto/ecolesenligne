@@ -633,6 +633,7 @@ body.quake{animation:quake .4s linear}
 .yearbar .yb{flex:1;height:4px;border-radius:2px;background:#1b2340;overflow:hidden} .yearbar .yb i{display:block;height:100%;background:var(--sc-hi,var(--gold));border-radius:2px;transition:width .6s}
 .yearbar b{color:var(--sc-hi,var(--gold))}
 @media (prefers-reduced-motion:reduce){.epcard,.epcard *{animation:none!important;opacity:1!important;transform:none!important}}
+@media (max-width:720px){.sfx .evcap{bottom:auto;top:calc(7% + env(safe-area-inset-top,0px));left:12px;right:12px;padding:12px 14px;border-radius:14px;background:rgba(5,7,15,.88);border:1px solid rgba(255,255,255,.12);box-shadow:0 10px 30px rgba(0,0,0,.6);z-index:6} .sfx .evcap b{font-size:20px} .sfx .skip{bottom:calc(14% + env(safe-area-inset-bottom,0px))}}
 /* Couleur propre à chaque scénario : bandeau DIRECT, cadres, onglet d'épisode, carte-titre, encadrés, halo du fond */
 html[data-sc=xyn]{--sc:#1f3a93;--sc-hi:#7b97f2;--sc-line:#3352c0;--sc-bg:#0f1a3d;--sc-glow:#152558}
 html[data-sc=linguia]{--sc:#8e1b2b;--sc-hi:#ec7584;--sc-line:#b02a3e;--sc-bg:#2a0f15;--sc-glow:#3d1019}
@@ -2187,7 +2188,7 @@ let SFX_HOLD=0;
 function sfxBox(cls,html,dur,onStart,onEnd){ dur+=SFX_HOLD; const d=document.createElement('div'); d.className='sfx '+(cls||''); d.innerHTML=html+'<div class="skip">toucher pour passer</div>'; document.body.appendChild(d); let done=false;
   const end=()=>{ if(done) return; done=true; d.classList.add('out'); setTimeout(()=>d.remove(),500); if(onEnd) onEnd(); };
   d.addEventListener('click',end); setTimeout(end,RM()?600:dur); if(onStart) onStart(d,end); return d; }
-function evFX(e,fx,cb,label){ SFX_HOLD=MOB()?1400:0; try{ return evFX2(e,fx,cb,label); } finally { SFX_HOLD=0; } }
+function evFX(e,fx,cb,label){ SFX_HOLD=MOB()?2400:0; try{ return evFX2(e,fx,cb,label); } finally { SFX_HOLD=0; } }
 function showFX(kind,ctx,cb){
   if(RM()) return cb();
   const lr=ctx.lr, resS=mE(lr.res), caS=(lr.rev/1000).toFixed(1).replace('.',',')+' M€', esc=x=>String(x).replace(/[<>&]/g,''), R=(a,b)=>a+Math.random()*(b-a);
