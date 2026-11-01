@@ -195,7 +195,10 @@ input[type=range]{width:100%;accent-color:var(--gold)}
 .blines div{display:flex;justify-content:space-between;gap:10px}
 .blines .tot{font-weight:700;border-top:1px solid var(--line);padding-top:5px;margin-top:3px}
 .proj{font-size:13px;color:var(--muted)} .proj b{font-size:20px;color:var(--cream);margin-left:6px}
-.tw{overflow-x:auto}
+.tw{overflow-x:auto;max-width:100%;min-width:0}
+#scene,#scene>*{min-width:0}
+.vt .sm{display:none}
+@media (max-width:720px){.vt .lg{display:none}.vt .sm{display:inline}.vt th,.vt td{padding:7px 4px;font-size:12.5px}.vt td:first-child{width:52%}.vt th{font-size:14px}}
 table{border-collapse:collapse;width:100%;font-size:13px;font-variant-numeric:tabular-nums}
 td,th{padding:6px 8px;border-bottom:1px solid var(--line2);text-align:right}
 td:first-child,th:first-child{text-align:left}
@@ -1937,7 +1940,7 @@ function phVote(){
   const chance=pend.length?clamp(parts.base+parts.conf+parts.amd+parts.poids+parts.cred,8,95):97;
   if(S.sub===2){
     sceneShell(dlg(PRES,S.mode?'Le président du conseil':N.president,N.presidentRole+' · ouvre le vote',`« ${pend.length?`Le plan comporte ${pend.length} mesure${pend.length>1?'s':''}, pour ${-cap} points de capital. Chacun a pu l'étudier.`:'Aucune nouvelle mesure n\'est soumise cette année : on garde le cap.'} Le conseil se prononce à main levée. »`)+
-     `<div class="tw"><table><tr><th>Mesure</th><th>Effet annuel</th><th>Capital</th><th>${GN.etu}</th><th>CSE</th></tr>${pend.map(m=>`<tr><td>${m.n}</td><td class="num">${kE(yearly(m))}</td><td class="num" style="color:var(--gold-hi)">${m.cap>0?'+':''}${m.cap||0}</td><td class="num">${(m.g&&m.g.etu)||0}</td><td class="num">${(m.g&&m.g.cse)||0}</td></tr>`).join('')||'<tr><td colspan="5" class="muted">Aucune mesure</td></tr>'}</table></div>
+     `<div class="tw"><table class="vt"><tr><th>Mesure</th><th><span class="lg">Effet annuel</span><span class="sm">k€/an</span></th><th><span class="lg">Capital</span><span class="sm">⚡</span></th><th><span class="lg">${GN.etu}</span><span class="sm">💚</span></th><th><span class="lg">CSE</span><span class="sm">💜</span></th></tr>${pend.map(m=>`<tr><td>${m.n}</td><td class="num"><span class="lg">${kE(yearly(m))}</span><span class="sm">${(yearly(m)>=0?'+':'−')+fmt(Math.abs(yearly(m)))}</span></td><td class="num" style="color:var(--gold-hi)">${m.cap>0?'+':''}${m.cap||0}</td><td class="num">${(m.g&&m.g.etu)||0}</td><td class="num">${(m.g&&m.g.cse)||0}</td></tr>`).join('')||'<tr><td colspan="5" class="muted">Aucune mesure</td></tr>'}</table></div>
      <div class="note">Chance d'adoption estimée : <b style="font-size:18px;color:var(--gold)">${Math.round(chance)} %</b> <span class="muted">(base 70, confiance du conseil ${parts.conf>=0?'+':''}${parts.conf}, amendements ${parts.amd>=0?'+':''}${parts.amd}, ambition du plan ${parts.poids}, crédibilité ${parts.cred>=0?'+':''}${parts.cred})</span></div><div id="c" style="display:flex;justify-content:center"></div>`,{title:'Le vote du conseil',tag:'La grande bidouille se termine. Le conseil tranche.'});
     $('#c').appendChild(btn('🗳️ Appeler au vote',()=>{S.sub=3;S.tmp.votes=boardVotes(chance,pend);renderGame();}));
     return;
