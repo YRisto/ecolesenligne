@@ -379,7 +379,7 @@ details.det[open]>summary{margin-bottom:10px} details.det{display:grid;gap:10px}
 .hero .sub{color:var(--muted);font-size:14px;max-width:52ch;margin:0 auto}
 .pitch{display:flex;gap:12px;align-items:center;justify-content:center;text-align:left;margin-top:4px}
 .pitch .avatar{width:62px;height:62px}
-.pitch blockquote{margin:0;font-family:var(--serif);font-size:clamp(15px,2.6vw,18px);line-height:1.35;color:var(--cream);font-weight:700;max-width:40ch}
+.pitch blockquote{margin:0;font-family:var(--serif);font-size:clamp(14px,2.2vw,16px);line-height:1.4;color:var(--cream);font-weight:400;max-width:60ch}
 .pitch blockquote small{display:block;font-family:inherit;font-weight:400;font-size:12px;color:var(--muted);margin-top:4px;font-family:system-ui,sans-serif}
 .stats{display:flex;justify-content:center;gap:clamp(14px,4vw,34px);flex-wrap:wrap;margin:6px 0 2px}
 .stats div{text-align:center;min-width:60px} .stats b{display:block;font-size:24px;font-weight:900;color:var(--gold-hi);font-variant-numeric:tabular-nums;line-height:1} .stats small{font-size:9.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted)}
@@ -409,8 +409,8 @@ details.det[open]>summary{margin-bottom:10px} details.det{display:grid;gap:10px}
 @keyframes ring{0%{opacity:.9;transform:translate(-50%,-50%) scale(1)}100%{opacity:0;transform:translate(-50%,-50%) scale(7)}}
 .open .punch .w{display:inline-block;opacity:0;animation:slam .45s cubic-bezier(.2,1.3,.4,1) both}
 @keyframes slam{from{opacity:0;transform:scale(2.6) translateY(-10px);filter:blur(4px)}60%{filter:none}to{opacity:1;transform:none}}
-.open .kicker,.open .sub,.open .pitch,.open .stats,.open .schools,.open .rules,.open #b,.open .played,.open .credit{opacity:0;animation:rvin .6s ease-out both}
-.open .kicker{animation-delay:.9s} .open .sub{animation-delay:3.3s} .open .pitch{animation-delay:3.6s} .open .stats{animation-delay:3.9s} .open .schools{animation-delay:4.1s} .open .rules{animation-delay:4.3s} .open #b{animation-delay:4.4s} .open .played,.open .credit{animation-delay:4.7s}
+.open .kicker,.open .sub,.open .speech,.open .tiles,.open #b,.open .played,.open .credit{opacity:0;animation:rvin .6s ease-out both}
+.open .kicker{animation-delay:.9s} .open .sub{animation-delay:3.3s} .open .speech{animation-delay:3.6s} .open .tiles{animation-delay:3.9s} .open #b{animation-delay:4.2s} .open .played,.open .credit{animation-delay:4.5s}
 body.quake{animation:quake .4s linear}
 @media (prefers-reduced-motion:reduce){.sparks{display:none} .open *,.panel.open{animation:none!important;opacity:1!important}}
 /* Couleur propre à chaque scénario : bandeau DIRECT, cadres, onglet d'épisode, carte-titre, encadrés, halo du fond */
@@ -1274,17 +1274,23 @@ function renderIntro(){
       <h1 class="punch">${punch}</h1>
       <p class="sub">Vous prenez la direction générale. Les étudiants, les commerciaux, le CSE et le conseil vous jugent chaque année. Fin 2030, on compte.</p>
     </div>
-    <div class="pitch"><div class="avatar">${PRES}</div><blockquote>« Je ne cherche pas un gestionnaire. Je cherche quelqu'un qui veut gagner. »<small>${N.president}, président-fondateur</small></blockquote></div>
-    <div class="stats"><div><b>5</b><small>écoles</small></div><div><b>${nM}</b><small>mesures</small></div><div><b>${nE}</b><small>imprévus</small></div><div><b>${BADGES.length}</b><small>trophées</small></div></div>
-    <div class="schools">${SCENARIOS.map(sc=>`<span><i style="background:${SCCOL[sc.id]};color:${SCCOL[sc.id]}"></i>${sc.ic} ${sc.name} <small>· ${hooks[sc.id]||''}</small></span>`).join('')}</div>
-    <div class="rules"><span>🎯 Un résultat net à atteindre</span><span>⚡ Du capital à dépenser, pas à gaspiller</span><span>📣 Des leads à acheter</span><span>📅 11 épisodes par saison</span></div>
+    <div class="speech"><div class="avatar">${PRES}</div><div>
+      <p>« Je suis ${N.president}. J'investis dans des écoles en ligne parce que je crois à ce qu'elles font, et j'ai besoin d'un directeur général pour chacune. Cinq écoles, cinq situations : une à redresser, une à faire tripler, une à relancer, un leader à remettre en mouvement, une startup à faire décoller. Choisissez la vôtre. »</p>
+      <p>« Vous avez cinq exercices, de 2026 à 2030. Le conseil d'administration, les étudiants, les commerciaux et le CSE vous jugeront chaque année. Choisissez votre école. »</p>
+    </div></div>
+    <div class="tiles">
+      <div class="tile rose"><b>🎯 Votre objectif</b>Chaque scénario fixe un résultat net à atteindre fin 2030, parfois avec un objectif de croissance, sans vous faire révoquer.</div>
+      <div class="tile"><b>⚡ Votre capital</b>Chaque mesure consomme du capital auprès du conseil. Les résultats, la transparence et les bons choix en rapportent. À zéro, c'est la fin.</div>
+      <div class="tile cyan"><b>📣 Vos leads</b>Google, HelloFormation, Diplomomo, Meta : vous répartissez le budget, les commerciaux transforment. Hunting et Farming possibles en BtoB.</div>
+      <div class="tile green"><b>📅 Chaque année</b>11 épisodes : cadrage, mesures, plan médias, guerre des enveloppes, gardiens, audition, vote du conseil, imprévu, résultats, grand show de fin d'année, bilan.</div>
+    </div>
     <div style="display:flex;justify-content:center;gap:10px;flex-wrap:wrap;margin-top:4px" id="b"></div>
     <div class="played" id="played"></div>
     <div class="credit">Un jeu Xyn and You · inspiré de La Bataille du Budget</div>
   </div></div>`;
   if(first&&!RM()){ const sp=document.createElement('div'); sp.className='sparks'; for(let i=0;i<46;i++){const k=document.createElement('i'); k.style.left=Math.random()*100+'%'; k.style.animationDelay=(0.3+Math.random()*1.8)+'s'; k.style.animationDuration=(2+Math.random()*1.6)+'s'; k.style.width=k.style.height=(2+Math.random()*4)+'px'; sp.appendChild(k);} document.body.appendChild(sp); setTimeout(()=>sp.remove(),4500);
     setTimeout(()=>{document.body.classList.add('quake'); setTimeout(()=>document.body.classList.remove('quake'),450);},1.1*1000+(wi-1)*220+250);
-    setTimeout(()=>{ document.querySelectorAll('.stats b').forEach(el=>{ const to=+el.textContent; if(!to) return; const t0=performance.now(); const st=t=>{const p=Math.min(1,(t-t0)/900); el.textContent=Math.round(to*(1-Math.pow(1-p,3))); if(p<1) requestAnimationFrame(st);}; requestAnimationFrame(st); }); },3900); }
+  }
   $('#b').appendChild(btn('▶ Je prends le poste',()=>{S.screen='scenario';render();},'mbtn cta'));
   $('#b').appendChild(btn('🏆 Hall of Fame',()=>{S.hofBack='intro';S.screen='hof';render();},'sbtn'));
   $('#b').appendChild(btn('🏅 Trophées ('+BADGES.filter(b=>badges()[b.id]).length+'/'+BADGES.length+')',()=>{S.hofBack='intro';S.screen='badges';render();},'sbtn'));
