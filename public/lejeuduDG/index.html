@@ -1466,7 +1466,7 @@ function postScore(type,extra){
 }
 async function fetchScores(type,annee,archive){
   try{const r=await fetch(API+'?type='+type+(annee?'&annee='+annee:'')+(archive?'&archive=1':''),{cache:'no-store'}); if(r.ok){const j=await r.json(); if(!j.offline&&!j.error) return {rows:j.rows,online:true};}}catch(e){}
-  const ARCH='2026-10-31T14:40:00Z'; // rééquilibrage de la difficulté : les parties antérieures sont archivées
+  const ARCH='2026-11-01T09:00:00Z'; // rééquilibrage de la difficulté (MAJ du 1/11) : les parties antérieures sont archivées
   const rows=localScores().filter(x=>x.type===type&&(!annee||x.annee===annee)&&(!!archive===((x.created_at||'')<ARCH)));
   return {rows,online:false};
 }
@@ -1482,7 +1482,7 @@ function renderHof(){
     <div class="tw" id="hof"><p class="muted" style="text-align:center">Chargement…</p></div>
     <p class="credit" id="src"></p>
     <div style="display:flex;justify-content:center" id="b"></div></div></div>`;
-  const tabs=[['saison',2026,'Saison 1 · 2026'],['saison',2027,'Saison 2 · 2027'],['saison',2028,'Saison 3 · 2028'],['saison',2029,'Saison 4 · 2029'],['saison',2030,'Saison 5 · 2030'],['partie',0,'🏁 Parties complètes'],['archive',0,'📜 Historique avant rééquilibrage']];
+  const tabs=[['saison',2026,'Saison 1 · 2026'],['saison',2027,'Saison 2 · 2027'],['saison',2028,'Saison 3 · 2028'],['saison',2029,'Saison 4 · 2029'],['saison',2030,'Saison 5 · 2030'],['partie',0,'🏁 Parties complètes'],['archive',0,'📜 Historique avant rééquilibrage de la difficulté']];
   const st=$('#sctabs'); st.appendChild(btn('🌍 Toutes les écoles',()=>{S.hofSc=-1;renderHof();},S.hofSc<0?'tab on':'tab')); SCENARIOS.forEach((c,i)=>st.appendChild(btn(c.ic+' '+c.name,()=>{S.hofSc=i;renderHof();},S.hofSc===i?'tab on':'tab')));
   const tb=$('#tabs'); tabs.forEach(([t,a,l])=>tb.appendChild(btn(l,()=>{S.hof={type:t,annee:a};renderHof();},(h.type===t&&h.annee===a)?'tab on':'tab')));
   $('#b').appendChild(btn('↩ Retour',()=>{S.screen=S.hofBack||'intro';render();},'sbtn'));
@@ -1495,7 +1495,7 @@ function renderHof(){
         r._est=true; r.ca_k=r.ca_k??Math.round((r.etudiants||c.base.students)*c.base.price/1000); r.resultat_k=Math.round(r.resultat_pct/100*r.ca_k); }
       return r.resultat_k/t;};
     rows.forEach(r=>r._att=att(r)); rows.sort((a,b)=>b._att-a._att||(b.capital||0)-(a.capital||0));
-    if(h.type==='archive'&&online) $('#src').textContent+=' Parties jouées avant le rééquilibrage de la difficulté du 31 octobre 2026 : hors classement. Les valeurs précédées de ≈ sont estimées (chiffre d\'affaires reconstitué à partir des étudiants et des frais du scénario).';
+    if(h.type==='archive'&&online) $('#src').textContent+=' Parties jouées avant le rééquilibrage de la difficulté (MAJ du 1/11/2026) : hors classement. Les valeurs précédées de ≈ sont estimées (chiffre d\'affaires reconstitué à partir des étudiants et des frais du scénario).';
     if(!rows.length){$('#hof').innerHTML='<p class="muted" style="text-align:center">'+(h.type==='archive'?'Aucune partie archivée.':'Aucun score pour l\'instant. Soyez le premier DG inscrit !')+'</p>';return;}
     const st={objectif:'🏆 Objectif atteint',equilibre:'🟡 Équilibre',manque:'🔴 Objectif manqué',perdu:'💀 Révoqué·e'};
     $('#hof').innerHTML=`<table><tr><th>#</th><th>DG</th><th>Profil</th>${h.type!=='saison'?'<th>Issue</th>':''}<th>Objectif</th><th>Résultat net</th><th>CA</th><th>⚡</th><th>Inscrits</th><th>Trésorerie</th></tr>${rows.map((r,i)=>`<tr${r.dg===S.name?' style="color:var(--gold-hi)"':''}><td class="num">${i+1}</td><td><b>${String(r.dg).replace(/[<>&]/g,'')}</b></td><td class="muted">${String(r.profil||'').replace(/[<>&]/g,'')}</td>${h.type!=='saison'?`<td>${st[r.statut]||''}</td>`:''}<td class="num" style="color:${r._att>=1?'var(--gold-hi)':r._att<0?'var(--rose)':'var(--fg)'}"><b>${r._est?'≈ ':''}${Math.round(r._att*100)} %</b></td><td class="num" style="color:${r.resultat_pct<0?'var(--rose)':'var(--green)'}">${r._est?'≈ ':''}${mE(+r.resultat_k)}</td><td class="num">${r.ca_k!=null?(r._est?'≈ ':'')+(r.ca_k/1000).toFixed(1).replace('.',',')+' M€':'–'}</td><td class="num">${r.capital??'–'}</td><td class="num">${r.etudiants?fmt(r.etudiants):'–'}</td><td class="num">${r.tresorerie_k!=null?mE(r.tresorerie_k):'–'}</td></tr>`).join('')}</table>`;

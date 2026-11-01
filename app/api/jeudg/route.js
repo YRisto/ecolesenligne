@@ -11,7 +11,9 @@ export async function GET(req) {
   const type = q.get("type") === "partie" ? "partie" : "saison";
   const annee = parseInt(q.get("annee") || "0", 10);
   const archive = q.get("archive") === "1";
-  let filter = `type=eq.${type}&archive=eq.${archive}`;
+  // Rééquilibrage de la difficulté du 1er novembre 2026 : tout ce qui a été joué avant est archivé, sans toucher aux lignes.
+  const CUTOFF = "2026-11-01T09:00:00Z";
+  let filter = archive ? `type=eq.${type}&or=(archive.eq.true,created_at.lt.${CUTOFF})` : `type=eq.${type}&archive=eq.false&created_at=gte.${CUTOFF}`;
   if (type === "saison" && annee) filter += `&annee=eq.${annee}`;
   const base = "dg,profil,saison,annee,resultat_pct,capital,etudiants,tresorerie_k,mesures,statut,archive,created_at";
   let r = await fetch(`${url}/rest/v1/jeu_dg_scores?${filter}&select=${base},resultat_k,ca_k&order=resultat_k.desc.nullslast,resultat_pct.desc,capital.desc,created_at.asc&limit=300`, { headers: headers(), cache: "no-store" });
