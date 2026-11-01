@@ -1927,7 +1927,7 @@ function minorEvent(){ // un petit imprévu négatif de plus, à un moment aléa
 function maybeMinor(){
   const m=minorEvent(); if(m.done||m.at!==S.phase||document.getElementById('modal').innerHTML) return false;
   if(m.ev===undefined) m.ev=pickEvent('neg'); const e=EVENTS[m.ev]; const fx=halfFx(eventFx(e));
-  eventModal(e,fx,'Petit imprévu · '+EPISODES[S.phase][0],()=>{m.done=true;save();renderBudget();renderGauges();}); return true;
+  m.done=true; save(); evFX(e,fx,()=>eventModal(e,fx,'Petit imprévu · '+EPISODES[S.phase][0],()=>{save();renderBudget();renderGauges();}),'Petit imprévu · '+EPISODES[S.phase][0]); return true;
 }
 function isBadE(e,fx){ return e&&e.pos?false:isBad(fx); } // un imprévu annoncé positif reste vert même s'il coûte un peu
 function isBad(fx){ return (fx.g&&Object.values(fx.g).some(v=>v<0))||(fx.once&&fx.once<0)||(fx.stuY&&fx.stuY<1)||fx.rate>0||fx.revY<0||fx.cost>0||(fx.media&&Object.values(fx.media).some(v=>v>1)); }
@@ -1955,11 +1955,11 @@ function evTheme(e){ const n=tx(e.n)+' '+e.ic, pos=!!e.pos;
   if(/média|enquête|avis|polémique|presse|viral/i.test(n)) return 'news';
   if(/banque|taux|financeur|paie|OPCO|CPF|appel d'offres|impayés|Irias/i.test(n)) return 'money';
   return 'alert'; }
-function evFX(e,fx,cb){
+function evFX(e,fx,cb,label){
   if(RM()) return cb();
   const th=evTheme(e), name=tx(e.n), bad=isBadE(e,fx), esc=x=>String(x).replace(/[<>&]/g,'');
   const amt=Math.round((fx.revY||0)+(fx.once||0)+(fx.rev||0)-(fx.cost||0));
-  const cap=d=>`<div class="evcap ${bad?'bad':'good'}" style="animation-delay:${d}s"><small>Imprévu de la rentrée</small><b>${e.ic} ${esc(name)}</b></div>`;
+  const cap=d=>`<div class="evcap ${bad?'bad':'good'}" style="animation-delay:${d}s"><small>${label||'Imprévu de la rentrée'}</small><b>${e.ic} ${esc(name)}</b></div>`;
   const R=(a,b)=>a+Math.random()*(b-a);
   const count=(el,to,fmtf,ms)=>{ const t0=performance.now(); const st=t=>{ if(!el.isConnected) return; const p=Math.min(1,(t-t0)/ms); el.textContent=fmtf(to*(1-Math.pow(1-p,3))); if(p<1) requestAnimationFrame(st); }; requestAnimationFrame(st); };
   if(th==='glitch'){ const code=/cyber|fuite/i.test(name)?'ACCÈS REFUSÉ':/opérateur/i.test(name)?'RÉSEAU ✕':'ERREUR 503';
