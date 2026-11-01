@@ -1825,9 +1825,9 @@ function renderScenario(){
     <p class="muted" style="text-align:center;margin-top:-6px">L'école de départ change tout : taille, marge, objectif, leviers.</p>
     <div class="opts" id="sc"></div>
     <div style="display:flex;justify-content:center" id="b"></div></div></div>`;
-  const box=$('#sc'); let sel=S.sc;
+  const box=$('#sc'); let sel=null; /* aucune école présélectionnée : on choisit explicitement */
   const draw=()=>{box.innerHTML=''; SCENARIOS.map((c,i)=>[c,i]).sort((x,y)=>(x[0].weekly?1:0)-(y[0].weekly?1:0)).forEach(([c,i])=>{ if(!scVisible(c)) return; const inf=saveInfo(readSave(c.id)); const dl=weeklyDaysLeft(); const b=btn(`${c.weekly?`<span class="badge" style="background:linear-gradient(90deg,#ffd76a,#ff8a5a);color:#1a1408">⚡ Défi de la semaine · encore ${dl} jour${dl>1?'s':''}</span><br>`:''}${c.ic} ${c.name}${i===0?'<span class="badge">Recommandé</span>':''}${inf?`<span class="badge" style="background:${inf.done?'#1b2550':'#1f6b3a'};color:#fff">${inf.txt}</span>`:''}<small><b style="color:var(--fg)">${c.tag}</b></small><small>${c.desc}</small>`,()=>{sel=i;draw();},'opt'+(sel===i?' sel':'')); b.style.borderLeft='5px solid '+SCCOL[c.id]; box.appendChild(b);});
-    $('#b').innerHTML=''; const sv=readSave(SCENARIOS[sel].id), inf=saveInfo(sv);
+    $('#b').innerHTML=''; if(sel===null){ const w=btn('Choisissez une école ci-dessus',()=>{},'mbtn'); w.disabled=true; $('#b').appendChild(w); return; } const sv=readSave(SCENARIOS[sel].id), inf=saveInfo(sv);
     if(sv&&!inf.done){ $('#b').appendChild(btn('▶ Reprendre ma partie · '+SCENARIOS[sel].name,e=>{flood(SCCOL[SCENARIOS[sel].id],e,()=>resume(sv),SCENARIOS[sel]);})); $('#b').appendChild(btn('Nouvelle partie',()=>modal(`<h3>Nouvelle partie à ${SCENARIOS[sel].name} ?</h3><p class="mt">La partie en cours dans cette école sera remplacée dès que vous entrerez en scène. Vos parties dans les autres écoles ne bougent pas.</p><div class="mf"><button class="lnk" id="mc">Annuler</button><button class="rbtn" id="mo">Nouvelle partie</button></div>`,'gold'),'sbtn')); document.getElementById('modal').onclick=(ev=>{ if(ev.target.id==='mc') closeModal(); if(ev.target.id==='mo'){ closeModal(); newGame(sel); S.screen='profile'; render(); } }); }
     else $('#b').appendChild(btn('Confirmer : '+SCENARIOS[sel].name+' →',e=>{flood(SCCOL[SCENARIOS[sel].id],e,()=>{newGame(sel);S.screen='profile';render();},SCENARIOS[sel]);}));};
   draw();
@@ -2378,7 +2378,15 @@ const SND=(()=>{
     sched(); musTimer=setInterval(sched,4800); }
   function stopMusic(){ if(musTimer){ clearInterval(musTimer); musTimer=null; } if(musG) musG.gain.setTargetAtTime(0,T(),0.4); }
   function setRoot(id){ const map={xyn:0,linguia:2,enacto:-3,cnf:-5,hippocampus:4,minuit:-1,orbitale:-6,paysans:5}; musRoot=map[id]||0; }
-  document.addEventListener('pointerdown',()=>{ if(mode()>=1&&init()&&ctx.state==='suspended') ctx.resume(); if(mode()>=2) startMusic(); },{capture:true});
+  // iPhone : le son Web Audio ne démarre qu'au sein d'un geste (touchend / click), et il est coupé par l'interrupteur silencieux
+  // sauf si la session audio passe en « lecture » : on joue un son HTML muet une fois pour la basculer.
+  let unlocked=false; const SILENT='data:audio/wav;base64,UklGRkQDAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YSADAACAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgA==';
+  function unlock(){ if(mode()<1) return; if(!init()) return; try{ if(navigator.audioSession) navigator.audioSession.type='playback'; }catch(e){}
+    if(ctx.state!=='running') ctx.resume().catch(()=>{});
+    if(!unlocked){ unlocked=true; try{ const bf=ctx.createBuffer(1,1,22050), sr=ctx.createBufferSource(); sr.buffer=bf; sr.connect(ctx.destination); sr.start(0); }catch(e){}
+      try{ const a=new Audio(SILENT); a.setAttribute('playsinline',''); a.volume=0.01; const pr=a.play(); if(pr) pr.catch(()=>{ unlocked=false; }); }catch(e){ unlocked=false; } }
+    if(mode()>=2) startMusic(); }
+  ['pointerdown','touchend','click','keydown'].forEach(ev=>document.addEventListener(ev,unlock,{capture:true,passive:true}));
   document.addEventListener('click',e=>{ const b=e.target.closest&&e.target.closest('button'); if(!b||b.id==='sndBtn') return; play(b.classList.contains('opt')||b.classList.contains('prof')?'pick':'click'); },{capture:true});
   document.addEventListener('visibilitychange',()=>{ if(!ctx) return; if(document.hidden) ctx.suspend(); else if(mode()>=1) ctx.resume(); });
   return {play,mode,setMode,setRoot,label:()=>['🔇','🔊','🎵'][mode()],title:()=>['Son coupé','Effets sonores','Effets sonores et musique'][mode()]};
@@ -2393,7 +2401,7 @@ const EVSND={glitch:'error',stamp:'stamp',news:'news',money:'cash',signs:'crowd'
 const IS_SITE=/^\/lejeududg/i.test(location.pathname);
 let INSTALL_EV=null;
 try{ if(IS_SITE&&'serviceWorker' in navigator) navigator.serviceWorker.register('/lejeuduDG/sw.js',{scope:'/lejeuduDG'}).catch(()=>{}); }catch(e){}
-const BUILD='20261101225426';
+const BUILD='20261101230143';
 function checkUpdate(){ if(!IS_SITE||BUILD==='dev') return; fetch('/lejeuduDG?v='+Date.now(),{cache:'no-store'}).then(r=>r.text()).then(t=>{ const m=t.match(/const BUILD='([^']+)'/); if(m&&m[1]!==BUILD&&!document.getElementById('updBar')){ const d=document.createElement('div'); d.id='updBar'; d.className='savetoast'; d.style.cursor='pointer'; d.innerHTML='✨ <b>Nouvelle version du jeu disponible</b><br><span style="font-size:12px;color:var(--muted)">Touchez pour mettre à jour (votre partie est sauvegardée)</span>'; d.onclick=()=>{ try{ save(); }catch(e){} location.reload(); }; document.body.appendChild(d); } }).catch(()=>{}); }
 setTimeout(checkUpdate,4000); document.addEventListener('visibilitychange',()=>{ if(!document.hidden) checkUpdate(); });
 window.addEventListener('beforeinstallprompt',e=>{ e.preventDefault(); INSTALL_EV=e; });
