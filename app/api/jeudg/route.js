@@ -26,7 +26,7 @@ export async function GET(req) {
 
 
 // Garde-fous anti-triche : un score doit être cohérent avec l'historique détaillé de la partie et plausible pour l'école choisie.
-const ECOLES = { "Xyn and You": 30000, "LinguIA": 7000, "ENACTO Business School": 10000, "Centre National de Formation": 60000, "Hippocampus": 1002 };
+const ECOLES = { "Xyn and You": 30000, "LinguIA": 7000, "ENACTO Business School": 10000, "Centre National de Formation": 60000, "Hippocampus": 1002, "Les Cuisines de Minuit": 12600, "Académie Orbitale": 5400, "L'École des Nouveaux Paysans": 8000 };
 function plausible(row, details) {
   const ecole = Object.keys(ECOLES).find((n) => String(row.profil || "").startsWith(n));
   if (!ecole) return "école inconnue";

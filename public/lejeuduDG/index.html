@@ -657,6 +657,9 @@ html[data-sc=xyn]{--sc:#1f3a93;--sc-hi:#7b97f2;--sc-line:#3352c0;--sc-bg:#0f1a3d
 html[data-sc=linguia]{--sc:#8e1b2b;--sc-hi:#ec7584;--sc-line:#b02a3e;--sc-bg:#2a0f15;--sc-glow:#3d1019}
 html[data-sc=enacto]{--sc:#d4651e;--sc-hi:#ffaa66;--sc-line:#e07a30;--sc-bg:#2e1a0c;--sc-glow:#3d2210}
 html[data-sc=cnf]{--sc:#1673cc;--sc-hi:#6cb8ff;--sc-line:#2489e8;--sc-bg:#0e2238;--sc-glow:#0f2d50}
+html[data-sc=minuit]{--sc:#5b21b6;--sc-hi:#b794f6;--sc-line:#7c3aed;--sc-bg:#1d1036;--sc-glow:#2a1450}
+html[data-sc=orbitale]{--sc:#0e7490;--sc-hi:#67d4ea;--sc-line:#0891b2;--sc-bg:#0a2530;--sc-glow:#0c3340}
+html[data-sc=paysans]{--sc:#854d0e;--sc-hi:#e6b05a;--sc-line:#a16207;--sc-bg:#2a1c08;--sc-glow:#3a270b}
 html[data-sc=hippocampus]{--sc:#1f8a52;--sc-hi:#66d89b;--sc-line:#2aa463;--sc-bg:#0f2a1e;--sc-glow:#10382a}
 html[data-sc] body{background:var(--bg) radial-gradient(ellipse 60% 40% at 50% 30%,var(--sc-glow) 0%,transparent 70%);background-attachment:fixed}
 html[data-sc] .ticker{background:var(--sc)} html[data-sc] .ticker .d{color:var(--sc)}
@@ -828,7 +831,36 @@ const SCENARIOS=[
          diplo:{n:"Diplomomo",ic:"🎓",d:"Broker diplômant, un peu mieux ciblé.",cpl:330,conv:0.06,churn:0,base:53},
          meta:{n:"Meta (Facebook / Instagram)",ic:"📱",d:"Le bien-être cartonne sur Instagram. Convertir à 6 000 € est une autre histoire.",cpl:160,conv:0.03,churn:2,base:80}},
   mission:"passer d'une startup qui brûle du cash à une pépite rentable : ×5 et +30 %", pitch:"Hippocampus a ce que toutes les écoles rêvent d'avoir : des étudiants qui adorent le produit et le disent. Il reste à bâtir l'entreprise autour : 250 k€ en banque, quelques mois d'autonomie, et des investisseurs prêts à remettre au pot si la trajectoire est crédible. Leur condition : être revenu près de l'équilibre fin 2027, pas plus de 1 % de perte, sinon ils changent de dirigeant."},
+ // ── Défis de la semaine : écoles imaginées de zéro, une différente chaque semaine ──
+ {id:'minuit',weekly:true,name:"Les Cuisines de Minuit",ic:"🍳",tag:"L'école de cuisine en ligne qui livre les ingrédients chez ses élèves",
+  desc:"12,6 M€ de chiffre d'affaires, 9 000 élèves à 1 400 € par an qui cuisinent en direct le soir avec des chefs, et une box d'ingrédients livrée chaque semaine. Un succès d'audience, une logistique qui dévore la marge (+2 % de résultat). Le conseil veut 19,2 M€ de chiffre d'affaires et 2,7 M€ de résultat net fin 2030. Étape imposée : 17 M€ de chiffre d'affaires fin 2028.",
+  base:{students:9000,price:1400,organic:800,payrollOther:4200,payrollCom:1000,marketing:2400,platform:900,other:3900,debt:0,rate:0.05,cash:900,staff:150,com:25}, start:2, target:14, growth:1.52, caMs:2028, caMsVal:17000, bank:-1500, unit:'élèves', mediaTitle:'Plan médias', mediaWord:'médias', leadWord:'leads', lead1:'lead', churn:0.45, sat:4000, eff:0.8, varc:0.8,
+  media:{google:{n:"Google Ads",ic:"🔍",d:"Les gens qui cherchent « apprendre à cuisiner ». Motivés, mais volatils.",cpl:60,conv:0.07,churn:0,base:600},
+         meta:{n:"TikTok et Instagram",ic:"📱",d:"Les recettes en 30 secondes font des millions de vues. Les abonnés, beaucoup moins.",cpl:25,conv:0.05,churn:2,base:900},
+         chefs:{n:"Chefs YouTubeurs partenaires",ic:"👨‍🍳",d:"Un chef connu présente l'école dans sa vidéo. Des élèves fidèles, mais il faut payer le chef.",cpl:40,conv:0.08,churn:1,base:600},
+         salon:{n:"Salons de la gastronomie",ic:"🥖",d:"On fait goûter, on inscrit sur place. Cher par contact, excellent taux.",cpl:120,conv:0.12,churn:0,base:300}},
+  mission:"faire grandir une école de cuisine en ligne sans que la logistique des box n'avale tout le résultat", pitch:"Les Cuisines de Minuit, c'est 9 000 personnes qui cuisinent en même temps à 21 h, devant un chef en direct, avec les mêmes ingrédients livrés le mardi. Le concept est adoré. Mais chaque box coûte, chaque élève qui part laisse un carton de légumes à payer, et la moitié des inscrits ne finissent pas l'année. Il faut grandir sans se noyer dans la logistique."},
+ {id:'orbitale',weekly:true,name:"Académie Orbitale",ic:"🛰️",tag:"Former en ligne les opérateurs de satellites, simulateur à l'appui",
+  desc:"5,4 M€ de chiffre d'affaires, 600 apprenants à 9 000 € qui pilotent des satellites virtuels depuis chez eux, 55 salariés dont des ingénieurs du spatial. L'école perd encore de l'argent (−15 %) et porte 2 M€ de dette pour ses simulateurs. Objectif : 13,1 M€ de chiffre d'affaires et 2 M€ de résultat net fin 2030. Étape imposée : 11,7 M€ de chiffre d'affaires fin 2028.",
+  base:{students:600,price:9000,organic:60,payrollOther:3300,payrollCom:400,marketing:700,platform:1100,other:700,debt:2000,rate:0.06,cash:600,staff:55,com:6}, start:-15, target:15, growth:2.42, caMs:2028, caMsVal:11700, bank:-800, unit:'apprenants', mediaTitle:'Plan médias', mediaWord:'médias', leadWord:'contacts', lead1:'contact', churn:0.15, sat:500, eff:1.2, varc:0.45, lossPenalty:4,
+  media:{google:{n:"Google Ads (mots-clés spatial)",ic:"🔍",d:"Peu de recherches, très ciblées. Chaque clic coûte cher.",cpl:400,conv:0.05,churn:0,base:200},
+         lnk:{n:"LinkedIn ingénieurs",ic:"💼",d:"Des ingénieurs en poste qui rêvent d'espace. Ils hésitent longtemps.",cpl:300,conv:0.06,churn:0,base:250},
+         salon:{n:"Salons aéronautiques",ic:"✈️",d:"Le Bourget et les salons spécialisés. Un stand hors de prix, des contacts en or.",cpl:900,conv:0.15,churn:0,base:150},
+         agences:{n:"Partenariats agences spatiales",ic:"🚀",d:"Les agences envoient leurs futurs opérateurs. Rare, lent, mais presque toujours signé.",cpl:1200,conv:0.25,churn:0,base:100}},
+  mission:"faire décoller une école de niche, chère à faire tourner, avant que la dette ne la cloue au sol", pitch:"L'Académie Orbitale forme des gens qui pilotent des satellites, depuis un simulateur que vous avez payé très cher. Le marché existe : les constellations se multiplient et manquent d'opérateurs. Mais chaque apprenant coûte en ingénieurs et en heures de simulateur, la dette court, et la banque regarde le carnet de commandes."},
+ {id:'paysans',weekly:true,name:"L'École des Nouveaux Paysans",ic:"🌾",tag:"La reconversion vers l'agriculture, en ligne et à la ferme",
+  desc:"8 M€ de chiffre d'affaires, 2 500 stagiaires en reconversion à 3 200 €, formés en ligne puis en stage dans des fermes partenaires, 90 salariés. Financée surtout par les Régions et France Travail, l'école perd un peu d'argent (−5 %). Objectif : 19,2 M€ de chiffre d'affaires et 3,5 M€ de résultat net fin 2030. Étape imposée : 17,5 M€ de chiffre d'affaires fin 2028.",
+  base:{students:2500,price:3200,organic:400,payrollOther:3600,payrollCom:600,marketing:900,platform:500,other:2800,debt:500,rate:0.045,cash:400,staff:90,com:12}, start:-5, target:18, growth:2.4, caMs:2028, caMsVal:17500, bank:-1000, unit:'stagiaires', mediaTitle:'Plan de recrutement', mediaWord:'recrutement', leadWord:'candidats', lead1:'candidat', churn:0.3, sat:2500, eff:0.9, varc:0.55, evMult:1.3,
+  media:{ft:{n:"France Travail et Régions",ic:"🏛️",d:"Les conseillers orientent les demandeurs d'emploi. Bien financés, lents à démarrer.",cpl:150,conv:0.12,churn:0,base:300},
+         google:{n:"Google Ads",ic:"🔍",d:"« Devenir agriculteur » : des rêveurs et des décidés, mélangés.",cpl:90,conv:0.06,churn:0,base:250},
+         meta:{n:"Facebook (groupes reconversion)",ic:"📱",d:"Des milliers de cadres qui rêvent de campagne. Beaucoup ne sauteront pas le pas.",cpl:45,conv:0.04,churn:2,base:200},
+         salon:{n:"Salon de l'Agriculture",ic:"🐄",d:"Neuf jours à Paris, un stand, des files de citadins curieux.",cpl:250,conv:0.1,churn:0,base:150}},
+  mission:"transformer des milliers de reconversions en installations réussies, sans dépendre d'une seule subvention", pitch:"Chaque année, des milliers de cadres veulent tout quitter pour cultiver. L'École des Nouveaux Paysans les forme en ligne l'hiver et à la ferme au printemps. Le modèle tient aux financements publics, aux fermes partenaires et à la météo : une saison ratée, un dispositif régional qui ferme, et les comptes basculent."},
 ];
+// Défi de la semaine : une école différente chaque semaine (du lundi au dimanche)
+function weeklyNow(){ const W=SCENARIOS.filter(c=>c.weekly); if(!W.length) return null; const wk=Math.floor((Date.now()/864e5+3)/7); return W[((wk%W.length)+W.length)%W.length]; }
+function weeklyDaysLeft(){ const d=new Date(); const dow=(d.getDay()+6)%7; return 7-dow; }
+const scVisible=c=>!c.weekly||c===weeklyNow();
 function applyScenario(i){
   SC=SCENARIOS[i]; BASE={...SC.base}; MEDIA=JSON.parse(JSON.stringify(SC.media)); N.ecole=SC.name;
   SC.scale=BASE.students*BASE.price/1000/30000*(SC.eff||1); SC.ca0=BASE.students*BASE.price/1000; SC.caTarget=SC.growth?Math.round(SC.ca0*SC.growth):null; SC.studentsTarget=SC.growth?Math.round(BASE.students*SC.growth):null; SC.resTarget=SC.resAbs||Math.round((SC.caTarget||SC.ca0)*SC.target/100);
@@ -963,6 +995,37 @@ const MEASURES_SC=[
  ["hippocampus","fou","Une version accessible à 1 900 € en parallèle","Un cursus allégé pour toucher un public plus large. L'image premium en prend un coup.",{cap:-40,net:120,stu:1.6,churn:6,g:{etu:-6,com:15}}],
  ["hippocampus","fou","Ouvrir un centre physique à Bali","Des retraites de formation sur place. Le rêve, et la logistique.",{cap:-38,net:100,once:-250,stu:1.2,g:{etu:10,cse:5}}],
  ["hippocampus","fou","Licencier la méthode à un réseau de spas","La méthode Hippocampus enseignée dans 40 spas. La marque se diffuse, le contrôle aussi.",{cap:-36,net:150,once:-30,g:{etu:-4,cse:-3}}],
+ // Défis de la semaine
+ ["minuit","rec","Box « grand chef » à 89 € par mois","Une box premium signée par un chef étoilé, en option.",{cap:-5,net:420,g:{etu:2,com:2}}],
+ ["minuit","rec","Team building culinaire pour les entreprises","Les équipes cuisinent ensemble en visio, la box arrive au bureau.",{cap:-4,net:300,g:{com:3}}],
+ ["minuit","rec","Livre et application de recettes","Les recettes des cours, vendues à tous, élèves ou non.",{cap:-3,net:180,g:{etu:1}}],
+ ["minuit","dep","Box sans produits frais en été","Moins de pertes et de chaîne du froid, des cours plus basiques.",{cap:-5,net:380,churn:2,g:{etu:-5}}],
+ ["minuit","dep","Mutualiser la logistique avec un traiteur","Ses camions livrent aussi vos box. Moins cher, moins souple.",{cap:-6,net:450,g:{cse:-3}}],
+ ["minuit","str","Préparer le CAP cuisine en candidat libre","Un diplôme d'État au bout du parcours : les financements suivent.",{cap:-6,net:250,stu:1.05,g:{etu:3}}],
+ ["minuit","str","Cuisine centrale à Rungis pour préparer les box","Fini la sous-traitance : vous maîtrisez les produits et les coûts.",{cap:-8,net:520,once:-400,hc:6,g:{cse:2}}],
+ ["minuit","str","Application de cuisine guidée pas à pas","Moins d'élèves perdus devant leurs fourneaux, moins d'abandons.",{cap:-6,net:200,churn:-3,once:-150,g:{etu:4}}],
+ ["minuit","fou","Une émission de télé « Les Cuisines de Minuit »","Un prime time, un concours entre élèves. Tout ou rien.",{cap:-35,net:1400,stu:1.15,once:-900,g:{com:8,cse:-4}}],
+ ["minuit","fou","Cinq restaurants-écoles éphémères","Les élèves cuisinent pour de vrais clients. Magnifique et ruineux.",{cap:-40,net:1600,once:-1500,hc:30,g:{etu:6,cse:-6}}],
+ ["orbitale","rec","Contrats de formation avec les opérateurs de satellites","Les opérateurs paient pour former leurs équipes chez vous.",{cap:-5,net:260,g:{com:3}}],
+ ["orbitale","rec","Louer le simulateur à des écoles d'ingénieurs","Le simulateur tourne la nuit pour d'autres. Les ingénieurs grognent.",{cap:-4,net:180,g:{cse:-1}}],
+ ["orbitale","rec","Certification « opérateur de mission » payante","Un examen reconnu par les industriels, facturé à part.",{cap:-4,net:150,g:{etu:2}}],
+ ["orbitale","dep","Simulateurs dans le cloud plutôt qu'en salle","Moins de matériel, un peu moins de réalisme.",{cap:-6,net:240,once:-120,g:{etu:-2}}],
+ ["orbitale","dep","Ingénieurs à temps partagé avec un industriel","Les meilleurs enseignent deux jours par semaine seulement.",{cap:-5,net:200,g:{cse:-4}}],
+ ["orbitale","str","Agrément du ministère des Armées","Le spatial militaire recrute : vos diplômes deviennent des sésames.",{cap:-7,net:220,stu:1.06,once:-100,g:{etu:3}}],
+ ["orbitale","str","Bourses financées par un constructeur","Un industriel paie la formation de ses futurs opérateurs.",{cap:-5,net:160,stu:1.05,g:{etu:4,com:2}}],
+ ["orbitale","str","Version anglaise pour toute l'Europe","Le marché est européen : vos cours doivent l'être aussi.",{cap:-6,net:210,once:-180,stu:1.05}],
+ ["orbitale","fou","Lancer un nanosatellite construit par les élèves","Une vraie mise en orbite, en direct. Si ça marche, tout le monde en parle.",{cap:-38,net:700,once:-900,stu:1.12,g:{etu:8,com:6}}],
+ ["orbitale","fou","Fusion avec une école d'ingénieurs aéronautiques","Deux fois plus grand d'un coup, deux cultures à marier.",{cap:-42,net:900,once:-600,hc:15,g:{cse:-8,etu:3}}],
+ ["paysans","rec","Vente directe des récoltes des fermes-écoles","Les légumes des stagiaires vendus en paniers, chaque semaine.",{cap:-3,net:140,g:{etu:2}}],
+ ["paysans","rec","Formations courtes pour agriculteurs en activité","Irrigation, bio, gestion : des modules pour ceux qui sont déjà installés.",{cap:-5,net:260,g:{com:3}}],
+ ["paysans","rec","Accompagnement à l'installation payant","Business plan, prêts, recherche de terres : un service après la formation.",{cap:-4,net:200,g:{etu:2}}],
+ ["paysans","dep","Regrouper les stages par région","Moins de fermes, plus de kilomètres pour les stagiaires.",{cap:-5,net:230,g:{etu:-3,cse:-2}}],
+ ["paysans","dep","Assurance des stages mutualisée avec la MSA","La mutualité agricole couvre les stagiaires à moindre coût.",{cap:-4,net:150,g:{cse:1}}],
+ ["paysans","str","Titre RNCP « responsable d'exploitation agricole »","Un titre reconnu : les financements publics s'ouvrent en grand.",{cap:-7,net:240,stu:1.06,once:-90,g:{etu:3}}],
+ ["paysans","str","Réseau de 100 fermes partenaires","Assez de places de stage pour grandir sans refuser personne.",{cap:-6,net:220,stu:1.04,g:{com:3,etu:2}}],
+ ["paysans","str","Parcours bio et permaculture","La moitié des candidats ne veulent que ça.",{cap:-5,net:180,stu:1.04,g:{etu:3}}],
+ ["paysans","fou","Racheter un domaine de 80 hectares comme ferme-école","Votre propre terre, vos propres règles, un gros emprunt.",{cap:-38,net:800,once:-1200,debt:1500,g:{etu:7,cse:3}}],
+ ["paysans","fou","Contrat national avec un géant de la grande distribution","Il forme ses futurs fournisseurs chez vous. L'image en prend un coup.",{cap:-40,net:1100,stu:1.1,g:{etu:-6,cse:-4,com:6}}],
 ];
 const MEASURES_T=[
  ["rec","Hausser les frais de 5 %","Une rentrée à {p:1.05} au lieu de {p:1}. Les commerciaux grognent, les étudiants aussi.",{price:5,churn:1,cap:-8,g:{etu:-6,com:-8}}],
@@ -1191,10 +1254,10 @@ const ALT={
   5:{linguia:{role:"Responsable de l'offre anglais des affaires"},hippocampus:{role:"Intervenante référente"},enacto:{role:"Directrice du programme Grande École"},cnf:{role:"Responsable de la filière reconversion"}}
  }
 };
-const SCCOL={xyn:'#3352c0',linguia:'#b02a3e',enacto:'#e07a30',cnf:'#2489e8',hippocampus:'#2aa463'};
+const SCCOL={xyn:'#3352c0',linguia:'#b02a3e',enacto:'#e07a30',cnf:'#2489e8',hippocampus:'#2aa463',minuit:'#7c3aed',orbitale:'#0891b2',paysans:'#a16207'};
 function altOf(kind,i,o){ const a=SC&&ALT[kind]&&ALT[kind][i]&&ALT[kind][i][SC.id]; return a?{...o,...a}:o; }
 // Une phrase de Bernard propre à chaque école, en fin de lettre annuelle
-const FLAVOR={xyn:"« Et n'oubliez jamais : douze mille étudiants comptent sur nous. »",linguia:"« Les grands comptes renouvellent en mars : c'est là que tout se joue. »",enacto:"« Hélène me demande chaque semaine si l'école garde son âme. Gardez-la, et remboursez la banque. »",cnf:"« Le leader ne peut pas se contenter de tenir : tout le secteur regarde si nous savons encore grandir. »",hippocampus:"« Les investisseurs ne regardent qu'une chose : la trajectoire vers la rentabilité. »"};
+const FLAVOR={minuit:"« Neuf mille cuisines s'allument à 21 heures. Ne les éteignez pas. »",orbitale:"« Là-haut, il y a des satellites qui attendent leurs opérateurs. Formez-les. »",paysans:"« Chaque stagiaire qui s'installe, c'est une ferme qui ne ferme pas. »",xyn:"« Et n'oubliez jamais : douze mille étudiants comptent sur nous. »",linguia:"« Les grands comptes renouvellent en mars : c'est là que tout se joue. »",enacto:"« Hélène me demande chaque semaine si l'école garde son âme. Gardez-la, et remboursez la banque. »",cnf:"« Le leader ne peut pas se contenter de tenir : tout le secteur regarde si nous savons encore grandir. »",hippocampus:"« Les investisseurs ne regardent qu'une chose : la trajectoire vers la rentabilité. »"};
 const AMENDEMENTS=[
  {who:N.adminEtu,role:"Administrateur représentant les étudiants",ic:"👨‍🎓",ask:"Amendement : maintien du tutorat individuel pour toutes les filières, quel qu'en soit le coût.",y:{cost:400,g:{etu:5,ca:-2}},n:{g:{etu:-4}}},
  {who:N.adminEns,role:"Représentant les enseignants au conseil",ic:"🧑‍🏫",ask:"Amendement : aucune correction entièrement automatisée sans relecture humaine.",y:{cost:250,g:{cse:5,ca:-1}},n:{g:{cse:-5}}},
@@ -1549,7 +1612,7 @@ function badgeSeason(y){ // appelé après la simulation de l'année
 function badgeFinal(statut){
   const B=badges(); const done=B.done||{}; done[SC.id]={statut,date:new Date().toISOString().slice(0,10)}; B.done=done; try{localStorage.setItem('bde-badges',JSON.stringify(B));}catch(e){}
   if(!S.over.lost) award('five'); if(statut==='objectif'){ if(S.lowCap) award('phoenix'); if(!S.priceUp) award('sanshausse');} if(!S.over.lost&&!S.forcedOnce) award('compromis'); if(statut==='perdu') award('fired');
-  if(SCENARIOS.every(c=>done[c.id])) award('tour'); if(SCENARIOS.every(c=>done[c.id]&&done[c.id].statut==='objectif')) award('slam');
+  const PERM=SCENARIOS.filter(c=>!c.weekly); if(PERM.every(c=>done[c.id])) award('tour'); if(PERM.every(c=>done[c.id]&&done[c.id].statut==='objectif')) award('slam');
 }
 function renderBadges(){
   const B=badges(); const n=BADGES.filter(b=>B[b.id]).length;
@@ -1612,7 +1675,7 @@ function renderHof(){
     <p class="credit" id="src"></p>
     <div style="display:flex;justify-content:center" id="b"></div></div></div>`;
   const tabs=[['saison',2026,'Saison 1 · 2026'],['saison',2027,'Saison 2 · 2027'],['saison',2028,'Saison 3 · 2028'],['saison',2029,'Saison 4 · 2029'],['saison',2030,'Saison 5 · 2030'],['partie',0,'🏁 Parties complètes'],['archive',0,'📜 Historique avant rééquilibrage de la difficulté']];
-  const st=$('#sctabs'); st.appendChild(btn('🌍 Toutes les écoles',()=>{S.hofSc=-1;renderHof();},S.hofSc<0?'tab on':'tab')); SCENARIOS.forEach((c,i)=>st.appendChild(btn(c.ic+' '+c.name,()=>{S.hofSc=i;renderHof();},S.hofSc===i?'tab on':'tab')));
+  const st=$('#sctabs'); st.appendChild(btn('🌍 Toutes les écoles',()=>{S.hofSc=-1;renderHof();},S.hofSc<0?'tab on':'tab')); SCENARIOS.forEach((c,i)=>scVisible(c)&&st.appendChild(btn(c.ic+' '+c.name+(c.weekly?' ⚡':''),()=>{S.hofSc=i;renderHof();},S.hofSc===i?'tab on':'tab')));
   const tb=$('#tabs'); tabs.forEach(([t,a,l])=>tb.appendChild(btn(l,()=>{S.hof={type:t,annee:a};renderHof();},(h.type===t&&h.annee===a)?'tab on':'tab')));
   $('#b').appendChild(btn('↩ Retour',()=>{S.screen=S.hofBack||'intro';render();},'sbtn'));
   fetchScores(h.type==='archive'?'partie':h.type,h.type==='saison'?h.annee:0,h.type==='archive').then(({rows,online})=>{
@@ -1664,7 +1727,7 @@ function render(){ if(S.screen!=='intro') document.querySelectorAll('.sparks').f
 }
 
 function renderIntro(){
-  const hooks={xyn:'à redresser',linguia:'à relancer',enacto:'à faire repartir',cnf:'leader à bousculer',hippocampus:'à faire décoller'};
+  const hooks={xyn:'à redresser',linguia:'à relancer',enacto:'à faire repartir',cnf:'leader à bousculer',minuit:'à faire mijoter',orbitale:'à faire décoller',paysans:'à faire pousser',hippocampus:'à faire décoller'};
   const nM=MEASURES_T.length+MEASURES_SC.length, nE=EVENTS.length;
   const first=!window.INTRO_PLAYED; window.INTRO_PLAYED=true; let wi=0;
   const W=t=>t.split(' ').map(w=>`<span class="w" style="animation-delay:${(1.1+(wi++)*0.22).toFixed(2)}s">${w}</span>`).join(' ');
@@ -1706,7 +1769,7 @@ function renderScenario(){
     <div class="opts" id="sc"></div>
     <div style="display:flex;justify-content:center" id="b"></div></div></div>`;
   const box=$('#sc'); let sel=S.sc;
-  const draw=()=>{box.innerHTML=''; SCENARIOS.forEach((c,i)=>{const inf=saveInfo(readSave(c.id)); const b=btn(`${c.ic} ${c.name}${i===0?'<span class="badge">Recommandé</span>':''}${inf?`<span class="badge" style="background:${inf.done?'#1b2550':'#1f6b3a'};color:#fff">${inf.txt}</span>`:''}<small><b style="color:var(--fg)">${c.tag}</b></small><small>${c.desc}</small>`,()=>{sel=i;draw();},'opt'+(sel===i?' sel':'')); b.style.borderLeft='5px solid '+SCCOL[c.id]; box.appendChild(b);});
+  const draw=()=>{box.innerHTML=''; SCENARIOS.map((c,i)=>[c,i]).sort((x,y)=>(y[0].weekly?1:0)-(x[0].weekly?1:0)).forEach(([c,i])=>{ if(!scVisible(c)) return; const inf=saveInfo(readSave(c.id)); const dl=weeklyDaysLeft(); const b=btn(`${c.weekly?`<span class="badge" style="background:linear-gradient(90deg,#ffd76a,#ff8a5a);color:#1a1408">⚡ Défi de la semaine · encore ${dl} jour${dl>1?'s':''}</span><br>`:''}${c.ic} ${c.name}${i===0?'<span class="badge">Recommandé</span>':''}${inf?`<span class="badge" style="background:${inf.done?'#1b2550':'#1f6b3a'};color:#fff">${inf.txt}</span>`:''}<small><b style="color:var(--fg)">${c.tag}</b></small><small>${c.desc}</small>`,()=>{sel=i;draw();},'opt'+(sel===i?' sel':'')); b.style.borderLeft='5px solid '+SCCOL[c.id]; box.appendChild(b);});
     $('#b').innerHTML=''; const sv=readSave(SCENARIOS[sel].id), inf=saveInfo(sv);
     if(sv&&!inf.done){ $('#b').appendChild(btn('▶ Reprendre ma partie · '+SCENARIOS[sel].name,e=>{flood(SCCOL[SCENARIOS[sel].id],e,()=>resume(sv),SCENARIOS[sel]);})); $('#b').appendChild(btn('Nouvelle partie',()=>modal(`<h3>Nouvelle partie à ${SCENARIOS[sel].name} ?</h3><p class="mt">La partie en cours dans cette école sera remplacée dès que vous entrerez en scène. Vos parties dans les autres écoles ne bougent pas.</p><div class="mf"><button class="lnk" id="mc">Annuler</button><button class="rbtn" id="mo">Nouvelle partie</button></div>`,'gold'),'sbtn')); document.getElementById('modal').onclick=(ev=>{ if(ev.target.id==='mc') closeModal(); if(ev.target.id==='mo'){ closeModal(); newGame(sel); S.screen='profile'; render(); } }); }
     else $('#b').appendChild(btn('Confirmer : '+SCENARIOS[sel].name+' →',e=>{flood(SCCOL[SCENARIOS[sel].id],e,()=>{newGame(sel);S.screen='profile';render();},SCENARIOS[sel]);}));};
@@ -2026,7 +2089,7 @@ function buildOffer(){
   if(!S.offer) S.offer={};
   if(!S.offer[S.year]){
     const pool=MEASURES.filter(m=>!S.active.includes(m.id)&&(!m.sc||m.sc===SC.id));
-    const take=(cat,n)=>{const l=pool.filter(m=>m.cat===cat).sort(()=>Math.random()-0.5);return l.slice(0,n).map(m=>m.id);};
+    const take=(cat,n)=>{const l=pool.filter(m=>m.cat===cat).map(m=>[m,Math.random()-(SC.weekly&&m.sc?1:0)]).sort((x,y)=>x[1]-y[1]).map(x=>x[0]);return l.slice(0,n).map(m=>m.id);}; // défi de la semaine : ses mesures propres passent en premier
     const Q=[[2,3,1,2],[3,3,2,2],[4,4,2,2],[4,4,4,2],[4,4,4,2]][Math.min(S.yi,4)];
     S.offer[S.year]=[...take('rec',Q[0]),...take('dep',Q[1]),...take('str',Q[2]),...take('fou',Q[3])];
     const ann=MEASURES.find(m=>m.flag==='annualisation');
