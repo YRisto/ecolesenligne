@@ -858,8 +858,8 @@ const SCENARIOS=[
   mission:"transformer des milliers de reconversions en installations réussies, sans dépendre d'une seule subvention", pitch:"Chaque année, des milliers de cadres veulent tout quitter pour cultiver. L'École des Nouveaux Paysans les forme en ligne l'hiver et à la ferme au printemps. Le modèle tient aux financements publics, aux fermes partenaires et à la météo : une saison ratée, un dispositif régional qui ferme, et les comptes basculent."},
 ];
 // Défi de la semaine : une école différente chaque semaine (du lundi au dimanche)
-function weeklyNow(){ const W=SCENARIOS.filter(c=>c.weekly); if(!W.length) return null; const wk=Math.floor((Date.now()/864e5+3)/7); return W[((wk%W.length)+W.length)%W.length]; }
-function weeklyDaysLeft(){ const d=new Date(); const dow=(d.getDay()+6)%7; return 7-dow; }
+function weeklyNow(){ const W=SCENARIOS.filter(c=>c.weekly); if(!W.length) return null; const D=Math.floor((Date.now()-new Date().getTimezoneOffset()*6e4)/864e5), wk=Math.floor((D+5)/7)-1; /* semaine du samedi au vendredi */ return W[((wk%W.length)+W.length)%W.length]; }
+function weeklyDaysLeft(){ const d=new Date(); const dow=(d.getDay()+1)%7; return 7-dow; }
 const scVisible=c=>!c.weekly||c===weeklyNow();
 function applyScenario(i){
   SC=SCENARIOS[i]; BASE={...SC.base}; MEDIA=JSON.parse(JSON.stringify(SC.media)); N.ecole=SC.name;
