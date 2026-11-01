@@ -24,6 +24,35 @@ export async function GET(req) {
   return NextResponse.json({ rows: await r.json() });
 }
 
+
+// Garde-fous anti-triche : un score doit être cohérent avec l'historique détaillé de la partie et plausible pour l'école choisie.
+const ECOLES = { "Xyn and You": 30000, "LinguIA": 7000, "ENACTO Business School": 10000, "Centre National de Formation": 60000, "Hippocampus": 1002 };
+function plausible(row, details) {
+  const ecole = Object.keys(ECOLES).find((n) => String(row.profil || "").startsWith(n));
+  if (!ecole) return "école inconnue";
+  const ca0 = ECOLES[ecole], caMax = ca0 * 5;
+  const an = details && Array.isArray(details.annees) ? details.annees : null;
+  if (!an || !an.length) return "historique manquant";
+  if (an.length > 5) return "trop d'années";
+  let prevCa = ca0;
+  for (const [i, y] of an.entries()) {
+    if (!y || y.annee !== 2026 + i) return "années incohérentes";
+    const ca = Number(y.ca), res = Number(y.resultat);
+    if (!Number.isFinite(ca) || !Number.isFinite(res)) return "valeurs invalides";
+    if (ca < 0 || ca > caMax) return "chiffre d'affaires hors limites";
+    if (res > ca * 0.6 || res < -ca0 * 3) return "résultat hors limites";
+    if (ca > prevCa * 1.9 + ca0 * 0.1) return "croissance impossible";
+    prevCa = ca;
+  }
+  const last = an[an.length - 1];
+  if (row.annee !== last.annee) return "année incohérente";
+  if (row.resultat_k != null && Math.abs(row.resultat_k - last.resultat) > 2) return "résultat incohérent";
+  if (row.ca_k != null && Math.abs(row.ca_k - last.ca) > 2) return "chiffre d'affaires incohérent";
+  if (row.ca_k && Math.abs(row.resultat_pct - (row.resultat_k / row.ca_k) * 100) > 0.6) return "taux incohérent";
+  if (row.type === "saison" && row.saison !== an.length) return "saison incohérente";
+  if (row.type === "partie" && an.length < 5 && row.statut !== "perdu") return "partie incomplète";
+  return null;
+}
 // POST : enregistre un score de saison ou de partie
 export async function POST(req) {
   const b = await req.json().catch(() => null);
@@ -39,6 +68,8 @@ export async function POST(req) {
   };
   // Historique détaillé de la partie (jauges, école, médias, mesures, années, journal) : objet JSON borné à 60 Ko
   if (b.details && typeof b.details === "object" && !Array.isArray(b.details)) { const d = JSON.stringify(b.details).replace(/[<>]/g, ""); if (d.length <= 60000) row.details = JSON.parse(d); }
+  const bad = plausible(row, row.details);
+  if (bad) { console.warn("jeudg score refusé :", bad, row.dg, row.profil); return NextResponse.json({ error: "Score refusé : " + bad + "." }, { status: 422 }); }
   if (!url || !key) { console.log("SCORE (Supabase non configuré)", JSON.stringify(row)); return NextResponse.json({ ok: true, offline: true }); }
   const post = (body) => fetch(`${url}/rest/v1/jeu_dg_scores?on_conflict=partie_id,type,saison`, { method: "POST", headers: { ...headers(), Prefer: "resolution=merge-duplicates,return=minimal" }, body: JSON.stringify(body) });
   let r = await post(row);

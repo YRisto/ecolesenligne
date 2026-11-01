@@ -634,6 +634,24 @@ body.quake{animation:quake .4s linear}
 .yearbar b{color:var(--sc-hi,var(--gold))}
 @media (prefers-reduced-motion:reduce){.epcard,.epcard *{animation:none!important;opacity:1!important;transform:none!important}}
 @media (max-width:720px){.sfx .evcap{bottom:auto;top:calc(7% + env(safe-area-inset-top,0px));left:12px;right:12px;padding:12px 14px;border-radius:14px;background:rgba(5,7,15,.88);border:1px solid rgba(255,255,255,.12);box-shadow:0 10px 30px rgba(0,0,0,.6);z-index:6} .sfx .evcap b{font-size:20px} .sfx .skip{bottom:calc(14% + env(safe-area-inset-bottom,0px))}}
+
+/* ── Cascade du résultat ── */
+.wf{margin:14px 0;background:var(--card2);border:1px solid var(--line);border-radius:12px;padding:12px 14px}
+.wf .h{font-weight:800;margin-bottom:8px}
+.wf .r{display:grid;grid-template-columns:minmax(0,42%) 1fr auto;gap:8px;align-items:center;font-size:12.5px;margin:5px 0}
+.wf .r .l{color:var(--muted);line-height:1.2}
+.wf .r .tr{position:relative;height:14px;background:#141c36;border-radius:3px}
+.wf .r .tr i{position:absolute;top:0;bottom:0;border-radius:3px}
+.wf .r .tr .z{position:absolute;top:-3px;bottom:-3px;width:1px;background:#5a6488}
+.wf .r .v{font-weight:800;font-variant-numeric:tabular-nums;white-space:nowrap;text-align:right;min-width:62px}
+.wf .r.tot .l{color:var(--fg);font-weight:800}
+.wf .r.tot .tr i{background:#7fa3e6}
+/* ── Accessibilité ── */
+html.zoom #app,html.zoom .modal{zoom:1.15}
+:root{--muted2:#9aa3c8}
+.sfx:focus,.modal:focus{outline:none}
+.mrow:focus-within{outline:2px solid var(--gold);outline-offset:2px}
+#zoomBtn[aria-pressed=true]{border-color:var(--gold);color:var(--gold-hi)}
 /* Couleur propre à chaque scénario : bandeau DIRECT, cadres, onglet d'épisode, carte-titre, encadrés, halo du fond */
 html[data-sc=xyn]{--sc:#1f3a93;--sc-hi:#7b97f2;--sc-line:#3352c0;--sc-bg:#0f1a3d;--sc-glow:#152558}
 html[data-sc=linguia]{--sc:#8e1b2b;--sc-hi:#ec7584;--sc-line:#b02a3e;--sc-bg:#2a0f15;--sc-glow:#3d1019}
@@ -668,7 +686,7 @@ html[data-sc] .titlecard .big{color:var(--sc-hi);text-shadow:0 0 30px var(--sc)}
 </head>
 <body>
 <div id="app"></div>
-<div class="toasts" id="toasts"></div>
+<div class="toasts" id="toasts" role="status" aria-live="polite"></div>
 <div id="modal"></div>
 
 <script>
@@ -706,11 +724,11 @@ const scaleMedia=(m,f)=>Object.fromEntries(Object.entries(m).map(([k,v])=>[k,{..
 const SCENARIOS=[
  {id:'xyn',name:"Xyn and You",ic:"🎓",tag:"La grande école en ligne, tous secteurs, une marque forte à remettre sur les rails",
   desc:"30 M€ de chiffre d'affaires, 12 000 étudiants dans toutes les filières, 400 salariés dont 100 commerciaux, une notoriété nationale et une équipe soudée. Les comptes affichent −20 % : tout le reste est là pour atteindre +6 M€ de résultat net fin 2030.",
-  base:BASE_XYN, media:MEDIA_XYN, start:-20, target:20, growth:null, bank:-4000, unit:'étudiants', mediaTitle:'Plan médias', mediaWord:'médias', leadWord:'leads', lead1:'lead', churn:0.33, sat:8000, eff:0.74, varc:0.6,
+  base:BASE_XYN, media:MEDIA_XYN, start:-20, target:20, growth:null, bank:-4000, unit:'étudiants', mediaTitle:'Plan médias', mediaWord:'médias', leadWord:'leads', lead1:'lead', churn:0.33, sat:8000, eff:0.74, varc:0.74,
   mission:"faire adopter le plan de redressement 2026 et les suivants", pitch:"Xyn and You a tout pour réussir : la marque la plus connue du secteur, 12 000 étudiants, un catalogue qui couvre tous les métiers et des équipes qui tiennent à leur école. Il reste à faire ce que personne n'a encore fait : transformer cette force en résultats, de −20 % à +20 %."},
  {id:'linguia',name:"LinguIA",ic:"🗣️",tag:"Le spécialiste des langues en entreprise, et son agent IA qui change la donne",
   desc:"7 M€ de chiffre d'affaires, 3 500 apprenants dans les plus belles entreprises, 60 salariés passionnés, +5 % de résultat et vingt ans de réputation. L'agent IA maison vient de faire sauter le plafond du produit : le conseil veut en profiter pour tripler de taille d'ici 2030, avec +4,2 M€ de résultat net. Étape imposée : 16 M€ de chiffre d'affaires fin 2028.",
-  base:{students:3500,price:2000,organic:300,payrollOther:3250,payrollCom:600,marketing:500,platform:600,other:1700,debt:1000,rate:0.045,cash:800,staff:60,com:15}, start:5, target:20, growth:3, bank:-3000, unit:'apprenants', mediaTitle:'Plan commercial', mediaWord:'commercial', leadWord:'opportunités', lead1:'opportunité', churn:0.35, sat:9000, eff:0.625, caMs:2028, caMsVal:16000, varc:0.7,
+  base:{students:3500,price:2000,organic:300,payrollOther:3250,payrollCom:600,marketing:500,platform:600,other:1700,debt:1000,rate:0.045,cash:800,staff:60,com:15}, start:5, target:20, growth:3, bank:-3000, unit:'apprenants', mediaTitle:'Plan commercial', mediaWord:'commercial', leadWord:'opportunités', lead1:'opportunité', churn:0.35, sat:9000, eff:0.625, caMs:2028, caMsVal:16000, varc:0.745,
   media:{farm:{n:"Farming grands comptes",ic:"🌱",d:"Développer les clients existants : nouvelles langues, nouveaux services, montée en gamme avec l'agent IA. Le levier le plus rentable.",cpl:350,conv:0.35,per:4,churn:0,base:200},
          hunt:{n:"Hunting nouveaux comptes",ic:"🎯",d:"Prospection sortante vers les DRH. Long et cher, mais c'est là que se joue le triplement.",cpl:900,conv:0.12,per:8,churn:1,base:150},
          opco:{n:"Partenariats OPCO et branches",ic:"🤝",d:"Référencements auprès des financeurs. Volume régulier, marges serrées.",cpl:600,conv:0.2,per:4,churn:0,base:100},
@@ -718,22 +736,22 @@ const SCENARIOS=[
   mission:"transformer un spécialiste rentable en leader : tripler le chiffre d'affaires sans sacrifier la marge", pitch:"LinguIA est rentable, respectée, et vient de se doter d'un produit que personne ne sait copier. C'est le moment d'accélérer : passer de 7 à 21 M€ en cinq ans à +20 % de résultat. Pas de médias ici : la croissance se gagne compte par compte, chez les clients fidèles et dans les DRH qu'il reste à convaincre."},
  {id:'enacto',name:"ENACTO Business School",ic:"🏫",tag:"La jolie école de commerce qui repart, avec sa fondatrice et un nouvel actionnaire",
   desc:"10 M€ de chiffre d'affaires, 4 000 étudiants attachés à leur école, 130 salariés, et l'équilibre retrouvé après des années difficiles. Bernard Bugatti vient d'entrer au capital aux côtés de la fondatrice Hélène Bellavenir : les moyens sont là, l'âme aussi. Doubler et dégager +4 M€ de résultat net fin 2030. Seule ombre : le prêt du rachat se rembourse chaque année et la trésorerie est courte, chaque pari se paie comptant.",
-  base:{students:4000,price:2500,organic:300,payrollOther:4300,payrollCom:1200,marketing:1620,platform:800,other:2100,debt:4500,rate:0.05,cash:200,staff:130,com:30}, start:0, target:20, growth:2, bank:-2150, amort:700, unit:'étudiants', mediaTitle:'Plan médias', mediaWord:'médias', leadWord:'leads', lead1:'lead', churn:0.33, sat:4500, eff:1.05, varc:0.565, founder:true, evMult:2.2, lossPenalty:2,
+  base:{students:4000,price:2500,organic:300,payrollOther:4300,payrollCom:1200,marketing:1620,platform:800,other:2100,debt:4500,rate:0.05,cash:200,staff:130,com:30}, start:0, target:20, growth:2, bank:-1700, amort:700, unit:'étudiants', mediaTitle:'Plan médias', mediaWord:'médias', leadWord:'leads', lead1:'lead', churn:0.33, sat:4500, eff:1.05, varc:0.665, founder:true, evMult:2.5, lossPenalty:2,
   media:scaleMedia(MEDIA_XYN,0.36),
   mission:"doubler l'école en cinq ans et atteindre +20 % de résultat, sans trahir son âme", pitch:"ENACTO a traversé la tempête et en est sortie debout, avec des diplômés fidèles et une pédagogie que ses concurrents lui envient. Mon entrée au capital lui donne les moyens de ses ambitions ; Hélène Bellavenir, sa fondatrice, siège au conseil et veillera à ce que la croissance ne trahisse pas l'école. Objectif : 20 M€ et +20 % fin 2030."},
  {id:'cnf',name:"Centre National de Formation",ic:"🏛️",tag:"Le leader du secteur, solide, rentable, prêt pour un nouveau chapitre",
-  desc:"60 M€ de chiffre d'affaires, 24 000 étudiants, 700 salariés, +12 % de résultat et la première place du secteur. Après trois années stables, le conseil veut un CNF plus rentable et en croissance : 25 M€ de résultat net fin 2030, avec une ambition de 90 M€ de chiffre d'affaires. Étape imposée : 72,5 M€ de chiffre d'affaires fin 2028, sinon c'est la porte. Et les équipes ne peuvent pas accueillir plus de 16 % d'étudiants en plus par an.",
-  base:{students:24000,price:2500,organic:2600,payrollOther:24000,payrollCom:6000,marketing:9000,platform:3000,other:11000,debt:0,rate:0.04,cash:8000,staff:700,com:150}, start:12, target:22.2, resAbs:25000, growth:1.5, caReq:false, caMs:2028, caMsVal:72500, maxGrow:0.16, norgMax:0.035, bank:-15000, unit:'étudiants', mediaTitle:'Plan médias', mediaWord:'médias', leadWord:'leads', lead1:'lead', churn:0.35, sat:9800, eff:0.38, varc:0.79, capMod:-16,
+  desc:"60 M€ de chiffre d'affaires, 24 000 étudiants, 700 salariés, +7 % de résultat et la première place du secteur. Après trois années stables, le conseil veut un CNF plus rentable et en croissance : 25 M€ de résultat net fin 2030, avec une ambition de 90 M€ de chiffre d'affaires. Étape imposée : 71,5 M€ de chiffre d'affaires fin 2028, sinon c'est la porte. Et les équipes ne peuvent pas accueillir plus de 16 % d'étudiants en plus par an.",
+  base:{students:24000,price:2500,organic:2600,payrollOther:24000,payrollCom:6000,marketing:9000,platform:3000,other:13800,debt:0,rate:0.04,cash:8000,staff:700,com:150}, start:7, target:22.2, resAbs:25000, growth:1.5, caReq:false, caMs:2028, caMsVal:71500, maxGrow:0.16, norgMax:0.035, bank:-15000, unit:'étudiants', mediaTitle:'Plan médias', mediaWord:'médias', leadWord:'leads', lead1:'lead', churn:0.35, sat:9800, eff:0.38, varc:0.84, capMod:-16,
   media:scaleMedia(MEDIA_XYN,2),
-  mission:"relancer la croissance d'un leader installé et porter son résultat net à 25 M€ en cinq ans", pitch:"Le CNF est la référence : rentable, connu de tous, avec des équipes qui savent faire. Depuis trois ans, les inscriptions remplacent exactement les départs ; c'est confortable, ce n'est pas assez. Le conseil veut 25 M€ de résultat net en 2030, et une croissance qui le prouve : 72,5 M€ de chiffre d'affaires dès 2028, sur un marché mûr où chaque étudiant de plus se gagne."},
+  mission:"relancer la croissance d'un leader installé et porter son résultat net à 25 M€ en cinq ans", pitch:"Le CNF est la référence : rentable, connu de tous, avec des équipes qui savent faire. Depuis trois ans, les inscriptions remplacent exactement les départs ; c'est confortable, ce n'est pas assez. Le conseil veut 25 M€ de résultat net en 2030, et une croissance qui le prouve : 71,5 M€ de chiffre d'affaires dès 2028, sur un marché mûr où chaque étudiant de plus se gagne."},
  {id:'hippocampus',name:"Hippocampus",ic:"🌿",tag:"La startup du bien-être ultra premium, un produit adoré, une trajectoire à construire",
-  desc:"1 M€ de chiffre d'affaires, 170 étudiants à 6 000 € qui recommandent l'école les yeux fermés, 12 salariés, un positionnement ultra premium unique sur le marché. La startup investit encore (−50 % de résultat) ; les investisseurs y croient et veulent ×5 (5 M€ de CA) et +1,5 M€ de résultat net fin 2030, avec une condition : être rentable (au moins +5 % de marge) dès fin 2027.",
-  base:{students:167,price:6000,organic:40,payrollOther:720,payrollCom:180,marketing:300,platform:120,other:180,debt:0,rate:0.06,cash:250,staff:12,com:3}, start:-50, target:30, growth:5, bank:-300, unit:'étudiants', mediaTitle:'Plan médias', mediaWord:'médias', leadWord:'leads', lead1:'lead', churn:0.25, sat:900, eff:2.05, varc:0.24, evMult:1.0, lossPenalty:6, milestone:2027, milestonePct:5,
+  desc:"1 M€ de chiffre d'affaires, 170 étudiants à 6 000 € qui recommandent l'école les yeux fermés, 12 salariés, un positionnement ultra premium unique sur le marché. La startup investit encore (−50 % de résultat) ; les investisseurs y croient et veulent ×5 (5 M€ de CA) et +1,5 M€ de résultat net fin 2030, avec une condition : être revenu près de l'équilibre (pas plus de 2 % de perte) dès fin 2027.",
+  base:{students:167,price:6000,organic:40,payrollOther:720,payrollCom:180,marketing:300,platform:120,other:180,debt:0,rate:0.06,cash:250,staff:12,com:3}, start:-50, target:30, growth:5, bank:-300, unit:'étudiants', mediaTitle:'Plan médias', mediaWord:'médias', leadWord:'leads', lead1:'lead', churn:0.25, sat:900, eff:2.05, varc:0.38, evMult:1.0, lossPenalty:6, milestone:2027, milestonePct:-2,
   media:{google:{n:"Google Ads",ic:"🔍",d:"Recherche payante sur des mots-clés chers. Des prospects aisés, rares, exigeants.",cpl:380,conv:0.08,churn:0,base:100},
          hello:{n:"HelloFormation",ic:"🤝",d:"Broker généraliste : beaucoup de curieux, peu de clients à 6 000 €.",cpl:280,conv:0.042,churn:1,base:67},
          diplo:{n:"Diplomomo",ic:"🎓",d:"Broker diplômant, un peu mieux ciblé.",cpl:330,conv:0.06,churn:0,base:53},
          meta:{n:"Meta (Facebook / Instagram)",ic:"📱",d:"Le bien-être cartonne sur Instagram. Convertir à 6 000 € est une autre histoire.",cpl:160,conv:0.03,churn:2,base:80}},
-  mission:"passer d'une startup qui brûle du cash à une pépite rentable : ×5 et +30 %", pitch:"Hippocampus a ce que toutes les écoles rêvent d'avoir : des étudiants qui adorent le produit et le disent. Il reste à bâtir l'entreprise autour : 250 k€ en banque, quelques mois d'autonomie, et des investisseurs prêts à remettre au pot si la trajectoire est crédible. Leur condition : être rentable fin 2027, au moins +5 % de marge, sinon ils changent de dirigeant."},
+  mission:"passer d'une startup qui brûle du cash à une pépite rentable : ×5 et +30 %", pitch:"Hippocampus a ce que toutes les écoles rêvent d'avoir : des étudiants qui adorent le produit et le disent. Il reste à bâtir l'entreprise autour : 250 k€ en banque, quelques mois d'autonomie, et des investisseurs prêts à remettre au pot si la trajectoire est crédible. Leur condition : être revenu près de l'équilibre fin 2027, pas plus de 2 % de perte, sinon ils changent de dirigeant."},
 ];
 function applyScenario(i){
   SC=SCENARIOS[i]; BASE={...SC.base}; MEDIA=JSON.parse(JSON.stringify(SC.media)); N.ecole=SC.name;
@@ -940,7 +958,7 @@ MEASURES_SC.forEach(m=>MEASURES_T.push({id:MEASURES_T.length,sc:m[0],cat:m[1],n:
 const ENVELOPPES=[
  {who:N.peda,role:"Directrice pédagogique",ic:"👩‍🏫",ask:"« À 80 étudiants par tuteur, on ne les accompagne plus, on les regarde partir : le taux d'abandon le prouve. Il me faut {n:15} tuteurs de plus. Je sais ce que ça coûte, je sais aussi ce que ça rapporte. »",
   c:[["Accorder les {n:15} postes",{cost:750,hc:15,churn:-2,g:{etu:4,cse:4,ca:-2}},"Elle repart soulagée. "+N.daf+", moins."],
-     ["Refuser",{g:{cse:-5,etu:-2}},"« Je comprends la contrainte. Mais ne soyez pas surpris quand on reparlera des abandons. »"],
+     ["Refuser",{g:{cse:-5,etu:-2},flag:"tuteurs_non"},"« Je comprends la contrainte. Mais ne soyez pas surpris quand on reparlera des abandons. »"],
      ["Compromis : {n:5} postes",{cost:250,hc:5,churn:-1,g:{etu:1,cse:1}},"Elle accepte : « C'est un début. Je reviendrai pour les autres. »"]]},
  {who:N.com,role:"Directrice commerciale",ic:COM,ask:"« Les équipes sont prêtes et la demande est là. Avec 20 % de budget médias en plus, je vous signe {s:300} inscriptions supplémentaires. Sans, je ferai de mon mieux, mais je ne peux plus garantir les objectifs. »",
   c:[["Accorder les 20 %",{mkPct:0.2,stu:1.06,g:{com:8,ca:-2}},"Elle promet des résultats. On verra à la rentrée."],
@@ -972,11 +990,35 @@ const ENVELOPPES=[
   c:[["Rattrapage salarial",{cost:600,g:{cse:8,etu:2,ca:-2}},"Les départs se calment."],
      ["Refuser",{g:{cse:-6,etu:-2}},"Les démissions continuent."],
      ["Compromis : prime de fidélisation",{cost:250,g:{cse:3}},"Un geste, pas une réponse."]]},
+ {who:N.comm,role:"Directeur de la communication",ic:"🎤",ask:"« Notre note employeur est tombée à 2,9 sur les sites d'avis. Les bons candidats lisent ça avant de postuler. Une vraie campagne de marque employeur, c'est {k:250}. »",
+  c:[["Lancer la campagne",{cost:250,g:{cse:3,com:2,ca:-1}},"Les candidatures reprennent, et les équipes se reconnaissent dans les vidéos."],
+     ["Refuser",{g:{cse:-3}},"« Très bien. On continuera de recruter avec une note de 2,9. »"],
+     ["Compromis : témoignages vidéo des salariés",{cost:100,g:{cse:1}},"Fait maison, sincère, et pas cher."]]},
+ {who:N.filiere,role:"Responsable de la filière "+N.fil3,ic:"👩‍🏫",ask:"« Notre filière phare pourrait obtenir un titre RNCP de niveau supérieur. Le dossier prend dix-huit mois et coûte {k:180}, mais les financements suivent derrière. »",
+  c:[["Monter le dossier",{once:-180,stu:1.03,g:{etu:3},flag:"rncp"},"Le dossier part à France Compétences. Verdict dans un an."],
+     ["Refuser",{g:{etu:-3}},"« Les concurrents, eux, l'ont fait. »"],
+     ["Compromis : un dossier allégé",{cost:60,stu:1.01},"Moins ambitieux, mais déjà mieux que rien."]]},
+ {who:N.dsi,role:"Directeur des systèmes d'information",ic:"🧑‍💻",ask:"« Un tiers des devoirs rendus sont écrits par une IA. Sans outil de détection, nos diplômes ne veulent plus rien dire. Il me faut {k:120}. »",
+  c:[["Équiper toute l'école",{cost:120,g:{etu:2,cse:2,ca:1}},"Les correcteurs retrouvent confiance dans ce qu'ils notent."],
+     ["Refuser",{g:{etu:-2,cse:-2},flag:"risque_ia"},"Il soupire : « On en reparlera au premier scandale. »"],
+     ["Compromis : seulement pour les examens finaux",{cost:50,g:{etu:1}},"Le minimum, là où ça compte."]]},
+ {who:N.mkt,role:"Directrice marketing",ic:"📣",ask:"« Nos anciens sont nos meilleurs vendeurs. Un programme d'ambassadeurs alumni, avec des primes de parrainage, c'est {k:150} et des leads qui ne coûtent presque rien. »",
+  c:[["Lancer le programme",{cost:150,stu:1.03,g:{com:3}},"Les premiers parrainages arrivent dès la rentrée."],
+     ["Refuser",{g:{com:-3}},"« On continuera donc de tout payer à Google. »"],
+     ["Compromis : un test sur une filière",{cost:60,stu:1.01,g:{com:1}},"Un pilote. Si ça marche, on élargira."]]},
+ {who:N.peda,role:"Directrice pédagogique",ic:"👩‍🏫",ask:"« La moitié de nos cours ont plus de cinq ans. Les étudiants le voient, les abandons aussi. Il me faut {n:6} concepteurs pédagogiques pendant un an pour tout refaire. »",
+  c:[["Accorder les {n:6} concepteurs",{cost:420,hc:6,churn:-1.5,g:{etu:4,ca:-1}},"La refonte démarre par les cours les plus suivis."],
+     ["Refuser",{g:{etu:-4,cse:-2},flag:"cours_vieux"},"« Alors ne vous étonnez pas des abandons. »"],
+     ["Compromis : {n:2} concepteurs",{cost:150,hc:2,churn:-0.5,g:{etu:1}},"On refera les dix cours les plus critiqués."]]},
+ {who:N.rh,role:"Responsable des ressources humaines",ic:"👩‍💼",ask:"« Nos managers sont débordés et personne ne les a jamais formés à manager. Un plan de formation pour tous, c'est {k:160}. »",
+  c:[["Former tous les managers",{cost:160,g:{cse:5}},"Les équipes sentent la différence en quelques mois."],
+     ["Refuser",{g:{cse:-5},flag:"managers_seuls"},"« Les arrêts maladie, eux, ne demanderont pas de budget. »"],
+     ["Compromis : les nouveaux managers seulement",{cost:60,g:{cse:2}},"Un premier cercle, en attendant mieux."]]},
 ];
 
 const AUDITIONS=[
  {kicker:"Town hall · {staff} salariés en visio",who:"Un tuteur",role:"Prend la parole dans le chat",ic:"🧑‍🏫",q:"« Merci de prendre la question. Elle est simple : est-ce qu'il y aura des licenciements cette année ? Oui ou non ? »",
-  c:[["« Non. »",{g:{cse:8,ca:-4}},"Soulagement dans le chat. "+N.president+" vous glisse, sans rire, que vous venez de vous lier les mains."],
+  c:[["« Non. »",{g:{cse:8,ca:-4},flag:"promesse_emploi"},"Soulagement dans le chat. "+N.president+" vous glisse, sans rire, que vous venez de vous lier les mains."],
      ["« Je ne peux rien exclure, mais ce n'est pas le plan. »",{g:{cse:-2,ca:2}},"Langue de bois détectée. Personne n'est rassuré, personne n'est trahi."],
      ["« Si nous ne redressons pas les comptes, oui. Voici les chiffres. »",{g:{cse:-5,ca:5,com:2}},"Silence, puis des questions précises. La transparence a un prix immédiat."]]},
  {kicker:"Amphi virtuel · {s:2000} étudiants connectés",who:N.etuF,role:"Étudiante en "+N.fil1,ic:"👩‍🎓",q:"« J'aime mes cours, je le dis autour de moi. Mais pourquoi payer plus cher si c'est pour avoir moins de tuteurs ? Vous allez faire quoi, concrètement ? »",
@@ -989,7 +1031,7 @@ const AUDITIONS=[
      ["Proposer un atelier commun commerciaux / pédagogie",{g:{com:3,cse:3}},"Quelques sourires. Reste à le faire."]]},
  {kicker:"Réunion CSE extraordinaire",who:N.cse,role:"Secrétaire du CSE",ic:"👩",q:"« Nous voulons comprendre la situation par nous-mêmes : nous demandons une expertise indépendante sur la situation économique. Vous la financez ? »",
   c:[["Accepter l'expertise",{once:-80,g:{cse:6,ca:-1}},"L'expert confirmera vos chiffres. Ou pas."],
-     ["Refuser",{g:{cse:-8}},"Le CSE saisira l'inspection du travail, à regret."],
+     ["Refuser",{g:{cse:-8},flag:"expertise_refus"},"Le CSE saisira l'inspection du travail, à regret."],
      ["Proposer une présentation détaillée des comptes à la place",{g:{cse:2,ca:1}},"Accepté du bout des lèvres."]]},
  {kicker:"Amphi virtuel · filière "+N.fil2,who:N.etuM,role:"Étudiant en deuxième année",ic:"👨‍🎓",q:"« Une question directe : nos corrections, c'est une IA maintenant ? J'ai eu la même remarque que trois camarades, mot pour mot. »",
   c:[["Assumer et expliquer la relecture humaine",{g:{etu:-2,ca:2}},"Réactions partagées, mais vous n'avez pas menti."],
@@ -999,9 +1041,9 @@ const AUDITIONS=[
   c:[["Montrer les mêmes chiffres qu'au conseil",{g:{cse:5,ca:3,com:-2}},"Crédibilité acquise, quelques visages blêmes."],
      ["Montrer une version simplifiée",{g:{cse:-3}},"Quelqu'un fera le rapprochement."]]},
  {kicker:"Réunion CSE ordinaire",who:N.cse,role:"Secrétaire du CSE",ic:"👩",q:"« Les équipes demandent un troisième jour de télétravail par semaine. Elles l'ont prouvé : le travail est fait. On peut l'acter ? »",
-  c:[["Accepter les trois jours",{g:{cse:7,com:2,ca:-2}},"Le CSE salue « une direction qui fait confiance ». Le conseil, lui, hausse un sourcil."],
+  c:[["Accepter les trois jours",{g:{cse:7,com:2,ca:-2},flag:"teletravail"},"Le CSE salue « une direction qui fait confiance ». Le conseil, lui, hausse un sourcil."],
      ["Deux jours fixes, plus de souplesse en basse saison",{g:{cse:3}},"Un compromis qui s'accorde bien avec l'annualisation."],
-     ["Refuser : le présentiel compte",{g:{cse:-7,ca:2}},"Message reçu. Deux managers commencent à regarder ailleurs."]]},
+     ["Refuser : le présentiel compte",{g:{cse:-7,ca:2},flag:"teletravail_non"},"Message reçu. Deux managers commencent à regarder ailleurs."]]},
  {kicker:"Town hall · {staff} salariés en visio",who:N.rh,role:"Responsable des ressources humaines",ic:"👩‍💼",q:"« La mutuelle augmente de 12 % au 1er janvier. La question remonte de partout : qui paie la hausse ? »",
   c:[["L'entreprise l'absorbe entièrement",{cost:120,g:{cse:6,ca:-1}},"Applaudissements dans le chat. La ligne de charges grossit un peu."],
      ["Moitié entreprise, moitié salariés",{cost:60,g:{cse:1}},"Personne n'est ravi, personne n'est trahi."],
@@ -1013,19 +1055,19 @@ const AUDITIONS=[
  {kicker:"Réunion CSE · égalité professionnelle",who:N.cse,role:"Secrétaire du CSE",ic:"👩",q:"« L'index égalité est à 78 sur 100. À poste égal, les femmes gagnent 9 % de moins. Qu'est-ce que vous comptez faire ? »",
   c:[["Une enveloppe de rattrapage dès cette année",{cost:180,g:{cse:8,ca:-1}},"Le CSE le relaie partout. L'image employeur y gagne aussi."],
      ["Commander d'abord un audit indépendant",{once:-40,g:{cse:2}},"Sérieux, mais lent. On vous reparlera de cet audit."],
-     ["« C'est le marché qui fixe les salaires »",{g:{cse:-9,etu:-2}},"La phrase sort de la réunion avant vous."]]},
+     ["« C'est le marché qui fixe les salaires »",{g:{cse:-9,etu:-2},flag:"egalite_non"},"La phrase sort de la réunion avant vous."]]},
  {kicker:"Town hall · équipe commerciale",who:N.comSenior,role:"Commerciale senior, 12 ans de maison",ic:"📞",q:"« On passe nos journées au téléphone avec un CRM qui plante deux fois par jour. Chaque appel perdu, c'est une inscription perdue. Il nous faut un vrai outil. »",
-  c:[["Changer de CRM cette année",{once:-150,g:{com:7}},"Trois mois de migration, puis des appels qui s'enchaînent enfin."],
+  c:[["Changer de CRM cette année",{once:-150,g:{com:7},flag:"crm"},"Trois mois de migration, puis des appels qui s'enchaînent enfin."],
      ["Former l'équipe à mieux utiliser l'outil actuel",{cost:30,g:{com:1}},"Utile, mais le CRM plante toujours."],
-     ["« Faites avec, comme tout le monde »",{g:{com:-6}},"Les meilleurs vendeurs prennent des notes. Sur leur CV."]]},
+     ["« Faites avec, comme tout le monde »",{g:{com:-6},flag:"crm_non"},"Les meilleurs vendeurs prennent des notes. Sur leur CV."]]},
  {kicker:"Réunion CSE · santé au travail",who:N.rh,role:"Responsable des ressources humaines",ic:"👩‍💼",q:"« Trois arrêts maladie pour épuisement en un mois dans l'équipe pédagogique. Le CSE demande des mesures avant l'été. »",
   c:[["Soutien psychologique et charge allégée",{cost:120,g:{cse:6,etu:1}},"Les équipes voient qu'on les a entendues."],
      ["Lancer une enquête sur la qualité de vie au travail",{once:-30,g:{cse:2}},"Un premier pas. On attend la suite."],
-     ["Considérer que ce sont des cas individuels",{g:{cse:-8,etu:-2}},"Le CSE déclenche une alerte pour danger grave. Ambiance."]]},
+     ["Considérer que ce sont des cas individuels",{g:{cse:-8,etu:-2},flag:"burnout_non"},"Le CSE déclenche une alerte pour danger grave. Ambiance."]]},
  {kicker:"Town hall · équipe commerciale",who:"Un commercial",role:"Prend la parole dans le chat",ic:"🧑‍💼",q:"« Une rumeur court : les primes seraient plafonnées cette année. C'est vrai ou pas ? On veut savoir pour quoi on se bat. »",
   c:[["« Non, les primes restent déplafonnées »",{cost:100,g:{com:6,ca:-2}},"L'équipe repart au téléphone avec le sourire."],
      ["Plafonner, mais baisser le seuil de déclenchement",{g:{com:-1,ca:1}},"Plus de commerciaux touchent une prime, les meilleurs un peu moins."],
-     ["« Oui, c'est nécessaire cette année »",{g:{com:-8,ca:3}},"Le conseil apprécie. Le plateau commercial, nettement moins."]]},
+     ["« Oui, c'est nécessaire cette année »",{g:{com:-8,ca:3},flag:"primes_plafond"},"Le conseil apprécie. Le plateau commercial, nettement moins."]]},
  {kicker:"Town hall · équipes pédagogiques",who:N.peda,role:"Directrice pédagogique",ic:"👩‍🏫",q:"« Vous nous demandez d'utiliser l'IA pour corriger plus vite. Très bien. Mais personne ne nous a formés, et on a peur de mal faire. »",
   c:[["Un vrai plan de formation pour tous",{cost:90,g:{cse:4,etu:2}},"Les corrections gagnent en vitesse sans perdre en qualité."],
      ["Des tutoriels internes et un référent IA",{cost:20,g:{cse:1}},"Ça dépanne. Ça ne rassure pas tout à fait."],
@@ -1033,7 +1075,7 @@ const AUDITIONS=[
  {kicker:"Town hall · {staff} salariés en visio",who:"Une salariée",role:"Pose la question en direct",ic:"🙋‍♀️",q:"« On nous demande des efforts. Alors une question simple : combien gagnez-vous, et toucherez-vous un bonus cette année ? »",
   c:[["Donner le chiffre, bonus compris",{g:{cse:5,ca:-2}},"Le chat se tait une seconde, puis salue la franchise."],
      ["« C'est le conseil qui fixe ma rémunération »",{g:{cse:-3}},"Vrai, et parfaitement inaudible."],
-     ["Renoncer publiquement à votre bonus cette année",{g:{cse:8,com:3,ca:2}},"Le geste fait le tour de l'école. "+N.president+" apprécie l'exemple."]]},
+     ["Renoncer publiquement à votre bonus cette année",{g:{cse:8,com:3,ca:2},flag:"bonus_renonce"},"Le geste fait le tour de l'école. "+N.president+" apprécie l'exemple."]]},
  {kicker:"Réunion CSE · négociation annuelle",who:N.cse,role:"Secrétaire du CSE",ic:"👩",q:"« Les managers ont été augmentés en janvier, pas les équipes. Les salariés veulent comprendre pourquoi. »",
   c:[["Publier la grille des salaires et des augmentations",{g:{cse:4,ca:-1}},"Transparence totale. Quelques discussions tendues dans les équipes."],
      ["Geler aussi les managers et redistribuer l'enveloppe",{g:{cse:6,com:-2,ca:1}},"Les équipes approuvent. Certains managers, beaucoup moins."],
@@ -1086,6 +1128,12 @@ const AMENDEMENTS=[
  {who:N.banquier,role:"Représentant de la "+N.banque+" (censeur)",ic:"🏦",ask:"Amendement : plafonnement du découvert et plan de trésorerie mensuel.",y:{g:{ca:3,cse:-1},flag:"plan_treso"},n:{g:{ca:-3},rate:0.005}},
  {who:N.president,role:N.presidentRole,ic:PRES,ask:"Amendement : conserver le nom et la mission d'origine de {ecole} dans toute offre B2B.",y:{g:{ca:2,cse:3,com:-2}},n:{g:{ca:-3}}},
  {who:N.adminEtu,role:"Administrateur représentant les étudiants",ic:"👨‍🎓",ask:"Amendement : rétablissement d'un fonds de bourses de {k:300}.",y:{cost:300,g:{etu:6,ca:-2}},n:{g:{etu:-3}}},
+ {who:N.adminIndep,role:"Administratrice indépendante",ic:"🧓",ask:"Amendement : création d'un comité RSE et publication d'un bilan carbone annuel.",y:{cost:80,g:{ca:3,cse:1}},n:{g:{ca:-2}}},
+ {who:N.actionnaire,role:"Actionnaire minoritaire",ic:"🕴️",ask:"Amendement : plafonner le budget médias au niveau de l'an dernier.",y:{mk:-300,g:{ca:5,com:-4}},n:{g:{ca:-5}}},
+ {who:N.adminEns,role:"Représentant les enseignants au conseil",ic:"🧑‍🏫",ask:"Amendement : une charte du télétravail négociée avec le CSE avant la fin de l'année.",y:{g:{cse:5,ca:-1}},n:{g:{cse:-4}}},
+ {who:N.banquier,role:"Représentant de la "+N.banque+" (censeur)",ic:"🏦",ask:"Amendement : un engagement de résultat positif chaque année, sous peine de taux relevé.",y:{g:{ca:3},flag:"covenant"},n:{g:{ca:-2},rate:0.005}},
+ {who:N.adminEtu,role:"Administrateur représentant les étudiants",ic:"👨‍🎓",ask:"Amendement : nomination d'un médiateur étudiant indépendant.",y:{cost:70,g:{etu:5}},n:{g:{etu:-3}}},
+ {who:N.president,role:N.presidentRole,ic:PRES,ask:"Amendement : un administrateur élu par les salariés siégera au conseil.",y:{g:{cse:6,ca:-3}},n:{g:{cse:-3,ca:1}}},
 ];
 
 function mkx(k){ return MEDIA&&MEDIA[k]&&S.media?(S.media[k]||0)/MEDIA[k].base:1; }
@@ -1292,6 +1340,10 @@ function inscriptions(){
 }
 
 // ---------- Simulation annuelle ----------
+function norgPlan(){ // deux reprises positives sur deux saisons tirées parmi les 4 premières ; dotation négative en saison 4 si les deux positives sont tombées en saisons 1 et 2, sinon en saison 5
+  if(S.norgPlan&&S.norgPlan.length===5) return S.norgPlan;
+  const p=[null,null,null,null,null]; const idx=[0,1,2,3].sort(()=>Math.random()-.5).slice(0,2).sort(); const big=Math.random()<.5?0:1;
+  p[idx[0]]=big===0?'big':'small'; p[idx[1]]=big===0?'small':'big'; p[(idx[0]===0&&idx[1]===1)?3:4]='neg'; S.norgPlan=p; return p; }
 function simulate(){
   const g=S.g;
   const ins=inscriptions(); const newS=ins.total;
@@ -1308,7 +1360,7 @@ function simulate(){
   const scaleCost=Math.max(0,students-BASE.students)*S.price*(SC.varc||0.55)/1000; // encadrement, support et plateforme pour les étudiants supplémentaires
   const costs=payroll+mkTotal()+BASE.platform+BASE.other+S.cost+interest+scaleCost;
   // Effet Norgeat : une fois sur deux, une provision mystérieuse reprise au dernier moment (comptable, sans impact sur la trésorerie)
-  const nb=SC.norgMax||0.08; const norg=S.yi>=YEARS.length-1?-Math.round(revenue*(0.002+Math.random()*0.006)):(Math.random()<0.5?Math.round(revenue*(Math.random()<0.6?0.001+Math.random()*0.005:nb*0.375+Math.random()*nb*0.625)):0); // dernière saison : une petite dotation, jamais une reprise
+  const nb=SC.norgMax||0.08, NK=norgPlan()[S.yi]; const norg=NK==='small'?Math.round(revenue*(0.001+Math.random()*0.005)):NK==='big'?Math.round(revenue*(nb*0.375+Math.random()*nb*0.625)):NK==='neg'?-Math.round(revenue*(0.002+Math.random()*0.006)):0; // effet Norgeat : 3 fois par mandat (petit +, gros +, puis une dotation négative)
   const res=revenue-costs+norg; const pc=revenue>0?res/revenue*100:-100;
   const y={year:S.year,newS,refused,ins,left,churn,students,revenue,costs,interest,res,pct:pc,once:S.yearFx.once,cashBefore:S.cash,media:{...S.media},payroll,mediaK:mkTotal(),platform:BASE.platform,other:BASE.other,measures:S.cost,scaleCost,tuition,revEff,revY:S.yearFx.revY};
   y.norgeat=norg; S.cash+=res-norg; if(S.cashBackDue){S.cash+=S.cashBackDue; y.cashBack=S.cashBackDue; S.cashBackDue=0;} if(S.cashBack){S.cashBackDue=S.cashBack; S.cashBack=0;} if(SC.amort&&S.debt>0){const am=Math.min(S.debt,Math.max(0,SC.amort-(S.amortCut||0))); S.debt-=am; S.cash-=am; y.amort=am;} y.cash=S.cash;
@@ -1508,8 +1560,12 @@ const $=s=>document.querySelector(s);
 const app=()=>document.getElementById('app');
 function save(){ try{localStorage.setItem('bde-save',JSON.stringify(S));}catch(e){} }
 function btn(label,fn,cls){ const b=document.createElement('button'); b.innerHTML=label; b.className=cls||'mbtn'; b.addEventListener('click',fn); return b; }
-function modal(html,cls){ document.getElementById('modal').innerHTML=`<div class="overlay"><div class="modal ${cls||''}">${html}</div></div>`; }
-function closeModal(){ document.getElementById('modal').innerHTML=''; }
+const ZOOM=()=>{ try{ return localStorage.getItem('bde-zoom')==='1'; }catch(e){ return false; } };
+function applyZoom(){ document.documentElement.classList.toggle('zoom',ZOOM()); }
+document.addEventListener('click',ev=>{ const b=ev.target.closest&&ev.target.closest('#zoomBtn'); if(!b) return; try{ localStorage.setItem('bde-zoom',ZOOM()?'0':'1'); }catch(e){} applyZoom(); b.setAttribute('aria-pressed',ZOOM()?'true':'false'); });
+function modal(html,cls){ const m=document.getElementById('modal'); MODAL_PREV=document.activeElement; m.innerHTML=`<div class="overlay"><div class="modal ${cls||''}" role="dialog" aria-modal="true" tabindex="-1">${html}</div></div>`; setTimeout(()=>{ const f=m.querySelector('button')||m.querySelector('.modal'); if(f) f.focus(); },30); }
+let MODAL_PREV=null;
+function closeModal(){ document.getElementById('modal').innerHTML=''; try{ if(MODAL_PREV&&MODAL_PREV.isConnected) MODAL_PREV.focus(); }catch(e){} }
 
 function toTop(){ try{window.scrollTo({top:0,left:0,behavior:'instant'});document.documentElement.scrollTop=0;document.body.scrollTop=0;}catch(e){window.scrollTo(0,0);} }
 function render(){ if(S.screen!=='intro') document.querySelectorAll('.sparks').forEach(x=>x.remove());
@@ -1607,7 +1663,7 @@ function gaugeHtml(){
   const arrow=(cur,nxt,fmtF,good)=>pv&&Math.round(nxt*10)!==Math.round(cur*10)?`<span class="pv ${good?'up':'dn'}">→ ${fmtF(nxt)}</span>`:'';
   const SN=S.snap||{}; const dlt=(k,cur,f)=>{ if(pv||SN[k]==null) return ''; const d=cur-SN[k]; const r=k==='cash'?Math.round(d/100)/10:Math.round(d); if(!r) return ''; return `<span class="dl ${d>0?'up':'dn'}">${d>0?'▲':'▼'} ${f?f(d):(d>0?'+':'−')+Math.abs(r)}</span>`; };
   const ZONE={ca:20,etu:20,com:20,cse:20,cash:10,res:50};
-  const G=(cls,ic,l,v,w,sub,pvh,w2,dh)=>`<div class="gauge ${cls}${pvh?' has-pv':''}" data-g="${cls.slice(2)}"><div class="l"><span class="gi">${ic}</span> ${l}</div><div class="v num"><span class="vv" data-k="${cls.slice(2)}">${v}</span>${dh||''}${pvh||(sub?`<small> · ${sub}</small>`:'')}</div><div class="bar" style="--z:${ZONE[cls.slice(2)]||0}%"><i style="width:${w}%"></i>${pvh?`<em style="left:${Math.min(w,w2)}%;width:${Math.abs(w2-w)}%"></em>`:''}</div></div>`;
+  const G=(cls,ic,l,v,w,sub,pvh,w2,dh)=>`<div class="gauge ${cls}${pvh?' has-pv':''}" data-g="${cls.slice(2)}" role="group" aria-label="${String(l).replace(/<[^>]+>/g,'')} : ${String(v).replace(/<[^>]+>/g,'')}${sub?' · '+String(sub).replace(/<[^>]+>/g,''):''}"><div class="l"><span class="gi">${ic}</span> ${l}</div><div class="v num"><span class="vv" data-k="${cls.slice(2)}">${v}</span>${dh||''}${pvh||(sub?`<small> · ${sub}</small>`:'')}</div><div class="bar" style="--z:${ZONE[cls.slice(2)]||0}%"><i style="width:${w}%"></i>${pvh?`<em style="left:${Math.min(w,w2)}%;width:${Math.abs(w2-w)}%"></em>`:''}</div></div>`;
   const nca=clamp(S.g.ca+d.ca,0,100),netu=clamp(S.g.etu+d.etu,0,100),ncom=clamp(S.g.com+d.com,0,100),ncse=clamp(S.g.cse+d.cse,0,100),ncash=S.cash+d.once;
   return {conj,html:
    G('c-rev','💶','Chiffre d\'aff.',(lr.rev/1000).toFixed(1).replace('.',',')+' M€',clamp(lr.rev/(SC.caTarget||SC.ca0*1.5)*100,2,100),SC.growth?`cible ${(SC.caTarget/1000).toFixed(0)} M€`:`2025 : ${(SC.ca0/1000).toFixed(0)} M€`,pv?arrow(lr.rev,pj.rev,x=>(x/1000).toFixed(1).replace('.',',')+' M€',pj.rev>=lr.rev):'',clamp(pj.rev/(SC.caTarget||SC.ca0*1.5)*100,2,100))+
@@ -1655,6 +1711,7 @@ function flood(col,e,cb,sc){ if(RM()) return cb(); const d=document.createElemen
   document.body.appendChild(d); const t1=MOB()?900:560; let nm=null;
   setTimeout(()=>{ if(sc){ nm=document.createElement('div'); nm.className='floodname'; nm.innerHTML=`<span class="ic">${sc.ic}</span>${sc.name}<small>Votre école</small>`; document.body.appendChild(nm); } },t1-150);
   setTimeout(()=>{ cb(); d.classList.add('out'); if(nm) nm.classList.add('out'); setTimeout(()=>{d.remove(); if(nm) nm.remove();},480); },t1+(sc?1100:0)); }
+document.addEventListener('keydown',ev=>{ if(ev.key!=='Escape') return; const x=document.querySelector('.epcard:not(.out),.mandate'); if(x) x.click(); });
 let LASTPT=null; document.addEventListener('pointerdown',e=>{LASTPT={x:e.clientX,y:e.clientY};},true);
 function flyTo(k,ic,v){ const sel=`.gauge[data-g="${k}"]`; const g0=document.querySelector(sel); if(!g0) return;
   showGauge(g0,()=>{ const g=document.querySelector(sel); if(!g) return;
@@ -1697,7 +1754,7 @@ function renderGame(){
   const g=gaugeHtml();
   app().innerHTML=`<div class="game">
     <div class="top"><div class="brand"><div class="logo">${LOGO}</div><div><div class="t">LE JEU DU DG</div><div class="s">${N.ecole} · Saison ${S.yi+1} · Exercice ${S.year}</div></div><span class="pill ${g.conj[0]}" id="conj" style="margin-left:8px">${g.conj[1]}</span></div>
-      <div class="icons"><button title="Recommencer" id="reset">↺</button><button title="Partie sauvegardée automatiquement">💾</button></div></div>
+      <div class="icons"><button title="Recommencer" aria-label="Recommencer la partie" id="reset">↺</button><button title="Agrandir le texte" aria-label="Agrandir le texte" id="zoomBtn" aria-pressed="${ZOOM()?'true':'false'}">A+</button><button title="Partie sauvegardée automatiquement" aria-label="Partie sauvegardée automatiquement">💾</button></div></div>
     <div class="episodes">${EPISODES.map((e,i)=>`<div class="ep ${i===S.phase?'on':(i<S.phase?'done':'')}"><span class="st">${i<S.phase?'✓':i===S.phase?'▶':'🔒'}</span><span class="ic">${e[2]}</span><span class="m">E${i+1} · ${e[0]}</span><span class="n">${e[1]}</span></div>`).join('')}</div><div class="yearbar"><span>${EPISODES[S.phase][2]} Épisode <b>${S.phase+1}</b>/${EPISODES.length}</span><span class="yb"><i style="width:${((S.phase+1)/EPISODES.length*100).toFixed(1)}%"></i></span><span>${S.year}</span></div>
     <div class="gauges" id="gauges">${g.html}</div>
     <div class="scene" id="scene"></div>
@@ -1786,8 +1843,39 @@ function choices(container,list,after,label){
   container.appendChild(box);
 }
 
+// Suites des choix : une promesse ou un refus d'une année revient l'année suivante (une seule fois, au plus une suite par épisode)
+const CALLBACKS=[
+ {id:'emploi',flag:'promesse_emploi',when:s=>s.active.some(id=>(MEASURES[id].hc||0)<=-Math.max(1,Math.round(0.04*BASE.staff))),who:()=>N.cse,role:'Secrétaire du CSE',ic:'👩',t:"« En juin, devant tout le monde, vous aviez dit : pas de licenciements. Et voilà des postes supprimés. Les équipes ne l'oublieront pas. »",fx:{g:{cse:-12,ca:-3}}},
+ {id:'expertise',flag:'expertise_refus',who:()=>N.rh,role:'Responsable des ressources humaines',ic:'👩‍💼',t:"« Le CSE a saisi l'inspection du travail après votre refus d'expertise. L'inspectrice demande tous les documents économiques, et une régularisation. »",fx:{once:-60,g:{cse:-3,ca:-2}}},
+ {id:'teletravail',flag:'teletravail',who:()=>N.rh,role:'Responsable des ressources humaines',ic:'👩‍💼',t:"« Un an après les trois jours de télétravail : le turnover a baissé d'un tiers et on recrute plus loin, moins cher. »",fx:{g:{cse:4},cost:-60}},
+ {id:'teletravail_non',flag:'teletravail_non',who:()=>N.rh,role:'Responsable des ressources humaines',ic:'👩‍💼',t:"« Deux managers sont partis chez un concurrent qui propose trois jours de télétravail. Il faut les remplacer. »",fx:{once:-80,g:{cse:-3}}},
+ {id:'egalite_non',flag:'egalite_non',who:()=>N.cse,role:'Secrétaire du CSE',ic:'👩',t:"« Votre phrase sur le marché qui fixe les salaires est sortie dans la presse. Et l'index égalité n'a pas bougé : la pénalité tombe. »",fx:{once:-90,g:{cse:-5,ca:-3}}},
+ {id:'crm',flag:'crm',who:()=>N.comSenior,role:'Commerciale senior',ic:'📞',t:"« Le nouveau CRM tient ses promesses : plus un appel perdu, et l'équipe a battu son record de rappels. Merci. »",fx:{stu:1.02,g:{com:4}}},
+ {id:'crm_non',flag:'crm_non',who:()=>N.com,role:'Directrice commerciale',ic:'📞',t:"« Notre meilleure commerciale est partie. Elle a dit à tout le monde : « Je ne pouvais plus vendre avec un outil qui plante. » »",fx:{stu:0.98,g:{com:-6}}},
+ {id:'burnout_non',flag:'burnout_non',who:()=>N.rh,role:'Responsable des ressources humaines',ic:'👩‍💼',t:"« Les « cas individuels » sont devenus cinq. Il faut des remplaçants en urgence, et le CSE parle de risque grave. »",fx:{cost:120,g:{cse:-6,etu:-2}}},
+ {id:'primes_plafond',flag:'primes_plafond',who:()=>N.com,role:'Directrice commerciale',ic:'📞',t:"« Depuis le plafonnement des primes, trois commerciaux sont partis, dont deux parmi les meilleurs. »",fx:{stu:0.98,g:{com:-5}}},
+ {id:'bonus',flag:'bonus_renonce',who:()=>N.cse,role:'Secrétaire du CSE',ic:'👩',t:"« On n'a pas oublié que vous aviez renoncé à votre bonus. Pour la négociation de cette année, on part avec un a priori favorable. »",fx:{g:{cse:4,com:2}}},
+ {id:'tuteurs_non',flag:'tuteurs_non',who:()=>N.peda,role:'Directrice pédagogique',ic:'👩‍🏫',t:"« Je vous l'avais dit : sans tuteurs supplémentaires, les abandons repartent à la hausse. Les chiffres de la rentrée sont là. »",fx:{churn:1.5,g:{etu:-3}}},
+ {id:'cours_vieux',flag:'cours_vieux',who:()=>N.peda,role:'Directrice pédagogique',ic:'👩‍🏫',t:"« Les avis étudiants sur nos vieux cours sont sortis sur un forum. Une note de 2 sur 5 qui circule, ce n'est pas bon pour les inscriptions. »",fx:{stuY:0.97,g:{etu:-3}}},
+ {id:'managers',flag:'managers_seuls',who:()=>N.rh,role:'Responsable des ressources humaines',ic:'👩‍💼',t:"« Deux équipes ont demandé à changer de manager. L'ambiance se dégrade là où personne n'a été formé. »",fx:{g:{cse:-4,etu:-1}}},
+ {id:'rncp',flag:'rncp',who:()=>N.filiere,role:'Responsable de la filière '+N.fil3,ic:'👩‍🏫',t:"« Le titre RNCP est accordé ! Les financements suivent, et les commerciaux ont enfin un argument massue. »",fx:{stu:1.03,g:{etu:3,com:3}}},
+ {id:'risque_ia',flag:'risque_ia',who:()=>N.dsi,role:"Directeur des systèmes d'information",ic:'🧑‍💻',t:"« Un étudiant a publié comment il a validé tout son cursus avec une IA, sans être détecté. Le jury de certification demande des explications. »",fx:{g:{etu:-3,ca:-4}}},
+ {id:'covenant',flag:'covenant',when:s=>s.lastResult&&s.lastResult.res<0,who:()=>N.banquier,role:'Représentant de la '+N.banque,ic:'🏦',t:"« Vous vous étiez engagé à un résultat positif. Il est négatif. Le taux est relevé, comme prévu. »",fx:{rate:0.01,g:{ca:-3}}},
+];
+function maybeCallback(){
+  if(document.getElementById('modal').innerHTML||document.querySelector('.sfx')) return false;
+  if(S.phase<1||S.phase>6) return false; S.cbDone=S.cbDone||{}; if(S.cbYear===S.year+'-'+S.phase) return false;
+  const fy=S.flagYear||{};
+  const c=CALLBACKS.find(c=>S.flags[c.flag]&&!S.cbDone[c.id]&&fy[c.flag]&&fy[c.flag]<S.year&&(!c.when||c.when(S)));
+  if(!c) return false;
+  S.cbDone[c.id]=true; S.cbYear=S.year+'-'+S.phase; save();
+  const fx=scf(c.fx);
+  modal(`<div class="ic">${c.ic}</div><div class="ml">La suite de vos choix · ${c.who()}</div><div class="mt">${tx(c.t)}</div><div>${chips(fx)}</div><div class="ms">${c.role}</div><div style="margin-top:8px"><button class="mbtn" id="ack">Prendre acte</button></div>`,isBad(fx)?'bad':'');
+  const b=document.getElementById('ack'); b.focus(); b.onclick=()=>{closeModal();(S.log=S.log||[]).push({y:S.year,kind:'suite',n:'Suite : '+c.id,eff:Math.round((fx.once||0)-(fx.cost||0)),cap:(fx.g&&fx.g.ca)||0,heart:0,bad:isBad(fx)});apply(fx,'La suite de vos choix');save();renderBudget();};
+  return true;
+}
 function renderPhase(silent){
-  if(!silent&&S.yi!==undefined&&!(S.tuto<TUTO_T().length&&S.yi===0&&S.phase===0)) setTimeout(maybeMinor,350);
+  if(!silent&&S.yi!==undefined&&!(S.tuto<TUTO_T().length&&S.yi===0&&S.phase===0)) setTimeout(()=>{ if(!maybeMinor()) setTimeout(maybeCallback,250); },350);
   switch(S.phase){
     case 0: return phCadrage();
     case 1: return phMesures();
@@ -1866,8 +1954,8 @@ function phMesures(){
   buildOffer();
   const avail=S.offer[S.year].map(i=>MEASURES[i]).filter(m=>!S.active.includes(m.id));
   const cats=[['rec','Recettes nouvelles','var(--green)'],['dep','Économies et coupes','var(--gold)'],['str','Réformes de structure','var(--violet)'],['fou','Coups de poker — effets massifs, capital massif','var(--rose)']];
-  const body=dlg(DAF,N.daf,N.dafRole,(S.yi===0?`« Dessinons l'esquisse du plan : voici les ${avail.length} mesures instruites par mes équipes cette année ; d'autres seront prêtes l'an prochain. Retenez-en autant que votre capital le permet, ou aucune. Chaque mesure consomme du capital auprès de ${N.president} ; vous ne pouvez pas engager plus de capital que vous n'en avez. Une mesure adoptée reste en vigueur les années suivantes. »`:`« Voici les ${avail.length} mesures instruites cette année. Retenez-en autant que votre capital le permet, ou aucune. »`))+
-   `${S.yi>0?'<details class="det"><summary>📗 '+N.daf+' : sans mesure nouvelle, résultat '+S.year+' à '+mE(projected().res)+' · rappel de la mécanique ▸</summary>':''}<div class="daf"><div class="h">📗 ${N.daf} · sans mesure nouvelle</div><div class="big">Résultat ${S.year} ≈ <b style="color:${projected().res<0?'var(--rose)':'var(--green)'}">${Math.abs(projected().res)<1000?kE(Math.round(projected().res)):mE(projected().res)}</b>${SC.growth?` <span class="muted">· cap CA 2030 : ${(SC.caTarget/1000).toFixed(0)} M€</span>`:''}</div><div class="k3"><span>🚪 <b>${Math.round(SC.churn*100)} %</b> d'abandons</span><span>👥 salaires = <b>${Math.round((BASE.payrollOther+BASE.payrollCom)/SC.ca0*100)} %</b> du CA</span><span>${BASE.debt?`🏦 dette <b>${(BASE.debt/1000).toFixed(1).replace('.',',')} M€</b> à ${(S.rate*100).toFixed(1).replace('.',',')} %`:`🏦 découvert max <b>${mE(SC.bank)}</b>`}</span></div>${S.yi===0?`<details><summary>Pourquoi ces trois chiffres ▸</summary><ul><li><b>Les abandons.</b> ${Math.round(SC.churn*100)} % des ${SC.unit} ne vont pas au bout : chaque départ est un chiffre d'affaires perdu.</li><li><b>La masse salariale.</b> ${BASE.staff} salariés et ${((BASE.payrollOther+BASE.payrollCom)/1000).toFixed(1).replace('.',',')} M€ de salaires pour ${(SC.ca0/1000).toFixed(0)} M€ de chiffre d'affaires.</li><li><b>${BASE.debt?'La dette.':'La trésorerie.'}</b> ${BASE.debt?'Chaque euro de découvert coûte plus cher.':'Pas de dette, mais la banque coupe à '+mE(SC.bank)+' de découvert.'}</li></ul></details>`:''}</div>${S.yi>0?'</details>':''}
+  const body=`<div class="note" style="border-left:3px solid var(--sc-hi,var(--gold))"><div class="h">📋 ${avail.length} mesures sur la table cette année</div><p style="margin:4px 0">${S.yi===0?`Retenez-en autant que votre capital le permet, ou aucune. Chaque mesure consomme du capital auprès de ${N.president} et reste en vigueur les années suivantes.`:`Retenez-en autant que votre capital le permet, ou aucune.`}</p></div>`+
+   `${S.yi>0?'<details class="det"><summary>📗 Sans mesure nouvelle, résultat '+S.year+' à '+mE(projected().res)+' · rappel de la mécanique ▸</summary>':''}<div class="daf"><div class="h">📗 Sans mesure nouvelle</div><div class="big">Résultat ${S.year} ≈ <b style="color:${projected().res<0?'var(--rose)':'var(--green)'}">${Math.abs(projected().res)<1000?kE(Math.round(projected().res)):mE(projected().res)}</b>${SC.growth?` <span class="muted">· cap CA 2030 : ${(SC.caTarget/1000).toFixed(0)} M€</span>`:''}</div><div class="k3"><span>🚪 <b>${Math.round(SC.churn*100)} %</b> d'abandons</span><span>👥 salaires = <b>${Math.round((BASE.payrollOther+BASE.payrollCom)/SC.ca0*100)} %</b> du CA</span><span>${BASE.debt?`🏦 dette <b>${(BASE.debt/1000).toFixed(1).replace('.',',')} M€</b> à ${(S.rate*100).toFixed(1).replace('.',',')} %`:`🏦 découvert max <b>${mE(SC.bank)}</b>`}</span></div>${S.yi===0?`<details><summary>Pourquoi ces trois chiffres ▸</summary><ul><li><b>Les abandons.</b> ${Math.round(SC.churn*100)} % des ${SC.unit} ne vont pas au bout : chaque départ est un chiffre d'affaires perdu.</li><li><b>La masse salariale.</b> ${BASE.staff} salariés et ${((BASE.payrollOther+BASE.payrollCom)/1000).toFixed(1).replace('.',',')} M€ de salaires pour ${(SC.ca0/1000).toFixed(0)} M€ de chiffre d'affaires.</li><li><b>${BASE.debt?'La dette.':'La trésorerie.'}</b> ${BASE.debt?'Chaque euro de découvert coûte plus cher.':'Pas de dette, mais la banque coupe à '+mE(SC.bank)+' de découvert.'}</li></ul></details>`:''}</div>${S.yi>0?'</details>':''}
    ${S.yi===0?`<div class="hint">💡 À droite de chaque mesure : <b>effet estimé sur le résultat (k€/an)</b> et <b>coût en capital</b>. Touchez une mesure pour le détail.</div>`:''}
    <div class="capbar" id="capbar"></div>
    <div id="cat"></div><div class="hint" id="tally"></div>`;
@@ -1910,8 +1998,8 @@ function phMedias(){
 }
 
 function phEnveloppes(){
-  if(S.sub===0&&!S.tmp){ S.tmp={list:[pick(ENVELOPPES,'env'),pick(ENVELOPPES,'env')],spring:pickEvent(),springDone:false}; }
-  if(!S.tmp.springDone){ const ev=EVENTS[S.tmp.spring]; const fx=eventFx(ev); S.tmp.springFx=fx; sceneShell(`<div class="resbox ${isBadE(ev,fx)?'bad':''}"><b>${ev.ic} ${tx(ev.n)}</b>${tx(ev.t)}${fx.txt?`<div style="margin-top:4px">${fx.txt}</div>`:''}<div>${chips(fx)}</div></div>`,{title:'Imprévu de printemps',tag:'Les directeurs attendent à la porte. Mais d\'abord, une nouvelle.'}); evFX(ev,fx,()=>eventModal(ev,fx,'Imprévu de printemps',()=>{S.tmp.springDone=true;save();renderBudget();renderGame();}),'Imprévu de printemps'); return; }
+  if(S.sub===0&&!S.tmp){ S.tmp={list:[pick(ENVELOPPES,'env'),pick(ENVELOPPES,'env')],spring:pickEvent(EV_SIGN()),springDone:false}; }
+  if(!S.tmp.springDone){ const ev=EVENTS[S.tmp.spring]; const fx=S.tmp.springFx||mulFx(eventFx(ev),0.75); S.tmp.springFx=fx; /* imprévu moyen : ¾ de l'effet */ sceneShell(`<div class="resbox ${isBadE(ev,fx)?'bad':''}"><b>${ev.ic} ${tx(ev.n)}</b>${tx(ev.t)}${fx.txt?`<div style="margin-top:4px">${fx.txt}</div>`:''}<div>${chips(fx)}</div></div>`,{title:'Imprévu de printemps',tag:'Les directeurs attendent à la porte. Mais d\'abord, une nouvelle.'}); evFX(ev,fx,()=>eventModal(ev,fx,'Imprévu moyen · Avril',()=>{S.tmp.springDone=true;save();renderBudget();renderGame();}),'Imprévu moyen · Avril'); return; }
   const e=altOf('env',S.tmp.list[S.sub],ENVELOPPES[S.tmp.list[S.sub]]);
   sceneShell(dlg(e.ic,e.who,e.role,e.ask)+`<div class="prompt">Arbitrage ${S.sub+1}/2 :</div><div id="c"></div>`,{title:'La guerre des enveloppes',tag:'Chaque directeur défend son budget avec conviction, et ira plaider sa cause chez '+N.president+' si vous dites non.',onNext:()=>{S.sub++; if(S.sub>=2) nextPhase(); else {S.decided=false;renderGame();}}});
   choices($('#c'),e.c.map(([l,fx,out])=>[l,fx,out]),null,e.who);
@@ -2005,15 +2093,17 @@ function phVote(){
 }
 
 function eventFx(e){ let fx=scf(typeof e.fx==='function'?e.fx(S):e.fx); const m=SC&&SC.evMult; if(m&&fx){ fx={...fx}; for(const k of ['rev','cost','once','revY','cashBack']) if(fx[k]) fx[k]=Math.round(fx[k]*m); if(fx.stuY) fx.stuY=1+(fx.stuY-1)*m; } return fx; } // évMult : scénario à forte volatilité (imprévus amplifiés)
-function halfFx(fx){ const o={...fx}; for(const k of ['rev','cost','mk','once','revY']) if(o[k]) o[k]=Math.round(o[k]/2); if(o.g){o.g={}; for(const k in fx.g) o.g[k]=Math.round(fx.g[k]/2);} if(o.stuY) o.stuY=1-(1-o.stuY)/2; if(o.stu) o.stu=1-(1-o.stu)/2; if(o.churn) o.churn=o.churn/2; if(o.price) o.price=o.price/2; if(o.media){o.media={}; for(const k in fx.media) o.media[k]=1+(fx.media[k]-1)/2;} if(o.cashBack) o.cashBack=Math.round(o.cashBack/2); if(o.rate) o.rate=o.rate/2; if(o.cap) o.cap=Math.round(o.cap/2); delete o.flag; return o; }
-function minorEvent(){ // un petit imprévu négatif de plus, à un moment aléatoire de l'année
+function mulFx(fx,f){ const o={...fx}; for(const k of ['rev','cost','mk','once','revY','cashBack']) if(o[k]) o[k]=Math.round(o[k]*f); if(o.g){o.g={}; for(const k in fx.g) o.g[k]=Math.round(fx.g[k]*f);} if(o.stuY) o.stuY=1-(1-o.stuY)*f; if(o.stu) o.stu=1-(1-o.stu)*f; if(o.churn) o.churn=o.churn*f; if(o.price) o.price=o.price*f; if(o.media){o.media={}; for(const k in fx.media) o.media[k]=1+(fx.media[k]-1)*f;} if(o.rate) o.rate=o.rate*f; if(o.cap) o.cap=Math.round(o.cap*f); if(o.students) o.students=Math.round(o.students*f); if(f<1) delete o.flag; return o; }
+function halfFx(fx){ return mulFx(fx,0.5); }
+const EV_SIGN=()=>Math.random()<0.5?'pos':'neg'; // imprévus : positif ou négatif, une fois sur deux
+function minorEvent(){ // l'imprévu faible de l'année (demi-effet), à un moment aléatoire, positif ou négatif
   if(S.minor&&S.minor.y===S.year) return S.minor;
   const phases=[1,2,4,5]; S.minor={y:S.year,at:phases[Math.floor(Math.random()*phases.length)],done:false}; return S.minor;
 }
 function maybeMinor(){
   const m=minorEvent(); if(m.done||m.at!==S.phase||document.getElementById('modal').innerHTML) return false;
-  if(m.ev===undefined) m.ev=pickEvent('neg'); const e=EVENTS[m.ev]; const fx=halfFx(eventFx(e));
-  m.done=true; save(); evFX(e,fx,()=>eventModal(e,fx,'Petit imprévu · '+EPISODES[S.phase][0],()=>{save();renderBudget();renderGauges();}),'Petit imprévu · '+EPISODES[S.phase][0]); return true;
+  if(m.ev===undefined) m.ev=pickEvent(EV_SIGN()); const e=EVENTS[m.ev]; const fx=halfFx(eventFx(e)); const lab='Imprévu faible · '+EPISODES[S.phase][0];
+  m.done=true; save(); evFX(e,fx,()=>eventModal(e,fx,lab,()=>{save();renderBudget();renderGauges();}),lab); return true;
 }
 function isBadE(e,fx){ return e&&e.pos?false:isBad(fx); } // un imprévu annoncé positif reste vert même s'il coûte un peu
 function isBad(fx){ return (fx.g&&Object.values(fx.g).some(v=>v<0))||(fx.once&&fx.once<0)||(fx.stuY&&fx.stuY<1)||fx.rate>0||fx.revY<0||fx.cost>0||(fx.media&&Object.values(fx.media).some(v=>v>1)); }
@@ -2110,13 +2200,35 @@ function eventModal(e,fx,label,cb){
   document.getElementById('ack').onclick=()=>{closeModal();(S.log=S.log||[]).push({y:S.year,kind:'imprévu',n:tx(e.n),eff:Math.round((fx.revY||0)+(fx.once||0)-(fx.cost||0)),cap:(fx.g&&fx.g.ca)||0,heart:fx.g?Object.values(fx.g).reduce((a,b)=>a+b,0):0,bad:isBadE(e,fx)});apply(fx,e.n);cb();};
 }
 function phEvent(silent){
-  if(S.tmp===null){ const a=pickEvent('neg'), b=pickEvent('pos'); S.tmp={list:Math.random()<0.5?[a,b]:[b,a],fx:[null,null],done:0}; }
-  const T=S.tmp; const i=Math.min(T.done,1); const e=EVENTS[T.list[i]];
-  if(!T.fx[i]) T.fx[i]=eventFx(e);
-  const boxes=T.list.map((ei,k)=>{const ev=EVENTS[ei]; const fx=T.fx[k]; if(!fx) return ''; return `<div class="resbox ${isBadE(ev,fx)?'bad':''}"><b>${ev.ic} ${tx(ev.n)}</b>${tx(ev.t)}${fx.txt?`<div style="margin-top:4px">${fx.txt}</div>`:''}<div>${chips(fx)}</div></div>`;}).join('');
-  sceneShell(`<p class="muted">Deux imprévus cette rentrée, ${T.done}/2 pris en compte.</p><div class="opts">${boxes}</div>`,{title:'Les imprévus',tag:'Il y a toujours des imprévus. Ceux de la rentrée tombent en septembre.',ready:T.done>=2});
-  if(T.done<2&&!silent){ evFX(e,T.fx[i],()=>eventModal(e,T.fx[i],'Imprévu de la rentrée · '+(T.done+1)+'/2',()=>{T.done++;save();renderBudget();renderGauges();if(T.done>=2) S.decided=true; phEvent();})); }
+  if(S.tmp===null){ S.tmp={list:[pickEvent(EV_SIGN())],fx:[null],done:0}; }
+  const T=S.tmp; const e=EVENTS[T.list[0]];
+  if(!T.fx[0]) T.fx[0]=eventFx(e); // imprévu fort : effet plein
+  const fx0=T.fx[0];
+  const box=T.done?`<div class="resbox ${isBadE(e,fx0)?'bad':''}"><b>${e.ic} ${tx(e.n)}</b>${tx(e.t)}${fx0.txt?`<div style="margin-top:4px">${fx0.txt}</div>`:''}<div>${chips(fx0)}</div></div>`:'';
+  sceneShell(`<p class="muted">L'imprévu fort de l'année tombe à la rentrée.</p><div class="opts">${box}</div>`,{title:'L\'imprévu de la rentrée',tag:'Il y a toujours des imprévus. Le plus lourd tombe en septembre.',ready:T.done>=1});
+  if(T.done<1&&!silent){ evFX(e,fx0,()=>eventModal(e,fx0,'Imprévu fort · Rentrée',()=>{T.done=1;save();renderBudget();renderGauges();S.decided=true; phEvent();}),'Imprévu fort · Rentrée'); }
 }
+function waterfallHtml(y){ // d'où vient le résultat : résultat de l'an dernier → leviers → résultat de l'année
+  const prevY=S.history.length>1?S.history[S.history.length-2]:null;
+  const P=prevY||{tuition:BASE.students*BASE.price/1000,revEff:0,revY:0,payroll:BASE.payrollOther+BASE.payrollCom,mediaK:BASE.marketing,measures:0,scaleCost:0,interest:(BASE.debt||0)*BASE.rate,platform:BASE.platform,other:BASE.other,norgeat:0};
+  const r0=prevY?prevY.res:Math.round(SC.ca0*SC.start/100);
+  const items=[
+    ['🎓 Ventes de formations ('+fmt(y.students)+' '+SC.unit+')',y.tuition-P.tuition],
+    ['➕ Autres recettes',(y.revEff+(y.revY||0))-((P.revEff||0)+(P.revY||0))],
+    ['📣 Budget '+SC.mediaWord,-(y.mediaK-P.mediaK)],
+    ['📋 Mesures et décisions',-(y.measures-(P.measures||0))],
+    ['👥 Coût de la croissance',-(y.scaleCost-(P.scaleCost||0))],
+    ['🏦 Intérêts',-(y.interest-(P.interest||0))],
+    ['🧮 Effet Norgeat',(y.norgeat||0)-(P.norgeat||0)],
+  ];
+  const known=items.reduce((a,b)=>a+b[1],0), other=Math.round(y.res-r0-known);
+  if(Math.abs(other)>=Math.max(1,SC.ca0*0.002)) items.push(['⚙️ Autres charges',other]);
+  const thr=Math.max(1,SC.ca0*0.002); const list=items.filter(x=>Math.abs(x[1])>=thr).sort((a,b)=>Math.abs(b[1])-Math.abs(a[1]));
+  let cum=r0; const steps=[[`Résultat ${S.year-1}`,r0,0,r0,true]]; list.forEach(([l,d])=>{ steps.push([l,d,cum,cum+d,false]); cum+=d; }); steps.push([`Résultat ${S.year}`,y.res,0,y.res,true]);
+  const lo=Math.min(0,...steps.map(x=>Math.min(x[2],x[3]))), hi=Math.max(0,...steps.map(x=>Math.max(x[2],x[3]))), span=(hi-lo)||1, X=v=>(v-lo)/span*100;
+  const big=list[0], why=big?(big[1]<0?`Ce qui a le plus pesé : <b>${big[0].replace(/^\S+ /,'')}</b> (${kE(Math.round(big[1]))}).`:`Le premier moteur : <b>${big[0].replace(/^\S+ /,'')}</b> (${kE(Math.round(big[1]))}).`):'';
+  return `<div class="wf" role="figure" aria-label="Décomposition du résultat ${S.year}"><div class="h">🔍 D'où vient le résultat ${S.year} ?</div>${steps.map(([l,v,a,b,tot])=>{ const x1=X(Math.min(a,b)), w=Math.max(0.8,Math.abs(X(b)-X(a))); const col=tot?'#7fa3e6':v>=0?'var(--green)':'var(--rose)';
+    return `<div class="r${tot?' tot':''}"><span class="l">${l}</span><span class="tr"><span class="z" style="left:${X(0)}%"></span><i style="left:${x1}%;width:${w}%;background:${col}"></i></span><span class="v" style="color:${tot?'var(--fg)':col}">${tot?mE(v):kE(Math.round(v))}</span></div>`; }).join('')}<p class="hint" style="margin:8px 0 0">${why}</p></div>`; }
 function phResultats(){
   if(!S.decided){ S.tmp={y:simulate()}; badgeSeason(S.tmp.y); if(S.tmp.y.norgeat){(S.log=S.log||[]).push({y:S.year,kind:'imprévu',n:'Effet Norgeat : '+(S.tmp.y.norgeat<0?'dotation ':'reprise de provision ')+kE(S.tmp.y.norgeat),eff:S.tmp.y.norgeat,cap:0,heart:0,bad:S.tmp.y.norgeat<0});} S.decided=true; save(); renderGauges(); renderBudget(); postScore('saison',{}); }
   const y=S.tmp.y; const ins=y.ins;
@@ -2131,7 +2243,7 @@ function phResultats(){
   const capHtml=y.refused?`<div class="resbox bad"><b>🚪 Capacité d'accueil atteinte</b>${fmt(y.refused)} ${SC.unit} inscrits n'ont pas pu être accueillis : les équipes pédagogiques ne peuvent pas absorber plus de ${Math.round(SC.maxGrow*100)} % d'${SC.unit} en plus par an. Le budget médias qui les a attirés est perdu.</div>`:'';
   const norgHtml=y.norgeat?`<div class="resbox" style="background:#2a2410;border-color:var(--gold-dark)"><b>🧮 L'effet Norgeat : ${kE(y.norgeat)} sur le résultat</b>${y.norgeat<0?`« Ah, j'oubliais. Il a fallu passer une petite provision de ${fmt(-y.norgeat)} k€ hier soir, juste avant la clôture. Bah, je t'avais dit de ne pas trop t'habituer aux bonnes choses. » <span class="muted">Écriture comptable : le résultat baisse un peu, la trésorerie ne bouge pas.</span>`:`« Ah, j'oubliais. Une provision de ${fmt(y.norgeat)} k€ que j'avais passée il y a quelque temps n'avait plus lieu d'être. Je l'ai reprise hier soir, juste avant la clôture. ${y.norgeat/y.revenue>0.02?'Oui, c\'est beaucoup. Mais si tu te souviens…':'Trois fois rien, mais c\'est toujours ça.'} » <span class="muted">Écriture comptable : le résultat s'améliore, la trésorerie ne bouge pas.</span>`}</div>`:'';
   sceneShell(dlg(DAF,N.daf,N.dafRole+' · présente les comptes',`« Résultat net ${S.year} : <b style="color:${y.pct<0?'var(--rose)':'var(--green)'}">${mE(y.res)}</b>. ${y.res>=SC.resTarget?'Objectif de résultat atteint cette année.':y.pct>=0?(y.pct<3?'L\'école est à l\'équilibre. Reste à construire la marge.':'L\'école est rentable ; l\'objectif n\'est pas encore atteint.'):(S.yi===0&&SC.start>=0?'L\'école est passée dans le rouge.':'Encore une année en perte.')} ${N.president} ${y.dca>=0?'vous accorde '+y.dca+' points de capital, avec un mot de félicitations.':'vous retire '+(-y.dca)+' points de capital, sans plaisir, mais sans détour.'} »`)+
-   revealHtml+capHtml+norgHtml+`<details class="det"><summary>📊 Voir le détail des comptes et de la trésorerie</summary><div class="tw"><table><tr><th>Canal</th><th>Budget</th><th>${SC.leadWord}</th><th>Inscriptions</th><th>Coût / inscrit</th></tr>${Object.keys(MEDIA).map(k=>`<tr><td>${MEDIA[k].ic} ${MEDIA[k].n}</td><td class="num">${fmt(y.media[k])} k€</td><td class="num">${fmt(ins.channels[k].leads)}</td><td class="num">${fmt(ins.channels[k].ins)}</td><td class="num">${ins.channels[k].cpi?fmt(ins.channels[k].cpi)+' €':'–'}</td></tr>`).join('')}<tr><td>🌱 Bouche-à-oreille et alumni</td><td class="num">–</td><td class="num">–</td><td class="num">${fmt(ins.organic)}</td><td class="num">0 €</td></tr></table></div>
+   revealHtml+capHtml+norgHtml+waterfallHtml(y)+`<details class="det"><summary>📊 Voir le détail des comptes et de la trésorerie</summary><div class="tw"><table><tr><th>Canal</th><th>Budget</th><th>${SC.leadWord}</th><th>Inscriptions</th><th>Coût / inscrit</th></tr>${Object.keys(MEDIA).map(k=>`<tr><td>${MEDIA[k].ic} ${MEDIA[k].n}</td><td class="num">${fmt(y.media[k])} k€</td><td class="num">${fmt(ins.channels[k].leads)}</td><td class="num">${fmt(ins.channels[k].ins)}</td><td class="num">${ins.channels[k].cpi?fmt(ins.channels[k].cpi)+' €':'–'}</td></tr>`).join('')}<tr><td>🌱 Bouche-à-oreille et alumni</td><td class="num">–</td><td class="num">–</td><td class="num">${fmt(ins.organic)}</td><td class="num">0 €</td></tr></table></div>
    <div class="tw"><table>
    <tr><td><b>Nouveaux inscrits</b></td><td class="num"><b>${fmt(y.newS)}</b></td></tr><tr><td>Abandons et sorties (${Math.round(y.churn*100)} %)</td><td class="num">−${fmt(y.left)}</td></tr>${y.refused?`<tr><td style="color:var(--rose)">🚪 Refusés faute de capacité d'accueil</td><td class="num" style="color:var(--rose)">−${fmt(y.refused)}</td></tr>`:''}<tr><td><b>${GN.etu} au 31 décembre</b></td><td class="num"><b>${fmt(y.students)}</b></td></tr>
    <tr><td>Chiffre d'affaires</td><td class="num">${fmt(y.revenue)} k€</td></tr><tr><td>Charges (dont ${SC.mediaWord} ${fmt(mkTotal())} k€ et intérêts ${fmt(y.interest)} k€)</td><td class="num">−${fmt(y.costs)} k€</td></tr><tr><td><b>Résultat net</b></td><td class="num"><b style="color:${y.res<0?'var(--rose)':'var(--green)'}">${kE(y.res)}</b></td></tr>
@@ -2185,9 +2297,9 @@ function phShow(){
 // ── Bouquet final : une animation tirée au sort par choix (sans répétition tant que les 3 n'ont pas été vues)
 function pickFX(kind,n){ S.fxSeen=S.fxSeen||{}; let used=S.fxSeen[kind]||[]; if(used.length>=n) used=[]; const pool=[...Array(n).keys()].filter(i=>!used.includes(i)); const i=pool[Math.floor(Math.random()*pool.length)]; S.fxSeen[kind]=[...used,i]; return i; }
 let SFX_HOLD=0;
-function sfxBox(cls,html,dur,onStart,onEnd){ dur+=SFX_HOLD; const d=document.createElement('div'); d.className='sfx '+(cls||''); d.innerHTML=html+'<div class="skip">toucher pour passer</div>'; document.body.appendChild(d); let done=false;
+function sfxBox(cls,html,dur,onStart,onEnd){ dur+=SFX_HOLD; const d=document.createElement('div'); d.className='sfx '+(cls||''); d.setAttribute('role','dialog'); d.setAttribute('aria-modal','true'); d.setAttribute('aria-label','Animation : appuyez sur Échap ou touchez pour passer'); d.tabIndex=-1; d.innerHTML=html+'<div class="skip">toucher pour passer</div>'; document.body.appendChild(d); let done=false;
   const end=()=>{ if(done) return; done=true; d.classList.add('out'); setTimeout(()=>d.remove(),500); if(onEnd) onEnd(); };
-  d.addEventListener('click',end); setTimeout(end,RM()?600:dur); if(onStart) onStart(d,end); return d; }
+  d.addEventListener('click',end); d.addEventListener('keydown',ev=>{ if(ev.key==='Escape'||ev.key==='Enter'||ev.key===' ') { ev.preventDefault(); end(); } }); setTimeout(()=>{ try{d.focus();}catch(e){} },20); setTimeout(end,RM()?600:dur); if(onStart) onStart(d,end); return d; }
 function evFX(e,fx,cb,label){ SFX_HOLD=MOB()?2400:0; try{ return evFX2(e,fx,cb,label); } finally { SFX_HOLD=0; } }
 function showFX(kind,ctx,cb){
   if(RM()) return cb();
@@ -2335,6 +2447,7 @@ function start(data){
 }
 try{ window.claude?.hot?.snapshot?.(()=>({S})); }catch(e){}
 window.claude?.hot?.ready ? window.claude.hot.ready(start) : start(window.claude?.hot?.data ?? {});
+try{applyZoom();}catch(e){}
 </script>
 
 </body>
