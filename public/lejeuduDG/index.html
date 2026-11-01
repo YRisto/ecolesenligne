@@ -2178,10 +2178,24 @@ function showFX(kind,ctx,cb){
           const re=d.querySelector('#sfxRe'); ['👀 vu','😶','ok.','c\'est tout ?','#show-annulé 🔒'].forEach((t,q)=>setTimeout(()=>{ if(!re||!d.isConnected) return; const sp=document.createElement('span'); sp.textContent=t; re.appendChild(sp); },900+q*550)); },300); },1200); };
       const tick=()=>{ if(!d.isConnected) return; k+=2; el.textContent=body.slice(0,k); if(k<body.length) setTimeout(tick,20); else setTimeout(press,400); }; setTimeout(tick,300); },cb); }
 }
+function bilanVerdict(){ // verdict de Bernard selon la trajectoire vers l'objectif, pas seulement le capital
+  const lr=S.lastResult, r0=SC.ca0*SC.start/100, span=SC.resTarget-r0;
+  const prog=span>0?(lr.res-r0)/span:1, exp=(S.yi+1)/YEARS.length, P=x=>Math.round(clamp(x,0,1.5)*100);
+  const caLate=SC.growth&&lr.rev<SC.ca0+(SC.caTarget-SC.ca0)*exp*0.8;
+  let ic,col,msg;
+  if(lr.res>=SC.resTarget){ ic='🏆';col='var(--green)';msg=`${N.president} vous félicite : l'objectif de résultat est déjà atteint. « Maintenant, il faut le tenir jusqu'en 2030. »`; }
+  else if(prog>=exp+0.08){ ic='🚀';col='var(--green)';msg=`${N.president} est ravi : vous êtes en avance sur la trajectoire. « Continuez comme ça, le conseil commence à vous citer en exemple. »`; }
+  else if(prog>=exp-0.06){ ic='✅';col='var(--green)';msg=`${N.president} est confiant : vous êtes dans les temps. « Pas de relâchement, mais on est sur la bonne route. »`; }
+  else if(prog>0){ ic=S.g.ca<30?'⏳':'⚠️';col='var(--gold)';msg=S.g.ca<30?`Le conseil s'impatiente : l'école progresse, mais trop lentement, et votre capital est bas. ${N.president} vous défend encore. C'est un sursis.`:`${N.president} est inquiet : ça progresse, mais en retard sur la trajectoire. « Il va falloir accélérer l'an prochain. »`; }
+  else { ic='🔥';col='var(--rose)';msg=S.g.ca<30?`L'école recule et le conseil gronde. ${N.president} obtient pour vous un dernier sursis, sans garantie pour la suite.`:`L'école a reculé par rapport à 2025. ${N.president} reste à vos côtés, mais le conseil attend un vrai redressement.`; }
+  if(caLate&&lr.res<SC.resTarget) msg+=(prog>=exp-0.06?' Mais attention : le chiffre d\'affaires est en retard':' Et le chiffre d\'affaires est lui aussi en retard')+` sur l'objectif de ${(SC.caTarget/1000).toFixed(0)} M€.`;
+  return `<div class="note" style="margin-top:18px;border-color:${col}"><div class="h" style="color:${col}">${ic} Le verdict de ${N.president}</div><p style="margin:4px 0 10px">${msg}</p>
+    <div style="font-size:12px;color:var(--muted);display:flex;justify-content:space-between;gap:4px 12px;flex-wrap:wrap"><span>Chemin parcouru vers ${tgt()} : <b style="color:${col}">${P(prog)} %</b></span><span>attendu fin ${S.year} : ${P(exp)} %</span></div>
+    <div style="position:relative;height:8px;border-radius:4px;background:#1b2340;margin-top:5px"><i style="position:absolute;left:0;top:0;bottom:0;width:${clamp(prog,0,1)*100}%;background:${col};border-radius:4px"></i><i style="position:absolute;top:-4px;bottom:-4px;left:${exp*100}%;width:2px;background:#eef2fb"></i></div></div>`; }
 function phBilan(){
   const over=checkOver(); if(over){S.over={lost:true,why:over};return render();}
   if(S.yi>=YEARS.length-1){S.over={lost:false};return render();}
-  sceneShell(histHtml()+`<p class="muted" style="margin-top:22px">${S.lastResult.res>=SC.resTarget?N.president+' vous félicite : l\'objectif de résultat est atteint. Il faudra confirmer.':S.g.ca<30?N.president+' vous accorde un sursis ; il y croit encore.':S.lastResult.pct>=0?'Le conseil salue une école rentable et attend la suite.':'Le conseil attend la suite.'} Il reste ${YEARS.length-1-S.yi} exercice${YEARS.length-1-S.yi>1?'s':''} avant la fin de 2030.</p>`,{title:'Fin de saison '+(S.yi+1),tag:'Précédemment dans Le Jeu du DG…',ready:true,onNext:()=>{S.yi++;S.year=YEARS[S.yi];S.phase=0;S.sub=0;S.tmp=null;S.decided=false;S.screen='title';render();}});
+  sceneShell(histHtml()+bilanVerdict()+`<p class="muted" style="margin-top:10px">Il reste ${YEARS.length-1-S.yi} exercice${YEARS.length-1-S.yi>1?'s':''} avant la fin de 2030.</p>`,{title:'Fin de saison '+(S.yi+1),tag:'Précédemment dans Le Jeu du DG…',ready:true,onNext:()=>{S.yi++;S.year=YEARS[S.yi];S.phase=0;S.sub=0;S.tmp=null;S.decided=false;S.screen='title';render();}});
   $('#nextBtn').innerHTML='▶ Saison '+(S.yi+2)+' · Exercice '+(S.year+1);
 }
 function histHtml(){
