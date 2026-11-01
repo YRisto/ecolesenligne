@@ -1760,7 +1760,7 @@ function renderIntro(){
   { const box=$('#mysaves'); const list=SCENARIOS.map((c,i)=>({c,i,o:readSave(c.id)})).filter(x=>x.o);
     if(box&&list.length){ box.innerHTML=`<div class="note" style="border-color:var(--green);text-align:left"><div class="h" style="color:#9df0b8">💾 Mes parties sauvegardées</div><div id="svl" style="display:grid;gap:8px;margin-top:6px"></div></div>`;
       const svl=box.querySelector('#svl');
-      list.forEach(({c,i,o})=>{ const inf=saveInfo(o); const b=btn(`<span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:${SCCOL[c.id]};margin-right:8px"></span>${inf.done?'🏁 Revoir':'▶ Reprendre'} · ${c.ic} ${c.name}${c.weekly?' ⚡':''}<small style="display:block;color:var(--muted);font-weight:500;margin-top:2px">${inf.txt.replace(/^💾 |^🏁 /,'')}${o.name?' · '+String(o.name).replace(/[<>&]/g,''):''}</small>`,e=>{ flood(SCCOL[c.id],e,()=>resume(o),c); },'opt'); b.style.borderLeft='5px solid '+SCCOL[c.id]; svl.appendChild(b); }); } }
+      list.forEach(({c,i,o})=>{ const inf=saveInfo(o); const b=btn(`<span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:${SCCOL[c.id]};margin-right:8px"></span>${inf.done?'🏁 Revoir':'▶ Reprendre'} · ${c.ic} ${c.name}${c.weekly?' ⚡':''}<small style="display:block;color:var(--muted);font-weight:500;margin-top:2px">${inf.txt.replace(/^💾 |^🏁 /,'')}${o.name?' · '+String(o.name).replace(/[<>&]/g,''):''}</small>`,e=>{ flood(SCCOL[c.id],e,()=>resume(o),c); },'opt'); b.style.borderLeft='5px solid '+SCCOL[c.id]; svl.appendChild(b); }); const hero=document.querySelector('.panel .hero'); if(hero) hero.after(box); box.style.margin='4px 0 6px'; } }
   $('#b').appendChild(btn('▶ Je prends le poste',()=>{S.screen='scenario';render();},'mbtn cta'));
   $('#b').appendChild(btn('🏆 Hall of Fame',()=>{S.hofBack='intro';S.screen='hof';render();},'sbtn'));
   $('#b').appendChild(btn('🏅 Trophées ('+BADGES.filter(b=>badges()[b.id]).length+'/'+BADGES.length+')',()=>{S.hofBack='intro';S.screen='badges';render();},'sbtn'));
@@ -1906,7 +1906,7 @@ function renderGame(){
   const g=gaugeHtml();
   app().innerHTML=`<div class="game">
     <div class="top"><div class="brand"><div class="logo">${LOGO}</div><div><div class="t">LE JEU DU DG</div><div class="s">${N.ecole} · Saison ${S.yi+1} · Exercice ${S.year}</div></div><span class="pill ${g.conj[0]}" id="conj" style="margin-left:8px">${g.conj[1]}</span></div>
-      <div class="icons"><button title="Recommencer" aria-label="Recommencer la partie" id="reset">↺</button><button title="Agrandir le texte" aria-label="Agrandir le texte" id="zoomBtn" aria-pressed="${ZOOM()?'true':'false'}">A+</button><button title="Changer d'école (la partie est sauvegardée)" aria-label="Changer d'école, la partie est sauvegardée" id="schoolBtn">🏫</button><button title="Sauvegarder la partie" aria-label="Sauvegarder la partie" id="saveBtn">💾</button></div></div>
+      <div class="icons"><button title="Accueil (la partie est sauvegardée)" aria-label="Retour à l'accueil, la partie est sauvegardée" id="homeBtn">🏠</button><button title="Recommencer" aria-label="Recommencer la partie" id="reset">↺</button><button title="Agrandir le texte" aria-label="Agrandir le texte" id="zoomBtn" aria-pressed="${ZOOM()?'true':'false'}">A+</button><button title="Changer d'école (la partie est sauvegardée)" aria-label="Changer d'école, la partie est sauvegardée" id="schoolBtn">🏫</button><button title="Sauvegarder la partie" aria-label="Sauvegarder la partie" id="saveBtn">💾</button></div></div>
     <div class="episodes">${EPISODES.map((e,i)=>`<div class="ep ${i===S.phase?'on':(i<S.phase?'done':'')}"><span class="st">${i<S.phase?'✓':i===S.phase?'▶':'🔒'}</span><span class="ic">${e[2]}</span><span class="m">E${i+1} · ${e[0]}</span><span class="n">${e[1]}</span></div>`).join('')}</div><div class="yearbar"><span>${EPISODES[S.phase][2]} Épisode <b>${S.phase+1}</b>/${EPISODES.length}</span><span class="yb"><i style="width:${((S.phase+1)/EPISODES.length*100).toFixed(1)}%"></i></span><span>${S.year}</span></div>
     <div class="gauges" id="gauges">${g.html}</div>
     <div class="scene" id="scene"></div>
@@ -1917,6 +1917,7 @@ function renderGame(){
   animateGauges();
   $('#schoolBtn').addEventListener('click',()=>{ saveToast(); S.screen='scenario'; render(); });
   $('#saveBtn').addEventListener('click',saveToast);
+  $('#homeBtn').addEventListener('click',()=>{ saveToast(); newGame(0); S.screen='intro'; render(); });
   $('#reset').addEventListener('click',()=>modal(`<h3>Recommencer la série ?</h3><p class="mt">La partie en cours dans cette école sera perdue. Vos parties dans les autres écoles sont conservées.</p><div class="mf"><button class="lnk" id="mc">Annuler</button><button class="rbtn" id="mo">Recommencer</button></div>`,'gold'));
   document.getElementById('modal').onclick=(e=>{ if(e.target.id==='mc') closeModal(); if(e.target.id==='mo'){closeModal(); try{localStorage.removeItem(SAVE_KEY(SCENARIOS[S.sc].id));}catch(_){} newGame(S.sc);S.screen='intro';render();} });
   renderBudget();
@@ -2534,7 +2535,7 @@ function bilanHtml(){
 // ── Sauvegarde visible ──
 function saveToast(){ try{ save(); }catch(e){} document.querySelectorAll('.savetoast').forEach(x=>x.remove()); const ep=EPISODES[S.phase||0];
   const t=document.createElement('div'); t.className='savetoast'; t.setAttribute('role','status');
-  t.innerHTML=`✅ <b>Partie sauvegardée</b> · ${SC.ic} ${N.ecole} · Saison ${S.yi+1} · ${ep?ep[0]:''} ${S.year}<br><span style="color:var(--muted);font-size:12px">Vous la retrouverez dans le choix de l'école (🏫), même après avoir fermé le jeu.</span>`;
+  t.innerHTML=`✅ <b>Partie sauvegardée</b> · ${SC.ic} ${N.ecole} · Saison ${S.yi+1} · ${ep?ep[0]:''} ${S.year}<br><span style="color:var(--muted);font-size:12px">Vous la retrouverez sur l'accueil (🏠, « Mes parties sauvegardées »), même après avoir fermé le jeu.</span>`;
   document.body.appendChild(t); setTimeout(()=>{t.classList.add('out'); setTimeout(()=>t.remove(),450);},3200);
   const b=document.getElementById('saveBtn'); if(b){ b.classList.remove('ok'); void b.offsetWidth; b.classList.add('ok'); setTimeout(()=>b.classList.remove('ok'),2500); } }
 let SAVE_FLASH=0;
@@ -2636,7 +2637,7 @@ function start(data){
   else { try{ const old=localStorage.getItem('bde-save'); if(old){ const o=JSON.parse(old); if(o&&o.sc!==undefined&&SCENARIOS[o.sc]){ const id=SCENARIOS[o.sc].id; if(!localStorage.getItem(SAVE_KEY(id))) localStorage.setItem(SAVE_KEY(id),old); localStorage.setItem('bde-last',id); } localStorage.removeItem('bde-save'); }
     const last=localStorage.getItem('bde-last'); if(last) loaded=readSave(last); }catch(e){} }
   applyScenario(loaded&&loaded.sc!==undefined?loaded.sc:0);
-  if(loaded&&loaded.screen&&loaded.g&&loaded.used&&loaded.media&&loaded.sc!==undefined) S=loaded; else newGame(0);
+  if(data&&data.S&&loaded&&loaded.screen&&loaded.g&&loaded.used&&loaded.media&&loaded.sc!==undefined) S=loaded; else { newGame(0); S.screen='intro'; } /* au chargement : toujours l'accueil, avec la liste des parties sauvegardées */
   if(!S.pid){const t=S; newGame(); t.pid=S.pid; S=t;}
   if(S.screen==='title'||S.screen==='hof'||S.screen==='badges') S.screen=S.over?'final':'game';
   if(S.screen==='scenario'||S.screen==='profile') S.screen='intro';
