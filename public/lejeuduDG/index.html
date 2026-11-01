@@ -681,6 +681,18 @@ html[data-sc] .titlecard .big{color:var(--sc-hi);text-shadow:0 0 30px var(--sc)}
  .episodes{display:flex;overflow-x:auto;gap:6px;scrollbar-width:none} .episodes::-webkit-scrollbar{display:none} .ep{flex:0 0 auto;width:104px}.tiles,.profiles,.btiles,.media,.mtot{grid-template-columns:1fr}.panel{padding:18px}.scene{padding:14px}.ticker{margin-inline:-14px}.scene h2{font-size:20px}.toasts{left:auto;right:12px;width:200px;bottom:12px;gap:4px} .toast{padding:4px 10px;min-width:0} .toast b{font-size:13px} .toast small{font-size:10px}.mrow{grid-template-columns:auto 1fr auto}.mrow .cap{grid-column:2;text-align:left}
  .dlg{gap:2px 10px;align-items:center} .dlg .avatar{grid-row:1} .dlg .avatar.sm{width:44px;height:44px;font-size:20px} .dlg .who>small{margin-bottom:0} .dlg .body{grid-column:1/-1;margin-top:8px} .dlg .body .msg{max-width:100%}
  .speech{flex-direction:column;align-items:center;gap:8px} .speech .avatar{width:64px;height:64px}}
+
+/* Volets entre épisodes : fond à la couleur de l'école */
+.epcard{background:radial-gradient(ellipse 70% 55% at 50% 42%,color-mix(in srgb,var(--sc,#3352c0) 82%,#fff),var(--sc,#3352c0) 55%,color-mix(in srgb,var(--sc,#3352c0) 62%,#000));color:#fff}
+.epcard .kick,.epcard .num,.epcard p,.epcard h2 small{color:rgba(255,255,255,.88)}
+.epcard h2{color:#fff;text-shadow:0 2px 18px rgba(0,0,0,.25)}
+.epcard .track:before{background:rgba(255,255,255,.3)}
+.epcard .track .fill{background:#fff}
+.epcard .dot{color:rgba(255,255,255,.65)} .epcard .dot.done,.epcard .dot.on{color:#fff}
+.epcard .dot i{background:rgba(0,0,0,.22);border-color:rgba(255,255,255,.4);color:#fff}
+.epcard .dot.done i{background:#fff;border-color:#fff;color:var(--sc,#3352c0)}
+.epcard .dot.on i{background:#fff;border-color:#fff;color:var(--sc,#3352c0);box-shadow:0 0 0 6px rgba(255,255,255,.18),0 0 24px rgba(255,255,255,.6)}
+.epcard .skip{color:rgba(255,255,255,.7)}
 </style>
 
 </head>
