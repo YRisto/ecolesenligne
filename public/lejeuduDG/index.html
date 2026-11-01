@@ -2040,7 +2040,7 @@ function evTheme(e){ const n=tx(e.n)+' '+e.ic, pos=!!e.pos;
   if(/média|enquête|avis|polémique|presse|viral/i.test(n)) return 'news';
   if(/banque|taux|financeur|paie|OPCO|CPF|appel d'offres|impayés|Irias/i.test(n)) return 'money';
   return 'alert'; }
-function evFX(e,fx,cb,label){
+function evFX2(e,fx,cb,label){
   if(document.querySelector('.epcard:not(.out)')) return setTimeout(()=>evFX(e,fx,cb,label),400);
   if(RM()) return cb();
   const th=evTheme(e), name=tx(e.n), bad=isBadE(e,fx), esc=x=>String(x).replace(/[<>&]/g,'');
@@ -2183,9 +2183,11 @@ function phShow(){
 
 // ── Bouquet final : une animation tirée au sort par choix (sans répétition tant que les 3 n'ont pas été vues)
 function pickFX(kind,n){ S.fxSeen=S.fxSeen||{}; let used=S.fxSeen[kind]||[]; if(used.length>=n) used=[]; const pool=[...Array(n).keys()].filter(i=>!used.includes(i)); const i=pool[Math.floor(Math.random()*pool.length)]; S.fxSeen[kind]=[...used,i]; return i; }
-function sfxBox(cls,html,dur,onStart,onEnd){ const d=document.createElement('div'); d.className='sfx '+(cls||''); d.innerHTML=html+'<div class="skip">toucher pour passer</div>'; document.body.appendChild(d); let done=false;
+let SFX_HOLD=0;
+function sfxBox(cls,html,dur,onStart,onEnd){ dur+=SFX_HOLD; const d=document.createElement('div'); d.className='sfx '+(cls||''); d.innerHTML=html+'<div class="skip">toucher pour passer</div>'; document.body.appendChild(d); let done=false;
   const end=()=>{ if(done) return; done=true; d.classList.add('out'); setTimeout(()=>d.remove(),500); if(onEnd) onEnd(); };
   d.addEventListener('click',end); setTimeout(end,RM()?600:dur); if(onStart) onStart(d,end); return d; }
+function evFX(e,fx,cb,label){ SFX_HOLD=MOB()?1400:0; try{ return evFX2(e,fx,cb,label); } finally { SFX_HOLD=0; } }
 function showFX(kind,ctx,cb){
   if(RM()) return cb();
   const lr=ctx.lr, resS=mE(lr.res), caS=(lr.rev/1000).toFixed(1).replace('.',',')+' M€', esc=x=>String(x).replace(/[<>&]/g,''), R=(a,b)=>a+Math.random()*(b-a);
