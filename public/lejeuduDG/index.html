@@ -415,6 +415,18 @@ details.det[open]>summary{margin-bottom:10px} details.det{display:grid;gap:10px}
 .open .kicker{animation-delay:.9s} .open .sub{animation-delay:3.3s} .open .speech{animation-delay:3.6s} .open .tiles{animation-delay:3.9s} .open #b{animation-delay:4.2s} .open .played,.open .credit{animation-delay:4.5s}
 body.quake{animation:quake .4s linear}
 @media (prefers-reduced-motion:reduce){.sparks{display:none} .open *,.panel.open{animation:none!important;opacity:1!important}}
+
+@media (max-width:720px){
+ .gauges.boot .gauge{animation-duration:.9s} .gauges.boot .bar i{animation-duration:1.8s;animation-delay:.6s}
+ .gauges.boot .gauge:nth-child(2){animation-delay:.18s}.gauges.boot .gauge:nth-child(3){animation-delay:.36s}.gauges.boot .gauge:nth-child(4){animation-delay:.54s}.gauges.boot .gauge:nth-child(5){animation-delay:.72s}.gauges.boot .gauge:nth-child(6){animation-delay:.9s}.gauges.boot .gauge:nth-child(7){animation-delay:1.08s}.gauges.boot .gauge:nth-child(8){animation-delay:1.26s}
+ .fly{font-size:30px}
+ .flood{animation-duration:.9s}
+ .letter .sig{animation-duration:1.6s;animation-delay:.6s} .letter .stamp{animation-delay:2.4s}
+}
+.floodname{position:fixed;inset:0;z-index:71;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;color:#fff;font-family:var(--serif);font-weight:900;font-size:clamp(26px,7vw,48px);text-align:center;padding:16px;pointer-events:none;text-shadow:0 2px 20px rgba(0,0,0,.35);animation:fnin .5s ease-out both}
+.floodname .ic{font-size:1.6em} .floodname small{font-family:var(--sans);font-size:12px;letter-spacing:.3em;text-transform:uppercase;font-weight:700;opacity:.85}
+.floodname.out{transition:opacity .4s;opacity:0}
+@keyframes fnin{from{opacity:0;transform:scale(.85)}}
 /* Couleur propre à chaque scénario : bandeau DIRECT, cadres, onglet d'épisode, carte-titre, encadrés, halo du fond */
 html[data-sc=xyn]{--sc:#1f3a93;--sc-hi:#7b97f2;--sc-line:#3352c0;--sc-bg:#0f1a3d;--sc-glow:#152558}
 html[data-sc=linguia]{--sc:#8e1b2b;--sc-hi:#ec7584;--sc-line:#b02a3e;--sc-bg:#2a0f15;--sc-glow:#3d1019}
@@ -957,13 +969,14 @@ function apply(fx,label){
   if(fx.flag){S.flags[fx.flag]=true; S.flagYear=S.flagYear||{}; if(!S.flagYear[fx.flag]) S.flagYear[fx.flag]=S.year;} if(fx.mode) S.mode=fx.mode;
   renderGauges();
 }
+let FLYQ=0;
 function toast(v,name,label){
   if(!v) return;
   const k=Object.keys(GN).find(x=>GN[x]===name); const ic=k?GI[k]:'';
   label=tx(label); const t=document.createElement('div'); t.className='toast'+(v<0?' neg':'');
   t.innerHTML=`<b>${v>0?'+':'−'}${Math.abs(v)} ${ic} ${name}</b><small>${label||''}</small>`;
   const box=document.getElementById('toasts'); while(box.children.length>=4) box.firstChild.remove(); box.appendChild(t); setTimeout(()=>t.remove(),3300);
-  if(k) setTimeout(()=>flyTo(k,ic,v),30);
+  if(k){ const now=Date.now(), wait=Math.max(0,FLYQ-now); FLYQ=now+wait+(MOB()?700:120); setTimeout(()=>flyTo(k,ic,v),30+wait); }
 }
 function chips(fx){
   if(!fx) return '';
@@ -1307,7 +1320,7 @@ function renderScenario(){
     <div style="display:flex;justify-content:center" id="b"></div></div></div>`;
   const box=$('#sc'); let sel=S.sc;
   const draw=()=>{box.innerHTML=''; SCENARIOS.forEach((c,i)=>{const b=btn(`${c.ic} ${c.name}${i===0?'<span class="badge">Recommandé</span>':''}<small><b style="color:var(--fg)">${c.tag}</b></small><small>${c.desc}</small>`,()=>{sel=i;draw();},'opt'+(sel===i?' sel':'')); b.style.borderLeft='5px solid '+SCCOL[c.id]; box.appendChild(b);});
-    $('#b').innerHTML=''; $('#b').appendChild(btn('Confirmer : '+SCENARIOS[sel].name+' →',e=>{flood(SCCOL[SCENARIOS[sel].id],e,()=>{newGame(sel);S.screen='profile';render();});}));};
+    $('#b').innerHTML=''; $('#b').appendChild(btn('Confirmer : '+SCENARIOS[sel].name+' →',e=>{flood(SCCOL[SCENARIOS[sel].id],e,()=>{newGame(sel);S.screen='profile';render();},SCENARIOS[sel]);}));};
   draw();
 }
 function renderProfile(){
@@ -1379,20 +1392,29 @@ function runReveal2(y){
   if(y.res>=SC.resTarget&&!S.tmp.conf){ S.tmp.conf=true; setTimeout(confetti,rm?0:2500); }
 }
 const RM=()=>matchMedia('(prefers-reduced-motion: reduce)').matches;
+const MOB=()=>matchMedia('(max-width:720px)').matches;
+function showGauge(g,cb){ // sur mobile, fait défiler la bande de jauges jusqu'à la jauge visée avant d'animer
+  const strip=g&&g.parentElement; if(!strip||strip.scrollWidth<=strip.clientWidth+2) return cb(0);
+  const sr=strip.getBoundingClientRect(), r=g.getBoundingClientRect(); if(r.left>=sr.left-2&&r.right<=sr.right+2) return cb(0);
+  strip.scrollTo({left:strip.scrollLeft+(r.left-sr.left)-(sr.width-r.width)/2,behavior:RM()?'auto':'smooth'}); setTimeout(()=>cb(1),420);
+  clearTimeout(showGauge.t); showGauge.t=setTimeout(()=>{ const st=document.getElementById('gauges'); if(st) st.scrollTo({left:0,behavior:'smooth'}); },2600); }
 function mandate(cb){ const d=document.createElement('div'); d.className='mandate';
   d.innerHTML=`<div class="letter"><div class="lh">${SC.ic} ${N.ecole} · Conseil d'administration</div><h3>Lettre de mission</h3><p>Le conseil d'administration confie à</p><div class="sig">${String(S.name||'').replace(/[<>&]/g,'')}</div><p>la direction générale de ${N.ecole}, de 2026 à 2030.</p><p class="pres">${N.president}, président</p><div class="stamp">MANDAT<br>ACCORDÉ</div></div>`;
   document.body.appendChild(d); let done=false; const end=()=>{ if(done) return; done=true; d.classList.add('out'); setTimeout(()=>d.remove(),400); cb(); };
-  d.addEventListener('click',end); setTimeout(end,RM()?900:2700); }
-function flood(col,e,cb){ if(RM()) return cb(); const d=document.createElement('div'); d.className='flood'; d.style.left=((e&&e.clientX)||innerWidth/2)+'px'; d.style.top=((e&&e.clientY)||innerHeight/2)+'px'; d.style.background=col;
-  document.body.appendChild(d); setTimeout(()=>{ cb(); d.classList.add('out'); setTimeout(()=>d.remove(),480); },520); }
+  d.addEventListener('click',end); setTimeout(end,RM()?900:(MOB()?4300:3400)); }
+function flood(col,e,cb,sc){ if(RM()) return cb(); const d=document.createElement('div'); d.className='flood'; d.style.left=((e&&e.clientX)||innerWidth/2)+'px'; d.style.top=((e&&e.clientY)||innerHeight/2)+'px'; d.style.background=col;
+  document.body.appendChild(d); const t1=MOB()?900:560; let nm=null;
+  setTimeout(()=>{ if(sc){ nm=document.createElement('div'); nm.className='floodname'; nm.innerHTML=`<span class="ic">${sc.ic}</span>${sc.name}<small>Votre école</small>`; document.body.appendChild(nm); } },t1-150);
+  setTimeout(()=>{ cb(); d.classList.add('out'); if(nm) nm.classList.add('out'); setTimeout(()=>{d.remove(); if(nm) nm.remove();},480); },t1+(sc?1100:0)); }
 let LASTPT=null; document.addEventListener('pointerdown',e=>{LASTPT={x:e.clientX,y:e.clientY};},true);
-function flyTo(k,ic,v){ const sel=`.gauge[data-g="${k}"]`; const g=document.querySelector(sel); if(!g) return;
+function flyTo(k,ic,v){ const sel=`.gauge[data-g="${k}"]`; const g0=document.querySelector(sel); if(!g0) return;
+  showGauge(g0,()=>{ const g=document.querySelector(sel); if(!g) return;
   if(v<0){ g.classList.remove('shake'); void g.offsetWidth; g.classList.add('shake'); return; }
-  if(RM()) return; const r=g.getBoundingClientRect(); if(r.bottom<0||r.top>innerHeight) return; const st=LASTPT||{x:innerWidth/2,y:innerHeight*0.6}; const n=Math.min(4,Math.max(1,Math.ceil(v/4)));
+  if(RM()) return; const r=g.getBoundingClientRect(); if(r.bottom<0||r.top>innerHeight) return; const st=LASTPT||{x:innerWidth/2,y:innerHeight*0.6}; const n=Math.min(4,Math.max(1,Math.ceil(v/4))); const sl=MOB()?1.7:1;
   for(let i=0;i<n;i++){ const p=document.createElement('span'); p.className='fly'; p.textContent=ic; p.style.left=st.x+'px'; p.style.top=st.y+'px'; document.body.appendChild(p);
     const dx=r.left+r.width*0.3-st.x+(Math.random()*40-20), dy=r.top+r.height/2-st.y;
-    const an=p.animate([{transform:'translate(-50%,-50%) scale(.5)',opacity:0},{transform:`translate(calc(-50% + ${dx*0.35}px),calc(-50% + ${dy*0.35-70}px)) scale(1.25)`,opacity:1,offset:.35},{transform:`translate(calc(-50% + ${dx}px),calc(-50% + ${dy}px)) scale(.6)`,opacity:.85}],{duration:750+i*80,delay:i*90,easing:'cubic-bezier(.45,0,.55,1)',fill:'backwards'});
-    an.onfinish=()=>{ p.remove(); if(i===0){ const gg=document.querySelector(sel); if(gg){ gg.classList.remove('hit'); void gg.offsetWidth; gg.classList.add('hit'); } } }; } }
+    const an=p.animate([{transform:'translate(-50%,-50%) scale(.5)',opacity:0},{transform:`translate(calc(-50% + ${dx*0.35}px),calc(-50% + ${dy*0.35-70}px)) scale(1.4)`,opacity:1,offset:.35},{transform:`translate(calc(-50% + ${dx}px),calc(-50% + ${dy}px)) scale(.7)`,opacity:.9}],{duration:(750+i*80)*sl,delay:i*90*sl,easing:'cubic-bezier(.45,0,.55,1)',fill:'backwards'});
+    an.onfinish=()=>{ p.remove(); if(i===0){ const gg=document.querySelector(sel); if(gg){ gg.classList.remove('hit'); void gg.offsetWidth; gg.classList.add('hit'); } } }; } }); }
 function renderGauges(){ const el=$('#gauges'); if(!el) return; const g=gaugeHtml(); el.innerHTML=g.html; animateGauges(); const p=$('#conj'); if(p){p.className='pill '+g.conj[0];p.textContent=g.conj[1];} }
 function flashGauge(k){ const el=document.querySelector(`.gauge[data-g="${k}"]`); if(el){el.classList.add('flash');setTimeout(()=>el.classList.remove('flash'),2500);} }
 
@@ -1420,7 +1442,7 @@ function renderGame(){
     <div class="scene" id="scene"></div>
     <div class="budget" id="budget"></div>
   </div>`;
-  if(!S.booted){ S.booted=true; const gg=$('#gauges'); if(gg) gg.classList.add('boot'); }
+  if(!S.booted){ S.booted=true; const gg=$('#gauges'); if(gg){ gg.classList.add('boot'); if(MOB()&&!RM()&&gg.scrollWidth>gg.clientWidth+2){ setTimeout(()=>gg.scrollTo({left:gg.scrollWidth,behavior:'smooth'}),1500); setTimeout(()=>gg.scrollTo({left:0,behavior:'smooth'}),3600); } } }
   animateGauges();
   $('#reset').addEventListener('click',()=>modal(`<h3>Recommencer la série ?</h3><p class="mt">La partie en cours sera perdue.</p><div class="mf"><button class="lnk" id="mc">Annuler</button><button class="rbtn" id="mo">Recommencer</button></div>`,'gold'));
   document.getElementById('modal').onclick=(e=>{ if(e.target.id==='mc') closeModal(); if(e.target.id==='mo'){closeModal();newGame(S.sc);S.screen='intro';render();} });
