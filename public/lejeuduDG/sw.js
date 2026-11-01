@@ -1,5 +1,5 @@
 // Service worker du Jeu du DG : réseau d'abord (toujours la dernière version), cache en secours hors connexion
-const CACHE = 'jeudg-v1';
+const CACHE = 'jeudg-v2';
 const CORE = ['/lejeuduDG', '/lejeuduDG/manifest.webmanifest', '/lejeuduDG/icon-192.png', '/lejeuduDG/icon-512.png', '/lejeuduDG/icon-180.png'];
 self.addEventListener('install', e => { e.waitUntil(caches.open(CACHE).then(c => c.addAll(CORE)).then(() => self.skipWaiting())); });
 self.addEventListener('activate', e => { e.waitUntil(caches.keys().then(ks => Promise.all(ks.filter(k => k !== CACHE).map(k => caches.delete(k)))).then(() => self.clients.claim())); });

@@ -2391,6 +2391,9 @@ const EVSND={glitch:'error',stamp:'stamp',news:'news',money:'cash',signs:'crowd'
 const IS_SITE=/^\/lejeududg/i.test(location.pathname);
 let INSTALL_EV=null;
 try{ if(IS_SITE&&'serviceWorker' in navigator) navigator.serviceWorker.register('/lejeuduDG/sw.js',{scope:'/lejeuduDG'}).catch(()=>{}); }catch(e){}
+const BUILD='20261101224854';
+function checkUpdate(){ if(!IS_SITE||BUILD==='dev') return; fetch('/lejeuduDG?v='+Date.now(),{cache:'no-store'}).then(r=>r.text()).then(t=>{ const m=t.match(/const BUILD='([^']+)'/); if(m&&m[1]!==BUILD&&!document.getElementById('updBar')){ const d=document.createElement('div'); d.id='updBar'; d.className='savetoast'; d.style.cursor='pointer'; d.innerHTML='✨ <b>Nouvelle version du jeu disponible</b><br><span style="font-size:12px;color:var(--muted)">Touchez pour mettre à jour (votre partie est sauvegardée)</span>'; d.onclick=()=>{ try{ save(); }catch(e){} location.reload(); }; document.body.appendChild(d); } }).catch(()=>{}); }
+setTimeout(checkUpdate,4000); document.addEventListener('visibilitychange',()=>{ if(!document.hidden) checkUpdate(); });
 window.addEventListener('beforeinstallprompt',e=>{ e.preventDefault(); INSTALL_EV=e; });
 window.addEventListener('appinstalled',()=>{ INSTALL_EV=null; document.querySelectorAll('#instBtn').forEach(b=>b.remove()); });
 const STANDALONE=()=>{ try{ return matchMedia('(display-mode: standalone)').matches||navigator.standalone===true; }catch(e){ return false; } };
