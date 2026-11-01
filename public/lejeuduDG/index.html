@@ -264,6 +264,42 @@ details.det[open]>summary{margin-bottom:10px} details.det{display:grid;gap:10px}
 @keyframes tyear{0%{opacity:0;transform:scale(1.4);filter:blur(6px)}100%{opacity:1;transform:none;filter:none}}
 @keyframes tsweep{to{transform:translateX(100%)}}
 @media (prefers-reduced-motion:reduce){.scene,.reveal .rv,.reveal .att,.titlecard *,.titlecard::after,.gauge.fl-up,.gauge.fl-dn{animation:none!important;opacity:1!important;transform:none!important}}
+
+/* Dialogues en bulles successives */
+.dlg .who .msg{background:#1c2752;border:1px solid var(--line);border-radius:4px 14px 14px 14px;padding:8px 12px;margin:0 0 6px;width:fit-content;max-width:min(100%,72ch);opacity:0;transform:translateY(6px);animation:msgin .35s ease-out forwards}
+.dlg .who .msg .kchips{display:flex;flex-wrap:wrap;gap:6px}
+.kchips span{background:#0f1631;border:1px solid var(--line);border-radius:999px;padding:4px 10px;font-weight:800;font-size:13px;white-space:nowrap} .kchips span.neg{color:var(--rose);border-color:rgba(255,107,122,.5)} .kchips span.pos{color:var(--green);border-color:rgba(126,224,160,.5)}
+.dlg .who .typing{display:flex;gap:4px;height:22px;align-items:center;padding:0 12px;overflow:hidden;animation:typ .3s .35s forwards}
+.dlg .who .typing i{width:6px;height:6px;border-radius:50%;background:var(--muted);animation:dot .9s infinite} .dlg .who .typing i:nth-child(2){animation-delay:.15s} .dlg .who .typing i:nth-child(3){animation-delay:.3s}
+.dlg .who details.more>summary{cursor:pointer;color:var(--sc-hi,var(--gold));font-weight:700;font-size:13px;margin:2px 0 6px;list-style:none} .dlg .who details.more>summary::-webkit-details-marker{display:none} .dlg .who details.more .msg{animation:none;opacity:1;transform:none}
+@keyframes msgin{to{opacity:1;transform:none}} @keyframes typ{to{height:0;opacity:0}} @keyframes dot{0%,100%{opacity:.3;transform:none}50%{opacity:1;transform:translateY(-3px)}}
+.dlg .avatar{animation:avpop .5s ease-out}
+@keyframes avpop{0%{transform:scale(.6);opacity:0}70%{transform:scale(1.08)}100%{transform:none;opacity:1}}
+/* Lettre de mission */
+.mandate{position:fixed;inset:0;z-index:60;background:rgba(5,8,20,.72);display:flex;align-items:center;justify-content:center;padding:16px;animation:fadein .3s;cursor:pointer}
+.mandate.out{transition:opacity .4s;opacity:0}
+.letter{position:relative;background:#f6f1e3;color:#1a1f3d;width:min(440px,94vw);padding:26px 28px 34px;border-radius:6px;box-shadow:0 20px 60px rgba(0,0,0,.5);transform:rotate(-1.2deg);font-family:var(--serif);animation:letterin .5s ease-out}
+.letter .lh{font-family:var(--sans);font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:#6b6250;font-weight:800}
+.letter h3{margin:6px 0 12px;font-size:24px} .letter p{margin:6px 0;font-size:15px} .letter .pres{margin-top:14px;font-style:italic;color:#4a4a5a}
+.letter .sig{font-family:"Segoe Script","Brush Script MT","Snell Roundhand","Apple Chancery",cursive;font-size:clamp(28px,7vw,38px);color:#1b2a6b;white-space:nowrap;clip-path:inset(0 100% 0 0);animation:write 1.1s .45s ease-out forwards;padding:4px 0}
+.letter .stamp{position:absolute;right:18px;bottom:16px;border:3px solid var(--sc,#c22020);color:var(--sc,#c22020);border-radius:8px;padding:6px 10px;font-family:var(--sans);font-weight:900;font-size:15px;line-height:1.1;text-align:center;letter-spacing:.06em;transform:rotate(-14deg) scale(2.4);opacity:0;animation:stamp .3s 1.65s cubic-bezier(.3,1.4,.5,1) forwards}
+@keyframes write{to{clip-path:inset(0 0 0 0)}} @keyframes stamp{to{transform:rotate(-14deg) scale(1);opacity:.92}} @keyframes letterin{from{transform:rotate(-6deg) translateY(30px);opacity:0}}
+/* Couleur de l'école qui inonde l'écran */
+.flood{position:fixed;width:24px;height:24px;border-radius:50%;transform:translate(-50%,-50%) scale(0);z-index:70;pointer-events:none;animation:flood .55s ease-in forwards}
+.flood.out{transition:opacity .45s;opacity:0}
+@keyframes flood{to{transform:translate(-50%,-50%) scale(200)}}
+/* Démarrage des jauges */
+.gauges.boot .gauge{animation:gboot .45s both} .gauges.boot .bar i{animation:gbar 1s .35s both}
+.gauges.boot .gauge:nth-child(2){animation-delay:.07s}.gauges.boot .gauge:nth-child(3){animation-delay:.14s}.gauges.boot .gauge:nth-child(4){animation-delay:.21s}.gauges.boot .gauge:nth-child(5){animation-delay:.28s}.gauges.boot .gauge:nth-child(6){animation-delay:.35s}.gauges.boot .gauge:nth-child(7){animation-delay:.42s}.gauges.boot .gauge:nth-child(8){animation-delay:.49s}
+@keyframes gboot{from{opacity:0;transform:translateY(-8px) scale(.96)}} @keyframes gbar{from{width:0}}
+/* Cœurs et éclairs qui volent vers les jauges */
+.fly{position:fixed;z-index:80;pointer-events:none;font-size:22px;transform:translate(-50%,-50%)}
+.gauge.hit{animation:ghit .35s} .gauge.shake{animation:gshake .4s}
+@keyframes ghit{50%{transform:scale(1.05)}} @keyframes gshake{20%{transform:translateX(-4px)}40%{transform:translateX(4px)}60%{transform:translateX(-3px)}80%{transform:translateX(2px)}}
+/* Révélation en attente tant que le bloc n'est pas visible */
+.reveal.wait .rv,.reveal.wait .att{animation-play-state:paused}
+@media (hover:none),(max-width:720px){.mrow .mfx .d{display:none} .mrow.sel .mfx .d{display:block}}
+@media (prefers-reduced-motion:reduce){.dlg .who .msg{animation:none;opacity:1;transform:none}.dlg .who .typing{display:none}.letter .sig{clip-path:none;animation:none}.letter .stamp{animation:none;opacity:.92;transform:rotate(-14deg)}.flood,.gauges.boot *,.dlg .avatar{animation:none!important}}
 /* Couleur propre à chaque scénario : bandeau DIRECT, cadres, onglet d'épisode, carte-titre, encadrés, halo du fond */
 html[data-sc=xyn]{--sc:#1f3a93;--sc-hi:#7b97f2;--sc-line:#3352c0;--sc-bg:#0f1a3d;--sc-glow:#152558}
 html[data-sc=linguia]{--sc:#8e1b2b;--sc-hi:#ec7584;--sc-line:#b02a3e;--sc-bg:#2a0f15;--sc-glow:#3d1019}
@@ -289,7 +325,7 @@ html[data-sc] .titlecard .big{color:var(--sc-hi);text-shadow:0 0 30px var(--sc)}
  .gauges{display:flex;overflow-x:auto;gap:6px;padding-block:4px;scrollbar-width:none;-webkit-overflow-scrolling:touch}
  .gauges::-webkit-scrollbar{display:none}
  .gauge{flex:0 0 auto;width:118px;padding:5px 8px;border-radius:8px}
- .gauge .l{font-size:8px;letter-spacing:.06em} .gauge .v{font-size:13px;margin:1px 0 3px} .gauge .v small{display:none} .gauge .v .pv{font-size:10px;margin-left:3px} .gauge .bar{height:3px}
+ .gauge .l{font-size:8px;letter-spacing:.06em} .gauge .v{font-size:13px;margin:1px 0 3px} .gauge .v small{display:none} .gauge .v .pv{display:block;font-size:10px;margin-left:0;line-height:1.1} .gauge .bar{height:3px}
  .episodes{display:flex;overflow-x:auto;gap:6px;scrollbar-width:none} .episodes::-webkit-scrollbar{display:none} .ep{flex:0 0 auto;width:104px}.tiles,.profiles,.btiles,.media,.mtot{grid-template-columns:1fr}.panel{padding:18px}.scene{padding:14px}.ticker{margin-inline:-14px}.scene h2{font-size:20px}.toasts{left:auto;right:12px;width:200px;bottom:12px;gap:4px} .toast{padding:4px 10px;min-width:0} .toast b{font-size:13px} .toast small{font-size:10px}.mrow{grid-template-columns:auto 1fr auto}.mrow .cap{grid-column:2;text-align:left}}
 </style>
 
@@ -752,10 +788,10 @@ const SHAREHOLDER={t:N.president+" vend. Trois repreneurs se présentent, et le 
     ["🏛️","Une université publique","La dette est reprise, l'objectif tombe à +8 %, mais les frais sont gelés et toute hausse de prix devient impossible.",{debt:0,g:{ca:5,cse:8,com:-6,etu:6},mode:"univ"}],
     ["🚀","Un groupe edtech","5 M€ injectés immédiatement, mais le groupe exige +10 % d'étudiants par an, sous peine de sanctions.",{once:5000,g:{ca:5,com:8,cse:-5},mode:"edtech"}]]};
 
-const TUTO_T=()=>[["Le résultat net","C'est l'indicateur central : le résultat net de l'exercice, en millions d'euros. Il part de "+mE(SC.ca0*SC.start/100)+". Votre objectif : "+tgt()+" fin 2030"+(SC.growth?", avec un chiffre d'affaires multiplié par "+SC.growth.toString().replace('.',','):'')+". Chaque mesure, chaque négociation et chaque imprévu le fait bouger.","res"],
- ["Le capital","Votre crédit auprès de "+N.president+" et du conseil. Chaque mesure en consomme ; les bons résultats, la transparence et quelques décisions en rapportent. À zéro, vous êtes révoqué·e. Investissez-le comme un budget.","ca"],
- ["Les leads et les médias","Chaque mois de mars, vous répartissez le budget "+SC.mediaWord+" entre "+Object.values(MEDIA).map(c=>c.n).join(', ')+". Les "+SC.leadWord+" obtenus sont transformés en inscriptions par les commerciaux : plus leur moral est haut, plus ils signent.","com"],
- ["Étudiants et CSE","Deux jauges sur 100. Si les étudiants ou le CSE tombent à zéro, la série s'arrête. Beaucoup de mesures plaisent aux uns et déplaisent aux autres.","etu"]];
+const TUTO_T=()=>[["📉 Le résultat net","Le chiffre qui compte. Il part de "+mE(SC.ca0*SC.start/100)+" ; objectif : <b>"+tgt()+"</b> fin 2030"+(SC.growth?", avec un chiffre d'affaires ×"+SC.growth.toString().replace('.',','):'')+".","res"],
+ ["⚡ Le capital","Votre crédit auprès de "+N.president+". Les mesures en consomment, les bons résultats en rapportent. À zéro, vous êtes révoqué·e.","ca"],
+ ["📣 Le "+SC.mediaTitle.toLowerCase(),"Chaque mois de mars, vous répartissez le budget entre vos canaux. Les commerciaux transforment les "+SC.leadWord+" : leur moral compte autant que le budget.","com"],
+ ["💚 💜 "+GN.etu+" et CSE","Deux jauges sur 100. Si l'une tombe à zéro, la partie s'arrête.","etu"]];
 
 // ---------- État ----------
 let S;
@@ -810,6 +846,7 @@ function toast(v,name,label){
   label=tx(label); const t=document.createElement('div'); t.className='toast'+(v<0?' neg':'');
   t.innerHTML=`<b>${v>0?'+':'−'}${Math.abs(v)} ${ic} ${name}</b><small>${label||''}</small>`;
   const box=document.getElementById('toasts'); while(box.children.length>=4) box.firstChild.remove(); box.appendChild(t); setTimeout(()=>t.remove(),3300);
+  if(k) setTimeout(()=>flyTo(k,ic,v),30);
 }
 function chips(fx){
   if(!fx) return '';
@@ -1141,7 +1178,7 @@ function renderScenario(){
     <div style="display:flex;justify-content:center" id="b"></div></div></div>`;
   const box=$('#sc'); let sel=S.sc;
   const draw=()=>{box.innerHTML=''; SCENARIOS.forEach((c,i)=>{const b=btn(`${c.ic} ${c.name}${i===0?'<span class="badge">Recommandé</span>':''}<small><b style="color:var(--fg)">${c.tag}</b></small><small>${c.desc}</small>`,()=>{sel=i;draw();},'opt'+(sel===i?' sel':'')); b.style.borderLeft='5px solid '+SCCOL[c.id]; box.appendChild(b);});
-    $('#b').innerHTML=''; $('#b').appendChild(btn('Confirmer : '+SCENARIOS[sel].name+' →',()=>{newGame(sel);S.screen='profile';render();}));};
+    $('#b').innerHTML=''; $('#b').appendChild(btn('Confirmer : '+SCENARIOS[sel].name+' →',e=>{flood(SCCOL[SCENARIOS[sel].id],e,()=>{newGame(sel);S.screen='profile';render();});}));};
   draw();
 }
 function renderProfile(){
@@ -1156,7 +1193,7 @@ function renderProfile(){
   </div></div>`;
   const pf=$('#pf');
   const draw=()=>{pf.innerHTML='';PROFILES.forEach((p,i)=>{const d=btn(`<span class="ic">${p[0]}</span><b>${p[1]}</b><span>${p[2]}</span><span>${Object.entries(p[3]).map(([k,v])=>`<span class="chip ${k==='ca'?'cap':''}">${v} ${GN[k]}</span>`).join('')}</span>`,()=>{S.profile=i;draw();upd();},'prof'+(S.profile===i?' sel':''));pf.appendChild(d);});};
-  const go=btn('▶ Entrer en scène',()=>{S.g={...PROFILES[S.profile][3]};S.g.ca=clamp(S.g.ca+(SC.capMod||0),10,100);S.screen='title';render();});
+  const go=btn('▶ Entrer en scène',()=>{S.g={...PROFILES[S.profile][3]};S.g.ca=clamp(S.g.ca+(SC.capMod||0),10,100);mandate(()=>{S.screen='title';render();});});
   const upd=()=>{S.name=$('#nm').value.trim();go.disabled=!(S.name&&S.profile!==null);$('#hint').textContent=go.disabled?'Choisissez un nom et un profil pour continuer.':'';save();};
   $('#nm').addEventListener('input',upd); $('#b').appendChild(go); draw(); upd();
 }
@@ -1201,12 +1238,32 @@ function animateGauges(){
     const step=t=>{ const p=Math.min(1,(t-t0)/D), e=1-Math.pow(1-p,3); el.textContent=p<1?fmtLike(nt,a.v+(b.v-a.v)*e,b):nt; if(p<1) requestAnimationFrame(step); }; requestAnimationFrame(step); });
 }
 function runReveal(y){
+  const box=document.querySelector('.reveal'); if(!box) return; let started=false;
+  const go=()=>{ if(started) return; started=true; box.classList.remove('wait'); runReveal2(y); };
+  if('IntersectionObserver' in window){ const io=new IntersectionObserver(es=>{ if(es.some(e=>e.isIntersecting)){ io.disconnect(); go(); } },{threshold:0.35}); io.observe(box); setTimeout(()=>{ if(!started){ io.disconnect(); go(); } },15000); } else go();
+}
+function runReveal2(y){
   const rm=matchMedia('(prefers-reduced-motion: reduce)').matches;
   document.querySelectorAll('.reveal .cu').forEach(el=>{ const to=+el.dataset.to, f=el.dataset.f, d=+el.dataset.d||0; const out=v=>f==='ca'?(v/1000).toFixed(1).replace('.',',')+' M€':mE(v);
     if(rm){el.textContent=out(to);return;} el.textContent=out(0); setTimeout(()=>{ const t0=performance.now(), D=900; const st=t=>{const p=Math.min(1,(t-t0)/D), e=1-Math.pow(1-p,3); el.textContent=out(to*e); if(p<1) requestAnimationFrame(st);}; requestAnimationFrame(st); },d); });
   const bar=document.querySelector('.reveal .att i'); if(bar) setTimeout(()=>{bar.style.width=bar.dataset.w+'%';},rm?0:2300);
   if(y.res>=SC.resTarget&&!S.tmp.conf){ S.tmp.conf=true; setTimeout(confetti,rm?0:2500); }
 }
+const RM=()=>matchMedia('(prefers-reduced-motion: reduce)').matches;
+function mandate(cb){ const d=document.createElement('div'); d.className='mandate';
+  d.innerHTML=`<div class="letter"><div class="lh">${SC.ic} ${N.ecole} · Conseil d'administration</div><h3>Lettre de mission</h3><p>Le conseil d'administration confie à</p><div class="sig">${String(S.name||'').replace(/[<>&]/g,'')}</div><p>la direction générale de ${N.ecole}, de 2026 à 2030.</p><p class="pres">${N.president}, président</p><div class="stamp">MANDAT<br>ACCORDÉ</div></div>`;
+  document.body.appendChild(d); let done=false; const end=()=>{ if(done) return; done=true; d.classList.add('out'); setTimeout(()=>d.remove(),400); cb(); };
+  d.addEventListener('click',end); setTimeout(end,RM()?900:2700); }
+function flood(col,e,cb){ if(RM()) return cb(); const d=document.createElement('div'); d.className='flood'; d.style.left=((e&&e.clientX)||innerWidth/2)+'px'; d.style.top=((e&&e.clientY)||innerHeight/2)+'px'; d.style.background=col;
+  document.body.appendChild(d); setTimeout(()=>{ cb(); d.classList.add('out'); setTimeout(()=>d.remove(),480); },520); }
+let LASTPT=null; document.addEventListener('pointerdown',e=>{LASTPT={x:e.clientX,y:e.clientY};},true);
+function flyTo(k,ic,v){ const sel=`.gauge[data-g="${k}"]`; const g=document.querySelector(sel); if(!g) return;
+  if(v<0){ g.classList.remove('shake'); void g.offsetWidth; g.classList.add('shake'); return; }
+  if(RM()) return; const r=g.getBoundingClientRect(); if(r.bottom<0||r.top>innerHeight) return; const st=LASTPT||{x:innerWidth/2,y:innerHeight*0.6}; const n=Math.min(4,Math.max(1,Math.ceil(v/4)));
+  for(let i=0;i<n;i++){ const p=document.createElement('span'); p.className='fly'; p.textContent=ic; p.style.left=st.x+'px'; p.style.top=st.y+'px'; document.body.appendChild(p);
+    const dx=r.left+r.width*0.3-st.x+(Math.random()*40-20), dy=r.top+r.height/2-st.y;
+    const an=p.animate([{transform:'translate(-50%,-50%) scale(.5)',opacity:0},{transform:`translate(calc(-50% + ${dx*0.35}px),calc(-50% + ${dy*0.35-70}px)) scale(1.25)`,opacity:1,offset:.35},{transform:`translate(calc(-50% + ${dx}px),calc(-50% + ${dy}px)) scale(.6)`,opacity:.85}],{duration:750+i*80,delay:i*90,easing:'cubic-bezier(.45,0,.55,1)',fill:'backwards'});
+    an.onfinish=()=>{ p.remove(); if(i===0){ const gg=document.querySelector(sel); if(gg){ gg.classList.remove('hit'); void gg.offsetWidth; gg.classList.add('hit'); } } }; } }
 function renderGauges(){ const el=$('#gauges'); if(!el) return; const g=gaugeHtml(); el.innerHTML=g.html; animateGauges(); const p=$('#conj'); if(p){p.className='pill '+g.conj[0];p.textContent=g.conj[1];} }
 function flashGauge(k){ const el=document.querySelector(`.gauge[data-g="${k}"]`); if(el){el.classList.add('flash');setTimeout(()=>el.classList.remove('flash'),2500);} }
 
@@ -1234,6 +1291,7 @@ function renderGame(){
     <div class="scene" id="scene"></div>
     <div class="budget" id="budget"></div>
   </div>`;
+  if(!S.booted){ S.booted=true; const gg=$('#gauges'); if(gg) gg.classList.add('boot'); }
   animateGauges();
   $('#reset').addEventListener('click',()=>modal(`<h3>Recommencer la série ?</h3><p class="mt">La partie en cours sera perdue.</p><div class="mf"><button class="lnk" id="mc">Annuler</button><button class="rbtn" id="mo">Recommencer</button></div>`,'gold'));
   document.getElementById('modal').onclick=(e=>{ if(e.target.id==='mc') closeModal(); if(e.target.id==='mo'){closeModal();newGame(S.sc);S.screen='intro';render();} });
@@ -1282,7 +1340,16 @@ function nice(v){ return v>=1000?Math.round(v/100)*100:v>=200?Math.round(v/10)*1
 function money(k){ return Math.abs(k)>=1000?(k/1000).toFixed(1).replace('.',',').replace(',0','')+' M€':fmt(Math.round(k))+' k€'; }
 function tx(t){ if(!t||!SC||typeof t!=='string') return t; const f=SC.scale, fs=BASE.staff/400, fe=BASE.students/12000;
   return t.replace(/\{k:([\d.]+)\}/g,(_,v)=>money(nice(+v*f))).replace(/\{M:([\d.]+)\}/g,(_,v)=>money(nice(+v*1000*f))).replace(/\{n:(\d+)\}/g,(_,v)=>fmt(scaleN(+v))).replace(/\{s:(\d+)\}/g,(_,v)=>fmt(nice(+v*fe))).replace(/\{com:(\d+)\}/g,(_,v)=>fmt(Math.max(1,Math.round(+v*BASE.com/100)))).replace(/\{p:([\d.]+)\}/g,(_,v)=>fmt(Math.round(((S&&S.price)||BASE.price)*+v/10)*10)+' €').replace(/\{mkk:(\d+)\}/g,(_,v)=>money(nice(+v*BASE.marketing/4500))).replace(/\{staff\}/g,fmt(BASE.staff)).replace(/\{comN\}/g,fmt(BASE.com)).replace(/\{ecole\}/g,N.ecole).replace(/\{medias\}/g,SC.mediaWord).replace(/\{leads\}/g,SC.leadWord).replace(/\b1 commerciaux\b/g,'1 commercial').replace(/\b1 ([a-zéè]{3,})s\b/g,'1 $1'); }
-function dlg(ic,who,role,text){ return `<div class="dlg"><div class="avatar sm">${ic}</div><div class="who"><b>${who}</b><small>${role}</small><p>${tx(text)}</p></div></div>`; }
+function bubbles(text){ // découpe un dialogue en messages courts (2 phrases max), sans casser le HTML
+  const out=[]; String(text).split(/<br\s*\/?>/).forEach(ch=>{ ch=ch.trim(); if(!ch) return;
+    if(/^«/.test(ch)&&/»$/.test(ch)) ch=ch.replace(/^«\s*/,'').replace(/\s*»$/,'');
+    if(/<(?!\/?b[\s>])[a-z]/i.test(ch)){ out.push(ch); return; }
+    const sents=ch.match(/[^.!?…]+(?:[.!?…]+|$)(?:\s*»)?\s*/g)||[ch]; let cur='',n=0;
+    sents.forEach(x=>{ if(cur&&(n>=2||(cur+x).length>170)){ out.push(cur.trim()); cur=''; n=0; } cur+=x; n++; }); if(cur.trim()) out.push(cur.trim()); });
+  return out; }
+function dlg(ic,who,role,text){ const bs=bubbles(tx(text)); const m=(b,i)=>`<p class="msg" style="animation-delay:${(0.4+Math.min(i,3)*0.45).toFixed(2)}s">${b}</p>`;
+  const vis=bs.length>4?bs.slice(0,3):bs, rest=bs.length>4?bs.slice(3):[];
+  return `<div class="dlg"><div class="avatar sm">${ic}</div><div class="who"><b>${who}</b><small>${role}</small><p class="typing"><i></i><i></i><i></i></p>${vis.map(m).join('')}${rest.length?`<details class="more"><summary>Lire la suite ▸</summary>${rest.map(b=>`<p class="msg">${b}</p>`).join('')}</details>`:''}</div></div>`; }
 function ready(){ const b=$('#nextBtn'); if(b) b.disabled=false; S.decided=true; save(); }
 function confetti(){
   if(matchMedia('(prefers-reduced-motion: reduce)').matches) return;
@@ -1349,7 +1416,7 @@ function phCadrage(){
     :presidentMood();
   const extra=[S.cash<0?'La trésorerie est négative : les agios pèsent et la '+N.banque+' surveille chaque mouvement.':'',S.mode==='edtech'?'Le groupe edtech rappelle son exigence : +10 % d\'étudiants cette année.':'',S.mode==='fonds'?'Le fonds rappelle qu\'une année en perte ne sera pas tolérée.':'',S.mode==='univ'?'L\'université rappelle le gel des frais de scolarité.':''].filter(Boolean);
   const speaker=S.mode?['🕴️','Le nouvel actionnaire','Président du conseil']:[PRES,N.president,N.presidentRole+' · vous reçoit dans son bureau'];
-  const body=dlg(speaker[0],speaker[1],speaker[2],(first?`« Bonjour ${S.name}. ${N.daf}, notre DAF, vous a remis les comptes 2025 : ${(SC.ca0/1000).toFixed(0)} M€ de chiffre d'affaires, ${fmt(BASE.students)} ${SC.unit}, ${BASE.staff} salariés dont ${BASE.com} commerciaux, et un résultat net de <b style="color:${SC.start<0?'var(--rose)':'var(--green)'}">${mE(SC.ca0*SC.start/100)}</b>. ${SC.pitch} »<br>`:`« Résultat ${S.year-1} : <b style="color:${lr.pct<0?'var(--rose)':'var(--green)'}">${mE(lr.res)}</b>. ${lr.res>=SC.resTarget?'L\'objectif est atteint, il s\'agit de le tenir.':`Il manque ${mE(SC.resTarget-lr.res).slice(1)} de résultat avant fin 2030.`} »<br>`)+quote)+
+  const body=dlg(speaker[0],speaker[1],speaker[2],(first?`« Bonjour ${S.name.replace(/\.$/,'')}. Voici les comptes 2025 que ${N.daf} vous a préparés. »<br><span class="kchips"><span>💶 ${(SC.ca0/1000).toFixed(0)} M€ de CA</span><span>🎓 ${fmt(BASE.students)} ${SC.unit}</span><span>👥 ${BASE.staff} salariés</span><span>📞 ${BASE.com} commerciaux</span><span class="${SC.start<0?'neg':'pos'}">${SC.start<0?'📉':'📈'} ${mE(SC.ca0*SC.start/100)} de résultat</span></span><br>« ${SC.pitch} »<br>`:`« Résultat ${S.year-1} : <b style="color:${lr.pct<0?'var(--rose)':'var(--green)'}">${mE(lr.res)}</b>. ${lr.res>=SC.resTarget?'L\'objectif est atteint, il s\'agit de le tenir.':`Il manque ${mE(SC.resTarget-lr.res).slice(1)} de résultat avant fin 2030.`} »<br>`)+quote)+
    (extra.length?`<div class="note">${extra.map(x=>`<div>${x}</div>`).join('')}</div>`:'')+
    `<div class="prompt">Votre discours de prise de fonction — fixez le cap :</div><div id="c"></div>`;
   const mood=first?null:presidentMood(true);
@@ -1385,9 +1452,9 @@ function phMesures(){
   buildOffer();
   const avail=S.offer[S.year].map(i=>MEASURES[i]).filter(m=>!S.active.includes(m.id));
   const cats=[['rec','Recettes nouvelles','var(--green)'],['dep','Économies et coupes','var(--gold)'],['str','Réformes de structure','var(--violet)'],['fou','Coups de poker — effets massifs, capital massif','var(--rose)']];
-  const body=dlg(DAF,N.daf,N.dafRole,`« Dessinons l'esquisse du plan : voici les ${avail.length} mesures instruites par mes équipes cette année ; d'autres seront prêtes l'an prochain. Retenez-en autant que votre capital le permet, ou aucune. Chaque mesure consomme du capital auprès de ${N.president} ; vous ne pouvez pas engager plus de capital que vous n'en avez. Une mesure adoptée reste en vigueur les années suivantes. »`)+
-   `<div class="note"><div class="h">📗 Note de ${N.daf} — la mécanique des comptes de ${N.ecole}</div>Sans mesure nouvelle, le résultat ${S.year} serait de <b style="color:${projected().res<0?'var(--rose)':'var(--green)'}">${mE(projected().res)}</b>${SC.growth?`, pour un chiffre d'affaires cible de ${(SC.caTarget/1000).toFixed(0)} M€ en 2030`:''}. Trois moteurs :<ul><li><b>Les abandons.</b> ${Math.round(SC.churn*100)} % des ${SC.unit} ne vont pas au bout : chaque départ est un chiffre d'affaires perdu.</li><li><b>La masse salariale.</b> ${BASE.staff} salariés et ${((BASE.payrollOther+BASE.payrollCom)/1000).toFixed(1).replace('.',',')} M€ de salaires pour ${(SC.ca0/1000).toFixed(0)} M€ de chiffre d'affaires.</li><li><b>${BASE.debt?'La dette.':'La trésorerie.'}</b> ${BASE.debt?(BASE.debt/1000).toFixed(1).replace('.',',')+' M€ à '+(S.rate*100).toFixed(1).replace('.',',')+' % ; chaque euro de découvert coûte plus cher.':'Pas de dette, mais la banque coupe à '+mE(SC.bank)+' de découvert.'}</li></ul></div>
-   <div class="hint">💡 À droite de chaque mesure : son <b>effet estimé sur le résultat annuel (k€)</b> et son <b>coût en capital</b>. Survolez une mesure (ou lisez la ligne sous chaque mesure sur mobile) pour sa lecture détaillée et ses effets sur les étudiants, les commerciaux et le CSE.</div>
+  const body=dlg(DAF,N.daf,N.dafRole,(S.yi===0?`« Dessinons l'esquisse du plan : voici les ${avail.length} mesures instruites par mes équipes cette année ; d'autres seront prêtes l'an prochain. Retenez-en autant que votre capital le permet, ou aucune. Chaque mesure consomme du capital auprès de ${N.president} ; vous ne pouvez pas engager plus de capital que vous n'en avez. Une mesure adoptée reste en vigueur les années suivantes. »`:`« Voici les ${avail.length} mesures instruites cette année. Retenez-en autant que votre capital le permet, ou aucune. »`))+
+   `${S.yi>0?'<details class="det"><summary>📗 '+N.daf+' : sans mesure nouvelle, résultat '+S.year+' à '+mE(projected().res)+' · rappel de la mécanique ▸</summary>':''}<div class="note"><div class="h">📗 Note de ${N.daf} — la mécanique des comptes de ${N.ecole}</div>Sans mesure nouvelle, le résultat ${S.year} serait de <b style="color:${projected().res<0?'var(--rose)':'var(--green)'}">${mE(projected().res)}</b>${SC.growth?`, pour un chiffre d'affaires cible de ${(SC.caTarget/1000).toFixed(0)} M€ en 2030`:''}. Trois moteurs :<ul><li><b>Les abandons.</b> ${Math.round(SC.churn*100)} % des ${SC.unit} ne vont pas au bout : chaque départ est un chiffre d'affaires perdu.</li><li><b>La masse salariale.</b> ${BASE.staff} salariés et ${((BASE.payrollOther+BASE.payrollCom)/1000).toFixed(1).replace('.',',')} M€ de salaires pour ${(SC.ca0/1000).toFixed(0)} M€ de chiffre d'affaires.</li><li><b>${BASE.debt?'La dette.':'La trésorerie.'}</b> ${BASE.debt?(BASE.debt/1000).toFixed(1).replace('.',',')+' M€ à '+(S.rate*100).toFixed(1).replace('.',',')+' % ; chaque euro de découvert coûte plus cher.':'Pas de dette, mais la banque coupe à '+mE(SC.bank)+' de découvert.'}</li></ul></div>${S.yi>0?'</details>':''}
+   ${S.yi===0?`<div class="hint">💡 À droite de chaque mesure : son <b>effet estimé sur le résultat annuel (k€, moyenne sur 3 ans)</b> et son <b>coût en capital</b>. Survolez une mesure (ou touchez-la sur mobile) pour sa lecture détaillée et ses effets sur les étudiants, les commerciaux et le CSE.</div>`:''}
    <div class="capbar" id="capbar"></div>
    <div id="cat"></div><div class="hint" id="tally"></div>`;
   const lr0=S.lastResult, nAct=S.active.length;
@@ -1414,8 +1481,8 @@ function phMesures(){
 }
 
 function phMedias(){
-  const body=dlg('👩‍🎨',N.mkt,SC.mediaWord==='commercial'?'Directrice du développement':'Directrice marketing',`« Voici le ${SC.mediaTitle.toLowerCase()} ${S.year}. Chaque canal a son coût par ${SC.lead1} et sa qualité ; ce sont les commerciaux de ${N.com} qui transforment, et leur moral (${Math.round(S.g.com)} %) joue autant que le budget. Les rendements sont décroissants : doubler un canal ne double pas ses ${SC.leadWord}. »`)+
-   `<div class="media" id="media"></div><div class="mtot" id="mtot"></div><div class="hint">Le budget ${SC.mediaWord} est une charge de l'exercice : il pèse sur le résultat et la trésorerie. Le bouche-à-oreille et les anciens apportent en plus environ ${fmt(inscriptions().organic)} inscriptions sans dépense.</div>`;
+  const body=dlg('👩‍🎨',N.mkt,SC.mediaWord==='commercial'?'Directrice du développement':'Directrice marketing',(S.yi===0?`« Voici le ${SC.mediaTitle.toLowerCase()} ${S.year}. Chaque canal a son coût par ${SC.lead1} et sa qualité ; ce sont les commerciaux de ${N.com} qui transforment, et leur moral (${Math.round(S.g.com)} %) joue autant que le budget. Les rendements sont décroissants : doubler un canal ne double pas ses ${SC.leadWord}. »`:`« Le ${SC.mediaTitle.toLowerCase()} ${S.year}. Moral des commerciaux : ${Math.round(S.g.com)} %. »`))+
+   `<div class="media" id="media"></div><div class="mtot" id="mtot"></div>${S.yi===0?`<div class="hint">Le budget ${SC.mediaWord} est une charge de l'exercice : il pèse sur le résultat et la trésorerie. Le bouche-à-oreille et les anciens apportent en plus environ ${fmt(inscriptions().organic)} inscriptions sans dépense.</div>`:''}`;
   sceneShell(body,{title:'Le '+SC.mediaTitle.toLowerCase(),tag:'Des '+SC.leadWord+', encore des '+SC.leadWord+'. Et des commerciaux pour les transformer.',ready:true});
   const draw=()=>{
     const ins=inscriptions();
@@ -1552,7 +1619,7 @@ function phResultats(){
   if(!S.decided){ S.tmp={y:simulate()}; badgeSeason(S.tmp.y); if(S.tmp.y.norgeat){(S.log=S.log||[]).push({y:S.year,kind:'imprévu',n:'Effet Norgeat : '+(S.tmp.y.norgeat<0?'dotation ':'reprise de provision ')+kE(S.tmp.y.norgeat),eff:S.tmp.y.norgeat,cap:0,heart:0,bad:S.tmp.y.norgeat<0});} S.decided=true; save(); renderGauges(); renderBudget(); postScore('saison',{}); }
   const y=S.tmp.y; const ins=y.ins;
   const att=y.res/SC.resTarget, attW=clamp(att*100,0,100);
-  const revealHtml=`<div class="reveal">
+  const revealHtml=`<div class="reveal wait">
     <div class="rv" style="animation-delay:.15s"><span>Chiffre d'affaires ${S.year}</span><b class="cu" data-to="${y.revenue}" data-f="ca" data-d="150">${(y.revenue/1000).toFixed(1).replace('.',',')} M€</b></div>
     <div class="rv" style="animation-delay:.75s"><span>Charges de l'exercice</span><b class="cu" data-to="${-y.costs}" data-f="m" data-d="750" style="color:var(--rose)">${mE(-y.costs)}</b></div>
     ${y.norgeat?`<div class="rv" style="animation-delay:1.25s"><span>🧮 Effet Norgeat</span><b style="color:var(--gold-hi)">${mE(y.norgeat)}</b></div>`:''}
