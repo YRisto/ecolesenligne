@@ -1,0 +1,19 @@
+{
+  "name": "Le Jeu du DG",
+  "short_name": "Jeu du DG",
+  "description": "Dirigez une école en ligne de 2026 à 2030. Un seul juge : le résultat.",
+  "lang": "fr",
+  "start_url": "/lejeuduDG?source=app",
+  "scope": "/lejeuduDG",
+  "id": "/lejeuduDG",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#0f1631",
+  "theme_color": "#0f1631",
+  "categories": ["games", "education", "business"],
+  "icons": [
+    {"src": "/lejeuduDG/icon-192.png", "sizes": "192x192", "type": "image/png"},
+    {"src": "/lejeuduDG/icon-512.png", "sizes": "512x512", "type": "image/png"},
+    {"src": "/lejeuduDG/icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable"}
+  ]
+}

@@ -1,6 +1,12 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
+  async headers() {
+    return [
+      { source: '/lejeuduDG/sw.js', headers: [{ key: 'Service-Worker-Allowed', value: '/lejeuduDG' }, { key: 'Cache-Control', value: 'no-cache' }] },
+      { source: '/lejeuduDG/manifest.webmanifest', headers: [{ key: 'Content-Type', value: 'application/manifest+json' }] },
+    ];
+  },
   async rewrites() {
     return [
       { source: '/lejeuduDG', destination: '/lejeuduDG/index.html' },

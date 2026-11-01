@@ -5,6 +5,14 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="description" content="Le Jeu du DG : cinq écoles en ligne à diriger de 2026 à 2030.">
 <title>Le Jeu du DG</title>
+<link rel="manifest" href="/lejeuduDG/manifest.webmanifest">
+<meta name="theme-color" content="#0f1631">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Jeu du DG">
+<link rel="apple-touch-icon" href="/lejeuduDG/icon-180.png">
+<link rel="icon" type="image/png" sizes="192x192" href="/lejeuduDG/icon-192.png">
 <style>
 /* Layout: série politique — en-tête + bandeau d'épisodes, jauges collantes, carte d'épisode à cadre doré, panneau budget. Thème unique sombre, choisi délibérément. */
 :root{
@@ -761,10 +769,49 @@ html[data-sc] .titlecard .big{color:var(--sc-hi);text-shadow:0 0 30px var(--sc)}
 .fin .leaver{position:absolute;bottom:10vh;left:-10%;font-size:32px;animation:leave 2.4s linear forwards;transform:scaleX(-1)}
 @keyframes leave{80%{opacity:1}to{left:84%;opacity:0}}
 @media (prefers-reduced-motion:reduce){.fin *{animation:none!important;opacity:1!important;transform:none!important}}
+/* ── Décision express ── */
+.modal.crisism{max-width:520px;text-align:left}
+.crisis .crtop{display:flex;justify-content:space-between;align-items:center;gap:10px}
+.crisis .crn{font:900 34px/1 var(--sans);font-variant-numeric:tabular-nums;color:var(--gold);min-width:2ch;text-align:right}
+.crisis .crbar{height:8px;border-radius:6px;background:rgba(255,255,255,.08);overflow:hidden;margin:8px 0 12px}
+.crisis .crbar i{display:block;height:100%;width:100%;background:linear-gradient(90deg,var(--gold),#ff8a5a);transition:width .1s linear}
+.crisis.hurry .crn{color:var(--rose);animation:crpulse .5s ease-in-out infinite alternate}
+.crisis.hurry .crbar i{background:var(--rose)}
+@keyframes crpulse{to{transform:scale(1.18)}}
+.crisis .crwho{display:flex;gap:10px;align-items:center;margin-bottom:8px}
+.crisis .crwho .ic{font-size:34px}
+.crisis .crwho small{display:block;color:var(--muted);font-size:12px}
+.crisis .opts{margin-top:10px}
+.crisis .ms{margin-top:8px;color:var(--muted);font-size:12px}
+/* ── La une ── */
+.journal{background:#f3eee2;color:#1b1b1b;border-radius:4px;padding:18px 18px 14px;margin:18px auto 6px;max-width:640px;text-align:left;box-shadow:0 20px 50px rgba(0,0,0,.55),inset 0 0 60px rgba(120,90,40,.12);font-family:var(--serif);transform-origin:50% 0;animation:jin .9s cubic-bezier(.2,1.2,.4,1) both}
+@keyframes jin{from{opacity:0;transform:rotate(-8deg) scale(.6) translateY(-30px)}}
+.journal .jmast{display:flex;justify-content:space-between;align-items:baseline;gap:8px;border-bottom:4px double #1b1b1b;padding-bottom:6px;font:12px var(--sans);color:#555}
+.journal .jmast b{font:900 clamp(20px,5.4vw,32px)/1.05 var(--serif);color:#1b1b1b;text-align:center;flex:1}
+.journal .jdate{font-style:italic;font-size:13px;text-align:center;border-bottom:1px solid #1b1b1b;padding:4px 0;margin-bottom:12px;color:#333}
+.journal .jh{font:900 clamp(26px,7vw,42px)/1.04 var(--serif);margin:0 0 8px;color:#111;letter-spacing:-.01em}
+.journal .jdeck{font-style:italic;font-size:16px;margin:0 0 12px;color:#2a2a2a}
+.journal .jgrid{display:grid;grid-template-columns:1.3fr 1fr;gap:14px;margin-bottom:12px}
+.journal .jphoto{margin:0;background:#d9d0bc;border:1px solid #b9ae95;display:flex;flex-direction:column}
+.journal .jphoto div{font-size:clamp(70px,20vw,120px);text-align:center;padding:14px 0 4px;filter:grayscale(.3) contrast(1.05)}
+.journal .jphoto figcaption{font-size:12px;font-style:italic;padding:6px 8px;color:#333;border-top:1px solid #b9ae95}
+.journal .jk{font:800 11px var(--sans);letter-spacing:.14em;text-transform:uppercase;border-top:2px solid #1b1b1b;padding-top:4px;margin:8px 0 6px}
+.journal .jcol .jk{margin-top:0}
+.journal .jcol p{margin:0 0 8px;display:flex;flex-direction:column}
+.journal .jcol span{font:12px var(--sans);color:#555}
+.journal .jcol b{font:900 22px/1.1 var(--serif)}
+.journal .jquotes{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.journal blockquote{margin:0;font-style:italic;font-size:14.5px;border-left:3px solid #1b1b1b;padding-left:8px}
+.journal blockquote cite{display:block;font:normal 11.5px var(--sans);color:#555;margin-top:3px}
+.journal blockquote.up{border-color:#2f8f46} .journal blockquote.dn{border-color:#b01e2e}
+.journal .jalso{border-top:4px double #1b1b1b;margin-top:12px;padding-top:6px;font:12.5px var(--sans);color:#333}
+@media (max-width:560px){.journal .jgrid,.journal .jquotes{grid-template-columns:1fr}}
+@media (prefers-reduced-motion:reduce){.journal{animation:none}}
 </style>
 
 </head>
 <body>
+
 <div id="app"></div>
 <div class="toasts" id="toasts" role="status" aria-live="polite"></div>
 <div id="modal"></div>
@@ -862,7 +909,7 @@ const SCENARIOS=[
 function weeklyNow(){ const W=SCENARIOS.filter(c=>c.weekly); if(!W.length) return null; const D=Math.floor((Date.now()-new Date().getTimezoneOffset()*6e4)/864e5), wk=Math.floor((D+5)/7)-1; /* semaine du samedi au vendredi */ return W[((wk%W.length)+W.length)%W.length]; }
 function weeklyDaysLeft(){ const d=new Date(); const dow=(d.getDay()+1)%7; return 7-dow; }
 const scVisible=c=>!c.weekly||c===weeklyNow();
-function applyScenario(i){
+function applyScenario(i){ try{ setTimeout(()=>{ try{ SND.setRoot(SC&&SC.id); }catch(e){} },0); }catch(e){}
   SC=SCENARIOS[i]; BASE={...SC.base}; MEDIA=JSON.parse(JSON.stringify(SC.media)); N.ecole=SC.name;
   SC.scale=BASE.students*BASE.price/1000/30000*(SC.eff||1); SC.ca0=BASE.students*BASE.price/1000; SC.caTarget=SC.growth?Math.round(SC.ca0*SC.growth):null; SC.studentsTarget=SC.growth?Math.round(BASE.students*SC.growth):null; SC.resTarget=SC.resAbs||Math.round((SC.caTarget||SC.ca0)*SC.target/100);
   EPISODES[2][1]=SC.mediaTitle;
@@ -1405,8 +1452,9 @@ function apply(fx,label){
   renderGauges();
 }
 let FLYQ=0;
+let SND_TT=0;
 function toast(v,name,label){
-  if(!v) return;
+  if(!v) return; { const n=Date.now(); if(n-SND_TT>150){ SND_TT=n; try{ SND.play(v>0?'up':'down'); }catch(_){} } }
   const k=Object.keys(GN).find(x=>GN[x]===name); const ic=k?GI[k]:'';
   label=tx(label); const t=document.createElement('div'); t.className='toast'+(v<0?' neg':'');
   t.innerHTML=`<b>${v>0?'+':'−'}${Math.abs(v)} ${ic} ${name}</b><small>${label||''}</small>`;
@@ -1765,6 +1813,7 @@ function renderIntro(){
   $('#b').appendChild(btn('▶ Je prends le poste',()=>{S.screen='scenario';render();},'mbtn cta'));
   $('#b').appendChild(btn('🏆 Hall of Fame',()=>{S.hofBack='intro';S.screen='hof';render();},'sbtn'));
   $('#b').appendChild(btn('🏅 Trophées ('+BADGES.filter(b=>badges()[b.id]).length+'/'+BADGES.length+')',()=>{S.hofBack='intro';S.screen='badges';render();},'sbtn'));
+  { const sb=btn(SND.label(),()=>{},'sbtn'); sb.id='sndBtn'; sb.title=SND.title(); sb.setAttribute('aria-label','Son : '+SND.title()); $('#b').appendChild(sb); bindSnd(); const ib=installBtn(); if(ib) $('#b').appendChild(ib); }
   fetchScores('partie').then(r=>{ const el=document.getElementById('played'); if(!el||!r||!r.online||!r.rows||r.rows.length<5) return; const n=r.rows.length, w=r.rows.filter(x=>x.statut==='objectif').length; el.innerHTML=`<b>${n}</b> DG ont déjà pris le poste · <b>${w}</b> ${w>1?'ont':'a'} rempli ${w>1?'leur':'son'} mandat. Et vous ?`; }).catch(()=>{});
 }
 
@@ -1856,7 +1905,7 @@ function showGauge(g,cb){ // sur mobile, fait défiler la bande de jauges jusqu'
   const sr=strip.getBoundingClientRect(), r=g.getBoundingClientRect(); if(r.left>=sr.left-2&&r.right<=sr.right+2) return cb(0);
   strip.scrollTo({left:strip.scrollLeft+(r.left-sr.left)-(sr.width-r.width)/2,behavior:RM()?'auto':'smooth'}); setTimeout(()=>cb(1),420);
   clearTimeout(showGauge.t); showGauge.t=setTimeout(()=>{ const st=document.getElementById('gauges'); if(st) st.scrollTo({left:0,behavior:'smooth'}); },2600); }
-function mandate(cb){ const d=document.createElement('div'); d.className='mandate';
+function mandate(cb){ try{ SND.play('stamp',0.6); }catch(_){} const d=document.createElement('div'); d.className='mandate';
   d.innerHTML=`<div class="letter"><div class="lh">${SC.ic} ${N.ecole} · Conseil d'administration</div><h3>Lettre de mission</h3><p>Le conseil d'administration confie à</p><div class="sig">${String(S.name||'').replace(/[<>&]/g,'')}</div><p>la direction générale de ${N.ecole}, de 2026 à 2030.</p><p class="pres">${N.president}, président</p><div class="stamp">MANDAT<br>ACCORDÉ</div></div>`;
   document.body.appendChild(d); let done=false; const end=()=>{ if(done) return; done=true; d.classList.add('out'); setTimeout(()=>d.remove(),400); cb(); };
   d.addEventListener('click',end); setTimeout(end,RM()?900:(MOB()?4300:3400)); }
@@ -1890,7 +1939,7 @@ function headlines(){
 }
 
 const EPDESC=["Fixer votre cap pour l'année","Choisir les mesures de votre plan","Répartir le budget d'acquisition","Arbitrer les demandes des directeurs","Convaincre ceux que le conseil écoute","Répondre au CSE et aux salariés, en direct","Le conseil vote votre plan","La rentrée réserve des surprises","Les comptes de l'année tombent","Votre discours devant toutes les équipes","Ce que le conseil retient de l'année"];
-function epCard(){ const ph=S.phase, e=EPISODES[ph]; const prev=Math.max(0,ph-1);
+function epCard(){ try{ if(!RM()) SND.play('whoosh'); }catch(_){} const ph=S.phase, e=EPISODES[ph]; const prev=Math.max(0,ph-1);
   const pct=i=>(i/10*91)+'%';
   document.querySelectorAll('.epcard').forEach(x=>x.remove());
   const d=document.createElement('div'); d.className='epcard';
@@ -1907,7 +1956,7 @@ function renderGame(){
   const g=gaugeHtml();
   app().innerHTML=`<div class="game">
     <div class="top"><div class="brand"><div class="logo">${LOGO}</div><div><div class="t">LE JEU DU DG</div><div class="s">${N.ecole} · Saison ${S.yi+1} · Exercice ${S.year}</div></div><span class="pill ${g.conj[0]}" id="conj" style="margin-left:8px">${g.conj[1]}</span></div>
-      <div class="icons"><button title="Accueil (la partie est sauvegardée)" aria-label="Retour à l'accueil, la partie est sauvegardée" id="homeBtn">🏠</button><button title="Recommencer" aria-label="Recommencer la partie" id="reset">↺</button><button title="Agrandir le texte" aria-label="Agrandir le texte" id="zoomBtn" aria-pressed="${ZOOM()?'true':'false'}">A+</button><button title="Changer d'école (la partie est sauvegardée)" aria-label="Changer d'école, la partie est sauvegardée" id="schoolBtn">🏫</button><button title="Sauvegarder la partie" aria-label="Sauvegarder la partie" id="saveBtn">💾</button></div></div>
+      <div class="icons">${sndBtnHtml()}<button title="Accueil (la partie est sauvegardée)" aria-label="Retour à l'accueil, la partie est sauvegardée" id="homeBtn">🏠</button><button title="Recommencer" aria-label="Recommencer la partie" id="reset">↺</button><button title="Agrandir le texte" aria-label="Agrandir le texte" id="zoomBtn" aria-pressed="${ZOOM()?'true':'false'}">A+</button><button title="Changer d'école (la partie est sauvegardée)" aria-label="Changer d'école, la partie est sauvegardée" id="schoolBtn">🏫</button><button title="Sauvegarder la partie" aria-label="Sauvegarder la partie" id="saveBtn">💾</button></div></div>
     <div class="episodes">${EPISODES.map((e,i)=>`<div class="ep ${i===S.phase?'on':(i<S.phase?'done':'')}"><span class="st">${i<S.phase?'✓':i===S.phase?'▶':'🔒'}</span><span class="ic">${e[2]}</span><span class="m">E${i+1} · ${e[0]}</span><span class="n">${e[1]}</span></div>`).join('')}</div><div class="yearbar"><span>${EPISODES[S.phase][2]} Épisode <b>${S.phase+1}</b>/${EPISODES.length}</span><span class="yb"><i style="width:${((S.phase+1)/EPISODES.length*100).toFixed(1)}%"></i></span><span>${S.year}</span></div>
     <div class="gauges" id="gauges">${g.html}</div>
     <div class="scene" id="scene"></div>
@@ -1917,7 +1966,7 @@ function renderGame(){
   if(!S.booted){ S.booted=true; const gg=$('#gauges'); if(gg){ gg.classList.add('boot'); if(MOB()&&!RM()&&gg.scrollWidth>gg.clientWidth+2){ setTimeout(()=>gg.scrollTo({left:gg.scrollWidth,behavior:'smooth'}),1500); setTimeout(()=>gg.scrollTo({left:0,behavior:'smooth'}),3600); } } }
   animateGauges();
   $('#schoolBtn').addEventListener('click',()=>{ saveToast(); S.screen='scenario'; render(); });
-  $('#saveBtn').addEventListener('click',saveToast);
+  $('#saveBtn').addEventListener('click',saveToast); bindSnd();
   $('#homeBtn').addEventListener('click',()=>{ saveToast(); try{ sessionStorage.removeItem('bde-live'); }catch(_){} newGame(0); S.screen='intro'; render(); });
   $('#reset').addEventListener('click',()=>modal(`<h3>Recommencer la série ?</h3><p class="mt">La partie en cours dans cette école sera perdue. Vos parties dans les autres écoles sont conservées.</p><div class="mf"><button class="lnk" id="mc">Annuler</button><button class="rbtn" id="mo">Recommencer</button></div>`,'gold'));
   document.getElementById('modal').onclick=(e=>{ if(e.target.id==='mc') closeModal(); if(e.target.id==='mo'){closeModal(); try{localStorage.removeItem(SAVE_KEY(SCENARIOS[S.sc].id));}catch(_){} newGame(S.sc);S.screen='intro';render();} });
@@ -2257,15 +2306,207 @@ function eventFx(e){ let fx=scf(typeof e.fx==='function'?e.fx(S):e.fx); const m=
 function mulFx(fx,f){ const o={...fx}; for(const k of ['rev','cost','mk','once','revY','cashBack']) if(o[k]) o[k]=Math.round(o[k]*f); if(o.g){o.g={}; for(const k in fx.g) o.g[k]=Math.round(fx.g[k]*f);} if(o.stuY) o.stuY=1-(1-o.stuY)*f; if(o.stu) o.stu=1-(1-o.stu)*f; if(o.churn) o.churn=o.churn*f; if(o.price) o.price=o.price*f; if(o.media){o.media={}; for(const k in fx.media) o.media[k]=1+(fx.media[k]-1)*f;} if(o.rate) o.rate=o.rate*f; if(o.cap) o.cap=Math.round(o.cap*f); if(o.students) o.students=Math.round(o.students*f); if(f<1) delete o.flag; return o; }
 function halfFx(fx){ return mulFx(fx,0.5); }
 const EV_SIGN=()=>Math.random()<0.5?'pos':'neg'; // imprévus : positif ou négatif, une fois sur deux
-function minorEvent(){ // l'imprévu faible de l'année (demi-effet), à un moment aléatoire, positif ou négatif
+function minorEvent(){ // la décision express de l'année, à un moment aléatoire
   if(S.minor&&S.minor.y===S.year) return S.minor;
   const phases=[1,2,4,5]; S.minor={y:S.year,at:phases[Math.floor(Math.random()*phases.length)],done:false}; return S.minor;
 }
+// ── Son : effets et musique synthétisés à la volée (aucun fichier), réglage mémorisé : 0 muet, 1 effets, 2 effets + musique
+const SND=(()=>{
+  let ctx=null, master=null, sfxG=null, musG=null, noiseBuf=null, musTimer=null, musStep=0, musRoot=0;
+  const mode=()=>{ try{ const v=localStorage.getItem('bde-snd'); return v===null?1:+v; }catch(e){ return 1; } };
+  const setMode=v=>{ try{ localStorage.setItem('bde-snd',String(v)); }catch(e){} apply(); };
+  function init(){ if(ctx) return ctx; const AC=window.AudioContext||window.webkitAudioContext; if(!AC) return null; ctx=new AC();
+    master=ctx.createGain(); master.gain.value=0.9; master.connect(ctx.destination);
+    const comp=ctx.createDynamicsCompressor(); comp.connect(master);
+    sfxG=ctx.createGain(); sfxG.gain.value=0.55; sfxG.connect(comp); musG=ctx.createGain(); musG.gain.value=0; musG.connect(comp);
+    noiseBuf=ctx.createBuffer(1,ctx.sampleRate,ctx.sampleRate); const d=noiseBuf.getChannelData(0); for(let i=0;i<d.length;i++) d[i]=Math.random()*2-1;
+    apply(); return ctx; }
+  function apply(){ if(!ctx) return; const m=mode(); sfxG.gain.setTargetAtTime(m>=1?0.55:0,ctx.currentTime,0.05); if(m>=2) startMusic(); else stopMusic(); }
+  const T=()=>ctx.currentTime;
+  function tone(f,t0,dur,{type='sine',vol=0.3,att=0.005,rel=null,to=null,dest=null}={}){ const o=ctx.createOscillator(), g=ctx.createGain(); o.type=type; o.frequency.setValueAtTime(f,t0); if(to) o.frequency.exponentialRampToValueAtTime(to,t0+dur);
+    g.gain.setValueAtTime(0.0001,t0); g.gain.exponentialRampToValueAtTime(vol,t0+att); g.gain.exponentialRampToValueAtTime(0.0001,t0+(rel||dur)); o.connect(g); g.connect(dest||sfxG); o.start(t0); o.stop(t0+(rel||dur)+0.05); }
+  function noise(t0,dur,{vol=0.3,freq=1200,q=0.8,type='bandpass',to=null,att=0.005}={}){ const s=ctx.createBufferSource(); s.buffer=noiseBuf; s.loop=true; const f=ctx.createBiquadFilter(); f.type=type; f.frequency.setValueAtTime(freq,t0); if(to) f.frequency.exponentialRampToValueAtTime(to,t0+dur); f.Q.value=q;
+    const g=ctx.createGain(); g.gain.setValueAtTime(0.0001,t0); g.gain.exponentialRampToValueAtTime(vol,t0+att); g.gain.exponentialRampToValueAtTime(0.0001,t0+dur); s.connect(f); f.connect(g); g.connect(sfxG); s.start(t0); s.stop(t0+dur+0.05); }
+  const N2F=n=>440*Math.pow(2,(n-69)/12);
+  const arp=(notes,t0,step,o={})=>notes.forEach((n,i)=>tone(N2F(n),t0+i*step,o.dur||step*1.6,o));
+  const S={
+    click:t=>tone(1400,t,0.05,{type:'triangle',vol:0.08}),
+    pick:t=>{ tone(660,t,0.08,{type:'triangle',vol:0.18}); tone(990,t+0.06,0.12,{type:'triangle',vol:0.16}); },
+    ok:t=>arp([72,76,79],t,0.07,{type:'triangle',vol:0.18}),
+    up:t=>tone(700,t,0.12,{type:'sine',vol:0.12,to:1100}),
+    down:t=>tone(520,t,0.16,{type:'sine',vol:0.12,to:300}),
+    tick:t=>tone(1800,t,0.03,{type:'square',vol:0.05}),
+    tickHi:t=>{ tone(2200,t,0.04,{type:'square',vol:0.09}); tone(1100,t+0.02,0.05,{type:'sine',vol:0.08}); },
+    buzzer:t=>{ tone(150,t,0.7,{type:'sawtooth',vol:0.22}); tone(155,t,0.7,{type:'square',vol:0.12}); },
+    whoosh:t=>noise(t,0.55,{vol:0.22,freq:400,to:3000,q:1.2,att:0.15}),
+    stamp:t=>{ noise(t,0.12,{vol:0.6,freq:180,type:'lowpass'}); tone(90,t,0.25,{vol:0.5,to:50}); },
+    thud:t=>{ tone(70,t,0.5,{vol:0.6,to:35}); noise(t,0.3,{vol:0.4,freq:150,type:'lowpass'}); },
+    coin:t=>{ tone(1320,t,0.08,{type:'square',vol:0.1}); tone(1760,t+0.07,0.3,{type:'square',vol:0.1}); },
+    cash:t=>{ S.coin(t); S.coin(t+0.15); noise(t+0.3,0.15,{vol:0.25,freq:5000,type:'highpass'}); tone(2600,t+0.32,0.4,{type:'triangle',vol:0.12}); },
+    error:t=>{ tone(220,t,0.18,{type:'square',vol:0.14}); tone(165,t+0.2,0.3,{type:'square',vol:0.14}); },
+    alarm:t=>{ for(let i=0;i<4;i++){ tone(880,t+i*0.32,0.15,{type:'sawtooth',vol:0.1}); tone(660,t+i*0.32+0.16,0.15,{type:'sawtooth',vol:0.1}); } },
+    pop:t=>{ tone(400,t,0.09,{type:'sine',vol:0.3,to:1200}); },
+    crowd:t=>{ noise(t,1.6,{vol:0.18,freq:900,q:0.4,att:0.4}); for(let i=0;i<6;i++) tone(300+Math.random()*300,t+0.2+i*0.18,0.25,{type:'triangle',vol:0.04}); },
+    chime:t=>arp([84,88,91,96],t,0.18,{type:'sine',vol:0.12,dur:1.2}),
+    door:t=>{ noise(t,0.25,{vol:0.3,freq:300,type:'lowpass'}); tone(110,t+0.2,0.3,{vol:0.4,to:60}); },
+    news:t=>{ arp([67,72,76],t,0.12,{type:'sawtooth',vol:0.08}); tone(N2F(79),t+0.36,0.6,{type:'sawtooth',vol:0.08}); },
+    good:t=>arp([72,76,79,84],t,0.09,{type:'triangle',vol:0.16}),
+    bad:t=>arp([67,63,60],t,0.16,{type:'triangle',vol:0.16,dur:0.4}),
+    show:t=>{ arp([60,64,67,72,76,79,84],t,0.08,{type:'triangle',vol:0.14}); noise(t+0.6,0.8,{vol:0.12,freq:6000,type:'highpass',att:0.05}); },
+    fanfare:t=>{ const n=[[60,64,67],[60,64,67],[65,69,72],[67,71,74],[72,76,79]], d=[0,0.18,0.36,0.6,0.9]; n.forEach((ch,i)=>ch.forEach(x=>tone(N2F(x),t+d[i],i===4?1.6:0.22,{type:'sawtooth',vol:0.07,att:0.01}))); noise(t+0.9,1.2,{vol:0.1,freq:7000,type:'highpass'}); },
+    trombone:t=>{ [[58,0],[57,0.45],[56,0.9],[55,1.35]].forEach(([n,d],i)=>tone(N2F(n),t+d,i===3?1.4:0.42,{type:'sawtooth',vol:0.12,to:i===3?N2F(n)*0.94:null})); },
+    gavel:t=>{ S.thud(t+1.1); S.thud(t+1.45); noise(t+1.5,0.5,{vol:0.3,freq:3000,type:'highpass'}); },
+    collapse:t=>{ for(let i=0;i<5;i++) S.thud(t+0.3+i*0.22); noise(t+0.3,1.6,{vol:0.3,freq:300,type:'lowpass'}); },
+  };
+  S.fin_win=t=>{ S.fanfare(t+0.4); S.fanfare(t+2.2); S.crowd(t+1.6); };
+  S.fin_demi=t=>{ S.pop(t+1.1); noise(t+1.15,0.9,{vol:0.2,freq:4000,type:'highpass'}); S.good(t+2.6); };
+  S.fin_manque=t=>{ for(let i=0;i<8;i++) S.thud(t+0.35+i*0.28); S.trombone(t+3); };
+  S.fin_revoque=t=>{ S.gavel(t); S.stamp(t+1.55); };
+  S.fin_faillite=t=>{ S.alarm(t+0.2); S.collapse(t+1.5); };
+  S.fin_greve=t=>{ S.crowd(t+0.3); S.crowd(t+1.6); S.thud(t+1); };
+  S.fin_exode=t=>{ S.door(t+0.3); for(let i=0;i<6;i++) tone(330,t+0.6+i*0.5,0.1,{type:'triangle',vol:0.06}); S.bad(t+3.2); };
+  function play(name,delay=0){ if(mode()<1) return; if(!init()) return; if(ctx.state==='suspended') ctx.resume(); const f=S[name]; if(f) try{ f(T()+0.02+delay); }catch(e){} }
+  // Musique d'ambiance : nappes lentes + petit arpège, tonalité propre à chaque école
+  const PROG=[[0,3,7],[-4,0,3],[-9,-5,-2],[-2,2,5]];
+  function startMusic(){ if(!ctx||musTimer) return; musG.gain.setTargetAtTime(0.5,T(),1.5); musStep=0; const bar=4.8;
+    const sched=()=>{ if(!ctx) return; const t=T()+0.1, ch=PROG[musStep%PROG.length], r=48+musRoot;
+      ch.forEach(n=>{ [0,12].forEach(o=>tone(N2F(r+n+o),t,bar,{type:o?'sine':'triangle',vol:o?0.025:0.04,att:1.4,rel:bar+0.8,dest:musG})); });
+      [0,1,2,1,0,2,1,2].forEach((k,i)=>tone(N2F(r+24+ch[k]),t+i*bar/8,0.5,{type:'sine',vol:0.022,att:0.02,rel:0.9,dest:musG}));
+      musStep++; };
+    sched(); musTimer=setInterval(sched,4800); }
+  function stopMusic(){ if(musTimer){ clearInterval(musTimer); musTimer=null; } if(musG) musG.gain.setTargetAtTime(0,T(),0.4); }
+  function setRoot(id){ const map={xyn:0,linguia:2,enacto:-3,cnf:-5,hippocampus:4,minuit:-1,orbitale:-6,paysans:5}; musRoot=map[id]||0; }
+  document.addEventListener('pointerdown',()=>{ if(mode()>=1&&init()&&ctx.state==='suspended') ctx.resume(); if(mode()>=2) startMusic(); },{capture:true});
+  document.addEventListener('click',e=>{ const b=e.target.closest&&e.target.closest('button'); if(!b||b.id==='sndBtn') return; play(b.classList.contains('opt')||b.classList.contains('prof')?'pick':'click'); },{capture:true});
+  document.addEventListener('visibilitychange',()=>{ if(!ctx) return; if(document.hidden) ctx.suspend(); else if(mode()>=1) ctx.resume(); });
+  return {play,mode,setMode,setRoot,label:()=>['🔇','🔊','🎵'][mode()],title:()=>['Son coupé','Effets sonores','Effets sonores et musique'][mode()]};
+})();
+function sndBtnHtml(){ return `<button title="${SND.title()} (toucher pour changer)" aria-label="Son : ${SND.title()}" id="sndBtn">${SND.label()}</button>`; }
+function bindSnd(){ const b=document.getElementById('sndBtn'); if(!b) return; b.onclick=()=>{ const m=(SND.mode()+1)%3; SND.setMode(m); document.querySelectorAll('#sndBtn').forEach(x=>{ x.textContent=SND.label(); x.title=SND.title(); x.setAttribute('aria-label','Son : '+SND.title()); }); if(m) SND.play('ok'); toast2(SND.label()+' '+SND.title()); }; }
+function toast2(txt){ const t=document.createElement('div'); t.className='toast'; t.innerHTML=`<b>${txt}</b>`; const box=document.getElementById('toasts'); if(box){ box.appendChild(t); setTimeout(()=>t.remove(),2200); } }
+// sons des animations d'imprévus, par thème
+const EVSND={glitch:'error',stamp:'stamp',news:'news',money:'cash',signs:'crowd',alert:'alarm',buzz:'pop',contract:'stamp',medal:'fanfare',cpl:'coin',ia:'error',price:'coin',exit:'door',calendar:'whoosh',shutter:'thud',handshake:'good',cloud:'whoosh',dossiers:'whoosh',zen:'chime',podium:'fanfare'};
+
+// ── Application installable (sur ecolesenligne.fr uniquement)
+const IS_SITE=/^\/lejeududg/i.test(location.pathname);
+let INSTALL_EV=null;
+try{ if(IS_SITE&&'serviceWorker' in navigator) navigator.serviceWorker.register('/lejeuduDG/sw.js',{scope:'/lejeuduDG'}).catch(()=>{}); }catch(e){}
+window.addEventListener('beforeinstallprompt',e=>{ e.preventDefault(); INSTALL_EV=e; });
+window.addEventListener('appinstalled',()=>{ INSTALL_EV=null; document.querySelectorAll('#instBtn').forEach(b=>b.remove()); });
+const STANDALONE=()=>{ try{ return matchMedia('(display-mode: standalone)').matches||navigator.standalone===true; }catch(e){ return false; } };
+function installBtn(){ if(!IS_SITE||STANDALONE()) return null;
+  const ios=/iphone|ipad|ipod/i.test(navigator.userAgent)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1), mob=/android|iphone|ipad|ipod/i.test(navigator.userAgent)||ios;
+  const b=btn('📲 Installer l\'appli',async()=>{
+    if(INSTALL_EV){ INSTALL_EV.prompt(); try{ const r=await INSTALL_EV.userChoice; if(r&&r.outcome==='accepted') b.remove(); }catch(e){} INSTALL_EV=null; return; }
+    const how=ios?`<p class="mt">Dans <b>Safari</b> : touchez le bouton <b>Partager</b> <span style="font-size:18px">⬆️</span> en bas de l'écran, puis <b>« Sur l'écran d'accueil »</b>, puis <b>Ajouter</b>.</p><p class="ms">Sur iPhone, l'installation ne fonctionne que depuis Safari.</p>`
+      :mob?`<p class="mt">Dans <b>Chrome</b> : touchez le menu <b>⋮</b> en haut à droite, puis <b>« Installer l'application »</b> ou <b>« Ajouter à l'écran d'accueil »</b>.</p>`
+      :`<p class="mt">Dans <b>Chrome</b> ou <b>Edge</b> : cliquez sur l'icône d'installation <b>⊕</b> à droite de la barre d'adresse, puis <b>Installer</b>.</p>`;
+    modal(`<div class="ic">📲</div><h3>Installer Le Jeu du DG</h3>${how}<p class="ms">L'icône du jeu apparaît ensuite avec vos applis : il s'ouvre en plein écran, sans barre de navigateur, et vos parties restent sauvegardées.</p><div class="mf"><span></span><button class="mbtn" id="mc">Compris</button></div>`,'gold');
+    document.getElementById('modal').onclick=(e=>{ if(e.target.id==='mc') closeModal(); });
+  },'sbtn'); b.id='instBtn'; return b; }
+
+// ── Décision express : remplace l'imprévu faible. Une situation, trois réponses, un compte à rebours. Sans réponse, c'est la dernière ligne (« t ») qui s'applique.
+const CRISES=[
+ {ic:'📰',who:()=>'Une journaliste du Parisien',role:'au téléphone',t:()=>`« Je publie demain un article sur des ${SC.unit} mécontents de ${N.ecole}. Vous avez un commentaire ? »`,
+  c:[['Répondre franchement, chiffres à l\'appui',{g:{etu:2,ca:1}},'L\'article cite votre réponse. Il reste critique, mais équilibré.'],
+     ['« Pas de commentaire »',{g:{etu:-3},stuY:0.99},'« La direction n\'a pas souhaité répondre. » La phrase tourne en boucle.'],
+     ['Menacer de poursuites',{once:-40,g:{etu:-5,ca:-3}},'L\'article sort quand même, avec un encadré sur vos menaces.']],
+  to:[{g:{etu:-4},stuY:0.985},'Vous n\'avez pas rappelé : « La direction n\'a pas répondu à nos sollicitations. »']},
+ {ic:'💥',who:()=>N.dsi,role:'Directeur des systèmes',t:()=>`« La plateforme est tombée la veille des examens. Un ${SC.unit.replace(/s$/,'')} a filmé l'écran d'erreur : 80 000 vues. On fait quoi ? »`,
+  c:[['Reporter l\'examen et s\'excuser publiquement',{once:-60,g:{etu:4}},'Les excuses sont reprises comme un exemple de gestion de crise.'],
+     ['Offrir un mois à tous les inscrits',{revY:-200,g:{etu:5,ca:-1}},'Ça coûte cher, mais la vidéo devient « ils ont assuré ».'],
+     ['Laisser passer, ça va retomber',{g:{etu:-5}},'Ça ne retombe pas. Les commentaires s\'accumulent.']],
+  to:[{g:{etu:-6,ca:-1}},'Silence radio pendant que la vidéo tourne. Le pire des scénarios.']},
+ {ic:'🤝',who:()=>N.business,role:'Directrice grands comptes',t:()=>`« Notre plus gros client veut 15 % de remise. Il attend une réponse avant ce soir, sinon il signe chez le concurrent. »`,
+  c:[['Accepter les 15 %',{revY:-150,g:{com:2}},'Le client reste. Votre marge, un peu moins.'],
+     ['Contre-proposer 8 % et un service en plus',{revY:-80,g:{com:1}},'Il hésite, puis signe. Bien joué.'],
+     ['Refuser',{revY:-300,g:{com:-2}},'Il part. L\'équipe commerciale encaisse le coup.']],
+  to:[{revY:-350,g:{com:-4}},'Pas de réponse avant ce soir : il a signé ailleurs.']},
+ {ic:'🏃',who:()=>N.com,role:'Directrice commerciale',t:()=>`« ${N.comSenior}, notre meilleure commerciale, a une offre du concurrent. Elle veut une réponse avant 18 h. »`,
+  c:[['+15 % de salaire, tout de suite',{cost:60,g:{com:4,cse:-1}},'Elle reste. Les autres l\'apprennent vite.'],
+     ['Lui proposer de prendre une équipe',{g:{com:2,ca:-1}},'Elle accepte le défi. Il faudra tenir la promesse.'],
+     ['La laisser partir',{revY:-200,g:{com:-4}},'Elle part avec deux clients et le moral de l\'équipe.']],
+  to:[{revY:-220,g:{com:-5}},'18 h passe. Elle envoie sa démission à 18 h 02.']},
+ {ic:'🔓',who:()=>N.dsi,role:'Directeur des systèmes',t:()=>`« On a peut-être une fuite de données : des adresses de ${SC.unit} circulent sur un forum. Je coupe la plateforme ? »`,
+  c:[['Couper 24 h et vérifier',{revY:-80,g:{etu:-2,ca:2}},'Fausse alerte partielle. Le conseil apprécie la prudence.'],
+     ['Prévenir la CNIL et les inscrits',{once:-40,g:{etu:1,ca:3}},'La transparence paie : peu de désinscriptions.'],
+     ['Enquêter sans rien dire',{once:-100,g:{etu:-1,ca:-1}},'La fuite était réelle. Elle sort quand même, plus tard.']],
+  to:[{once:-250,g:{etu:-4,ca:-3}},'Personne n\'a décidé. Les données ont continué de fuiter toute la nuit.']},
+ {ic:'📺',who:()=>N.president,role:N.presidentRole||'Président',t:()=>`« Je passe sur BFM Business demain matin. Je veux annoncer une nouvelle filière. Vous êtes d'accord ? »`,
+  c:[['Valider, on suivra',{cost:80,g:{ca:3,com:3}},'L\'annonce fait du bruit. Il faudra la financer.'],
+     ['Lui proposer d\'annoncer vos résultats à la place',{g:{ca:1,etu:1}},'Moins spectaculaire, mais il est content de sa matinée.'],
+     ['Refuser : rien n\'est prêt',{g:{ca:-5,cse:2}},'Il raccroche sèchement. Il s\'en souviendra.']],
+  to:[{cost:100,g:{ca:-2,cse:-2}},'Sans réponse de votre part, il annonce une filière… que personne n\'a préparée.']},
+ {ic:'✊',who:()=>N.cse,role:'Secrétaire du CSE',t:()=>`« Si on n'a pas de réponse sur les titres-restaurant ce soir, c'est débrayage demain matin. »`,
+  c:[['Accorder la hausse',{cost:90,g:{cse:6}},'Le débrayage est annulé. Le CSE note le geste.'],
+     ['Proposer une réunion lundi, ordre du jour écrit',{g:{cse:1,ca:-1}},'Ils acceptent d\'attendre lundi. Il faudra arriver avec du concret.'],
+     ['Refuser',{g:{cse:-6},stuY:0.99},'Débrayage d\'une heure. Les cours du matin sautent.']],
+  to:[{g:{cse:-7,com:-2},stuY:0.99},'Pas de réponse : le débrayage commence à 9 h, devant les caméras.']},
+ {ic:'🤳',who:()=>N.mkt,role:'Directrice marketing',t:()=>`« Une influenceuse à 900 000 abonnés veut parler de nous cette semaine. Elle demande 70 k€, réponse ce soir. »`,
+  c:[['Payer les 70 k€',{once:-70,stuY:1.02},'La vidéo cartonne, les contacts arrivent.'],
+     ['Proposer une commission par inscription',{stuY:1.01,g:{com:2}},'Elle accepte, moins motivée. Ça marche quand même.'],
+     ['Décliner poliment',{},'Elle parle d\'une autre école. Rien de perdu, rien de gagné.']],
+  to:[{g:{com:-1}},'Pas de réponse : elle signe avec votre concurrent.']},
+ {ic:'💶',who:()=>N.daf,role:N.dafRole||'DAF',t:()=>`« La Région ouvre une enveloppe formation. Dossier à déposer avant minuit, sinon on attend un an. »`,
+  c:[['Mobiliser l\'équipe ce soir',{revY:250,g:{cse:-3}},'Dossier complet à 23 h 47. Accepté.'],
+     ['Déposer un dossier minimal',{revY:100},'Accepté, pour une petite partie de l\'enveloppe.'],
+     ['Laisser passer cette année',{},'D\'autres écoles se partagent l\'enveloppe.']],
+  to:[{g:{ca:-1}},'Minuit passe. Le portail ferme sans votre dossier.']},
+ {ic:'🧾',who:()=>N.rh,role:'Directrice des ressources humaines',t:()=>`« Le prestataire de paie a planté : les salaires ne sont pas partis. Les équipes s'en aperçoivent ce matin. »`,
+  c:[['Virements manuels d\'urgence aujourd\'hui',{once:-30,g:{cse:3}},'Tout le monde est payé le soir même. Le CSE remercie.'],
+     ['Un mail d\'excuses, paiement lundi',{g:{cse:-3}},'Ça grince, surtout chez ceux qui ont un prélèvement.'],
+     ['Attendre que le prestataire corrige',{g:{cse:-6,com:-2}},'Trois jours sans salaire. La colère monte.']],
+  to:[{g:{cse:-7,com:-2}},'Personne n\'a tranché. Les messages furieux s\'empilent.']},
+ {ic:'🏷️',who:()=>N.mkt,role:'Directrice marketing',t:()=>`« Notre concurrent lance −30 % ce soir à minuit. Je prépare quelque chose ? »`,
+  c:[['S\'aligner sur le prix',{revY:-250,stuY:1.03},'Vous gardez les volumes, pas la marge.'],
+     ['Campagne « la qualité, ça se paie »',{once:-80,g:{com:2}},'Le message passe auprès des bons profils.'],
+     ['Ne rien faire',{stuY:0.97},'Une partie des indécis part chez lui.']],
+  to:[{stuY:0.965,g:{com:-1}},'Minuit : sa promo est en ligne, vous n\'avez rien préparé.']},
+ {ic:'🔎',who:()=>N.qualite,role:'Responsable qualité',t:()=>`« L'auditeur ${N.qualiopi||'Qualiopi'} arrive demain matin, sans prévenir. On n'est pas prêts sur deux indicateurs. »`,
+  c:[['Nuit blanche pour l\'équipe qualité',{g:{cse:-3,ca:2}},'Audit passé. L\'équipe dort jusqu\'à midi le lendemain.'],
+     ['Demander un report',{g:{ca:-3}},'Accordé, mais noté. Le conseil n\'aime pas ça.'],
+     ['Y aller tel quel',{once:-120,g:{ca:-2}},'Deux non-conformités et un plan d\'action payant.']],
+  to:[{once:-150,g:{ca:-3}},'Personne n\'a rien préparé. Trois non-conformités.']},
+ {ic:'🗣️',who:()=>N.etuF,role:'Représentante des inscrits',t:()=>`« Une ${SC.unit.replace(/s$/,'')} accuse un formateur de propos humiliants, sur LinkedIn. Le post monte vite. »`,
+  c:[['Suspendre le formateur, enquête indépendante',{g:{etu:4,cse:-2,ca:1}},'Une réaction jugée sérieuse par tout le monde.'],
+     ['Enquête interne discrète',{g:{etu:-3}},'Vu de l\'extérieur, l\'école ne fait rien.'],
+     ['Un communiqué de soutien, sans plus',{g:{etu:-5,ca:-2}},'« Des mots, pas d\'actes » : le post redouble.']],
+  to:[{g:{etu:-6,ca:-2}},'Aucune réaction officielle. Le post atteint la presse.']},
+ {ic:'🏦',who:()=>N.banquier,role:N.banque,t:()=>`« Je peux renouveler votre ligne de crédit, mais à +1 point. Il me faut votre signature avant ce soir. »`,
+  c:[['Signer',{rate:0.005,g:{ca:1}},'La ligne est sécurisée, un peu plus chère.'],
+     ['Négocier à +0,5 point',{rate:0.0025,g:{ca:-1}},'Il cède, en vous le faisant sentir.'],
+     ['Chercher une autre banque',{once:-40,g:{ca:-3}},'Des semaines de dossiers. Le conseil s\'inquiète.']],
+  to:[{once:-100,g:{ca:-3}},'Sans signature, la ligne est réduite de moitié. Il faut payer des frais de découvert.']},
+];
+function crisisFx(f){ const o={...f}; if(f.g){ o.g={}; for(const k in f.g) o.g[k]=f.g[k]>0?Math.round(f.g[k]*0.6):f.g[k]; } if(o.revY>0) o.revY=Math.round(o.revY*0.6); if(o.stuY>1) o.stuY=1+(o.stuY-1)*0.6; return scf(o); } // une crise reste une crise : les bonnes réponses limitent la casse plus qu'elles ne rapportent
+function crisisSecs(){ return MOB()?26:20; }
 function maybeMinor(){
   const m=minorEvent(); if(m.done||m.at!==S.phase||document.getElementById('modal').innerHTML) return false;
-  if(m.ev===undefined) m.ev=pickEvent(EV_SIGN()); const e=EVENTS[m.ev]; const fx=halfFx(eventFx(e)); const lab='Imprévu faible · '+EPISODES[S.phase][0];
-  m.done=true; save(); evFX(e,fx,()=>eventModal(e,fx,lab,()=>{save();renderBudget();renderGauges();}),lab); return true;
+  if(document.querySelector('.epcard:not(.out)')){ setTimeout(()=>{ if(S.phase===m.at&&!m.done) maybeMinor(); },500); return true; }
+  S.used.cr=S.used.cr||[]; if(m.cr===undefined){ let pool=CRISES.map((_,i)=>i).filter(i=>!S.used.cr.includes(i)); if(!pool.length) pool=CRISES.map((_,i)=>i); m.cr=pool[Math.floor(Math.random()*pool.length)]; S.used.cr.push(m.cr); }
+  m.done=true; save(); crisisModal(CRISES[m.cr],'Décision express · '+EPISODES[S.phase][0],()=>{save();renderBudget();renderGauges();}); return true;
 }
+let CR_T=null;
+function crisisModal(cr,label,cb){
+  const esc=x=>String(x).replace(/[<>&]/g,''); const secs=crisisSecs();
+  modal(`<div class="crisis"><div class="crtop"><span class="ml">⏱ ${label}</span><span class="crn" id="crn">${secs}</span></div><div class="crbar"><i id="crbar"></i></div>
+    <div class="crwho"><span class="ic">${cr.ic}</span><div><b>${esc(cr.who())}</b><small>${esc(cr.role)}</small></div></div><div class="mt">${cr.t()}</div><div class="opts" id="cro"></div><div class="ms">Sans réponse avant la fin du compte à rebours, la situation décide pour vous.</div></div>`,'gold crisism');
+  const box=document.getElementById('cro'); let done=false, left=secs*1000, last=performance.now(), tick=Math.ceil(secs);
+  const finish=(fx,txt,timeout,lab)=>{ if(done) return; done=true; clearInterval(CR_T); fx=crisisFx(fx); try{ SND&&SND.play(timeout?'buzzer':'pick'); }catch(e){}
+    (S.log=S.log||[]).push({y:S.year,kind:'décision',n:lab,eff:Math.round((fx.revY||0)+(fx.once||0)-(fx.cost||0)),cap:(fx.g&&fx.g.ca)||0,heart:fx.g?Object.values(fx.g).reduce((a,b)=>a+b,0):0,bad:isBad(fx)});
+    apply(fx,lab);
+    modal(`<div class="ic">${timeout?'⌛':cr.ic}</div><div class="ml">${label}${timeout?' · temps écoulé':''}</div><div class="mt">${esc(txt)}</div><div>${chips(fx)}</div><div style="margin-top:10px"><button class="mbtn" id="ack">Continuer</button></div>`,isBad(fx)?'bad':'');
+    document.getElementById('ack').onclick=()=>{closeModal();cb();}; };
+  cr.c.forEach(([l,fx,out])=>box.appendChild(btn(esc(l),()=>finish(fx,out,false,'Décision : '+l),'opt')));
+  const bar=document.getElementById('crbar'), num=document.getElementById('crn');
+  CR_T=setInterval(()=>{ const now=performance.now(); if(!document.hidden) left-=now-last; last=now;
+    if(!bar.isConnected){ clearInterval(CR_T); return; }
+    const s=Math.max(0,Math.ceil(left/1000)); num.textContent=s; bar.style.width=Math.max(0,left/(secs*10))+'%';
+    if(s<=5) num.parentElement.parentElement.classList.add('hurry');
+    if(s<tick){ tick=s; try{ SND&&SND.play(s<=5?'tickHi':'tick'); }catch(e){} }
+    if(left<=0) finish(cr.to[0],cr.to[1],true,'Décision express : temps écoulé'); },100);
+}
+
 function isBadE(e,fx){ return e&&e.pos?false:isBad(fx); } // un imprévu annoncé positif reste vert même s'il coûte un peu
 function isBad(fx){ return (fx.g&&Object.values(fx.g).some(v=>v<0))||(fx.once&&fx.once<0)||(fx.stuY&&fx.stuY<1)||fx.rate>0||fx.revY<0||fx.cost>0||(fx.media&&Object.values(fx.media).some(v=>v>1)); }
 
@@ -2461,8 +2702,8 @@ let SFX_HOLD=0;
 function sfxBox(cls,html,dur,onStart,onEnd){ dur+=SFX_HOLD; const d=document.createElement('div'); d.className='sfx '+(cls||''); d.setAttribute('role','dialog'); d.setAttribute('aria-modal','true'); d.setAttribute('aria-label','Animation : appuyez sur Échap ou touchez pour passer'); d.tabIndex=-1; d.innerHTML=html+'<div class="skip">toucher pour passer</div>'; document.body.appendChild(d); let done=false;
   const end=()=>{ if(done) return; done=true; d.classList.add('out'); setTimeout(()=>d.remove(),500); if(onEnd) onEnd(); };
   d.addEventListener('click',end); d.addEventListener('keydown',ev=>{ if(ev.key==='Escape'||ev.key==='Enter'||ev.key===' ') { ev.preventDefault(); end(); } }); setTimeout(()=>{ try{d.focus();}catch(e){} },20); setTimeout(end,RM()?600:dur); if(onStart) onStart(d,end); return d; }
-function evFX(e,fx,cb,label){ SFX_HOLD=MOB()?2400:0; try{ return evFX2(e,fx,cb,label); } finally { SFX_HOLD=0; } }
-function showFX(kind,ctx,cb){
+function evFX(e,fx,cb,label){ try{ SND.play(EVSND[evTheme(e)]||'alarm'); }catch(_){} SFX_HOLD=MOB()?2400:0; try{ return evFX2(e,fx,cb,label); } finally { SFX_HOLD=0; } }
+function showFX(kind,ctx,cb){ try{ if(!RM()) SND.play('show'); }catch(_){}
   if(RM()) return cb();
   const lr=ctx.lr, resS=mE(lr.res), caS=(lr.rev/1000).toFixed(1).replace('.',',')+' M€', esc=x=>String(x).replace(/[<>&]/g,''), R=(a,b)=>a+Math.random()*(b-a);
   const cap=(d,good,t)=>`<div class="evcap ${good?'good':'bad'}" style="animation-delay:${d}s;z-index:5"><small>Grand show de fin d'année</small><b>${t}</b></div>`;
@@ -2539,7 +2780,7 @@ function bilanHtml(){
   return `<div class="note" style="text-align:left"><div class="h">📘 Ce que cette partie raconte</div>${lines.map(l=>`<p style="margin:4px 0">${l}</p>`).join('')}</div>`;
 }
 // ── Sauvegarde visible ──
-function saveToast(){ try{ save(); }catch(e){} document.querySelectorAll('.savetoast').forEach(x=>x.remove()); const ep=EPISODES[S.phase||0];
+function saveToast(){ try{ save(); }catch(e){} try{ SND.play('ok'); }catch(_){} document.querySelectorAll('.savetoast').forEach(x=>x.remove()); const ep=EPISODES[S.phase||0];
   const t=document.createElement('div'); t.className='savetoast'; t.setAttribute('role','status');
   t.innerHTML=`✅ <b>Partie sauvegardée</b> · ${SC.ic} ${N.ecole} · Saison ${S.yi+1} · ${ep?ep[0]:''} ${S.year}<br><span style="color:var(--muted);font-size:12px">Vous la retrouverez sur l'accueil (🏠, « Mes parties sauvegardées »), même après avoir fermé le jeu.</span>`;
   document.body.appendChild(t); setTimeout(()=>{t.classList.add('out'); setTimeout(()=>t.remove(),450);},3200);
@@ -2551,7 +2792,7 @@ function saveFlash(){ const now=Date.now(); if(now-SAVE_FLASH<4000) return; SAVE
 function finaleKind(statut){ if(statut==='objectif') return 'win'; if(statut==='equilibre') return 'demi'; if(statut==='manque') return 'manque';
   const w=String(S.over&&S.over.why||''); return /ligne de crédit|bilan/i.test(w)?'faillite':/Grève/i.test(w)?'greve':/Hémorragie|habilitation/i.test(w)?'exode':'revoque'; }
 function finale(kind){
-  if(RM()) return;
+  if(RM()) return; try{ SND.play('fin_'+kind); }catch(_){}
   const lr=S.lastResult, R=(a,b)=>a+Math.random()*(b-a), esc=x=>String(x).replace(/[<>&]/g,''), nm=esc(S.name||'Vous'), ec=esc(N.ecole);
   const count=(el,to,ms)=>{ if(!el) return; const t0=performance.now(); const st=t=>{ if(!el.isConnected) return; const p=Math.min(1,(t-t0)/ms); el.textContent=mE(to*(1-Math.pow(1-p,3))); if(p<1) requestAnimationFrame(st); }; requestAnimationFrame(st); };
   const fw=(d,n,delay,cols)=>{ for(let k=0;k<n;k++) setTimeout(()=>{ if(!d.isConnected) return; const b=document.createElement('div'); b.className='fw'; b.style.left=R(8,92)+'%'; b.style.top=R(6,55)+'%'; const c=cols[k%cols.length]; b.style.background=c; b.style.color=c; for(let q=0;q<22;q++){ const i=document.createElement('i'); i.style.setProperty('--a',(q*16.4)+'deg'); i.style.setProperty('--d',R(60,150)+'px'); b.appendChild(i);} d.appendChild(b); setTimeout(()=>b.remove(),1500); },delay+k*R(180,320)); };
@@ -2580,6 +2821,60 @@ function finale(kind){
   else { // exode
     sfxBox('fin',`<div class="door2"></div>${[...Array(18)].map((_,k)=>`<span class="leaver" style="animation-delay:${(k*0.22).toFixed(2)}s;bottom:${(10+R(0,4)).toFixed(1)}vh">🎓</span>`).join('')}<div class="stage" style="z-index:2;margin-top:-18vh"><div class="ttl" style="animation-delay:1.2s;color:#ff8a96">Habilitation retirée</div><div class="who" style="animation-delay:1.6s">${nm} · ${ec} · ${S.year}</div>${sub(why,2)}</div>`,(MOB()?10000:8500),null,null); }
 }
+// ── La une du journal : fin de mandat racontée par la presse
+function journalData(kind){
+  const lr=S.lastResult, esc=x=>String(x==null?'':x).replace(/[<>&]/g,''), nm=esc(S.name||'Le DG'), ec=esc(N.ecole), pr=esc(N.president), why=esc(S.over&&S.over.why||'');
+  const lost=['revoque','faillite','greve','exode'].includes(kind);
+  const mois=['janvier','février','mars','avril','mai','juin','juillet','septembre','novembre','décembre','décembre'];
+  const date=lost?`${(S.phase>=8?28:15)} ${mois[S.phase]||'décembre'} ${S.year}`:`31 décembre ${S.year}`;
+  const H={win:[`${ec} : le pari gagné de ${nm}`,`Fin ${S.year}, l'école affiche ${mE(lr.res)} de résultat net pour ${tgt()} demandés. Le conseil d'administration est unanime.`,'🏆',`${nm} et ${pr}, hier soir, au siège de ${ec}.`],
+    demi:[`${ec} rentable, sans l'éclat espéré`,`${mE(lr.res)} de résultat net fin ${S.year}, loin des ${tgt()} visés. ${pr} garde ${nm}, « en attendant mieux ».`,'🍾',`Une coupe de champagne, mais pas deux.`],
+    manque:[`${nm} quitte ${ec} sans prolongation`,`Avec ${mE(lr.res)} de résultat net, l'école reste loin de l'objectif fixé par le conseil. Le mandat n'est pas renouvelé.`,'📦',`Le carton de ${nm}, hier, sur le parking.`],
+    revoque:[`${nm} révoqué·e par le conseil`,why||`Le conseil d'administration a mis fin au mandat avec effet immédiat.`,'🔨',`La salle du conseil, juste après le vote.`],
+    faillite:[`${ec} au bord du dépôt de bilan`,why||`La banque a coupé la ligne de crédit.`,'🚧',`Le siège de ${ec}, portes closes ce matin.`],
+    greve:[`Grève illimitée : ${nm} remplacé·e`,why||`Les salariés ont obtenu le départ de la direction.`,'✊',`Le piquet de grève devant l'entrée, hier.`],
+    exode:[`${ec} perd son habilitation`,why||`Les inscrits partent en masse.`,'🚪',`Le campus en ligne, désert depuis lundi.`]}[kind]||[ec,'','📰',''];
+  const q=(v,hi,mid,lo)=>v>=60?hi:v>=40?mid:lo;
+  const quotes=[[pr,N.presidentRole||'Président',kind==='win'?'« Je savais que c\'était la bonne personne. »':kind==='demi'?'« Rentable, c\'est bien. Ambitieux, ce sera mieux. »':'« Ce n\'est pas de gaieté de cœur. »'],
+    [esc(N.cse),'Secrétaire du CSE',q(S.g.cse,'« Le dialogue social a été réel. On s\'en souviendra. »','« Un mandat en demi-teinte pour les salariés. »','« Personne ne regrettera cette période au CSE. »')],
+    [esc(N.etuF),'Représentante des inscrits',q(S.g.etu,'« On a senti que la direction nous écoutait. »','« Des hauts, des bas, beaucoup de mails. »','« On avait l\'impression d\'être des numéros. »')],
+    [esc(N.com),'Directrice commerciale',q(S.g.com,'« L\'équipe aurait suivi ce DG n\'importe où. »','« On a fait le job, sans plus. »','« Les meilleurs sont partis les premiers. »')]];
+  const log=(S.log||[]).filter(x=>x&&x.n); const best=log.slice().sort((a,b)=>b.eff-a.eff)[0], worst=log.slice().sort((a,b)=>a.eff-b.eff)[0];
+  const stats=[['Résultat net',mE(lr.res)],['Chiffre d\'affaires',(lr.rev/1000).toFixed(1).replace('.',',')+' M€'],[SC.unit.charAt(0).toUpperCase()+SC.unit.slice(1),fmt(S.students)],['Salariés',fmt(S.staff)]];
+  const also=[...new Set(S.trophSession||[])].map(id=>BADGES.find(b=>b.id===id)).filter(Boolean).slice(0,2).map(b=>`${b.ic} Trophée : ${b.n}`);
+  const fill=['Formation en ligne : le marché dépasse les campus','Météo sociale : éclaircies le vendredi','Mercato : les DG d\'école s\'arrachent','Courrier des lecteurs : « Rendez-nous le présentiel »'];
+  while(also.length<3) also.push(fill[(also.length+S.year)%fill.length]);
+  return {nm,ec,date,H,quotes,best,worst,stats,also,lost};
+}
+function journalHtml(kind){ const J=journalData(kind), esc=x=>String(x==null?'':x).replace(/[<>&]/g,'');
+  return `<div class="journal" aria-label="La une du journal">
+   <div class="jmast"><span>N° ${S.year*7%9000+1000}</span><b>Le Quotidien de la Formation</b><span>2,80 €</span></div>
+   <div class="jdate">Édition du ${J.date} · ${J.lost?'Édition spéciale':'Spécial bilan'}</div>
+   <h2 class="jh">${J.H[0]}</h2><p class="jdeck">${J.H[1]}</p>
+   <div class="jgrid"><figure class="jphoto"><div>${J.H[2]}</div><figcaption>${J.H[3]}</figcaption></figure>
+    <div class="jcol"><div class="jk">Les chiffres</div>${J.stats.map(([l,v])=>`<p><span>${l}</span><b>${v}</b></p>`).join('')}</div></div>
+   <div class="jk">Ils ont dit</div><div class="jquotes">${J.quotes.map(([w,r,t])=>`<blockquote>${t}<cite>${w}, ${esc(r)}</cite></blockquote>`).join('')}</div>
+   ${J.best||J.worst?`<div class="jk">Le mandat en deux décisions</div><div class="jquotes">${J.best&&J.best.eff>0?`<blockquote class="up">📈 ${esc(J.best.n)} <cite>${J.best.y} · ${kE(J.best.eff)}</cite></blockquote>`:''}${J.worst&&J.worst.eff<0?`<blockquote class="dn">📉 ${esc(J.worst.n)} <cite>${J.worst.y} · ${kE(J.worst.eff)}</cite></blockquote>`:''}</div>`:''}
+   <div class="jalso"><b>Aussi dans ce numéro</b> ${J.also.map(esc).join(' · ')}</div></div>`; }
+function journalShare(kind){ const J=journalData(kind); const W=1080,Hh=2000, cv=document.createElement('canvas'); cv.width=W; cv.height=Hh; const c=cv.getContext('2d');
+  const strip=t=>String(t).replace(/<[^>]+>/g,'').replace(/&amp;/g,'&');
+  c.fillStyle='#f3eee2'; c.fillRect(0,0,W,Hh); c.fillStyle='#1b1b1b';
+  const wrap=(t,x,y,mw,lh,font)=>{ c.font=font; const words=strip(t).split(' '); let line='',yy=y; for(const w of words){ const tt=line?line+' '+w:w; if(c.measureText(tt).width>mw&&line){ c.fillText(line,x,yy); line=w; yy+=lh; } else line=tt; } if(line) c.fillText(line,x,yy); return yy+lh; };
+  c.textAlign='center'; c.font='900 74px Georgia, serif'; c.fillText('Le Quotidien de la Formation',W/2,120);
+  c.fillRect(60,150,W-120,6); c.fillRect(60,164,W-120,2); c.font='italic 28px Georgia, serif'; c.fillText('Édition du '+J.date,W/2,210); c.fillRect(60,234,W-120,2);
+  c.textAlign='left'; let y=wrap(J.H[0],60,330,W-120,84,'900 76px Georgia, serif'); y=wrap(J.H[1],60,y+10,W-120,44,'italic 34px Georgia, serif');
+  c.fillStyle='#d9d0bc'; c.fillRect(60,y+10,520,400); c.font='220px serif'; c.textAlign='center'; c.fillStyle='#1b1b1b'; c.fillText(J.H[2],320,y+290);
+  c.font='italic 24px Georgia, serif'; c.textAlign='left'; wrap(J.H[3],60,y+450,520,30,'italic 24px Georgia, serif');
+  let sy=y+40; c.font='700 24px Arial, sans-serif'; c.fillText('LES CHIFFRES',620,sy); sy+=20; for(const [l,v] of J.stats){ sy+=92; c.font='22px Arial, sans-serif'; c.fillText(strip(l),620,sy-40); c.font='900 46px Georgia, serif'; c.fillText(strip(v),620,sy+8); }
+  y=Math.max(y+520,sy+60); c.fillRect(60,y,W-120,2); y+=50; c.font='700 24px Arial, sans-serif'; c.fillText('ILS ONT DIT',60,y); y+=20;
+  for(const [w,r,t] of J.quotes.slice(0,3)){ y=wrap(t,60,y+44,W-120,40,'italic 32px Georgia, serif'); c.font='22px Arial, sans-serif'; c.fillText('— '+strip(w)+', '+strip(r),60,y); y+=6; }
+  y+=40; c.fillRect(60,y,W-120,4); y+=50; c.font='22px Arial, sans-serif'; c.textAlign='center'; c.fillText('ecolesenligne.fr/lejeuduDG · Le Jeu du DG',W/2,y); y+=40;
+  const cv2=document.createElement('canvas'); cv2.width=W; cv2.height=Math.min(Hh,y); cv2.getContext('2d').drawImage(cv,0,0); const url=cv2.toDataURL('image/png');
+  modal(`<h3>La une de votre mandat</h3><img src="${url}" alt="La une du Quotidien de la Formation" style="width:100%;border-radius:8px;border:1px solid var(--line)"><p class="ms" style="margin-top:6px">Sur téléphone, appui long sur l'image pour l'enregistrer.</p><div class="mf"><button class="lnk" id="mc">Fermer</button>${navigator.share?'<button class="mbtn" id="jsh">Partager</button>':''}</div>`);
+  document.getElementById('modal').onclick=(e=>{ if(e.target.id==='mc') closeModal(); });
+  const sh=document.getElementById('jsh'); if(sh) sh.onclick=async()=>{ try{ const blob=await (await fetch(url)).blob(); const f=new File([blob],'la-une-jeu-du-dg.png',{type:'image/png'}); if(navigator.canShare&&navigator.canShare({files:[f]})) await navigator.share({files:[f],title:'Le Jeu du DG',text:J.H[0].replace(/<[^>]+>/g,'')}); else await navigator.share({title:'Le Jeu du DG',text:J.H[0].replace(/<[^>]+>/g,'')+' — ecolesenligne.fr/lejeuduDG'}); }catch(e){} };
+}
+
 function renderFinal(){
   const lr=S.lastResult; let verdict,text,cls;
   const grown=!SC.growth||SC.caReq===false||lr.rev>=SC.caTarget;
@@ -2606,6 +2901,7 @@ function renderFinal(){
     <div class="kicker" style="text-align:center">Fin ${S.year} · Générique de fin</div>
     <h1 class="serif title" style="color:${cls==='bad'?'var(--rose)':cls==='neu'?'var(--gold)':'var(--green)'}">${verdict}</h1>
     <p style="text-align:center;font-size:15px">${text}</p>
+    ${journalHtml(finaleKind(statut))}
     ${histHtml()}
     <div class="tw" style="margin-top:20px"><table><tr><th>Indicateur</th><th>2025</th><th>Fin de série</th></tr>
     <tr><td>Résultat net</td><td class="num">${mE(SC.ca0*SC.start/100)}</td><td class="num">${mE(lr.res)} <span class="muted">(cible ${tgt()})</span></td></tr><tr><td>Chiffre d'affaires</td><td class="num">${(SC.ca0/1000).toFixed(1).replace('.',',')} M€</td><td class="num">${(lr.rev/1000).toFixed(1).replace('.',',')} M€${SC.growth?' <span class="muted">(cible '+(SC.caTarget/1000).toFixed(0)+')</span>':''}</td></tr><tr><td>Capital</td><td class="num">–</td><td class="num">${Math.round(S.g.ca)} pts</td></tr><tr><td>${SC.unit.charAt(0).toUpperCase()+SC.unit.slice(1)}</td><td class="num">${fmt(BASE.students)}</td><td class="num">${fmt(S.students)}</td></tr><tr><td>Salariés</td><td class="num">${BASE.staff}</td><td class="num">${fmt(S.staff)}</td></tr><tr><td>Prix de vente</td><td class="num">${fmt(BASE.price)} €</td><td class="num">${fmt(S.price)} €</td></tr><tr><td>Budget ${SC.mediaWord}</td><td class="num">${(BASE.marketing/1000).toFixed(1).replace('.',',')} M€</td><td class="num">${(mkTotal()/1000).toFixed(1).replace('.',',')} M€</td></tr><tr><td>Trésorerie</td><td class="num">${mE(BASE.cash)}</td><td class="num">${mE(S.cash)}</td></tr><tr><td>Mesures adoptées</td><td>–</td><td class="num">${S.active.length}</td></tr></table></div>
@@ -2617,6 +2913,7 @@ function renderFinal(){
   $('#b').appendChild(btn('↺ Rejouer la série',()=>{newGame(S.sc);S.screen='intro';render();}));
   $('#b').appendChild(btn('🏆 Hall of Fame',()=>{S.hofBack='final';S.screen='hof';render();},'sbtn'));
   $('#b').appendChild(btn('🏅 Galerie des trophées ('+BADGES.filter(b=>badges()[b.id]).length+'/'+BADGES.length+')',()=>{S.hofBack='final';S.screen='badges';render();},'sbtn'));
+  $('#b').appendChild(btn('📰 Partager la une',()=>journalShare(finaleKind(statut)),'sbtn'));
   $('#b').appendChild(btn('📣 Partager mon score',()=>shareScore(verdict),'sbtn'));
 }
 function shareScore(verdict){
