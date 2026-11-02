@@ -1820,7 +1820,7 @@ function renderIntro(){
   $('#b').appendChild(btn('🏆 Hall of Fame',()=>{S.hofBack='intro';S.screen='hof';render();},'sbtn'));
   $('#b').appendChild(btn('🏅 Trophées ('+BADGES.filter(b=>badges()[b.id]).length+'/'+BADGES.length+')',()=>{S.hofBack='intro';S.screen='badges';render();},'sbtn'));
   { const sb=btn(SND.label()+' Son',()=>{},'sbtn'); sb.id='sndBtn'; sb.title=SND.title(); sb.setAttribute('aria-label','Son : '+SND.title()); $('#b').appendChild(sb); bindSnd(); const ib=installBtn(); if(ib) $('#b').appendChild(ib); }
-  fetchScores('partie').then(r=>{ const el=document.getElementById('played'); if(!el||!r||!r.online||!r.rows||r.rows.length<5) return; const n=r.rows.length, w=r.rows.filter(x=>x.statut==='objectif').length; el.innerHTML=`<b>${n}</b> DG ont déjà pris le poste · <b>${w}</b> ${w>1?'ont':'a'} rempli ${w>1?'leur':'son'} mandat. Et vous ?`; }).catch(()=>{});
+  fetch('/api/jeudg/stats?court=1').then(r=>r.ok?r.json():null).then(t=>{ const el=document.getElementById('played'); if(!el||!t||!(t.lancees>=5)) return; el.innerHTML=`<b>${fmt(t.lancees)}</b> parties lancées · <b>${fmt(t.terminees)}</b> menées jusqu'au bout · <b>${fmt(t.gagnees)}</b> mandat${t.gagnees>1?'s':''} rempli${t.gagnees>1?'s':''}. Et vous ?`; }).catch(()=>{});
 }
 
 function renderScenario(){
@@ -1850,7 +1850,7 @@ function renderProfile(){
   </div></div>`;
   const pf=$('#pf');
   const draw=()=>{pf.innerHTML='';PROFILES.forEach((p,i)=>{const d=btn(`<span class="ic">${p[0]}</span><b>${p[1]}</b><span>${p[2]}</span><span>${Object.entries(p[3]).map(([k,v])=>`<span class="chip ${k==='ca'?'cap':''}">${k==='ca'?clamp(v+(SC.capMod||0),10,100):v} ${GN[k]}</span>`).join('')}</span>`,()=>{S.profile=i;draw();upd();},'prof'+(S.profile===i?' sel':''));pf.appendChild(d);});};
-  const go=btn('▶ Entrer en scène',()=>{S.g={...PROFILES[S.profile][3]};S.g.ca=clamp(S.g.ca+(SC.capMod||0),10,100);mandate(()=>{S.screen='title';render();});});
+  const go=btn('▶ Entrer en scène',()=>{S.g={...PROFILES[S.profile][3]};S.g.ca=clamp(S.g.ca+(SC.capMod||0),10,100);mandate(()=>{ try{ track('debut',{partie_id:S.pid,ecole:SC.name}); }catch(e){} S.screen='title';render();});});
   const upd=()=>{S.name=$('#nm').value.trim();go.disabled=!(S.name&&S.profile!==null);$('#hint').textContent=go.disabled?'Choisissez un nom et un profil pour continuer.':'';save();};
   $('#nm').addEventListener('input',upd); $('#b').appendChild(go); $('#bk').appendChild(btn('↩ Changer d\'école',()=>{ S.screen='scenario'; render(); },'sbtn')); draw(); upd();
 }
@@ -2411,7 +2411,10 @@ const EVSND={glitch:'error',stamp:'stamp',news:'news',money:'cash',signs:'crowd'
 const IS_SITE=/^\/lejeududg/i.test(location.pathname);
 let INSTALL_EV=null;
 try{ if(IS_SITE&&'serviceWorker' in navigator) navigator.serviceWorker.register('/lejeuduDG/sw.js',{scope:'/lejeuduDG'}).catch(()=>{}); }catch(e){}
-const BUILD='20261101232234';
+const BUILD='20261102154803';
+function track(kind,extra){ try{ if(!IS_SITE) return; let v=localStorage.getItem('bde-vid'); if(!v){ v=(crypto.randomUUID?crypto.randomUUID():String(Math.random()).slice(2)+Date.now().toString(36)); localStorage.setItem('bde-vid',v); }
+  fetch('/api/jeudg/event',{method:'POST',keepalive:true,headers:{'Content-Type':'application/json'},body:JSON.stringify({kind,visiteur:v,mobile:MOB(),appli:STANDALONE(),...(extra||{})})}).catch(()=>{}); }catch(e){} }
+try{ if(!sessionStorage.getItem('bde-vis')){ sessionStorage.setItem('bde-vis','1'); setTimeout(()=>track('visite'),1500); } }catch(e){}
 let UPD_T=0;
 function checkUpdate(){ if(!IS_SITE||BUILD==='dev'||Date.now()-UPD_T<600000) return; UPD_T=Date.now(); fetch('/lejeuduDG/version.json',{cache:'no-store'}).then(r=>r.json()).then(v=>{ const m=[0,v&&v.build]; if(m[1]&&m[1]!==BUILD&&!document.getElementById('updBar')){ const d=document.createElement('div'); d.id='updBar'; d.className='savetoast'; d.style.cursor='pointer'; d.innerHTML='✨ <b>Nouvelle version du jeu disponible</b><br><span style="font-size:12px;color:var(--muted)">Touchez pour mettre à jour (votre partie est sauvegardée)</span>'; d.onclick=()=>{ try{ save(); }catch(e){} location.reload(); }; document.body.appendChild(d); } }).catch(()=>{}); }
 setTimeout(checkUpdate,4000); document.addEventListener('visibilitychange',()=>{ if(!document.hidden) checkUpdate(); });
@@ -2907,7 +2910,7 @@ function renderFinal(){
   const lr=S.lastResult; let verdict,text,cls;
   const grown=!SC.growth||SC.caReq===false||lr.rev>=SC.caTarget;
   const statut=S.over.lost?'perdu':(lr.res>=SC.resTarget&&grown)?'objectif':lr.pct>=0?'equilibre':'manque';
-  if(!S.over.posted){S.over.posted=true;save();postScore('partie',{statut});badgeFinal(statut); const fk=finaleKind(statut); setTimeout(()=>finale(fk),80);}
+  if(!S.over.posted){S.over.posted=true;save();postScore('partie',{statut}); try{ track('fin',{partie_id:S.pid,ecole:SC.name,statut}); }catch(e){}badgeFinal(statut); const fk=finaleKind(statut); setTimeout(()=>finale(fk),80);}
   if(S.over.lost){verdict="Fin de série";text=S.over.why;cls='bad';}
   else if(lr.res>=SC.resTarget&&grown){verdict="Objectif atteint";text=`Fin 2030, ${N.ecole} affiche ${mE(lr.res)} de résultat net, ${(lr.rev/1000).toFixed(1).replace('.',',')} M€ de chiffre d'affaires, ${fmt(S.students)} ${SC.unit} et ${fmt(S.staff)} salariés. Dix ans plus tard, les anciens élèves se souviennent ${S.g.etu>60?'d\'une école qui a tenu ses promesses.':'surtout des années de rigueur.'}`;cls='';}
   else if(lr.pct>=0){verdict="Demi-succès";text=lr.res>=SC.resTarget?`${N.ecole} tient ${mE(lr.res)} de résultat, mais le chiffre d'affaires (${(lr.rev/1000).toFixed(1).replace('.',',')} M€) reste loin des ${M1(SC.caTarget)} demandés. Rentable, pas assez ambitieux : ${N.president} vous garde, et attend la suite.`:`${N.ecole} est rentable (${mE(lr.res)}) mais loin des ${tgt()} demandés. ${N.president} vous garde, sans cacher sa déception.`;cls='neu';}

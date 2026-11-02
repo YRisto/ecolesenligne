@@ -127,3 +127,18 @@ alter table jeu_dg_scores add column if not exists details jsonb;    -- historiq
 notify pgrst, 'reload schema';
 
 alter table jeu_dg_scores add column if not exists masque boolean not null default false; -- parties retirées du Hall of Fame à la demande du joueur (lignes conservées)
+
+-- Mesure d'audience anonyme du Jeu du DG (identifiant aléatoire par appareil, sans IP ni nom)
+create table if not exists jeu_dg_events (
+  id bigserial primary key,
+  created_at timestamptz not null default now(),
+  kind text not null check (kind in ('visite','debut','fin')),
+  visiteur text not null,
+  partie_id text,
+  ecole text,
+  mobile boolean not null default false,
+  appli boolean not null default false,
+  statut text
+);
+create index if not exists jeu_dg_events_created_idx on jeu_dg_events (created_at);
+alter table jeu_dg_events enable row level security;  -- accès uniquement via la clé service (routes /api/jeudg/event et /api/jeudg/stats)

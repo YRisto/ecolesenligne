@@ -11,6 +11,7 @@ const nextConfig = {
     return [
       { source: '/lejeuduDG', destination: '/lejeuduDG/index.html' },
       { source: '/lejeududg', destination: '/lejeuduDG/index.html' },
+      { source: '/lejeuduDG/stats', destination: '/lejeuduDG/stats.html' },
     ];
   },
 };

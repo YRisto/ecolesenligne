@@ -1,0 +1,98 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>Jeu du DG · Statistiques</title>
+<style>
+:root{--bg:#0f1631;--card:#172146;--line:#2e3a64;--fg:#eef2fb;--muted:#b6bfe0;--gold:#c9a24a;--green:#7ee0a0;--blue:#7fa3e6;--rose:#ff6b7a;--cyan:#3ec8d6;color-scheme:dark}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--fg);font:14px/1.5 "Segoe UI",system-ui,-apple-system,Roboto,sans-serif;padding:20px 16px 40px}
+main{max-width:980px;margin:0 auto}
+h1{font:900 24px/1.2 Georgia,serif;margin:0 0 2px}
+.sub{color:var(--muted);font-size:13px;margin-bottom:18px}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;margin-bottom:16px}
+.k{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px 14px}
+.k .l{color:var(--muted);font-size:11.5px;text-transform:uppercase;letter-spacing:.08em}
+.k .v{font:800 26px/1.15 system-ui;font-variant-numeric:tabular-nums;margin-top:4px}
+.k .s{color:var(--muted);font-size:12px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px;margin-bottom:16px}
+.card h2{font-size:15px;margin:0 0 10px}
+.tabs{display:flex;gap:6px;margin-bottom:10px;flex-wrap:wrap}
+.tabs button{background:transparent;color:var(--muted);border:1px solid var(--line);border-radius:999px;padding:5px 12px;font:inherit;font-size:12.5px;cursor:pointer}
+.tabs button.on{background:var(--gold);color:#1a1408;border-color:var(--gold);font-weight:700}
+.chart{overflow-x:auto}
+svg text{fill:var(--muted);font-size:10px}
+.legend{display:flex;gap:14px;flex-wrap:wrap;font-size:12px;color:var(--muted);margin-top:6px}
+.legend i{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:5px;vertical-align:-1px}
+table{width:100%;border-collapse:collapse;font-size:13px}
+@media (max-width:520px){table{font-size:12px}th,td{padding:6px 3px}.bar{display:none!important}td:last-child,th:last-child{white-space:nowrap}}
+th,td{padding:7px 6px;border-bottom:1px solid var(--line);text-align:right;font-variant-numeric:tabular-nums}
+th:first-child,td:first-child{text-align:left}
+th{color:var(--muted);font-weight:600;font-size:12px}
+.bar{display:inline-block;height:6px;border-radius:3px;background:var(--gold);vertical-align:middle;margin-left:6px}
+.note{color:var(--muted);font-size:12px;margin-top:8px}
+.err{color:var(--rose)}
+a{color:var(--cyan)}
+</style>
+</head>
+<body>
+<main>
+  <h1>Le Jeu du DG · Statistiques</h1>
+  <div class="sub" id="sub">Chargement…</div>
+  <div class="kpis" id="kpis"></div>
+  <div class="card">
+    <h2>Activité par jour</h2>
+    <div class="tabs" id="tabs"></div>
+    <div class="chart" id="chart"></div>
+    <div class="legend" id="legend"></div>
+  </div>
+  <div class="card">
+    <h2>Par école</h2>
+    <table id="ecoles"></table>
+  </div>
+  <p class="note">Mesure anonyme : un identifiant aléatoire par appareil, ni adresse IP, ni nom. Les visites sont comptées depuis la mise en place de la mesure ; les parties, depuis l'ouverture du classement. <a href="/lejeuduDG">Retour au jeu</a></p>
+</main>
+<script>
+const fmt=n=>new Intl.NumberFormat('fr-FR').format(Math.round(n||0));
+const esc=s=>String(s==null?'':s).replace(/[<>&]/g,'');
+let DATA=null, RANGE=30;
+const SERIES=[['visites','Visites','#7fa3e6'],['visiteurs','Visiteurs uniques','#3ec8d6'],['lancees','Parties lancées','#c9a24a'],['terminees','Parties terminées','#7ee0a0']];
+function kpis(t){
+  const k=(l,v,s)=>`<div class="k"><div class="l">${l}</div><div class="v">${v}</div>${s?`<div class="s">${s}</div>`:''}</div>`;
+  document.getElementById('kpis').innerHTML=
+    k('Visiteurs uniques',fmt(t.visiteurs),fmt(t.visites)+' visites')+
+    k('Parties lancées',fmt(t.lancees),'')+
+    k('Menées au bout',fmt(t.terminees),t.lancees?Math.round(t.terminees/t.lancees*100)+' % des parties':'')+
+    k('Mandats remplis',fmt(t.gagnees),t.terminees?Math.round(t.gagnees/t.terminees*100)+' % des parties terminées':'')+
+    k('Sur mobile',t.mobile==null?'—':t.mobile+' %','des visites')+
+    k('Depuis l’appli',t.appli==null?'—':t.appli+' %','installée sur l’écran d’accueil');
+}
+function chart(){
+  const all=DATA.parJour||[]; const end=new Date(); const days=[];
+  const span=RANGE||Math.max(1,all.length?Math.ceil((end-new Date(all[0].jour))/864e5)+1:7);
+  for(let i=span-1;i>=0;i--){ const d=new Date(end.getTime()-i*864e5+3600e3).toISOString().slice(0,10); days.push(all.find(x=>x.jour===d)||{jour:d,visites:0,visiteurs:0,lancees:0,terminees:0}); }
+  const box=document.getElementById('chart'); const W=Math.max(box.clientWidth||320,days.length*8), H=220, L=34, B=26, max=Math.max(1,...days.flatMap(d=>SERIES.map(s=>d[s[0]]||0)));
+  const step=(W-L-6)/days.length, bw=Math.max(2,(step-4)/SERIES.length);
+  const y=v=>H-B-(v/max)*(H-B-10);
+  let g=''; for(let i=0;i<=4;i++){ const v=Math.round(max*i/4), yy=y(v); g+=`<line x1="${L}" x2="${W}" y1="${yy}" y2="${yy}" stroke="#2e3a64" stroke-width="1"/><text x="${L-6}" y="${yy+3}" text-anchor="end">${v}</text>`; }
+  days.forEach((d,i)=>{ const x0=L+i*step+2; SERIES.forEach(([k,,c],j)=>{ const v=d[k]||0; if(v) g+=`<rect x="${x0+j*bw}" y="${y(v)}" width="${bw-0.5}" height="${H-B-y(v)}" fill="${c}" rx="1"><title>${d.jour} · ${v}</title></rect>`; });
+    if(i%Math.max(1,Math.ceil(days.length/(W/48)))===0){ const dd=d.jour.slice(8,10)+'/'+d.jour.slice(5,7); g+=`<text x="${x0+step/2-2}" y="${H-8}" text-anchor="middle">${dd}</text>`; } });
+  box.innerHTML=`<svg width="${W}" height="${H}" viewBox="0 0 ${W} ${H}" role="img" aria-label="Activité par jour">${g}</svg>`; box.scrollLeft=box.scrollWidth;
+  document.getElementById('legend').innerHTML=SERIES.map(([,l,c])=>`<span><i style="background:${c}"></i>${l}</span>`).join('');
+}
+function ecoles(){
+  const rows=DATA.parEcole||[]; const m=Math.max(1,...rows.map(r=>r.lancees));
+  document.getElementById('ecoles').innerHTML=`<tr><th>École</th><th>Lancées</th><th>Terminées</th><th>Gagnées</th><th>Taux</th></tr>`+rows.map(r=>`<tr><td>${esc(r.ecole)}</td><td>${fmt(r.lancees)}<span class="bar" style="width:${Math.round(r.lancees/m*60)}px"></span></td><td>${fmt(r.terminees)}</td><td>${fmt(r.gagnees)}</td><td>${r.terminees?Math.round(r.gagnees/r.terminees*100)+' %':'—'}</td></tr>`).join('');
+}
+function tabs(){ const t=document.getElementById('tabs'); t.innerHTML=''; [[7,'7 jours'],[30,'30 jours'],[90,'90 jours'],[0,'Tout']].forEach(([v,l])=>{ const b=document.createElement('button'); b.textContent=l; if(v===RANGE) b.className='on'; b.onclick=()=>{ RANGE=v; tabs(); chart(); }; t.appendChild(b); }); }
+fetch('/api/jeudg/stats',{cache:'no-store'}).then(r=>r.json()).then(d=>{
+  DATA=d; if(d.offline){ document.getElementById('sub').innerHTML='<span class="err">Base de données non configurée.</span>'; return; }
+  const since=d.mesureDepuis?new Date(d.mesureDepuis).toLocaleDateString('fr-FR',{day:'numeric',month:'long',year:'numeric'}):null;
+  document.getElementById('sub').textContent='Mis à jour le '+new Date(d.maj).toLocaleString('fr-FR',{dateStyle:'long',timeStyle:'short'})+(since?' · visites mesurées depuis le '+since:' · mesure des visites en cours de démarrage')+(d.evenements===false?' · table des visites absente':'');
+  kpis(d.totals); tabs(); chart(); ecoles();
+}).catch(()=>{ document.getElementById('sub').innerHTML='<span class="err">Impossible de charger les statistiques.</span>'; });
+</script>
+</body>
+</html>
