@@ -1724,6 +1724,7 @@ async function fetchScores(type,annee,archive){
 function renderHof(){
   if(!S.hof) S.hof={type:'saison',annee:2026};
   if(S.hofSc===undefined||(S.hofSc>=0&&(!SCENARIOS[S.hofSc]||!scVisible(SCENARIOS[S.hofSc])))) S.hofSc=-1;
+  const past=S.hofSc==='past'; if(past&&S.hof.type==='archive') S.hof={type:'partie',annee:0};
   const h=S.hof; const scSel=S.hofSc>=0?SCENARIOS[S.hofSc]:null;
   app().innerHTML=`<div class="center"><div class="panel wide">
     <div class="kicker" style="text-align:center">Le Jeu du DG · Hall of Fame</div>
@@ -1734,12 +1735,23 @@ function renderHof(){
     <p class="credit" id="src"></p>
     <div style="display:flex;justify-content:center" id="b"></div></div></div>`;
   const tabs=[['saison',2026,'Saison 1 · 2026'],['saison',2027,'Saison 2 · 2027'],['saison',2028,'Saison 3 · 2028'],['saison',2029,'Saison 4 · 2029'],['saison',2030,'Saison 5 · 2030'],['partie',0,'🏁 Parties complètes'],['archive',0,'📜 Historique avant rééquilibrage de la difficulté']];
-  const st=$('#sctabs'); st.appendChild(btn('🌍 Toutes les écoles',()=>{S.hofSc=-1;renderHof();},S.hofSc<0?'tab on':'tab')); SCENARIOS.forEach((c,i)=>scVisible(c)&&st.appendChild(btn(c.ic+' '+c.name+(c.weekly?' 📅':''),()=>{S.hofSc=i;renderHof();},S.hofSc===i?'tab on':'tab')));
+  const st=$('#sctabs'); st.appendChild(btn('🌍 Toutes les écoles',()=>{S.hofSc=-1;renderHof();},S.hofSc<0?'tab on':'tab')); SCENARIOS.forEach((c,i)=>scVisible(c)&&st.appendChild(btn(c.ic+' '+c.name+(c.weekly?' 📅':''),()=>{S.hofSc=i;renderHof();},S.hofSc===i?'tab on':'tab'))); st.appendChild(btn('📚 Défis passés',()=>{S.hofSc='past';S.hofWeek=null;renderHof();},past?'tab on':'tab'));
   const tb=$('#tabs'); tabs.forEach(([t,a,l])=>tb.appendChild(btn(l,()=>{S.hof={type:t,annee:a};renderHof();},(h.type===t&&h.annee===a)?'tab on':'tab')));
   $('#b').appendChild(btn('↩ Retour',()=>{S.screen=S.hofBack||'intro';render();},'sbtn'));
   fetchScores(h.type==='archive'?'partie':h.type,h.type==='saison'?h.annee:0,h.type==='archive').then(({rows,online})=>{
     $('#src').textContent=online?'Classement partagé entre tous les joueurs · '+(scSel?'scénario : '+scSel.name:'toutes les écoles')+'.':'Classement local (cet appareil seulement) : le serveur de scores est injoignable.';
     if(scSel) rows=rows.filter(r=>!r.profil||r.profil.startsWith(scSel.name)||!SCENARIOS.some(c=>r.profil.startsWith(c.name)));
+    if(past){ // archives des défis : une semaine (samedi → vendredi) et son école
+      const wk=d=>{ const x=new Date(d); const y=new Date(x.getFullYear(),x.getMonth(),x.getDate()); y.setDate(y.getDate()-((y.getDay()+1)%7)); return y.getFullYear()+'-'+String(y.getMonth()+1).padStart(2,'0')+'-'+String(y.getDate()).padStart(2,'0'); }, cur=wk(Date.now());
+      const W=SCENARIOS.filter(c=>c.weekly), map=new Map();
+      rows.forEach(r=>{ const c=W.find(c=>String(r.profil||'').startsWith(c.name)); if(!c||!r.created_at) return; const k=wk(r.created_at); if(k===cur) return; const key=k+'|'+c.id; if(!map.has(key)) map.set(key,{k,c,rows:[]}); map.get(key).rows.push(r); });
+      const weeks=[...map.values()].sort((a,b)=>b.k.localeCompare(a.k));
+      if(!weeks.length){ $('#hof').innerHTML='<p class="muted" style="text-align:center">Pas encore de défi terminé : les classements des semaines passées apparaîtront ici.</p>'; $('#src').textContent='Chaque samedi, le classement du défi de la semaine écoulée est archivé ici.'; return; }
+      if(S.hofWeek==null||!weeks.find(w=>w.k+'|'+w.c.id===S.hofWeek)) S.hofWeek=weeks[0].k+'|'+weeks[0].c.id;
+      const selW=document.createElement('div'); selW.className='cat'; selW.style.margin='6px 0 10px'; const sel=document.createElement('div'); sel.className='tabs'; selW.appendChild(sel);
+      weeks.forEach(w=>{ const id=w.k+'|'+w.c.id; sel.appendChild(btn(w.c.ic+' Semaine du '+new Date(w.k+'T12:00:00').toLocaleDateString('fr-FR',{day:'numeric',month:'short'}),()=>{S.hofWeek=id;renderHof();},S.hofWeek===id?'tab on':'tab')); });
+      $('#hof').before(selW); const w=weeks.find(w=>w.k+'|'+w.c.id===S.hofWeek); rows=w.rows;
+      $('#src').textContent='Archive · '+w.c.name+' · défi de la semaine du '+new Date(w.k+'T12:00:00').toLocaleDateString('fr-FR',{day:'numeric',month:'long'})+'.'; }
     if(scSel&&scSel.weekly&&h.type!=='archive'){ const ws=weekStart(); rows=rows.filter(r=>!r.created_at||new Date(r.created_at)>=ws); $('#src').textContent+=' Défi de cette semaine : même hasard pour tous, classement remis à zéro chaque samedi.'; }
     // Classement commun à toutes les écoles : % de l'objectif de résultat net atteint
     const att=r=>{const c=SCENARIOS.find(c=>String(r.profil||'').startsWith(c.name)); if(!c) return r.resultat_pct/20; const ca=c.base.students*c.base.price/1000, t=c.resAbs||(c.growth?ca*c.growth:ca)*c.target/100;
@@ -2543,7 +2555,7 @@ const EVSND={glitch:'error',stamp:'stamp',news:'news',money:'cash',signs:'crowd'
 const IS_SITE=/^\/lejeududg/i.test(location.pathname);
 let INSTALL_EV=null;
 try{ if(IS_SITE&&'serviceWorker' in navigator) navigator.serviceWorker.register('/lejeuduDG/sw.js',{scope:'/lejeuduDG'}).catch(()=>{}); }catch(e){}
-const BUILD='20261102180036';
+const BUILD='20261102184946';
 function track(kind,extra){ try{ if(!IS_SITE) return; let v=localStorage.getItem('bde-vid'); if(!v){ v=(crypto.randomUUID?crypto.randomUUID():String(Math.random()).slice(2)+Date.now().toString(36)); localStorage.setItem('bde-vid',v); }
   fetch('/api/jeudg/event',{method:'POST',keepalive:true,headers:{'Content-Type':'application/json'},body:JSON.stringify({kind,visiteur:v,mobile:MOB(),appli:STANDALONE(),...(extra||{})})}).catch(()=>{}); }catch(e){} }
 try{ if(!sessionStorage.getItem('bde-vis')){ sessionStorage.setItem('bde-vis','1'); setTimeout(()=>track('visite'),1500); } }catch(e){}

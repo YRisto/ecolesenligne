@@ -60,9 +60,7 @@ export async function GET(req) {
   }
   const top = (m, n, tot) => [...m.entries()].sort((a, b) => b[1] - a[1]).slice(0, n).map(([k, v]) => ({ k, v, pct: tot ? Math.round((v / tot) * 100) : null }));
   const jeu = { parties: states.length,
-    mesures: top(mes, 15, states.length), fins: top(fins, 12, [...fins.values()].reduce((a, b) => a + b, 0)),
-    cse: top(cse, 10, [...cse.values()].reduce((a, b) => a + b, 0)), enveloppes: top(env, 10, [...env.values()].reduce((a, b) => a + b, 0)),
-    express: [...exp.entries()].map(([q, m]) => { const tot = [...m.values()].reduce((a, b) => a + b, 0); return { q, total: tot, reponses: top(m, 4, tot) }; }).sort((a, b) => b.total - a.total).slice(0, 14),
+    mesures: top(mes, 10, states.length), fins: top(fins, 12, [...fins.values()].reduce((a, b) => a + b, 0)),
     saisonRenvoi: renvoiN ? +(renvoiSum / renvoiN).toFixed(1) : null };
   return NextResponse.json({
     maj: new Date().toISOString(), mesureDepuis: ev.length ? ev[0].created_at : null, evenements: evOk,
