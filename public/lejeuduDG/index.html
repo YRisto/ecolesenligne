@@ -1722,7 +1722,7 @@ async function fetchScores(type,annee,archive){
   return {rows,online:false};
 }
 function renderHof(){
-  if(!S.hof) S.hof={type:'saison',annee:2026};
+  if(!S.hof) S.hof={type:'partie',annee:0}; // par défaut : parties complètes, toutes écoles
   if(S.hofSc===undefined||(S.hofSc>=0&&(!SCENARIOS[S.hofSc]||!scVisible(SCENARIOS[S.hofSc])))) S.hofSc=-1;
   const past=S.hofSc==='past'; if(past&&S.hof.type==='archive') S.hof={type:'partie',annee:0};
   const h=S.hof; const scSel=S.hofSc>=0?SCENARIOS[S.hofSc]:null;
@@ -1858,7 +1858,7 @@ function renderIntro(){
       const svl=box.querySelector('#svl');
       list.forEach(({c,i,o})=>{ const inf=saveInfo(o); const b=btn(`<span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:${SCCOL[c.id]};margin-right:8px"></span>${inf.done?'🏁 Revoir':'▶ Reprendre'} · ${c.ic} ${c.name}${c.weekly?' 📅':''}<small style="display:block;color:var(--muted);font-weight:500;margin-top:2px">${inf.txt.replace(/^💾 |^🏁 /,'')}${o.name?' · '+String(o.name).replace(/[<>&]/g,''):''}</small>`,e=>{ flood(SCCOL[c.id],e,()=>resume(o),c); },'opt'); b.style.borderLeft='5px solid '+SCCOL[c.id]; svl.appendChild(b); }); const hero=document.querySelector('.panel .hero'); if(hero) hero.after(box); box.style.margin='4px 0 6px'; } }
   $('#b').appendChild(btn('▶ Je prends le poste',()=>{S.screen='scenario';render();},'mbtn cta'));
-  $('#b').appendChild(btn('🏆 Hall of Fame',()=>{S.hofBack='intro';S.screen='hof';render();},'sbtn'));
+  $('#b').appendChild(btn('🏆 Hall of Fame',()=>{S.hofBack='intro';S.hof=null;S.hofSc=-1;S.screen='hof';render();},'sbtn'));
   $('#b').appendChild(btn('🏅 Trophées ('+BADGES.filter(b=>badges()[b.id]).length+'/'+BADGES.length+')',()=>{S.hofBack='intro';S.screen='badges';render();},'sbtn'));
   { const sb=btn(SND.label()+' Son',()=>{},'sbtn'); sb.id='sndBtn'; sb.title=SND.title(); sb.setAttribute('aria-label','Son : '+SND.title()); $('#b').appendChild(sb); bindSnd(); const ib=installBtn(); if(ib) $('#b').appendChild(ib); }
   fetch('/api/jeudg/stats?court=1').then(r=>r.ok?r.json():null).then(t=>{ const el=document.getElementById('played'); if(!el||!t||!(t.lancees>=5)) return; el.innerHTML=`<b>${fmt(t.lancees)}</b> parties lancées · <b>${fmt(t.terminees)}</b> menées jusqu'au bout · <b>${fmt(t.gagnees)}</b> mandat${t.gagnees>1?'s':''} rempli${t.gagnees>1?'s':''}. Et vous ?<br><a href="/lejeuduDG/stats" style="font-size:11.5px;color:var(--muted2);text-decoration:underline">Statistiques complètes</a>`; }).catch(()=>{});
@@ -2555,7 +2555,7 @@ const EVSND={glitch:'error',stamp:'stamp',news:'news',money:'cash',signs:'crowd'
 const IS_SITE=/^\/lejeududg/i.test(location.pathname);
 let INSTALL_EV=null;
 try{ if(IS_SITE&&'serviceWorker' in navigator) navigator.serviceWorker.register('/lejeuduDG/sw.js',{scope:'/lejeuduDG'}).catch(()=>{}); }catch(e){}
-const BUILD='20261102192408';
+const BUILD='20261102194037';
 function track(kind,extra){ try{ if(!IS_SITE) return; let v=localStorage.getItem('bde-vid'); if(!v){ v=(crypto.randomUUID?crypto.randomUUID():String(Math.random()).slice(2)+Date.now().toString(36)); localStorage.setItem('bde-vid',v); }
   fetch('/api/jeudg/event',{method:'POST',keepalive:true,headers:{'Content-Type':'application/json'},body:JSON.stringify({kind,visiteur:v,mobile:MOB(),appli:STANDALONE(),...(extra||{})})}).catch(()=>{}); }catch(e){} }
 try{ if(!sessionStorage.getItem('bde-vis')){ sessionStorage.setItem('bde-vis','1'); setTimeout(()=>track('visite'),1500); } }catch(e){}
@@ -3093,7 +3093,7 @@ function renderFinal(){
       vals.sort((a,b)=>b-a); const rank=vals.findIndex(v=>Math.abs(v-me)<=1)+1, best=vals[0];
       el.innerHTML=`📅 <b>Défi de la semaine</b> · même hasard pour tous : vous êtes <b>${rank}${rank===1?'er':'e'}</b> sur ${vals.length} DG${rank>1?` · meilleur résultat : ${mE(best)}`:' 🏆'}.`; }).catch(()=>{}),1500); }
   $('#b').appendChild(btn('↺ Rejouer la série',()=>{newGame(S.sc);S.screen='intro';render();}));
-  $('#b').appendChild(btn('🏆 Hall of Fame',()=>{S.hofBack='final';S.screen='hof';render();},'sbtn'));
+  $('#b').appendChild(btn('🏆 Hall of Fame',()=>{S.hofBack='final';S.hof=null;S.hofSc=-1;S.screen='hof';render();},'sbtn'));
   $('#b').appendChild(btn('🏅 Galerie des trophées ('+BADGES.filter(b=>badges()[b.id]).length+'/'+BADGES.length+')',()=>{S.hofBack='final';S.screen='badges';render();},'sbtn'));
   $('#b').appendChild(btn('📰 Partager la une',()=>journalShare(finaleKind(statut)),'sbtn'));
   $('#b').appendChild(btn('📣 Partager mon score',()=>shareScore(verdict),'sbtn'));
