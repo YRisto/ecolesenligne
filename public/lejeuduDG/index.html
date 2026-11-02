@@ -690,6 +690,8 @@ html[data-sc] .titlecard .big{color:var(--sc-hi);text-shadow:0 0 30px var(--sc)}
 /* Écrans d'ordinateur : tout est agrandi (texte, jauges, boutons) pour lire sans zoomer */
 @media (min-width:1000px){html{zoom:1.2}}
 @media (min-width:1700px){html{zoom:1.32}}
+/* Grand écran (8 jauges sur une ligne) : le détail et la tendance (→ valeur projetée) passent sous le chiffre au lieu d'être coupés */
+@media (min-width:1101px){.gauge .l{letter-spacing:.05em} .gauge .v{white-space:normal;overflow:visible} .gauge .v .vv{white-space:nowrap} .gauge .v small,.gauge .v .pv{display:block;margin:1px 0 0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis} .gauge .v small .sep{display:none} .gauge .v .pv{font-size:13px}}
 @media (max-width:1100px){.gauges{grid-template-columns:repeat(4,minmax(0,1fr))}.episodes{grid-template-columns:repeat(6,minmax(0,1fr))}.btiles{grid-template-columns:1fr 1fr}}
 @media (max-width:720px){
  .gauges{display:flex;overflow-x:auto;gap:6px;padding-block:4px;scrollbar-width:none;-webkit-overflow-scrolling:touch}
@@ -1962,7 +1964,7 @@ function gaugeHtml(){
   const arrow=(cur,nxt,fmtF,good)=>pv&&Math.round(nxt*10)!==Math.round(cur*10)?`<span class="pv ${good?'up':'dn'}">→ ${fmtF(nxt)}</span>`:'';
   const SN=S.snap||{}; const dlt=(k,cur,f)=>{ if(pv||SN[k]==null) return ''; const d=cur-SN[k]; const r=k==='cash'?Math.round(d/100)/10:Math.round(d); if(!r) return ''; return `<span class="dl ${d>0?'up':'dn'}">${d>0?'▲':'▼'} ${f?f(d):(d>0?'+':'−')+Math.abs(r)}</span>`; };
   const ZONE={ca:20,etu:20,com:20,cse:20,cash:10,res:50};
-  const G=(cls,ic,l,v,w,sub,pvh,w2,dh)=>`<div class="gauge ${cls}${pvh?' has-pv':''}" data-g="${cls.slice(2)}" role="group" aria-label="${String(l).replace(/<[^>]+>/g,'')} : ${String(v).replace(/<[^>]+>/g,'')}${sub?' · '+String(sub).replace(/<[^>]+>/g,''):''}"><div class="l"><span class="gi">${ic}</span> ${l}</div><div class="v num"><span class="vv" data-k="${cls.slice(2)}">${v}</span>${dh||''}${pvh||(sub?`<small> · ${sub}</small>`:'')}</div><div class="bar" style="--z:${ZONE[cls.slice(2)]||0}%"><i style="width:${w}%"></i>${pvh?`<em style="left:${Math.min(w,w2)}%;width:${Math.abs(w2-w)}%"></em>`:''}</div></div>`;
+  const G=(cls,ic,l,v,w,sub,pvh,w2,dh)=>`<div class="gauge ${cls}${pvh?' has-pv':''}" data-g="${cls.slice(2)}" role="group" aria-label="${String(l).replace(/<[^>]+>/g,'')} : ${String(v).replace(/<[^>]+>/g,'')}${sub?' · '+String(sub).replace(/<[^>]+>/g,''):''}"><div class="l"><span class="gi">${ic}</span> ${l}</div><div class="v num"><span class="vv" data-k="${cls.slice(2)}">${v}</span>${dh||''}${pvh||(sub?`<small><span class="sep"> · </span>${sub}</small>`:'')}</div><div class="bar" style="--z:${ZONE[cls.slice(2)]||0}%"><i style="width:${w}%"></i>${pvh?`<em style="left:${Math.min(w,w2)}%;width:${Math.abs(w2-w)}%"></em>`:''}</div></div>`;
   const nca=clamp(S.g.ca+d.ca,0,100),netu=clamp(S.g.etu+d.etu,0,100),ncom=clamp(S.g.com+d.com,0,100),ncse=clamp(S.g.cse+d.cse,0,100),ncash=S.cash+d.once;
   return {conj,html:
    G('c-rev','💶','Chiffre d\'aff.',(lr.rev/1000).toFixed(1).replace('.',',')+' M€',clamp(lr.rev/(SC.caTarget||SC.ca0*1.5)*100,2,100),SC.growth?`cible ${M1(SC.caTarget)}`:`2025 : ${M1(SC.ca0)}`,pv?arrow(lr.rev,pj.rev,x=>(x/1000).toFixed(1).replace('.',',')+' M€',pj.rev>=lr.rev):'',clamp(pj.rev/(SC.caTarget||SC.ca0*1.5)*100,2,100))+
@@ -2647,7 +2649,7 @@ const EVSND={glitch:'error',stamp:'stamp',news:'news',money:'cash',signs:'crowd'
 const IS_SITE=/^\/lejeududg/i.test(location.pathname);
 let INSTALL_EV=null;
 try{ if(IS_SITE&&'serviceWorker' in navigator) navigator.serviceWorker.register('/lejeuduDG/sw.js',{scope:'/lejeuduDG'}).catch(()=>{}); }catch(e){}
-const BUILD='20261102224459';
+const BUILD='20261102224957';
 function track(kind,extra){ try{ if(!IS_SITE) return; let v=localStorage.getItem('bde-vid'); if(!v){ v=(crypto.randomUUID?crypto.randomUUID():String(Math.random()).slice(2)+Date.now().toString(36)); localStorage.setItem('bde-vid',v); }
   fetch('/api/jeudg/event',{method:'POST',keepalive:true,headers:{'Content-Type':'application/json'},body:JSON.stringify({kind,visiteur:v,mobile:MOB(),appli:STANDALONE(),...(extra||{})})}).catch(()=>{}); }catch(e){} }
 try{ if(!sessionStorage.getItem('bde-vis')){ sessionStorage.setItem('bde-vis','1'); setTimeout(()=>track('visite'),1500); } }catch(e){}
