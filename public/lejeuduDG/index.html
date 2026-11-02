@@ -2413,7 +2413,11 @@ const SND=(()=>{
               ['respiration',4,'B', 1,     0,      0,       0,      0,      0,         0]];
   const CYCLE=SECT.reduce((a,x)=>a+x[1],0), KEYS=[0,2,-3,5];
   // motifs de mélodie (degrés au-dessus de la fondamentale de l'accord, début et durée en temps)
-  const MEL=[[[7,0,1.5],[5,1.5,0.5],[3,2,2]],[[0,0,1],[3,1,1],[7,2,2]],[[12,0,2],[10,2,1],[7,3,1]],[[7,0,0.5],[8,0.5,0.5],[7,1,1],[3,2,2]]];
+  // thème héroïque en la mineur (demi-tons au-dessus de la tonique), 8 mesures : [note, début, durée] en temps
+  const THEME=[[[0,0,1.5],[7,1.5,0.5],[7,2,2]],[[8,0,1.5],[7,1.5,0.5],[5,2,2]],[[3,0,1.5],[5,1.5,0.5],[7,2,2]],[[10,0,2],[7,2,1],[10,3,1]],
+               [[12,0,1.5],[10,1.5,0.5],[7,2,2]],[[8,0,1],[7,1,1],[5,1,1],[3,1,1]],[[3,0,1.5],[2,1.5,0.5],[3,2,1],[7,3,1]],[[2,0,3.5]]];
+  const PONT=[[[8,0,4]],[[10,0,4]],[[12,0,2],[10,2,2]],[[7,0,4]]];
+  const MONTEE=[[[12,0,4]],[[10,0,4]],[[8,0,2],[12,2,2]],[[14,0,4]]];
   let musBus=null, musNext=0, musBar=0;
   function musInit(){ if(musBus) return; musBus=ctx.createGain(); musBus.gain.value=1;
     const rev=ctx.createConvolver(), len=Math.floor(ctx.sampleRate*3.2), ir=ctx.createBuffer(2,len,ctx.sampleRate);
@@ -2433,6 +2437,16 @@ const SND=(()=>{
   function swell(t,dur,vol=0.1){ const s=ctx.createBufferSource(); s.buffer=noiseBuf; s.loop=true; const hp=ctx.createBiquadFilter(); hp.type='bandpass'; hp.Q.value=0.8; hp.frequency.setValueAtTime(400,t); hp.frequency.exponentialRampToValueAtTime(6000,t+dur);
     const g=ctx.createGain(); g.gain.setValueAtTime(0.0001,t); g.gain.exponentialRampToValueAtTime(vol,t+dur*0.97); g.gain.exponentialRampToValueAtTime(0.0001,t+dur+0.12); s.connect(hp); hp.connect(g); g.connect(musBus); s.start(t); s.stop(t+dur+0.2);
     const o=ctx.createOscillator(), og=ctx.createGain(); o.type='sawtooth'; o.frequency.setValueAtTime(110,t); o.frequency.exponentialRampToValueAtTime(880,t+dur); og.gain.setValueAtTime(0.0001,t); og.gain.exponentialRampToValueAtTime(vol*0.25,t+dur*0.97); og.gain.exponentialRampToValueAtTime(0.0001,t+dur+0.05); o.connect(og); og.connect(musBus); o.start(t); o.stop(t+dur+0.1); }
+  function lead(f,t,dur,vol,bright=1800){ const g=ctx.createGain(), lp=ctx.createBiquadFilter(); lp.type='lowpass'; lp.frequency.value=bright; lp.Q.value=0.5;
+    g.gain.setValueAtTime(0.0001,t); g.gain.exponentialRampToValueAtTime(vol,t+0.07); g.gain.setValueAtTime(vol*0.85,t+Math.max(0.1,dur-0.15)); g.gain.exponentialRampToValueAtTime(0.0001,t+dur+0.25);
+    const lfo=ctx.createOscillator(), lg=ctx.createGain(); lfo.frequency.value=5.2; lg.gain.setValueAtTime(0,t); lg.gain.linearRampToValueAtTime(7,t+Math.min(0.5,dur)); lfo.connect(lg);
+    [['sawtooth',-5],['sawtooth',5],['triangle',0]].forEach(([ty,dt])=>{ const o=ctx.createOscillator(); o.type=ty; o.frequency.value=f; o.detune.value=dt; lg.connect(o.detune); o.connect(lp); o.start(t); o.stop(t+dur+0.3); });
+    lfo.start(t); lfo.stop(t+dur+0.3); lp.connect(g); g.connect(musBus); }
+  function boom(t,big){ // explosion : impact grave, souffle, cymbale, gong
+    const o=ctx.createOscillator(), g=ctx.createGain(); o.type='sine'; o.frequency.setValueAtTime(big?62:70,t); o.frequency.exponentialRampToValueAtTime(24,t+2.4); g.gain.setValueAtTime(0.0001,t); g.gain.exponentialRampToValueAtTime(big?0.95:0.6,t+0.01); g.gain.exponentialRampToValueAtTime(0.0001,t+(big?3.2:2)); o.connect(g); g.connect(musG); o.start(t); o.stop(t+3.3);
+    const n=ctx.createBufferSource(); n.buffer=noiseBuf; n.loop=true; const lp=ctx.createBiquadFilter(); lp.type='lowpass'; lp.frequency.setValueAtTime(2400,t); lp.frequency.exponentialRampToValueAtTime(120,t+1.6); const ng=ctx.createGain(); ng.gain.setValueAtTime(0.0001,t); ng.gain.exponentialRampToValueAtTime(big?0.5:0.3,t+0.01); ng.gain.exponentialRampToValueAtTime(0.0001,t+1.8); n.connect(lp); lp.connect(ng); ng.connect(musBus); n.start(t); n.stop(t+1.9);
+    const c=ctx.createBufferSource(); c.buffer=noiseBuf; c.loop=true; const hp=ctx.createBiquadFilter(); hp.type='highpass'; hp.frequency.value=5000; const cg=ctx.createGain(); cg.gain.setValueAtTime(0.0001,t); cg.gain.exponentialRampToValueAtTime(big?0.16:0.1,t+0.005); cg.gain.exponentialRampToValueAtTime(0.0001,t+2.6); c.connect(hp); hp.connect(cg); cg.connect(musBus); c.start(t); c.stop(t+2.7);
+    if(big) [55,82,131,173].forEach((f,i)=>{ const go=ctx.createOscillator(), gg=ctx.createGain(); go.type='sine'; go.frequency.value=f*1.01; gg.gain.setValueAtTime(0.0001,t); gg.gain.exponentialRampToValueAtTime(0.06/(i+1),t+0.02); gg.gain.exponentialRampToValueAtTime(0.0001,t+3.5); go.connect(gg); gg.connect(musBus); go.start(t); go.stop(t+3.6); }); }
   function sub(f,t,dur,vol){ const o=ctx.createOscillator(), g=ctx.createGain(); o.type='sine'; o.frequency.value=f; g.gain.setValueAtTime(0.0001,t); g.gain.exponentialRampToValueAtTime(vol,t+0.03); g.gain.setValueAtTime(vol,t+dur*0.85); g.gain.exponentialRampToValueAtTime(0.0001,t+dur); o.connect(g); g.connect(musG); o.start(t); o.stop(t+dur+0.05); }
   function epicBar(t,bar,root){ const beat=60/EPIC.bpm, B=beat*4;
     const cyc=Math.floor(bar/CYCLE); let pos=bar%CYCLE, si=0; while(pos>=SECT[si][1]){ pos-=SECT[si][1]; si++; }
@@ -2449,9 +2463,13 @@ const SND=(()=>{
       if(k===3&&drums>=2) for(let i=0;i<8;i++) drum(t+2*beat+i*beat/4,{f0:160,f1:110,vol:0.1+i*0.025,dec:0.18,noiseVol:0.18,nf:900}); }
     if(brass&&(k===0||k===2||brass>=2)){ ch.forEach(n=>saw(N2F(r+n),t,beat*(brass>=2&&k%2?1.6:2.2),{vol:0.036,att:0.18,rel:0.6,cut:250,cutTo:2400,q:1.2,det:[-9,0,9]}));
       saw(N2F(r-12+bn),t,beat*2.2,{vol:0.04,att:0.2,rel:0.6,cut:200,cutTo:1300}); }
-    if(mel){ const m=MEL[(k+cyc+(mel===2?2:0))%MEL.length]; m.forEach(([d,st,du])=>saw(N2F(r+24+bn+d),t+st*beat,du*beat+0.4,{vol:mel===2?0.024:0.026,att:mel===2?0.25:0.08,rel:0.4,cut:mel===2?1600:2400,det:[-6,6]})); }
-    if(subB){ // la basse : sub profond qui pulse, et un impact sur le premier temps de la section
-      const f=N2F(r-24+bn); if(pos===0) { drum(t,{f0:70,f1:28,vol:0.75,dec:2.2,noiseVol:0.3,nf:200}); }
+    if(mel){ const tonic=r+24; // la mélodie suit la tonique (pas la fondamentale de l'accord) : un vrai thème
+      if(name==='theme'||name==='climax'){ THEME[pos%8].forEach(([d,st,du])=>{ lead(N2F(tonic+d),t+st*beat,du*beat,name==='climax'?0.03:0.034); if(name==='climax') lead(N2F(tonic+12+d),t+st*beat,du*beat,0.018,2600); }); }
+      else if(name==='pont') PONT[pos%4].forEach(([d,st,du])=>lead(N2F(tonic+d),t+st*beat,du*beat,0.024,1300));
+      else MONTEE[pos%4].forEach(([d,st,du])=>lead(N2F(tonic+d),t+st*beat,du*beat,0.02+0.002*pos,1500+pos*120)); }
+    if(pos===0&&(name==='theme'||name==='climax')) boom(t,name==='climax');
+    if(subB){ // la basse : sub profond qui pulse sous le thème et le climax
+      const f=N2F(r-24+bn);
       if(subB>=2) [0,1,2,3].forEach(b=>sub(f,t+b*beat,beat*0.9,0.2)); else sub(f,t,B*0.98,0.16);
       saw(f*2,t,B,{vol:0.03,att:0.05,rel:0.2,cut:160,det:[0],dry:true}); }
     if(riser&&last) swell(t,B,0.09);
@@ -2485,7 +2503,7 @@ const EVSND={glitch:'error',stamp:'stamp',news:'news',money:'cash',signs:'crowd'
 const IS_SITE=/^\/lejeududg/i.test(location.pathname);
 let INSTALL_EV=null;
 try{ if(IS_SITE&&'serviceWorker' in navigator) navigator.serviceWorker.register('/lejeuduDG/sw.js',{scope:'/lejeuduDG'}).catch(()=>{}); }catch(e){}
-const BUILD='20261102161049';
+const BUILD='20261102161637';
 function track(kind,extra){ try{ if(!IS_SITE) return; let v=localStorage.getItem('bde-vid'); if(!v){ v=(crypto.randomUUID?crypto.randomUUID():String(Math.random()).slice(2)+Date.now().toString(36)); localStorage.setItem('bde-vid',v); }
   fetch('/api/jeudg/event',{method:'POST',keepalive:true,headers:{'Content-Type':'application/json'},body:JSON.stringify({kind,visiteur:v,mobile:MOB(),appli:STANDALONE(),...(extra||{})})}).catch(()=>{}); }catch(e){} }
 try{ if(!sessionStorage.getItem('bde-vis')){ sessionStorage.setItem('bde-vis','1'); setTimeout(()=>track('visite'),1500); } }catch(e){}
