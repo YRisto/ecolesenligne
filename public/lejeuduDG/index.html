@@ -1719,8 +1719,28 @@ function postScore(type,extra){
   const row={partie_id:S.pid,type,dg:S.name,profil:SC.name+' · '+(S.profile!==null?PROFILES[S.profile][1]:''),annee:S.year,resultat_pct:+S.lastResult.pct.toFixed(2),resultat_k:Math.round(S.lastResult.res),ca_k:Math.round(S.lastResult.rev),capital:Math.round(S.g.ca),etudiants:S.students,tresorerie_k:Math.round(S.cash),mesures:S.active.length,saison:type==='saison'?S.yi+1:null,...extra};
   let details=null; try{details=snapshot();}catch(e){}
   try{const l=localScores().filter(x=>!(x.partie_id===row.partie_id&&x.type===row.type&&x.saison===row.saison)); l.push({...row,created_at:new Date().toISOString()}); localStorage.setItem('bde-hof',JSON.stringify(l.slice(-300)));}catch(e){}
-  try{fetch(API,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({...row,details})}).catch(()=>{});}catch(e){}
+  sendScore({...row,details});
 }
+// File d'envoi : un score reste sur l'appareil tant que le serveur ne l'a pas reçu (coupure réseau, serveur en panne) et repart à la prochaine ouverture
+const PEND='bde-pending';
+function pendList(){ try{return JSON.parse(localStorage.getItem(PEND)||'[]');}catch(e){return [];} }
+function pendSet(l){ try{localStorage.setItem(PEND,JSON.stringify(l.slice(-20)));}catch(e){ try{localStorage.setItem(PEND,JSON.stringify(l.slice(-3)));}catch(_){} } }
+const pkey=b=>b.partie_id+'|'+b.type+'|'+(b.saison||0);
+function sendScore(body){
+  const k=pkey(body); pendSet(pendList().filter(x=>pkey(x)!==k).concat([body]));
+  try{ return fetch(API,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)}).then(r=>{ if(r.ok||(r.status>=400&&r.status<500)) pendSet(pendList().filter(x=>pkey(x)!==k)); return r.ok; }).catch(()=>false); }catch(e){ return Promise.resolve(false); }
+}
+async function flushScores(){
+  if(!IS_SITE) return;
+  for(const b of pendList()) await sendScore(b);
+  // Rattrapage unique : scores refusés à tort par le serveur entre le 1/11 (23 h 26) et le 2/11 (21 h 30), renvoyés depuis la copie locale
+  try{ if(localStorage.getItem('bde-rattrap')) return;
+    const A='2026-11-01T22:00:00Z', B='2026-11-02T21:00:00Z', l=localScores().filter(x=>x.created_at>=A&&x.created_at<=B&&x.partie_id); let all=true;
+    for(const x of l){ try{ const r=await fetch(API,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({...x,rattrapage:true})}); if(!(r.ok||(r.status>=400&&r.status<500))) all=false; }catch(e){ all=false; } }
+    if(all) localStorage.setItem('bde-rattrap','1');
+  }catch(e){}
+}
+setTimeout(flushScores,3000);
 async function fetchScores(type,annee,archive){
   try{const r=await fetch(API+'?type='+type+(annee?'&annee='+annee:'')+(archive?'&archive=1':''),{cache:'no-store'}); if(r.ok){const j=await r.json(); if(!j.offline&&!j.error) return {rows:j.rows,online:true};}}catch(e){}
   const ARCH='2026-11-01T09:00:00Z'; // rééquilibrage de la difficulté (MAJ du 1/11) : les parties antérieures sont archivées
@@ -2578,7 +2598,7 @@ const EVSND={glitch:'error',stamp:'stamp',news:'news',money:'cash',signs:'crowd'
 const IS_SITE=/^\/lejeududg/i.test(location.pathname);
 let INSTALL_EV=null;
 try{ if(IS_SITE&&'serviceWorker' in navigator) navigator.serviceWorker.register('/lejeuduDG/sw.js',{scope:'/lejeuduDG'}).catch(()=>{}); }catch(e){}
-const BUILD='20261102200949';
+const BUILD='20261102212802';
 function track(kind,extra){ try{ if(!IS_SITE) return; let v=localStorage.getItem('bde-vid'); if(!v){ v=(crypto.randomUUID?crypto.randomUUID():String(Math.random()).slice(2)+Date.now().toString(36)); localStorage.setItem('bde-vid',v); }
   fetch('/api/jeudg/event',{method:'POST',keepalive:true,headers:{'Content-Type':'application/json'},body:JSON.stringify({kind,visiteur:v,mobile:MOB(),appli:STANDALONE(),...(extra||{})})}).catch(()=>{}); }catch(e){} }
 try{ if(!sessionStorage.getItem('bde-vis')){ sessionStorage.setItem('bde-vis','1'); setTimeout(()=>track('visite'),1500); } }catch(e){}

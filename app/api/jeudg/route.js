@@ -56,6 +56,18 @@ function plausible(row, details) {
   if (row.type === "partie" && an.length < 5 && row.statut !== "perdu") return "partie incomplète";
   return null;
 }
+function plausibleLight(row) {
+  const ecole = Object.keys(ECOLES).find((n) => String(row.profil || "").startsWith(n));
+  if (!ecole) return "école inconnue";
+  const ca0 = ECOLES[ecole];
+  if (row.annee == null || row.ca_k == null || row.resultat_k == null) return "valeurs manquantes";
+  if (row.ca_k < 0 || row.ca_k > ca0 * 12) return "chiffre d'affaires hors limites";
+  if (row.resultat_k > row.ca_k * 0.6 || row.resultat_k < -ca0 * 6) return "résultat hors limites";
+  if (row.ca_k && Math.abs(row.resultat_pct - (row.resultat_k / row.ca_k) * 100) > 0.6) return "taux incohérent";
+  if (row.type === "saison" && row.annee !== 2025 + row.saison) return "saison incohérente";
+  if (row.type === "partie" && !["objectif", "equilibre", "manque", "perdu"].includes(row.statut)) return "issue inconnue";
+  return null;
+}
 // POST : enregistre un score de saison ou de partie
 export async function POST(req) {
   const b = await req.json().catch(() => null);
@@ -71,11 +83,16 @@ export async function POST(req) {
   };
   // Historique détaillé de la partie (jauges, école, médias, mesures, années, journal) : objet JSON borné à 60 Ko
   if (b.details && typeof b.details === "object" && !Array.isArray(b.details)) { const d = JSON.stringify(b.details).replace(/[<>]/g, ""); if (d.length <= 60000) row.details = JSON.parse(d); }
-  const bad = plausible(row, row.details);
+  // Rattrapage : scores refusés à tort (bug serveur du 1/11 23 h 26 au 2/11 21 h 30), renvoyés depuis la copie locale du joueur, sans historique détaillé.
+  // Accepté seulement pour une date d'origine dans cette fenêtre, avec des contrôles de cohérence de base, et sans écraser une ligne existante.
+  const A = "2026-11-01T22:00:00Z", B = "2026-11-02T21:00:00Z";
+  const rattrapage = b.rattrapage === true && !row.details && typeof b.created_at === "string" && b.created_at >= A && b.created_at <= B && !isNaN(Date.parse(b.created_at));
+  if (rattrapage) row.created_at = new Date(b.created_at).toISOString();
+  const bad = rattrapage ? plausibleLight(row) : plausible(row, row.details);
   if (bad) { console.warn("jeudg score refusé :", bad, row.dg, row.profil); return NextResponse.json({ error: "Score refusé : " + bad + "." }, { status: 422 }); }
   if (!url || !key) { console.log("SCORE (Supabase non configuré)", JSON.stringify(row)); return NextResponse.json({ ok: true, offline: true }); }
   const post = (body) => fetch(`${url}/rest/v1/jeu_dg_scores?on_conflict=partie_id,type,saison`, { method: "POST", headers: { ...headers(), Prefer: "resolution=merge-duplicates,return=minimal" }, body: JSON.stringify(body) });
-  let r = await post(row);
+  let r = rattrapage ? await fetch(`${url}/rest/v1/jeu_dg_scores?on_conflict=partie_id,type,saison`, { method: "POST", headers: { ...headers(), Prefer: "resolution=ignore-duplicates,return=minimal" }, body: JSON.stringify(row) }) : await post(row);
   if (r.status === 400) { const { resultat_k, ca_k, details, ...rest } = row; r = await post(rest); } // colonnes pas encore créées
   if (!r.ok) { console.error("supabase jeudg", r.status, await r.text()); return NextResponse.json({ error: "Enregistrement impossible." }, { status: 500 }); }
   return NextResponse.json({ ok: true });
