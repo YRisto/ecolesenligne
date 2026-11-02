@@ -2430,10 +2430,11 @@ function phVote(){
   $('#c').appendChild(box);
 }
 
-function eventFx(e){ let fx=scf(typeof e.fx==='function'?e.fx(S):e.fx); const m=SC&&SC.evMult; if(m&&fx){ fx={...fx}; for(const k of ['rev','cost','once','revY','cashBack']) if(fx[k]) fx[k]=Math.round(fx[k]*m); if(fx.stuY) fx.stuY=1+(fx.stuY-1)*m; } return fx; } // évMult : scénario à forte volatilité (imprévus amplifiés)
+function eventFx(e){ let fx=scf(typeof e.fx==='function'?e.fx(S):e.fx); if(fx) fx=mulFx(fx,e.pos?POS_K:NEG_K); const m=SC&&SC.evMult; if(m&&fx){ fx={...fx}; for(const k of ['rev','cost','once','revY','cashBack']) if(fx[k]) fx[k]=Math.round(fx[k]*m); if(fx.stuY) fx.stuY=1+(fx.stuY-1)*m; } return fx; } // évMult : scénario à forte volatilité (imprévus amplifiés)
 function mulFx(fx,f){ const o={...fx}; for(const k of ['rev','cost','mk','once','revY','cashBack']) if(o[k]) o[k]=Math.round(o[k]*f); if(o.g){o.g={}; for(const k in fx.g) o.g[k]=Math.round(fx.g[k]*f);} if(o.stuY) o.stuY=1-(1-o.stuY)*f; if(o.stu) o.stu=1-(1-o.stu)*f; if(o.churn) o.churn=o.churn*f; if(o.price) o.price=o.price*f; if(o.media){o.media={}; for(const k in fx.media) o.media[k]=1+(fx.media[k]-1)*f;} if(o.rate) o.rate=o.rate*f; if(o.cap) o.cap=Math.round(o.cap*f); if(o.students) o.students=Math.round(o.students*f); if(f<1) delete o.flag; return o; }
 function halfFx(fx){ return mulFx(fx,0.5); }
-const EV_SIGN=()=>RND('sign')<0.5?'pos':'neg'; // imprévus : positif ou négatif, une fois sur deux
+const EV_SIGN=()=>RND('sign')<1/3?'pos':'neg'; // imprévus : mauvaise nouvelle deux fois sur trois (chacune un peu adoucie, NEG_K, pour garder le même niveau de difficulté)
+const NEG_K=0.75, POS_K=1.5; // bonne nouvelle plus rare mais plus forte
 function minorEvent(){ // la décision express de l'année, à un moment aléatoire
   if(S.minor&&S.minor.y===S.year) return S.minor;
   const phases=[1,2,4,5]; S.minor={y:S.year,at:phases[Math.floor(RND('minor')*phases.length)],done:false}; return S.minor;
@@ -2598,7 +2599,7 @@ const EVSND={glitch:'error',stamp:'stamp',news:'news',money:'cash',signs:'crowd'
 const IS_SITE=/^\/lejeududg/i.test(location.pathname);
 let INSTALL_EV=null;
 try{ if(IS_SITE&&'serviceWorker' in navigator) navigator.serviceWorker.register('/lejeuduDG/sw.js',{scope:'/lejeuduDG'}).catch(()=>{}); }catch(e){}
-const BUILD='20261102212802';
+const BUILD='20261102223805';
 function track(kind,extra){ try{ if(!IS_SITE) return; let v=localStorage.getItem('bde-vid'); if(!v){ v=(crypto.randomUUID?crypto.randomUUID():String(Math.random()).slice(2)+Date.now().toString(36)); localStorage.setItem('bde-vid',v); }
   fetch('/api/jeudg/event',{method:'POST',keepalive:true,headers:{'Content-Type':'application/json'},body:JSON.stringify({kind,visiteur:v,mobile:MOB(),appli:STANDALONE(),...(extra||{})})}).catch(()=>{}); }catch(e){} }
 try{ if(!sessionStorage.getItem('bde-vis')){ sessionStorage.setItem('bde-vis','1'); setTimeout(()=>track('visite'),1500); } }catch(e){}
