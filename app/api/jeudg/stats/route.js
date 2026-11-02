@@ -20,7 +20,7 @@ export async function GET(req) {
   const q = new URL(req.url).searchParams; const short = q.get("court") === "1";
   let ev = [], evOk = true;
   try { ev = await all("jeu_dg_events?select=kind,visiteur,partie_id,ecole,mobile,appli,statut,created_at&order=created_at.asc"); } catch (e) { evOk = false; }
-  const sc = await all("jeu_dg_scores?select=partie_id,type,profil,statut,created_at,masque&order=created_at.asc").catch(() => []);
+  const sc = await all("jeu_dg_scores?select=partie_id,type,profil,statut,created_at,masque" + (short ? "" : ",details") + "&order=created_at.asc").catch(() => []);
   const ECOLES = ["Xyn and You", "LinguIA", "ENACTO Business School", "Centre National de Formation", "Hippocampus", "Les Cuisines de Minuit", "Académie Orbitale", "L'École des Nouveaux Paysans"];
   const ecoleOf = (p) => ECOLES.find((n) => String(p || "").startsWith(n)) || "Autre";
   // parties : une partie est « lancée » si elle a un début enregistré ou au moins une saison jouée ; « terminée » si elle a sa ligne de fin
@@ -39,9 +39,34 @@ export async function GET(req) {
   const parJour = Object.values(days).sort((a, b) => a.jour.localeCompare(b.jour)).map((x) => ({ ...x, visiteurs: x.visiteurs.size }));
   const parEcole = {}; for (const p of list) { const k = p.ecole || "Autre"; const x = (parEcole[k] = parEcole[k] || { ecole: k, lancees: 0, terminees: 0, gagnees: 0 }); x.lancees++; if (p.fin) x.terminees++; if (p.statut === "objectif") x.gagnees++; }
   const uniq = new Set(vis.map((e) => e.visiteur));
+  // Comment jouent les DG : à partir du dernier état connu de chaque partie (colonne details des scores)
+  const last = new Map(); for (const s of sc) if (s.partie_id && s.details) last.set(s.partie_id, s);
+  const states = [...last.values()];
+  const cnt = (m, k) => m.set(k, (m.get(k) || 0) + 1);
+  const mes = new Map(), fins = new Map(), cse = new Map(), env = new Map(), exp = new Map(); let renvoiSum = 0, renvoiN = 0;
+  for (const s of states) {
+    const d = s.details || {};
+    for (const m of new Set(d.mesures || [])) cnt(mes, m);
+    const ch = Array.isArray(d.choix) ? d.choix : [];
+    for (const c of ch) {
+      if (c.q === "Décision express") { const k = c.qt || ("Décision " + c.x); if (!exp.has(k)) exp.set(k, new Map()); cnt(exp.get(k), c.a); }
+      else if (c.q === "Questions du CSE") cnt(cse, c.a);
+      else if (c.q && c.ph === 3) cnt(env, c.a);
+    }
+    const o = d.over;
+    if (o && o.perdu) { const w = String(o.pourquoi || ""); const cause = /banque|bilan/i.test(w) ? "Faillite : la banque coupe le crédit" : /grève/i.test(w) ? "Grève illimitée (CSE à zéro)" : /hémorragie|habilitation/i.test(w) ? "Exode des inscrits (jauge à zéro)" : /plafonne/i.test(w) ? "Étape de chiffre d'affaires manquée" : /investisseurs/i.test(w) ? "Condition des investisseurs non tenue" : /plus pu vous défendre|capital/i.test(w) ? "Capital à zéro : révocation" : "Autre";
+      cnt(fins, cause); const yrs = (d.annees || []).length; if (yrs) { renvoiSum += yrs; renvoiN++; } }
+    else if (s.type === "partie" && s.statut) cnt(fins, s.statut === "objectif" ? "Mandat rempli" : s.statut === "equilibre" ? "Demi-succès" : "Objectif manqué");
+  }
+  const top = (m, n, tot) => [...m.entries()].sort((a, b) => b[1] - a[1]).slice(0, n).map(([k, v]) => ({ k, v, pct: tot ? Math.round((v / tot) * 100) : null }));
+  const jeu = { parties: states.length,
+    mesures: top(mes, 15, states.length), fins: top(fins, 12, [...fins.values()].reduce((a, b) => a + b, 0)),
+    cse: top(cse, 10, [...cse.values()].reduce((a, b) => a + b, 0)), enveloppes: top(env, 10, [...env.values()].reduce((a, b) => a + b, 0)),
+    express: [...exp.entries()].map(([q, m]) => { const tot = [...m.values()].reduce((a, b) => a + b, 0); return { q, total: tot, reponses: top(m, 4, tot) }; }).sort((a, b) => b.total - a.total).slice(0, 14),
+    saisonRenvoi: renvoiN ? +(renvoiSum / renvoiN).toFixed(1) : null };
   return NextResponse.json({
     maj: new Date().toISOString(), mesureDepuis: ev.length ? ev[0].created_at : null, evenements: evOk,
     totals: { ...totals, visites: vis.length, visiteurs: uniq.size, mobile: vis.length ? Math.round((vis.filter((e) => e.mobile).length / vis.length) * 100) : null, appli: vis.length ? Math.round((vis.filter((e) => e.appli).length / vis.length) * 100) : null },
-    parJour, parEcole: Object.values(parEcole).sort((a, b) => b.lancees - a.lancees),
+    parJour, parEcole: Object.values(parEcole).sort((a, b) => b.lancees - a.lancees), jeu,
   }, { headers: { "Cache-Control": "no-store" } });
 }
