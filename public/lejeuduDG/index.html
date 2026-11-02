@@ -784,6 +784,27 @@ html[data-sc] .titlecard .big{color:var(--sc-hi);text-shadow:0 0 30px var(--sc)}
 .crisis.hurry .crn{color:var(--rose);animation:crpulse .5s ease-in-out infinite alternate}
 .crisis.hurry .crbar i{background:var(--rose)}
 @keyframes crpulse{to{transform:scale(1.18)}}
+/* Avant : sirène plein écran ; pendant : halo qui bat, vignette rouge et tremblement dans les 5 dernières secondes */
+.crintro{position:fixed;inset:0;z-index:90;display:grid;place-items:center;pointer-events:none;background:radial-gradient(circle at 50% 50%,rgba(12,8,20,.82) 0%,rgba(30,6,14,.7) 45%,rgba(255,40,60,.55) 100%);animation:crflash .45s steps(1) 4,crout .35s ease-in 1.65s forwards}
+.crintro .crb{font-size:84px;filter:drop-shadow(0 0 24px rgba(255,70,90,.9));animation:crspin .45s ease-in-out infinite alternate}
+.crintro .crt{font:900 clamp(30px,8vw,58px)/1 var(--sans);color:#fff;letter-spacing:.04em;text-shadow:0 0 22px rgba(255,70,90,.9),0 4px 0 #7a0f1d;animation:slam .5s cubic-bezier(.2,1.4,.4,1) .15s both;text-align:center}
+.crintro .crs{color:#ffd0d6;font-weight:700;margin-top:10px;text-align:center;animation:fadeup .4s ease .55s both;opacity:0}
+.crintro .crw{display:grid;justify-items:center;gap:6px}
+.crintro::before,.crintro::after{content:"";position:absolute;left:0;right:0;height:14px;background:repeating-linear-gradient(-45deg,#ffcc33 0 16px,#1a1a1a 16px 32px);animation:crtape 1s linear infinite}
+.crintro::before{top:0} .crintro::after{bottom:0;animation-direction:reverse}
+@keyframes crflash{50%{background-color:rgba(255,30,50,.25)}}
+@keyframes crout{to{opacity:0;transform:scale(1.05)}}
+@keyframes crspin{from{transform:rotate(-12deg) scale(1)}to{transform:rotate(12deg) scale(1.12)}}
+@keyframes crtape{to{background-position:45px 0}}
+.modal.crisism{animation:panelin .3s ease both,crglow 1.2s ease-in-out infinite alternate;border-color:#ff8a5a}
+@keyframes crglow{from{box-shadow:0 20px 60px rgba(0,0,0,.6),0 0 0 0 rgba(255,110,90,.0)}to{box-shadow:0 20px 60px rgba(0,0,0,.6),0 0 0 6px rgba(255,110,90,.25),0 0 40px rgba(255,90,80,.35)}}
+.crisis .crbar i{background-image:repeating-linear-gradient(-45deg,rgba(255,255,255,.18) 0 8px,transparent 8px 16px),linear-gradient(90deg,var(--gold),#ff8a5a);background-size:22px 22px,100% 100%;animation:crstripe .6s linear infinite}
+@keyframes crstripe{to{background-position:22px 0,0 0}}
+.overlay:has(.crisis.hurry){animation:crvig .5s ease-in-out infinite alternate}
+@keyframes crvig{from{box-shadow:inset 0 0 0 0 rgba(255,40,60,0)}to{box-shadow:inset 0 0 120px 30px rgba(255,40,60,.45)}}
+.modal.crisism:has(.crisis.hurry){border-color:var(--rose);animation:crshake .5s ease-in-out infinite}
+@keyframes crshake{0%,100%{transform:none}25%{transform:translateX(-2px) rotate(-.3deg)}75%{transform:translateX(2px) rotate(.3deg)}}
+@media (prefers-reduced-motion:reduce){.modal.crisism,.modal.crisism:has(.crisis.hurry),.overlay:has(.crisis.hurry),.crisis .crbar i{animation:none}}
 .crisis .crwho{display:flex;gap:10px;align-items:center;margin-bottom:8px}
 .crisis .crwho .ic{font-size:34px}
 .crisis .crwho small{display:block;color:var(--muted);font-size:12px}
@@ -2238,6 +2259,32 @@ function presidentMood(tagOnly){
   if(!tagOnly&&FLAVOR[SC.id]) q+=' '+FLAVOR[SC.id];
   return tagOnly?t:q;
 }
+// Discours de rentrée (dès la saison 2) : un thème par carte (rigueur, qualité, croissance) et, au hasard, une version inspirée, une version banale et une version maladroite.
+// Les effets restent cachés : c'est le texte qui doit mettre la puce à l'oreille.
+const SPEECH={
+  rig:{fx:[{g:{ca:7,cse:-1}},{g:{ca:3,cse:-2}},{g:{com:-1,cse:-1}}],
+    t:[["« Chaque euro que nous économisons, nous le réinvestirons dans ce qui compte. La rigueur n'est pas une punition : c'est ce qui nous rend libres. »","« Nous allons dépenser moins, mais surtout mieux. Et je commencerai par mon propre bureau. »","« Je ne vous demande pas de couper, je vous demande de choisir. Ce qui sert nos {u}, on le garde. Le reste, on en parle ensemble. »"],
+       ["« La rigueur : je tiendrai les coûts. »","« Cette année, chaque dépense sera justifiée. »","« Nous tiendrons le budget, ligne par ligne. »"],
+       ["« J'ai fait le tour des bureaux : il y a trop de plantes vertes. Les économies commencent par là. »","« Bonne nouvelle : la machine à café reste. Pour les capsules, on verra. »","« Les économies, c'est comme le sport : ça fait mal, et c'est vous qui allez transpirer. »"]],
+    r:["Applaudissements nourris. Même le CSE hoche la tête : pour une fois, la rigueur a un sens.","Cap fixé. {p} approuve, le CSE prend note.","Silence gêné. Quelqu'un tousse au fond de la salle. Le CSE prend des notes, beaucoup de notes."]},
+  qua:{fx:[{g:{etu:10,ca:-3}},{g:{etu:3,ca:-1}},{g:{com:-1,cse:-1}}],
+    t:[["« Nos {u} ne nous choisissent pas pour nos plaquettes, mais pour ce qu'ils deviennent en sortant d'ici. C'est ça, notre métier, et cette année on va le faire encore mieux. »","« Dans cinq ans, ce sont nos anciens {u} qui recruteront pour nous. Alors cette année, chaque cours compte. »","« Nos formateurs sont notre meilleur argument commercial. Je vais leur donner les moyens de le prouver. »"],
+       ["« La qualité : je miserai sur les {u}. »","« Cette année, l'expérience de nos {u} passe avant tout. »","« Nous allons améliorer la satisfaction : c'est la priorité. »"],
+       ["« La qualité, c'est comme le cholestérol : il y a la bonne et la mauvaise. Nous, on vise la bonne. »","« J'ai lu les avis en ligne. Tous. Même ceux en majuscules. On en reparlera individuellement. »","« Je veux un NPS de 90. Je ne sais pas encore ce que c'est, mais je le veux. »"]],
+    r:["La salle se lève. Les formateurs se regardent, émus, et les {u} relaient la vidéo dans la soirée.","Cap fixé. Les {u} apprécient, le conseil attend les chiffres.","Rires nerveux. La vidéo circule dans la soirée, mais pas pour les bonnes raisons."]},
+  cro:{fx:[{g:{com:10,ca:-3}},{g:{com:3,ca:-1}},{g:{com:-1,cse:-1}}],
+    t:[["« Le marché bouge, et nous avons ce que les autres n'ont pas : une équipe qui y croit. Allez chercher chaque inscription comme si c'était la première. »","« Je ne vous fixerai pas des objectifs, je vous donnerai des munitions. Et le premier qui dépasse le sien, je l'invite à dîner. »","« Ce sont vos appels qui font vivre cette école. Cette année, je veux que tout le monde le sache. »"],
+       ["« La croissance : je relancerai les ventes. »","« Nous devons recruter plus, et plus vite. »","« Cette année, les inscriptions avant tout. »"],
+       ["« Les commerciaux, je vous aime. Enfin, j'aime vos chiffres. Enfin, ceux de l'an prochain. »","« Objectif : doubler les inscriptions. Comment ? C'est pour ça que je vous paie. »","« Voyez nos concurrents comme des amis. Des amis qu'on va écraser. »"]],
+    r:["Les commerciaux tapent sur les tables. Certains décrochent déjà leur téléphone.","Cap fixé. Les commerciaux applaudissent.","Applaudissements polis, puis un long silence. À la machine à café, on imite déjà votre intonation."]}
+};
+function speechOptions(){
+  S.speech=S.speech||{};
+  if(!S.speech[S.year]){ const q=[0,1,2].map(i=>[i,RND('speechq')]).sort((a,b)=>a[1]-b[1]).map(x=>x[0]); // une version inspirée, une banale, une maladroite
+    S.speech[S.year]=['rig','qua','cro'].map((k,i)=>[k,q[i],Math.floor(RND('speecht')*3)]); }
+  const f=x=>x.replace(/\{u\}/g,SC.unit).replace(/\{p\}/g,N.president);
+  return S.speech[S.year].map(([k,q,v])=>[f(SPEECH[k].t[q][v]),SPEECH[k].fx[q],f(SPEECH[k].r[q])]);
+}
 function phCadrage(){
   const first=S.yi===0; const lr=S.lastResult;
   if(false&&S.year===2028&&S.sub===0){ // rachat en cours de partie désactivé
@@ -2251,20 +2298,20 @@ function phCadrage(){
   const speaker=S.mode?['🕴️','Le nouvel actionnaire','Président du conseil']:[PRES,N.president,N.presidentRole+' · vous reçoit dans son bureau'];
   const body=dlg(speaker[0],speaker[1],speaker[2],(first?`« Bonjour ${S.name.replace(/\.$/,'')}. Voici les comptes 2025 que ${N.daf} vous a préparés. »<br><span class="kchips"><span>💶 ${M1(SC.ca0)} de CA</span><span>🎓 ${fmt(BASE.students)} ${SC.unit}</span><span>👥 ${BASE.staff} salariés</span><span>📞 ${BASE.com} commerciaux</span><span class="${SC.start<0?'neg':'pos'}">${SC.start<0?'📉':'📈'} ${mE(SC.ca0*SC.start/100)} de résultat</span></span><br>« ${SC.pitch} »<br>`:`« Résultat ${S.year-1} : <b style="color:${lr.pct<0?'var(--rose)':'var(--green)'}">${mE(lr.res)}</b>. ${lr.res>=SC.resTarget?'L\'objectif est atteint, il s\'agit de le tenir.':`Il manque ${mE(SC.resTarget-lr.res).slice(1)} de résultat avant fin 2030.`} »<br>`)+quote)+
    (extra.length?`<div class="note">${extra.map(x=>`<div>${x}</div>`).join('')}</div>`:'')+
-   `<div class="prompt">Votre discours de prise de fonction — fixez le cap :</div><div id="c"></div>`;
+   `<div class="prompt">${first?'Votre discours de prise de fonction — fixez le cap :':'Votre discours de rentrée : trois versions sur votre bureau, une seule sera prononcée. Choisissez bien vos mots.'}</div><div id="c"></div>`;
   const mood=first?null:presidentMood(true);
   sceneShell(body,{title:first?(SC.start<0?'Mission : Impossible':'Feuille de route'):'La lettre du conseil',tag:first?(SC.start<0?'On vous confie une école qui perd '+fmt(-SC.ca0*SC.start/100/12*1000)+' € par mois, et un président qui y croit. ':'On vous confie une école en bonne santé, et une ambition à la hauteur. ')+'Les équipes guettent vos premiers mots.':mood});
-  choices($('#c'),[
+  choices($('#c'),first?[
     ["« La rigueur : je tiendrai les coûts. »",{g:{ca:3,cse:-2}},"Cap fixé. "+N.president+" approuve, le CSE prend note."],
-    ["« La qualité : je miserai sur les étudiants. »",{g:{etu:3,ca:-1}},"Cap fixé. Les étudiants apprécient, le conseil attend les chiffres."],
-    ["« La croissance : je relancerai les ventes. »",{g:{com:3,ca:-1}},"Cap fixé. Les commerciaux applaudissent."]],()=>{
+    ["« La qualité : je miserai sur les "+SC.unit+". »",{g:{etu:3,ca:-1}},"Cap fixé. Les "+SC.unit+" apprécient, le conseil attend les chiffres."],
+    ["« La croissance : je relancerai les ventes. »",{g:{com:3,ca:-1}},"Cap fixé. Les commerciaux applaudissent."]]:speechOptions(),()=>{
       if(S.prime&&S.prime.year===S.year){ready();return;}
       const d=document.createElement('div'); d.innerHTML=`<div class="prompt" style="margin-top:10px">${N.cse}, secrétaire du CSE, vous interpelle : « Et la prime de participation, cette année ? »</div><div id="c2"></div>`; $('#c').after(d);
       choices($('#c2'),[
         ["« Oui, pour tous, quoi qu'il arrive. »",()=>{S.prime={year:S.year,promise:'oui'};return {g:{cse:9,com:5}};},"Promesse faite. Elle sera vérifiée au show de fin d'année : environ "+fmt(Math.round(S.staff*1.1))+" k€ à sortir.","Engagement ferme, vérifié en décembre."],
         ["« Oui, si l'école revient à l'équilibre. »",()=>{S.prime={year:S.year,promise:'cond'};return {g:{cse:3,com:2}};},"Une promesse conditionnelle. Les équipes retiennent surtout le « oui ».","Versée seulement si le résultat est positif."],
         ["« Non. Pas cette année. »",()=>{S.prime={year:S.year,promise:'non'};return {g:{cse:-6,com:-3,ca:2}};},"Le CSE encaisse. Au moins, personne ne sera déçu en décembre.","Clair, et impopulaire."]],null,'Prime de participation');
-    },'Discours de cadrage');
+    },first?'Discours de prise de fonction':'Discours de rentrée');
 }
 
 function buildOffer(){
@@ -2475,6 +2522,7 @@ const SND=(()=>{
     error:t=>{ tone(220,t,0.18,{type:'square',vol:0.14}); tone(165,t+0.2,0.3,{type:'square',vol:0.14}); },
     alarm:t=>{ for(let i=0;i<4;i++){ tone(880,t+i*0.32,0.15,{type:'sawtooth',vol:0.1}); tone(660,t+i*0.32+0.16,0.15,{type:'sawtooth',vol:0.1}); } },
     pop:t=>{ tone(400,t,0.09,{type:'sine',vol:0.3,to:1200}); },
+    heart:t=>{ tone(60,t+0.25,0.18,{vol:0.45,to:40}); tone(55,t+0.45,0.22,{vol:0.35,to:38}); },
     crowd:t=>{ noise(t,1.6,{vol:0.18,freq:900,q:0.4,att:0.4}); for(let i=0;i<6;i++) tone(300+Math.random()*300,t+0.2+i*0.18,0.25,{type:'triangle',vol:0.04}); },
     chime:t=>arp([84,88,91,96],t,0.18,{type:'sine',vol:0.12,dur:1.2}),
     door:t=>{ noise(t,0.25,{vol:0.3,freq:300,type:'lowpass'}); tone(110,t+0.2,0.3,{vol:0.4,to:60}); },
@@ -2599,7 +2647,7 @@ const EVSND={glitch:'error',stamp:'stamp',news:'news',money:'cash',signs:'crowd'
 const IS_SITE=/^\/lejeududg/i.test(location.pathname);
 let INSTALL_EV=null;
 try{ if(IS_SITE&&'serviceWorker' in navigator) navigator.serviceWorker.register('/lejeuduDG/sw.js',{scope:'/lejeuduDG'}).catch(()=>{}); }catch(e){}
-const BUILD='20261102223805';
+const BUILD='20261102224459';
 function track(kind,extra){ try{ if(!IS_SITE) return; let v=localStorage.getItem('bde-vid'); if(!v){ v=(crypto.randomUUID?crypto.randomUUID():String(Math.random()).slice(2)+Date.now().toString(36)); localStorage.setItem('bde-vid',v); }
   fetch('/api/jeudg/event',{method:'POST',keepalive:true,headers:{'Content-Type':'application/json'},body:JSON.stringify({kind,visiteur:v,mobile:MOB(),appli:STANDALONE(),...(extra||{})})}).catch(()=>{}); }catch(e){} }
 try{ if(!sessionStorage.getItem('bde-vis')){ sessionStorage.setItem('bde-vis','1'); setTimeout(()=>track('visite'),1500); } }catch(e){}
@@ -2697,12 +2745,19 @@ const CRISES=[
 function crisisFx(f){ const o={...f}; if(f.g){ o.g={}; for(const k in f.g) o.g[k]=f.g[k]>0?Math.round(f.g[k]*0.6):f.g[k]; } if(o.revY>0) o.revY=Math.round(o.revY*0.6); if(o.stuY>1) o.stuY=1+(o.stuY-1)*0.6; return scf(o); } // une crise reste une crise : les bonnes réponses limitent la casse plus qu'elles ne rapportent
 function crisisSecs(){ return MOB()?26:20; }
 function maybeMinor(){
-  const m=minorEvent(); if(S.yi===0) return false; if(m.done||m.at!==S.phase||S.screen!=='game'||document.getElementById('modal').innerHTML) return false;
+  const m=minorEvent(); if(S.yi===0) return false; if(m.done||m.at!==S.phase||S.screen!=='game'||document.getElementById('modal').innerHTML||CR_IN) return false;
   if(document.querySelector('.epcard:not(.out)')){ const S0=S; setTimeout(()=>{ if(S===S0&&S.screen==='game'&&S.phase===m.at&&!m.done) maybeMinor(); },500); return true; }
   S.used.cr=S.used.cr||[]; if(m.cr===undefined){ let pool=CRISES.map((_,i)=>i).filter(i=>!S.used.cr.includes(i)); if(!pool.length) pool=CRISES.map((_,i)=>i); m.cr=pool[Math.floor(RND('crise')*pool.length)]; S.used.cr.push(m.cr); }
-  save(); crisisModal(CRISES[m.cr],'Décision express · '+EPISODES[S.phase][0],()=>{save();renderBudget();renderGauges();},m); return true; /* « done » n'est posé qu'à la réponse : recharger ne permet pas d'esquiver */
+  save(); const S0=S; crisisIntro(()=>{ if(S!==S0||S.screen!=='game'||m.done) return; crisisModal(CRISES[m.cr],'Décision express · '+EPISODES[S.phase][0],()=>{save();renderBudget();renderGauges();},m); }); return true; /* « done » n'est posé qu'à la réponse : recharger ne permet pas d'esquiver */
 }
-let CR_T=null;
+let CR_T=null, CR_IN=false;
+function crisisIntro(cb){ // sirène plein écran avant la décision express : le compte à rebours ne démarre qu'après
+  if(CR_IN) return; try{ SND&&SND.play('alarm'); }catch(e){}
+  if(RM()) return cb(); CR_IN=true;
+  const d=document.createElement('div'); d.className='crintro'; d.setAttribute('aria-hidden','true');
+  d.innerHTML=`<div class="crw"><div class="crb">🚨</div><div class="crt">DÉCISION EXPRESS</div><div class="crs">${crisisSecs()} secondes pour trancher</div></div>`;
+  document.body.appendChild(d); setTimeout(()=>{ d.remove(); CR_IN=false; cb(); },2000);
+}
 function crisisModal(cr,label,cb,m){
   const esc=x=>String(x).replace(/[<>&]/g,''); const secs=crisisSecs();
   modal(`<div class="crisis"><div class="crtop"><span class="ml">⏱ ${label}</span><span class="crn" id="crn">${secs}</span></div><div class="crbar"><i id="crbar"></i></div>
@@ -2720,7 +2775,7 @@ function crisisModal(cr,label,cb,m){
     if(!bar.isConnected){ clearInterval(CR_T); return; }
     const s=Math.max(0,Math.ceil(left/1000)); num.textContent=s; bar.style.width=Math.max(0,left/(secs*10))+'%';
     if(s<=5) num.parentElement.parentElement.classList.add('hurry');
-    if(s<tick){ tick=s; try{ SND&&SND.play(s<=5?'tickHi':'tick'); }catch(e){} }
+    if(s<tick){ tick=s; try{ SND&&SND.play(s<=5?'tickHi':'tick'); if(s<=5) SND.play('heart'); }catch(e){} }
     if(left<=0) finish(cr.to[0],cr.to[1],true,'Décision express : temps écoulé'); },100);
 }
 
