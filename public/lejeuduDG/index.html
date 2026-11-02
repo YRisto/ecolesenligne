@@ -787,7 +787,7 @@ html[data-sc] .titlecard .big{color:var(--sc-hi);text-shadow:0 0 30px var(--sc)}
 .crisis.hurry .crbar i{background:var(--rose)}
 @keyframes crpulse{to{transform:scale(1.18)}}
 /* Avant : sirène plein écran ; pendant : halo qui bat, vignette rouge et tremblement dans les 5 dernières secondes */
-.crintro{position:fixed;inset:0;z-index:90;display:grid;place-items:center;pointer-events:none;background:radial-gradient(circle at 50% 50%,rgba(12,8,20,.82) 0%,rgba(30,6,14,.7) 45%,rgba(255,40,60,.55) 100%);animation:crflash .45s steps(1) 4,crout .35s ease-in 1.65s forwards}
+.crintro{position:fixed;inset:0;z-index:90;display:grid;place-items:center;pointer-events:auto;background:radial-gradient(circle at 50% 50%,rgba(12,8,20,.82) 0%,rgba(30,6,14,.7) 45%,rgba(255,40,60,.55) 100%);animation:crflash .45s steps(1) 4,crout .35s ease-in 1.65s forwards}
 .crintro .crb{font-size:84px;filter:drop-shadow(0 0 24px rgba(255,70,90,.9));animation:crspin .45s ease-in-out infinite alternate}
 .crintro .crt{font:900 clamp(30px,8vw,58px)/1 var(--sans);color:#fff;letter-spacing:.04em;text-shadow:0 0 22px rgba(255,70,90,.9),0 4px 0 #7a0f1d;animation:slam .5s cubic-bezier(.2,1.4,.4,1) .15s both;text-align:center}
 .crintro .crs{color:#ffd0d6;font-weight:700;margin-top:10px;text-align:center;animation:fadeup .4s ease .55s both;opacity:0}
@@ -951,13 +951,17 @@ function applyScenario(i){ try{ setTimeout(()=>{ try{ SND.setRoot(SC&&SC.id); }c
       if(o.cat==='dep'||direct<0) o.cost=-direct; else o.rev=direct; o.n=tx(o.n); return o; }
     const fx=o.base==='pay'?PAY:o.base==='com'?COMP:o.base==='mk'?MK:f; const sc=v=>Math.round(v*fx);
     for(const k of ['rev','cost','mk','once','debt','revY']) if(o[k]) o[k]=sc(o[k]); if(o.hc) o.hc=Math.sign(o.hc)*scaleN(Math.abs(o.hc)); o.g=o.g?{...o.g}:o.g;
-    o.n=tx(o.n); return o;});
+    o.n=tx(o.n);
+    if(o.base==='mk'&&/de 30 %/.test(o.n)&&o.mk){ // « ±30 % du budget médias » : 30 % du plan médias réel (pas du budget de départ), figé au vote
+      o.mkRel=Math.sign(o.mk)*0.3; delete o.mk;
+      Object.defineProperty(o,'mk',{enumerable:true,get(){ const f=S&&S.mkFix&&S.mkFix[this.id]; if(f!=null) return f; return Math.round(this.mkRel*Math.max(mkTotal(),BASE.marketing*0.3)); }}); }
+    return o;});
   GN.etu=SC.unit.charAt(0).toUpperCase()+SC.unit.slice(1);
 }
 // Mise à l'échelle d'un paquet d'effets (montants en k€ et effectifs) selon la taille de l'école
 // Effectifs à l'échelle de l'école : garde des écarts lisibles même dans une petite structure (15 → 2, 5 → 1, 60 → 4 chez Hippocampus)
 function scaleN(v){ const fs=BASE.staff/400; const x=v*fs; if(x>=2) return v>=1000?Math.round(x/100)*100:x>=200?Math.round(x/10)*10:x>=30?Math.round(x/5)*5:Math.round(x); return v>=50?4:v>=25?3:v>=8?2:1; }
-function scf(fx){ if(!fx||!SC) return fx; let mkAbs=false; if(fx.mkPct){fx={...fx,mk:Math.round(fx.mkPct*BASE.marketing)}; delete fx.mkPct; mkAbs=true;} if(fx.students){fx={...fx,students:Math.round(fx.students*BASE.students/12000)};} if(fx._abs||SC.scale===1) return fx; const o={...fx}; const f=SC.scale; for(const k of ['rev','cost','mk','once','revY','cashBack']) if(o[k]&&!(k==='mk'&&mkAbs)) o[k]=Math.round(o[k]*f); if(o.debt) o.debt=Math.round(o.debt*f); if(o.hc) o.hc=Math.sign(o.hc)*scaleN(Math.abs(o.hc)); return o; }
+function scf(fx){ if(!fx||!SC) return fx; let mkAbs=false; if(fx.mkPct){fx={...fx,mk:Math.round(fx.mkPct*Math.max(mkTotal(),BASE.marketing*0.3))}; delete fx.mkPct; mkAbs=true;} if(fx.students){fx={...fx,students:Math.round(fx.students*BASE.students/12000)};} if(fx._abs||SC.scale===1) return fx; const o={...fx}; const f=SC.scale; for(const k of ['rev','cost','mk','once','revY','cashBack']) if(o[k]&&!(k==='mk'&&mkAbs)) o[k]=Math.round(o[k]*f); if(o.debt) o.debt=Math.round(o.debt*f); if(o.hc) o.hc=Math.sign(o.hc)*scaleN(Math.abs(o.hc)); return o; }
 const PROFILES=[
  ["🎓","Pédagogue réputé·e","Ancien·ne directeur·rice des études. Les équipes vous font confiance, le conseil attend des preuves.",{ca:52,etu:62,com:46,cse:60}],
  ["💼","Gestionnaire aguerri·e","Venu·e d'un groupe de formation. Le conseil adore, les équipes se méfient.",{ca:70,etu:50,com:50,cse:44}],
@@ -1339,13 +1343,13 @@ const AMENDEMENTS=[
  {who:N.adminEtu,role:"Administrateur représentant les étudiants",ic:"👨‍🎓",ask:"Amendement : maintien du tutorat individuel pour toutes les filières, quel qu'en soit le coût.",y:{cost:400,g:{etu:5,ca:-2}},n:{g:{etu:-4}}},
  {who:N.adminEns,role:"Représentant les enseignants au conseil",ic:"🧑‍🏫",ask:"Amendement : aucune correction entièrement automatisée sans relecture humaine.",y:{cost:250,g:{cse:5,ca:-1}},n:{g:{cse:-5}}},
  {who:N.actionnaire,role:"Actionnaire minoritaire",ic:"🕴️",ask:"Amendement : gel des recrutements cette année pour sécuriser le résultat.",y:{once:200,g:{ca:6,cse:-4}},n:{g:{ca:-6}}},
- {who:N.com,role:"Directrice commerciale, invitée au conseil",ic:COM,ask:"Amendement : aucune hausse de prix sans augmentation équivalente du budget médias.",y:{mk:400,g:{com:6,ca:-2}},n:{g:{com:-6}}},
+ {who:N.com,role:"Directrice commerciale, invitée au conseil",ic:COM,ask:"Amendement : aucune hausse de prix sans augmentation équivalente du budget médias.",get y(){ return {_abs:true,mk:Math.round(mkTotal()*0.15),g:{com:6,ca:-2}}; }, /* +15 % du plan médias réel */n:{g:{com:-6}}},
  {who:N.adminIndep,role:"Administratrice indépendante",ic:"🧓",ask:"Amendement : publication trimestrielle des indicateurs de satisfaction étudiante au conseil.",y:{cost:60,g:{ca:4,etu:2}},n:{g:{ca:-2}}},
  {who:N.banquier,role:"Représentant de la "+N.banque+" (censeur)",ic:"🏦",ask:"Amendement : plafonnement du découvert et plan de trésorerie mensuel.",y:{g:{ca:3,cse:-1},flag:"plan_treso"},n:{g:{ca:-3},rate:0.005}},
  {who:N.president,role:N.presidentRole,ic:PRES,ask:"Amendement : conserver le nom et la mission d'origine de {ecole} dans toute offre B2B.",y:{g:{ca:2,cse:3,com:-2}},n:{g:{ca:-3}}},
  {who:N.adminEtu,role:"Administrateur représentant les étudiants",ic:"👨‍🎓",ask:"Amendement : rétablissement d'un fonds de bourses de {k:300}.",y:{cost:300,g:{etu:6,ca:-2}},n:{g:{etu:-3}}},
  {who:N.adminIndep,role:"Administratrice indépendante",ic:"🧓",ask:"Amendement : création d'un comité RSE et publication d'un bilan carbone annuel.",y:{cost:80,g:{ca:3,cse:1}},n:{g:{ca:-2}}},
- {who:N.actionnaire,role:"Actionnaire minoritaire",ic:"🕴️",ask:"Amendement : plafonner le budget médias au niveau de l'an dernier.",y:{mk:-300,g:{ca:5,com:-4}},n:{g:{ca:-5}}},
+ {who:N.actionnaire,role:"Actionnaire minoritaire",ic:"🕴️",ask:"Amendement : plafonner le budget médias au niveau de l'an dernier.",get y(){ const last=(S.history&&S.history.length)?S.history[S.history.length-1].mediaK:BASE.marketing; return {_abs:true,mk:Math.min(-Math.round(mkTotal()*0.05),Math.round(last-mkTotal())),g:{ca:5,com:-4}}; }, /* retour au budget de l’an dernier, au moins −5 % */n:{g:{ca:-5}}},
  {who:N.adminEns,role:"Représentant les enseignants au conseil",ic:"🧑‍🏫",ask:"Amendement : une charte du télétravail négociée avec le CSE avant la fin de l'année.",y:{g:{cse:5,ca:-1}},n:{g:{cse:-4}}},
  {who:N.banquier,role:"Représentant de la "+N.banque+" (censeur)",ic:"🏦",ask:"Amendement : un engagement de résultat positif chaque année, sous peine de taux relevé.",y:{g:{ca:3},flag:"covenant"},n:{g:{ca:-2},rate:0.005}},
  {who:N.adminEtu,role:"Administrateur représentant les étudiants",ic:"👨‍🎓",ask:"Amendement : nomination d'un médiateur étudiant indépendant.",y:{cost:70,g:{etu:5}},n:{g:{etu:-3}}},
@@ -1535,15 +1539,36 @@ function lecture(m){
   const cap=m.cap>0?`Rapporte ${m.cap} points de capital.`:`Coûte ${-m.cap} points de capital${who.length?' et mécontente '+who.join(', '):''}.`;
   return 'Lecture : '+(parts.length?parts.join(' ; '):'pas d\'effet financier direct')+'. '+cap;
 }
-function yearly(m){ // effet annuel moyen sur 3 ans : suit l'évolution des effectifs (abandons, inscriptions, prix, coûts d'encadrement)
-  const direct=(m.rev||0)-(m.cost||0)-(m.mk||0);
+function yearlyEst(m){ // effet annuel moyen sur 3 ans : suit l'évolution des effectifs (abandons, inscriptions, prix, coûts d'encadrement)
+  const d1=m.debt===0?0:S.debt+(m.debt||0), r1=clamp(S.rate+(m.rate||0),0.01,0.15); // dette et taux : les intérêts comptent dans le résultat, comme dans simulate()
+  const direct=(m.rev||0)-(m.cost||0)-(m.mk||0)-(d1*r1-S.debt*S.rate);
   if(!m.price&&!m.stu&&!m.churn&&!m.mk) return direct;
-  const varc=SC.varc||0.55, c0=clamp(SC.churn+(50-S.g.etu)/100*0.16+S.churn/100,Math.max(0.12,SC.churn*0.5),0.75), I0=S.lastNew||BASE.students*0.35, P0=S.price;
+  const varc=SC.varc||0.55, insN=inscriptions(), c0=clamp(SC.churn+(50-S.g.etu)/100*0.16+S.churn/100+insN.churnExtra/100,Math.max(0.12,SC.churn*0.5),0.75), I0=insN.total||S.lastNew||BASE.students*0.35, P0=S.price; // mêmes abandons et inscriptions que le plan médias en cours
   const mt=Math.max(1,mkTotal()); const mkF=m.mk?1+(Math.pow(Math.max(0.2,1+m.mk/mt),0.62)-1)*0.8:1;
-  const P1=P0*(1+(m.price||0)/100), c1=clamp(c0+(m.churn||0)/100,0.05,0.9), I1=I0*(m.stu||1)*mkF;
+  const P1=P0*(1+(m.price||0)/100), c1=clamp(c0+(m.churn||0)/100,Math.max(0.12,SC.churn*0.5),0.75), I1=I0*(m.stu||1)*mkF; // même plancher d'abandons que simulate()
+  const capN=(n,t)=>SC.maxGrow?Math.min(n,Math.max(S.students,BASE.students)*Math.pow(1+SC.maxGrow,t+1)):n;
   let a=0,b=0,Na=S.students,Nb=S.students;
-  for(let t=0;t<3;t++){ Nb=Nb*(1-c0)+I0; Na=Na*(1-c1)+I1; b+=Nb*P0-varc*P0*Math.max(0,Nb-BASE.students); a+=Na*P1-varc*P1*Math.max(0,Na-BASE.students); }
+  for(let t=0;t<3;t++){ Nb=capN(Nb*(1-c0)+I0,t); Na=capN(Na*(1-c1)+I1,t); b+=Nb*P0-varc*P0*Math.max(0,Nb-BASE.students); a+=Na*P1-varc*P1*Math.max(0,Na-BASE.students); }
   return direct+(a-b)/3/1000; }
+// Effet annuel d'une mesure sur le résultat : on joue réellement 3 années sur une copie de l'école, avec et sans la mesure (mêmes règles que simulate(), effets financiers seulement :
+// les jauges, affichées à part, ne comptent pas ; pas d'effet Norgeat ni d'imprévu). Le montant affiché est donc celui que le jeu appliquera, à plan médias égal.
+let YB=null;
+function finApply(fx){ // la partie comptable d'apply(), sans affichage
+  if(fx.rev) S.rev+=fx.rev; if(fx.cost) S.cost+=fx.cost;
+  if(fx.mk){ const t=mkTotal(); if(t>0){ const f=Math.max(0.2,(t+fx.mk)/t); for(const k in S.media) S.media[k]=Math.round(S.media[k]*f);} else if(fx.mk>0){ const bt=Object.values(MEDIA).reduce((a,m)=>a+(m.base||0),0)||1; for(const k in S.media) S.media[k]=Math.round(fx.mk*(MEDIA[k].base||0)/bt); } }
+  if(fx.price){ if(!(S.mode==='univ'&&fx.price>0)) S.price=Math.round(S.price*(1+fx.price/100)); }
+  if(fx.students) S.students=Math.max(0,S.students+fx.students); if(fx.stu) S.stuMult=clamp(S.stuMult*fx.stu,0.4,1.6); if(fx.churn) S.churn+=fx.churn; if(fx.hc){ S.staff+=fx.hc; S.hcAdj=(S.hcAdj||0)+fx.hc; }
+  if(fx.once){ S.cash+=fx.once; S.yearFx.once+=fx.once; } if(fx.cashBack) S.cashBack=(S.cashBack||0)+fx.cashBack; if(fx.amortCut) S.amortCut=(S.amortCut||0)+fx.amortCut; if(fx.debt!==undefined){ if(fx.debt===0) S.debt=0; else S.debt+=fx.debt; }
+  if(fx.rate) S.rate=clamp(S.rate+fx.rate,0.01,0.15);
+}
+function yearly(m){
+  if(!S||!SC||!S.history) return yearlyEst(m);
+  const fx={rev:m.rev,cost:m.cost,mk:m.mk,price:m.price,students:m.students,stu:m.stu,churn:m.churn,hc:m.hc,once:m.once,debt:m.debt,rate:m.rate,cashBack:m.cashBack,amortCut:m.amortCut};
+  const S0=S, sig=[S.sc,S.year,S.yi,S.phase,mkTotal(),S.price,S.students,Math.round(S.cash),S.debt,S.rate,S.cost,S.rev,S.churn,S.g.etu,S.g.com,S.g.cse,S.active.length,S.stuMult,S.staff,S.lastNew,JSON.stringify(S.yearFx),JSON.stringify(S.mediaMod||{})].join('|');
+  const run=fxm=>{ const c=JSON.parse(JSON.stringify(S0)); c.norgPlan=[null,null,null,null,null]; c.rc={}; S=c; let r=0;
+    try{ if(fxm) finApply(fxm); for(let t=0;t<3;t++){ r+=simulate().res; S.yi=Math.min(S.yi+1,4); S.year++; } } finally { S=S0; } return r/3; };
+  try{ if(!YB||YB.sig!==sig||YB.S!==S0) YB={sig,S:S0,v:run(null)}; return Math.round(run(fx)-YB.v); }catch(e){ S=S0; return yearlyEst(m); }
+}
 
 // ---------- Médias et inscriptions ----------
 function marketSat(){ const over=Math.max(0,S.students-BASE.students)/SC.sat; return clamp(1-(SC.satK||0.45)*Math.pow(over,SC.satPow||2)+(S.students<BASE.students?(BASE.students-S.students)/BASE.students*0.3:0),0.5,1.2); } // à la cible de croissance (over=1), chaque inscription coûte ~2 fois plus
@@ -2466,7 +2491,7 @@ function phVote(){
   const V=S.tmp.votes||{list:[],ok:false}; const ok=V.ok||S.tmp.forced||S.tmp.amputated;
   const votesHtml=V.list.length?`<div class="tw"><table><tr><th>Administrateur</th><th>Vote</th><th>Motif</th></tr>${V.list.map(v=>`<tr><td><b>${v.who}</b><br><span class="muted" style="font-size:11px">${v.role}</span></td><td style="color:${v.pour?'var(--green)':'var(--rose)'};white-space:nowrap"><b>${v.pour?'✓ Pour':'✗ Contre'}</b></td><td style="text-align:left;color:var(--muted)">${v.why}</td></tr>`).join('')}<tr><td colspan="3" style="text-align:left"><b>${V.pour} pour · ${V.contre} contre</b>${V.tie?' · égalité : la voix du président tranche':''}</td></tr></table></div>`:'';
   if(ok){
-    if(!S.decided){ if(pend.some(m=>m.cat==='fou')) award('poker'); if(V.list.length&&V.list.every(v=>v.pour)) award('unanime'); if(!S.tmp.forced&&V.list.length&&V.pour-V.contre<=1) award('serre'); if(pend.filter(m=>m.cat==='dep').length>=3) award('tronconneuse'); if(S.tmp.forced){ S.forcedOnce=true; relBump(N.president,-2); } if(pend.some(m=>m.price>0)) S.priceUp=true; S.nbStr=(S.nbStr||0)+pend.filter(m=>m.cat==='str').length; if(S.nbStr>=3) award('reformateur'); pend.forEach(m=>{(S.log=S.log||[]).push({y:S.year,kind:'mesure',n:tx(m.n),eff:Math.round(yearly(m)),cap:m.cap||0,heart:m.g?Object.values(m.g).reduce((a,b)=>a+b,0):0}); apply({cap:m.cap,g:m.g,rev:m.rev,cost:m.cost,mk:m.mk,price:m.price,stu:m.stu,churn:m.churn,hc:m.hc,once:m.once,debt:m.debt,rate:m.rate,flag:m.flag,amortCut:m.amortCut},m.n); S.active.push(m.id);}); S.pending=[]; S.decided=true; save(); renderBudget(); renderGauges(); }
+    if(!S.decided){ if(pend.some(m=>m.cat==='fou')) award('poker'); if(V.list.length&&V.list.every(v=>v.pour)) award('unanime'); if(!S.tmp.forced&&V.list.length&&V.pour-V.contre<=1) award('serre'); if(pend.filter(m=>m.cat==='dep').length>=3) award('tronconneuse'); if(S.tmp.forced){ S.forcedOnce=true; relBump(N.president,-2); } if(pend.some(m=>m.price>0)) S.priceUp=true; S.nbStr=(S.nbStr||0)+pend.filter(m=>m.cat==='str').length; if(S.nbStr>=3) award('reformateur'); pend.forEach(m=>{if(m.mkRel!=null) (S.mkFix=S.mkFix||{})[m.id]=m.mk; (S.log=S.log||[]).push({y:S.year,kind:'mesure',n:tx(m.n),eff:Math.round(yearly(m)),cap:m.cap||0,heart:m.g?Object.values(m.g).reduce((a,b)=>a+b,0):0}); apply({cap:m.cap,g:m.g,rev:m.rev,cost:m.cost,mk:m.mk,price:m.price,stu:m.stu,churn:m.churn,hc:m.hc,once:m.once,debt:m.debt,rate:m.rate,flag:m.flag,amortCut:m.amortCut},m.n); S.active.push(m.id);}); S.pending=[]; S.decided=true; save(); renderBudget(); renderGauges(); }
     if(!S.tmp.forced&&!S.tmp.party){S.tmp.party=true;confetti();}
     sceneShell(votesHtml+`<div class="resbox ${S.tmp.forced?'bad':'pop'}"><b>${S.tmp.forced?'Plan imposé':S.tmp.amputated?'Plan adopté après retrait':'Plan adopté'}</b>${S.tmp.amputated&&!S.tmp.forced?'Vous avez retiré la mesure qui bloquait. Le conseil adopte le plan amputé ; les mesures restantes entrent en vigueur.':''}${S.tmp.amputated&&!S.tmp.forced?'':S.tmp.forced?'Vous avez usé de votre pouvoir de direction. Le plan s\'applique, mais le conseil et le CSE s\'en souviendront.':'Le conseil adopte le plan. Les mesures entrent en vigueur immédiatement et le capital est débité.'}</div>`,{title:S.tmp.forced?'Le passage en force':'Le plan est adopté',tag:'Les mesures entrent en vigueur. Reste à les faire vivre.',ready:true});
     return;
@@ -2649,7 +2674,7 @@ const EVSND={glitch:'error',stamp:'stamp',news:'news',money:'cash',signs:'crowd'
 const IS_SITE=/^\/lejeududg/i.test(location.pathname);
 let INSTALL_EV=null;
 try{ if(IS_SITE&&'serviceWorker' in navigator) navigator.serviceWorker.register('/lejeuduDG/sw.js',{scope:'/lejeuduDG'}).catch(()=>{}); }catch(e){}
-const BUILD='20261102224957';
+const BUILD='20261102230250';
 function track(kind,extra){ try{ if(!IS_SITE) return; let v=localStorage.getItem('bde-vid'); if(!v){ v=(crypto.randomUUID?crypto.randomUUID():String(Math.random()).slice(2)+Date.now().toString(36)); localStorage.setItem('bde-vid',v); }
   fetch('/api/jeudg/event',{method:'POST',keepalive:true,headers:{'Content-Type':'application/json'},body:JSON.stringify({kind,visiteur:v,mobile:MOB(),appli:STANDALONE(),...(extra||{})})}).catch(()=>{}); }catch(e){} }
 try{ if(!sessionStorage.getItem('bde-vis')){ sessionStorage.setItem('bde-vis','1'); setTimeout(()=>track('visite'),1500); } }catch(e){}
@@ -2750,7 +2775,7 @@ function maybeMinor(){
   const m=minorEvent(); if(S.yi===0) return false; if(m.done||m.at!==S.phase||S.screen!=='game'||document.getElementById('modal').innerHTML||CR_IN) return false;
   if(document.querySelector('.epcard:not(.out)')){ const S0=S; setTimeout(()=>{ if(S===S0&&S.screen==='game'&&S.phase===m.at&&!m.done) maybeMinor(); },500); return true; }
   S.used.cr=S.used.cr||[]; if(m.cr===undefined){ let pool=CRISES.map((_,i)=>i).filter(i=>!S.used.cr.includes(i)); if(!pool.length) pool=CRISES.map((_,i)=>i); m.cr=pool[Math.floor(RND('crise')*pool.length)]; S.used.cr.push(m.cr); }
-  save(); const S0=S; crisisIntro(()=>{ if(S!==S0||S.screen!=='game'||m.done) return; crisisModal(CRISES[m.cr],'Décision express · '+EPISODES[S.phase][0],()=>{save();renderBudget();renderGauges();},m); }); return true; /* « done » n'est posé qu'à la réponse : recharger ne permet pas d'esquiver */
+  save(); const S0=S; crisisIntro(()=>{ if(S!==S0||S.screen!=='game'||m.done||S.phase!==m.at||document.getElementById('modal').innerHTML) return; crisisModal(CRISES[m.cr],'Décision express · '+EPISODES[S.phase][0],()=>{save();renderBudget();renderGauges();},m); }); return true; /* « done » n'est posé qu'à la réponse : recharger ne permet pas d'esquiver */
 }
 let CR_T=null, CR_IN=false;
 function crisisIntro(cb){ // sirène plein écran avant la décision express : le compte à rebours ne démarre qu'après
