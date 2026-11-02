@@ -1820,7 +1820,7 @@ function renderIntro(){
   $('#b').appendChild(btn('🏆 Hall of Fame',()=>{S.hofBack='intro';S.screen='hof';render();},'sbtn'));
   $('#b').appendChild(btn('🏅 Trophées ('+BADGES.filter(b=>badges()[b.id]).length+'/'+BADGES.length+')',()=>{S.hofBack='intro';S.screen='badges';render();},'sbtn'));
   { const sb=btn(SND.label()+' Son',()=>{},'sbtn'); sb.id='sndBtn'; sb.title=SND.title(); sb.setAttribute('aria-label','Son : '+SND.title()); $('#b').appendChild(sb); bindSnd(); const ib=installBtn(); if(ib) $('#b').appendChild(ib); }
-  fetch('/api/jeudg/stats?court=1').then(r=>r.ok?r.json():null).then(t=>{ const el=document.getElementById('played'); if(!el||!t||!(t.lancees>=5)) return; el.innerHTML=`<b>${fmt(t.lancees)}</b> parties lancées · <b>${fmt(t.terminees)}</b> menées jusqu'au bout · <b>${fmt(t.gagnees)}</b> mandat${t.gagnees>1?'s':''} rempli${t.gagnees>1?'s':''}. Et vous ?`; }).catch(()=>{});
+  fetch('/api/jeudg/stats?court=1').then(r=>r.ok?r.json():null).then(t=>{ const el=document.getElementById('played'); if(!el||!t||!(t.lancees>=5)) return; el.innerHTML=`<b>${fmt(t.lancees)}</b> parties lancées · <b>${fmt(t.terminees)}</b> menées jusqu'au bout · <b>${fmt(t.gagnees)}</b> mandat${t.gagnees>1?'s':''} rempli${t.gagnees>1?'s':''}. Et vous ?<br><a href="/lejeuduDG/stats" style="font-size:11.5px;color:var(--muted2);text-decoration:underline">Statistiques complètes</a>`; }).catch(()=>{});
 }
 
 function renderScenario(){
@@ -2411,7 +2411,7 @@ const EVSND={glitch:'error',stamp:'stamp',news:'news',money:'cash',signs:'crowd'
 const IS_SITE=/^\/lejeududg/i.test(location.pathname);
 let INSTALL_EV=null;
 try{ if(IS_SITE&&'serviceWorker' in navigator) navigator.serviceWorker.register('/lejeuduDG/sw.js',{scope:'/lejeuduDG'}).catch(()=>{}); }catch(e){}
-const BUILD='20261102154803';
+const BUILD='20261102155706';
 function track(kind,extra){ try{ if(!IS_SITE) return; let v=localStorage.getItem('bde-vid'); if(!v){ v=(crypto.randomUUID?crypto.randomUUID():String(Math.random()).slice(2)+Date.now().toString(36)); localStorage.setItem('bde-vid',v); }
   fetch('/api/jeudg/event',{method:'POST',keepalive:true,headers:{'Content-Type':'application/json'},body:JSON.stringify({kind,visiteur:v,mobile:MOB(),appli:STANDALONE(),...(extra||{})})}).catch(()=>{}); }catch(e){} }
 try{ if(!sessionStorage.getItem('bde-vis')){ sessionStorage.setItem('bde-vis','1'); setTimeout(()=>track('visite'),1500); } }catch(e){}
