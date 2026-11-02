@@ -220,13 +220,21 @@ th{font-size:10px;font-weight:900;letter-spacing:.1em;text-transform:uppercase;c
 
 /* plan médias */
 .media{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
-.mch{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px 14px;display:grid;gap:6px}
+.mch{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:10px 12px;display:grid;gap:4px}
 .mch .h{display:flex;justify-content:space-between;align-items:baseline;gap:8px;flex-wrap:wrap}
 .mch .h b{font-size:14px} .mch .h span{font-size:11px;color:var(--muted)}
 .mch .d{font-size:12px;color:var(--muted)}
-.mch .stats{display:flex;flex-wrap:wrap;gap:4px 14px;font-size:12px;color:var(--muted);align-items:baseline}
-.mch .stats b{color:var(--fg)}
-.mch .amt{font-size:18px;font-weight:900;color:var(--gold-hi)}
+.mch .stats{display:flex;flex-wrap:wrap;gap:2px 14px;font-size:12.5px;color:var(--muted);align-items:baseline}
+.mch .mx summary{font-size:11.5px;color:var(--muted);cursor:pointer;list-style:none}
+.mch .mx summary::-webkit-details-marker{display:none}
+.mch .mx summary::before{content:'ⓘ ';opacity:.7}
+.mch .mx[open] summary{margin-bottom:4px}
+.mch .h .amt{white-space:nowrap}
+.mch .stats{justify-content:flex-start;margin:0}
+.guide1{margin:10px 0 2px;padding:8px 12px;border-radius:10px;background:rgba(126,224,160,.08);border:1px solid rgba(126,224,160,.35);font-size:13px;color:var(--fg)}
+.guide1 b{color:var(--green)}
+.mch .stats b{display:inline;font-size:15px;font-weight:800;color:var(--fg);line-height:1.3}
+.mch .amt{font-size:17px;font-weight:900;color:var(--gold-hi)}
 .mch.warn{border-color:var(--rose)}
 .mtot{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
 
@@ -690,7 +698,7 @@ html[data-sc] .titlecard .big{color:var(--sc-hi);text-shadow:0 0 30px var(--sc)}
  .gauges::-webkit-scrollbar{display:none}
  .gauge{flex:0 0 auto;width:118px;padding:5px 8px;border-radius:8px}
  .gauge .l{font-size:8px;letter-spacing:.06em} .gauge .v{font-size:13px;margin:1px 0 3px} .gauge .v small{display:none} .gauge .v .pv{display:block;font-size:10px;margin-left:0;line-height:1.1} .gauge .bar{height:3px}
- .episodes{display:flex;overflow-x:auto;gap:6px;scrollbar-width:none} .episodes::-webkit-scrollbar{display:none} .ep{flex:0 0 auto;width:104px}.tiles,.profiles,.btiles,.media,.mtot{grid-template-columns:1fr}.panel{padding:18px}.scene{padding:14px}.ticker{margin-inline:-14px}.scene h2{font-size:20px}.toasts{left:auto;right:12px;width:200px;bottom:12px;gap:4px} .toast{padding:4px 10px;min-width:0} .toast b{font-size:13px} .toast small{font-size:10px}.mrow{grid-template-columns:auto 1fr auto}.mrow .cap{grid-column:2;text-align:left}
+ .episodes{display:flex;overflow-x:auto;gap:6px;scrollbar-width:none} .episodes::-webkit-scrollbar{display:none} .ep{flex:0 0 auto;width:104px}.tiles,.profiles,.media{grid-template-columns:1fr}.btiles{grid-template-columns:1fr 1fr;gap:8px}.btiles .btile{padding:9px 8px}.btiles .btile .v{font-size:19px}.mtot{grid-template-columns:1fr 1fr;gap:8px}.mtot .btile{padding:9px 8px}.mtot .btile .v{font-size:19px}.media{gap:8px}.panel{padding:18px}.scene{padding:14px}.ticker{margin-inline:-14px}.scene h2{font-size:20px}.toasts{left:auto;right:12px;width:200px;bottom:12px;gap:4px} .toast{padding:4px 10px;min-width:0} .toast b{font-size:13px} .toast small{font-size:10px}.mrow{grid-template-columns:auto 1fr auto}.mrow .cap{grid-column:2;text-align:left}
  .dlg{gap:2px 10px;align-items:center} .dlg .avatar{grid-row:1} .dlg .avatar.sm{width:44px;height:44px;font-size:20px} .dlg .who>small{margin-bottom:0} .dlg .body{grid-column:1/-1;margin-top:8px} .dlg .body .msg{max-width:100%}
  .speech{flex-direction:column;align-items:center;gap:8px} .speech .avatar{width:64px;height:64px}}
 
@@ -1870,9 +1878,10 @@ function renderScenario(){
     <p class="muted" style="text-align:center;margin-top:-6px">L'école de départ change tout : taille, marge, objectif, leviers.</p>
     <div class="opts" id="sc"></div>
     <div style="display:flex;justify-content:center;gap:10px;flex-wrap:wrap" id="b"></div><div style="display:flex;justify-content:center;gap:10px;flex-wrap:wrap;margin-top:8px" id="bk"></div></div></div>`;
-  { const bk=$('#bk'); const last=(()=>{ try{ return localStorage.getItem('bde-last'); }catch(e){ return null; } })(); const lo=last&&readSave(last); if(S.fromGame&&lo&&!lo.over) bk.appendChild(btn('↩ Revenir à ma partie',e=>{ const o=lo; flood(SCCOL[o&&SCENARIOS[o.sc]?SCENARIOS[o.sc].id:'xyn'],e,()=>resume(o)); },'sbtn')); bk.appendChild(btn('🏠 Accueil',()=>{ newGame(0); S.screen='intro'; render(); },'sbtn')); }
+  { const bk=$('#bk'); const last=(()=>{ try{ return localStorage.getItem('bde-last'); }catch(e){ return null; } })(); const lo=last&&readSave(last); if(S.fromGame&&lo&&!lo.over&&SCENARIOS[lo.sc]) bk.appendChild(btn('↩ Revenir à ma partie · '+SCENARIOS[lo.sc].ic+' '+SCENARIOS[lo.sc].name,e=>{ const o=lo; flood(SCCOL[o&&SCENARIOS[o.sc]?SCENARIOS[o.sc].id:'xyn'],e,()=>resume(o)); },'sbtn')); bk.appendChild(btn('🏠 Accueil',()=>{ newGame(0); S.screen='intro'; render(); },'sbtn')); }
   const box=$('#sc'); let sel=null; /* aucune école présélectionnée : on choisit explicitement */
   const draw=()=>{box.innerHTML=''; SCENARIOS.map((c,i)=>[c,i]).sort((x,y)=>(x[0].weekly?1:0)-(y[0].weekly?1:0)).forEach(([c,i])=>{ if(!scVisible(c)&&!(readSave(c.id)&&!saveInfo(readSave(c.id)).done)) return; /* un défi passé reste accessible tant qu'une partie y est en cours */ const inf=saveInfo(readSave(c.id)); const dl=weeklyDaysLeft(); const b=btn(`${c.weekly?`<span class="badge" style="background:linear-gradient(90deg,#ffd76a,#ff8a5a);color:#1a1408">📅 Défi de la semaine · même hasard pour tous · encore ${dl} jour${dl>1?'s':''}</span><br>`:''}${c.ic} ${c.name}${i===0?'<span class="badge">Recommandé</span>':''}${inf?`<span class="badge" style="background:${inf.done?'#1b2550':'#1f6b3a'};color:#fff">${inf.txt}</span>`:''}<small><b style="color:var(--fg)">${c.tag}</b></small><small>${c.desc}</small>`,()=>{sel=i;draw();},'opt'+(sel===i?' sel':'')); b.style.borderLeft='5px solid '+SCCOL[c.id]; box.appendChild(b);});
+    { const bk=$('#bk'); if(bk) bk.querySelectorAll('button').forEach(x=>{ if(/Revenir à ma partie/.test(x.textContent)) x.hidden=sel!==null; }); }
     $('#b').innerHTML=''; if(sel===null){ const w=btn('Choisissez une école ci-dessus',()=>{},'mbtn'); w.disabled=true; $('#b').appendChild(w); return; } const sv=readSave(SCENARIOS[sel].id), inf=saveInfo(sv);
     if(sv&&!inf.done){ $('#b').appendChild(btn('▶ Reprendre ma partie · '+SCENARIOS[sel].name,e=>{flood(SCCOL[SCENARIOS[sel].id],e,()=>resume(sv),SCENARIOS[sel]);})); $('#b').appendChild(btn('Nouvelle partie',()=>modal(`<h3>Nouvelle partie à ${SCENARIOS[sel].name} ?</h3><p class="mt">La partie en cours dans cette école sera remplacée dès que vous entrerez en scène. Vos parties dans les autres écoles ne bougent pas.</p><div class="mf"><button class="lnk" id="mc">Annuler</button><button class="rbtn" id="mo">Nouvelle partie</button></div>`,'gold'),'sbtn')); document.getElementById('modal').onclick=(ev=>{ if(ev.target.id==='mc') closeModal(); if(ev.target.id==='mo'){ closeModal(); newGame(sel); S.screen='profile'; render(); } }); }
     else $('#b').appendChild(btn('Confirmer : '+SCENARIOS[sel].name+' →',e=>{flood(SCCOL[SCENARIOS[sel].id],e,()=>{newGame(sel);S.screen='profile';render();},SCENARIOS[sel]);}));};
@@ -2049,12 +2058,24 @@ function renderBudget(){
    <div class="proj">Cible 2030 <b class="num">${tgt()} de résultat</b>${SC.growth?` <span style="margin-left:12px">CA cible 2030 <b class="num" style="font-size:15px">${M1(SC.caTarget)}</b></span>`:''} <span style="margin-left:12px">Prix de vente <b class="num" style="font-size:15px">${fmt(S.price)} €</b></span> <span style="margin-left:12px">${SC.unit.charAt(0).toUpperCase()+SC.unit.slice(1)} <b class="num" style="font-size:15px">${fmt(S.students)}</b></span></div>`;
 }
 
+const GUIDE1=["Le président fixe le cap. Retenez l'objectif : c'est lui qui décide si vous restez.",
+ "Choisissez 2 ou 3 mesures pour commencer. Regardez leur effet sur le résultat et le capital qu'elles coûtent.",
+ "Chaque canal affiche son coût par inscrit : comparez-le au prix de vente avant de pousser le budget.",
+ "Un directeur demande de l'argent. Accorder fait des alliés, refuser protège le résultat.",
+ "Ceux que le conseil écoute donnent leur avis sur votre plan. Un avis négatif coûte des voix.",
+ "Vos réponses jouent sur la jauge du CSE. À zéro, c'est la grève et la fin de partie.",
+ "Le conseil vote votre plan. Plus il engage de capital, plus le vote est serré.",
+ "Chaque rentrée apporte un imprévu, bon ou mauvais. Dès la saison 2, une décision express chronométrée s'y ajoute.",
+ "Voici l'effet de l'année sur vos comptes. Le résultat net est le chiffre qui compte.",
+ "Votre discours de fin d'année joue sur le moral des équipes.",
+ "Le président juge votre trajectoire vers l'objectif de 2030."];
 function sceneShell(body,opts){
   const e=EPISODES[S.phase]; opts=opts||{};
   const hl=headlines(); const tk=hl.concat(hl).join(' • ');
   $('#scene').innerHTML=`<div class="k"><div><div class="kicker">Saison ${S.yi+1} · Exercice ${S.year} · Épisode ${S.phase+1}</div><h2 class="serif">${e[0]} — ${opts.title||e[1]}</h2></div></div>
    ${opts.tag?`<div class="tag">« ${tx(opts.tag)} »</div>`:''}
    <div class="ticker"><span class="d">● DIRECT</span><div class="tk"><span>${tk} • </span></div></div>
+   ${S.yi===0&&GUIDE1[S.phase]?`<div class="guide1">👋 <b>Première saison</b> · ${GUIDE1[S.phase]}</div>`:''}
    <div id="body">${body}</div>
    <div class="foot"><span></span><button class="mbtn" id="nextBtn" ${opts.ready?'':'disabled'}>▶ Épisode suivant</button></div>`;
   $('#nextBtn').addEventListener('click',()=>{ if(opts.onNext) opts.onNext(); else nextPhase(); });
@@ -2279,11 +2300,12 @@ function phMedias(){
   let mRaf=0;
   const draw=(partial)=>{
     const ins=inscriptions();
-    const mHtml=Object.keys(MEDIA).map(k=>{const c=MEDIA[k];const r=ins.channels[k];const mod=S.mediaMod[k]||1;return `<div class="mch ${mod>1.2?'warn':''}"><div class="h"><b>${c.ic} ${c.n}</b><span>coût moyen par ${SC.lead1} ${r.leads?fmt(S.media[k]*1000/r.leads)+' €':'–'} · transformation ${r.leads?(r.ins/r.leads/(c.per||1)*100).toFixed(1).replace('.',','):Math.round(c.conv*100)} %${c.per?` · ${c.per} ${SC.unit} par contrat`:''}${c.churn?` · abandons +${c.churn} pt`:''}</span></div><div class="d">${c.d}${mod!==1?` <b style="color:${mod>1?'var(--rose)':'var(--green)'}">Cette année : coût par ${SC.lead1} ${pct((mod-1)*100)}.</b>`:''}</div>
-      <input type="range" id="r-${k}" min="0" max="${Math.max(Math.round(3000*SC.scale/50)*50,Math.round(MEDIA[k].base*2.5/50)*50)||300}" step="${SC.scale<0.5?10:50}" value="${S.media[k]}" data-k="${k}"><div class="stats"><span class="amt num">${fmt(S.media[k])} k€</span><span>${SC.leadWord.charAt(0).toUpperCase()+SC.leadWord.slice(1)} <b class="num">${fmt(r.leads)}</b></span><span>Inscriptions <b class="num">${fmt(r.ins)}</b></span><span>Coût par inscrit <b class="num">${r.cpi?fmt(r.cpi)+' €':'–'}</b></span></div></div>`;}).join('');
+    const mHtml=Object.keys(MEDIA).map(k=>{const c=MEDIA[k];const r=ins.channels[k];const mod=S.mediaMod[k]||1; const avg=r.leads?fmt(S.media[k]*1000/r.leads)+' €':'–', tr=r.leads?(r.ins/r.leads/(c.per||1)*100).toFixed(1).replace('.',','):Math.round(c.conv*100);
+      return `<div class="mch ${mod>1.2?'warn':''}"><div class="h"><b>${c.ic} ${c.n}</b><span class="amt num">${fmt(S.media[k])} k€</span></div>
+      <input type="range" id="r-${k}" min="0" max="${Math.max(Math.round(3000*SC.scale/50)*50,Math.round(MEDIA[k].base*2.5/50)*50)||300}" step="${SC.scale<0.5?10:50}" value="${S.media[k]}" data-k="${k}" aria-label="Budget ${c.n}"><div class="stats"><span><b class="num">${fmt(r.leads)}</b> ${SC.leadWord}</span><span><b class="num">${fmt(r.ins)}</b> inscrits</span><span><b class="num">${r.cpi?fmt(r.cpi)+' €':'–'}</b> / inscrit</span></div><details class="mx"><summary>${avg} par ${SC.lead1} · transformation ${tr} %${mod!==1?` · <b style="color:${mod>1?'var(--rose)':'var(--green)'}">${pct((mod-1)*100)} cette année</b>`:''}</summary><div class="d">${c.d}${c.per?` ${c.per} ${SC.unit} par contrat.`:''}${c.churn?` Abandons +${c.churn} pt.`:''}</div></details></div>`;}).join('');
     if(partial){ /* pendant le glissement : on ne recrée pas les curseurs (sinon le doigt « lâche » le curseur et le navigateur mobile peut recharger la page) */
       const tmp=document.createElement('div'); tmp.innerHTML=mHtml; const olds=$('#media').querySelectorAll('.mch'), news=tmp.querySelectorAll('.mch');
-      news.forEach((n,i)=>{ const o=olds[i]; if(!o) return; o.className=n.className; [...o.children].forEach((ch,j)=>{ if(ch.tagName!=='INPUT'&&n.children[j]) ch.outerHTML=n.children[j].outerHTML; }); }); }
+      news.forEach((n,i)=>{ const o=olds[i]; if(!o) return; o.className=n.className; [...o.children].forEach((ch,j)=>{ if(ch.tagName==='INPUT'||!n.children[j]) return; if(ch.tagName==='DETAILS'){ const sm=ch.querySelector('summary'), ns=n.children[j].querySelector('summary'); if(sm&&ns) sm.innerHTML=ns.innerHTML; return; } ch.outerHTML=n.children[j].outerHTML; }); }); }
     else { $('#media').innerHTML=mHtml;
       $('#media').querySelectorAll('input[type=range]').forEach(r=>{ r.addEventListener('input',e=>{S.media[e.target.dataset.k]=+e.target.value; if(!mRaf) mRaf=requestAnimationFrame(()=>{ mRaf=0; draw(true); renderBudget(); }); }); r.addEventListener('change',()=>save()); }); }
     const tot=mkTotal();
@@ -2296,7 +2318,7 @@ function phEnveloppes(){
   if(S.sub===0&&!S.tmp){ S.tmp={list:[pick(ENVELOPPES,'env'),pick(ENVELOPPES,'env')],spring:pickEvent(EV_SIGN()),springDone:false}; }
   if(!S.tmp.springDone){ const ev=EVENTS[S.tmp.spring]; const fx=S.tmp.springFx||mulFx(eventFx(ev),0.75); S.tmp.springFx=fx; /* imprévu moyen : ¾ de l'effet */ sceneShell(`<div class="resbox ${isBadE(ev,fx)?'bad':''}"><b>${ev.ic} ${tx(ev.n)}</b>${tx(ev.t)}${fx.txt?`<div style="margin-top:4px">${fx.txt}</div>`:''}<div>${chips(fx)}</div></div>`,{title:'Imprévu de printemps',tag:'Les directeurs attendent à la porte. Mais d\'abord, une nouvelle.'}); evFX(ev,fx,()=>eventModal(ev,fx,'Imprévu moyen · Avril',()=>{S.tmp.springDone=true;save();renderBudget();renderGame();}),'Imprévu moyen · Avril'); return; }
   const e=altOf('env',S.tmp.list[S.sub],ENVELOPPES[S.tmp.list[S.sub]]);
-  sceneShell(dlg(e.ic,e.who,e.role,e.ask)+`<div class="prompt">Arbitrage ${S.sub+1}/2 :</div><div id="c"></div>`,{title:'La guerre des enveloppes',tag:'Chaque directeur défend son budget avec conviction, et ira plaider sa cause chez '+N.president+' si vous dites non.',onNext:()=>{S.sub++; if(S.sub>=2) nextPhase(); else {S.decided=false;renderGame();}}});
+  sceneShell(dlg(e.ic,e.who,e.role,e.ask)+`<div class="prompt">Arbitrage ${S.sub+1}/${S.yi===0?1:2} :</div><div id="c"></div>`,{title:'La guerre des enveloppes',tag:'Chaque directeur défend son budget avec conviction, et ira plaider sa cause chez '+N.president+' si vous dites non.',onNext:()=>{S.sub++; if(S.sub>=(S.yi===0?1:2)) nextPhase(); else {S.decided=false;renderGame();}}});
   choices($('#c'),e.c.map(([l,fx,out])=>[l,fx,out]),null,e.who);
 }
 
@@ -2351,6 +2373,7 @@ function boardVotes(chance,pend){
   return {list,pour,contre,tie,ok:pour>contre||(tie&&list[0].pour)};
 }
 function phVote(){
+  if(S.sub<2&&S.yi===0){ S.sub=2; if(!S.tmp) S.tmp={list:[],bonus:24,amd:{}}; if(!S.cap1){ S.cap1=true; apply({g:{ca:4}},'Première année : le conseil vous laisse votre chance'); } } // première saison : pas d'amendements (le conseil est bienveillant pour une première année)
   if(S.sub<2){
     if(S.sub===0&&!S.tmp){ const a1=pick(AMENDEMENTS,'amd'); let a2=pick(AMENDEMENTS,'amd'); for(let t=0;t<6&&AMENDEMENTS[a2].who===AMENDEMENTS[a1].who;t++) a2=pick(AMENDEMENTS,'amd'); S.tmp={list:[a1,a2],bonus:0,amd:{}}; }
     const a=AMENDEMENTS[S.tmp.list[S.sub]];
@@ -2555,7 +2578,7 @@ const EVSND={glitch:'error',stamp:'stamp',news:'news',money:'cash',signs:'crowd'
 const IS_SITE=/^\/lejeududg/i.test(location.pathname);
 let INSTALL_EV=null;
 try{ if(IS_SITE&&'serviceWorker' in navigator) navigator.serviceWorker.register('/lejeuduDG/sw.js',{scope:'/lejeuduDG'}).catch(()=>{}); }catch(e){}
-const BUILD='20261102194037';
+const BUILD='20261102195641';
 function track(kind,extra){ try{ if(!IS_SITE) return; let v=localStorage.getItem('bde-vid'); if(!v){ v=(crypto.randomUUID?crypto.randomUUID():String(Math.random()).slice(2)+Date.now().toString(36)); localStorage.setItem('bde-vid',v); }
   fetch('/api/jeudg/event',{method:'POST',keepalive:true,headers:{'Content-Type':'application/json'},body:JSON.stringify({kind,visiteur:v,mobile:MOB(),appli:STANDALONE(),...(extra||{})})}).catch(()=>{}); }catch(e){} }
 try{ if(!sessionStorage.getItem('bde-vis')){ sessionStorage.setItem('bde-vis','1'); setTimeout(()=>track('visite'),1500); } }catch(e){}
@@ -2653,7 +2676,7 @@ const CRISES=[
 function crisisFx(f){ const o={...f}; if(f.g){ o.g={}; for(const k in f.g) o.g[k]=f.g[k]>0?Math.round(f.g[k]*0.6):f.g[k]; } if(o.revY>0) o.revY=Math.round(o.revY*0.6); if(o.stuY>1) o.stuY=1+(o.stuY-1)*0.6; return scf(o); } // une crise reste une crise : les bonnes réponses limitent la casse plus qu'elles ne rapportent
 function crisisSecs(){ return MOB()?26:20; }
 function maybeMinor(){
-  const m=minorEvent(); if(m.done||m.at!==S.phase||S.screen!=='game'||document.getElementById('modal').innerHTML) return false;
+  const m=minorEvent(); if(S.yi===0) return false; if(m.done||m.at!==S.phase||S.screen!=='game'||document.getElementById('modal').innerHTML) return false;
   if(document.querySelector('.epcard:not(.out)')){ const S0=S; setTimeout(()=>{ if(S===S0&&S.screen==='game'&&S.phase===m.at&&!m.done) maybeMinor(); },500); return true; }
   S.used.cr=S.used.cr||[]; if(m.cr===undefined){ let pool=CRISES.map((_,i)=>i).filter(i=>!S.used.cr.includes(i)); if(!pool.length) pool=CRISES.map((_,i)=>i); m.cr=pool[Math.floor(RND('crise')*pool.length)]; S.used.cr.push(m.cr); }
   save(); crisisModal(CRISES[m.cr],'Décision express · '+EPISODES[S.phase][0],()=>{save();renderBudget();renderGauges();},m); return true; /* « done » n'est posé qu'à la réponse : recharger ne permet pas d'esquiver */
@@ -2931,9 +2954,17 @@ function phBilan(){
   const over=checkOver(); if(over){S.over={lost:true,why:over};return render();}
   if(S.relY!==S.year){ S.relY=S.year; const lr=S.lastResult, r0=SC.ca0*SC.start/100, span=SC.resTarget-r0, prog=span>0?(lr.res-r0)/span:1, exp=(S.yi+1)/YEARS.length; relBump(N.president,prog>=exp?1:prog<exp-0.15?-1:0); save(); }
   if(S.yi>=YEARS.length-1){S.over={lost:false};return render();}
-  sceneShell(histHtml()+bilanVerdict()+relHtml()+`<p class="muted" style="margin-top:10px">Il reste ${YEARS.length-1-S.yi} exercice${YEARS.length-1-S.yi>1?'s':''} avant la fin de 2030.</p>`,{title:'Fin de saison '+(S.yi+1),tag:'Précédemment dans Le Jeu du DG…',ready:true,onNext:()=>{S.yi++;S.year=YEARS[S.yi];S.phase=0;S.sub=0;S.tmp=null;S.decided=false;S.screen='title';render();}});
+  sceneShell(histHtml()+whyHtml()+bilanVerdict()+relHtml()+`<p class="muted" style="margin-top:10px">Il reste ${YEARS.length-1-S.yi} exercice${YEARS.length-1-S.yi>1?'s':''} avant la fin de 2030.</p>`,{title:'Fin de saison '+(S.yi+1),tag:'Précédemment dans Le Jeu du DG…',ready:true,onNext:()=>{S.yi++;S.year=YEARS[S.yi];S.phase=0;S.sub=0;S.tmp=null;S.decided=false;S.screen='title';render();}});
   $('#nextBtn').innerHTML='▶ Saison '+(S.yi+2)+' · Exercice '+(S.year+1);
 }
+function whyHtml(){ // les trois décisions et événements qui ont le plus pesé sur l'année
+  const L=(S.log||[]).filter(x=>x&&x.y===S.year&&x.n&&(x.eff||x.cap||x.heart)); if(!L.length) return '';
+  const lab={mesure:'mesure',décision:'décision express',imprévu:'imprévu',suite:'suite de vos choix',relation:'relation'};
+  const score=x=>Math.abs(x.eff||0)+Math.abs(x.heart||0)*SC.ca0*0.003+Math.abs(x.cap||0)*SC.ca0*0.002;
+  const top=L.slice().sort((a,b)=>score(b)-score(a)).slice(0,3);
+  const line=x=>{ const good=(x.eff||0)>0||(!(x.eff)&&(x.heart||0)+(x.cap||0)>0); const bits=[]; if(x.eff) bits.push(kE(x.eff)+(x.kind==='mesure'?' par an':' sur l\'année')); if(x.heart) bits.push((x.heart>0?'+':'−')+Math.abs(x.heart)+' sur les jauges'); if(x.cap) bits.push((x.cap>0?'+':'−')+Math.abs(x.cap)+' de capital');
+    return `<p style="margin:3px 0">${good?'📈':'📉'} <b>${tx(x.n).replace(/^Décision : /,'')}</b> <span class="muted">(${lab[x.kind]||x.kind})</span> : <span style="color:${good?'var(--green)':'var(--rose)'}">${bits.join(', ')}</span></p>`; };
+  return `<div class="note" style="text-align:left;margin-top:14px"><div class="h">🔍 Ce qui a pesé en ${S.year}</div>${top.map(line).join('')}</div>`; }
 function histHtml(){
   const cells=YEARS.map((y,i)=>{const h=S.history[i]; if(!h) return `<div style="height:2px;background:var(--line)"><em>${y}</em></div>`; const v=clamp(Math.abs(h.res)/SC.resTarget,0,1.5); return `<div class="${h.res<0?'neg':'pos'}" style="height:${v/1.5*70+4}px"><span>${mE(h.res)}</span><em>${y}</em></div>`;}).join('');
   return `<div class="hist">${cells}</div>`;
