@@ -1519,13 +1519,13 @@ function yearly(m){ // effet annuel moyen sur 3 ans : suit l'évolution des effe
 // ---------- Médias et inscriptions ----------
 function marketSat(){ const over=Math.max(0,S.students-BASE.students)/SC.sat; return clamp(1-(SC.satK||0.45)*Math.pow(over,SC.satPow||2)+(S.students<BASE.students?(BASE.students-S.students)/BASE.students*0.3:0),0.5,1.2); } // à la cible de croissance (over=1), chaque inscription coûte ~2 fois plus
 function channelCalc(k,budget){
-  const c=MEDIA[k]; const cpl=c.cpl*(S.mediaMod[k]||1); const sat=marketSat()*S.yearFx.stuY;
+  const c=MEDIA[k]; const sat0=marketSat(); const cpl=c.cpl*(S.mediaMod[k]||1)*Math.pow(sat0,-1/0.62); const sat=S.yearFx.stuY; // la saturation fait monter le coût par lead (même effet sur les inscriptions qu'avant)
   const baseLeads=c.base*1000/c.cpl;
   const raw=budget*1000/cpl;
   const leads=raw>0?Math.round(baseLeads*Math.pow(raw/baseLeads,0.62)):0;
   const comF=0.6+0.8*(S.g.com/100);
   const ins=Math.round(leads*c.conv*(c.per||1)*comF*S.stuMult*sat);
-  return {leads,ins,cpl,cpi:ins?Math.round(budget*1000/ins):0};
+  return {leads,ins,cpl:Math.round(cpl),cpi:ins?Math.round(budget*1000/ins):0};
 }
 function inscriptions(){
   const out={}; let tot=0,leads=0,churnExtra=0;
@@ -2274,7 +2274,7 @@ function phMesures(){
 
 function phMedias(){
   const body=dlg('👩‍🎨',N.mkt,SC.mediaWord==='commercial'?'Directrice du développement':'Directrice marketing',(S.yi===0?`« Voici le ${SC.mediaTitle.toLowerCase()} ${S.year}. Chaque canal a son coût par ${SC.lead1} et sa qualité ; ce sont les commerciaux de ${N.com} qui transforment, et leur moral (${Math.round(S.g.com)} %) joue autant que le budget. Les rendements sont décroissants : doubler un canal ne double pas ses ${SC.leadWord}. »`:`« Le ${SC.mediaTitle.toLowerCase()} ${S.year}. Moral des commerciaux : ${Math.round(S.g.com)} %. »`))+
-   `${(()=>{ const st=marketSat(); if(st>=0.92) return ''; const x=(1/st).toFixed(1).replace('.',','); return `<div class="note" style="border-color:${st<=0.6?'var(--rose)':'var(--gold)'};text-align:left;margin-bottom:10px"><div class="h">📈 Votre marché se sature</div>Avec ${fmt(S.students)} ${SC.unit} (${fmt(BASE.students)} au départ), il faut aller chercher des profils plus rares : chaque inscription coûte <b>×${x}</b> par rapport à 2025. Les chiffres ci-dessous en tiennent compte. Le coût par ${SC.lead1} des canaux, lui, ne bouge pas.</div>`; })()}<div class="media" id="media"></div><div class="mtot" id="mtot"></div>${S.yi===0?`<div class="hint">Le budget ${SC.mediaWord} est une charge de l'exercice : il pèse sur le résultat et la trésorerie. Le bouche-à-oreille et les anciens apportent en plus environ ${fmt(inscriptions().organic)} inscriptions sans dépense.</div>`:''}`;
+   `${(()=>{ const st=marketSat(); if(st>=0.92) return ''; const x=(1/st).toFixed(1).replace('.',','); return `<div class="note" style="border-color:${st<=0.6?'var(--rose)':'var(--gold)'};text-align:left;margin-bottom:10px"><div class="h">📈 Votre marché se sature</div>Avec ${fmt(S.students)} ${SC.unit} (${fmt(BASE.students)} au départ), il faut aller chercher des profils plus rares : le coût par ${SC.lead1} monte de <b>×${(Math.pow(st,-1/0.62)).toFixed(1).replace('.',',')}</b> sur tous les canaux par rapport à 2025, et chaque inscription revient <b>×${x}</b> plus cher. Le coût par inscrit est indiqué pour chaque canal.</div>`; })()}<div class="media" id="media"></div><div class="mtot" id="mtot"></div>${S.yi===0?`<div class="hint">Le budget ${SC.mediaWord} est une charge de l'exercice : il pèse sur le résultat et la trésorerie. Le bouche-à-oreille et les anciens apportent en plus environ ${fmt(inscriptions().organic)} inscriptions sans dépense.</div>`:''}`;
   sceneShell(body,{title:'Le '+SC.mediaTitle.toLowerCase(),tag:'Des '+SC.leadWord+', encore des '+SC.leadWord+'. Et des commerciaux pour les transformer.',ready:true});
   let mRaf=0;
   const draw=(partial)=>{
@@ -2555,7 +2555,7 @@ const EVSND={glitch:'error',stamp:'stamp',news:'news',money:'cash',signs:'crowd'
 const IS_SITE=/^\/lejeududg/i.test(location.pathname);
 let INSTALL_EV=null;
 try{ if(IS_SITE&&'serviceWorker' in navigator) navigator.serviceWorker.register('/lejeuduDG/sw.js',{scope:'/lejeuduDG'}).catch(()=>{}); }catch(e){}
-const BUILD='20261102184946';
+const BUILD='20261102190936';
 function track(kind,extra){ try{ if(!IS_SITE) return; let v=localStorage.getItem('bde-vid'); if(!v){ v=(crypto.randomUUID?crypto.randomUUID():String(Math.random()).slice(2)+Date.now().toString(36)); localStorage.setItem('bde-vid',v); }
   fetch('/api/jeudg/event',{method:'POST',keepalive:true,headers:{'Content-Type':'application/json'},body:JSON.stringify({kind,visiteur:v,mobile:MOB(),appli:STANDALONE(),...(extra||{})})}).catch(()=>{}); }catch(e){} }
 try{ if(!sessionStorage.getItem('bde-vis')){ sessionStorage.setItem('bde-vis','1'); setTimeout(()=>track('visite'),1500); } }catch(e){}
