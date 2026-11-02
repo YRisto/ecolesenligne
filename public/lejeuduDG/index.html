@@ -2399,14 +2399,48 @@ const SND=(()=>{
   S.fin_greve=t=>{ S.crowd(t+0.3); S.crowd(t+1.6); S.thud(t+1); };
   S.fin_exode=t=>{ S.door(t+0.3); for(let i=0;i<6;i++) tone(330,t+0.6+i*0.5,0.1,{type:'triangle',vol:0.06}); S.bad(t+3.2); };
   function play(name,delay=0){ if(mode()<1) return; if(!init()) return; if(ctx.state==='suspended') ctx.resume(); const f=S[name]; if(f) try{ f(T()+0.02+delay); }catch(e){} }
-  // Musique d'ambiance : nappes lentes + petit arpège, tonalité propre à chaque école
-  const PROG=[[0,3,7],[-4,0,3],[-9,-5,-2],[-2,2,5]];
-  function startMusic(){ if(!ctx||musTimer) return; musG.gain.setTargetAtTime(0.5,T(),1.5); musStep=0; const bar=4.8;
-    const sched=()=>{ if(!ctx||ctx.state!=='running'||document.hidden) return; const t=T()+0.1, ch=PROG[musStep%PROG.length], r=48+musRoot;
-      ch.forEach(n=>{ [0,12].forEach(o=>tone(N2F(r+n+o),t,bar,{type:o?'sine':'triangle',vol:o?0.025:0.04,att:1.4,rel:bar+0.8,dest:musG})); });
-      [0,1,2,1,0,2,1,2].forEach((k,i)=>tone(N2F(r+24+ch[k]),t+i*bar/8,0.5,{type:'sine',vol:0.022,att:0.02,rel:0.9,dest:musG}));
-      musStep++; };
-    sched(); musTimer=setInterval(sched,4800); }
+  // Musique épique : cordes en ostinato, nappes, cuivres « BRAAM », taikos et timbales, réverbération de salle.
+  // Phrase de 4 mesures en mineur (i – VI – III – VII), intensité qui monte sur 4 phrases puis retombe.
+  const EPIC={bpm:92,prog:[[0,3,7],[-4,0,3],[3,7,10],[-2,2,5]],bass:[0,-4,3,-2]};
+  let musBus=null, musNext=0, musBar=0;
+  function musInit(){ if(musBus) return; musBus=ctx.createGain(); musBus.gain.value=1;
+    const rev=ctx.createConvolver(), len=Math.floor(ctx.sampleRate*3.2), ir=ctx.createBuffer(2,len,ctx.sampleRate);
+    for(let ch=0;ch<2;ch++){ const d=ir.getChannelData(ch); for(let i=0;i<len;i++) d[i]=(Math.random()*2-1)*Math.pow(1-i/len,2.6); }
+    rev.buffer=ir; const wet=ctx.createGain(); wet.gain.value=0.38; const dry=ctx.createGain(); dry.gain.value=0.8;
+    musBus.connect(dry); dry.connect(musG); musBus.connect(rev); rev.connect(wet); wet.connect(musG); }
+  function saw(f,t,dur,{vol=0.05,att=0.02,rel=0.3,cut=1200,cutTo=null,q=0.7,det=[-7,0,7],type='sawtooth'}={}){
+    const g=ctx.createGain(), lp=ctx.createBiquadFilter(); lp.type='lowpass'; lp.Q.value=q; lp.frequency.setValueAtTime(cut,t); if(cutTo) lp.frequency.exponentialRampToValueAtTime(cutTo,t+Math.max(0.05,att));
+    g.gain.setValueAtTime(0.0001,t); g.gain.exponentialRampToValueAtTime(vol,t+att); g.gain.setValueAtTime(vol,t+Math.max(att,dur-rel)); g.gain.exponentialRampToValueAtTime(0.0001,t+dur+0.02);
+    lp.connect(g); g.connect(musBus);
+    det.forEach(c=>{ const o=ctx.createOscillator(); o.type=type; o.frequency.value=f; o.detune.value=c; o.connect(lp); o.start(t); o.stop(t+dur+0.1); }); }
+  function drum(t,{f0=90,f1=42,vol=0.55,dec=0.55,noiseVol=0.25,nf=180}={}){
+    const o=ctx.createOscillator(), g=ctx.createGain(); o.type='sine'; o.frequency.setValueAtTime(f0,t); o.frequency.exponentialRampToValueAtTime(f1,t+dec*0.6);
+    g.gain.setValueAtTime(0.0001,t); g.gain.exponentialRampToValueAtTime(vol,t+0.006); g.gain.exponentialRampToValueAtTime(0.0001,t+dec); o.connect(g); g.connect(musBus); o.start(t); o.stop(t+dec+0.05);
+    const s=ctx.createBufferSource(); s.buffer=noiseBuf; const lp=ctx.createBiquadFilter(); lp.type='lowpass'; lp.frequency.value=nf; const ng=ctx.createGain();
+    ng.gain.setValueAtTime(0.0001,t); ng.gain.exponentialRampToValueAtTime(noiseVol,t+0.004); ng.gain.exponentialRampToValueAtTime(0.0001,t+0.18); s.connect(lp); lp.connect(ng); ng.connect(musBus); s.start(t); s.stop(t+0.25); }
+  function swell(t,dur,vol=0.12){ const s=ctx.createBufferSource(); s.buffer=noiseBuf; s.loop=true; const hp=ctx.createBiquadFilter(); hp.type='highpass'; hp.frequency.setValueAtTime(2000,t); hp.frequency.exponentialRampToValueAtTime(7000,t+dur);
+    const g=ctx.createGain(); g.gain.setValueAtTime(0.0001,t); g.gain.exponentialRampToValueAtTime(vol,t+dur*0.95); g.gain.exponentialRampToValueAtTime(0.0001,t+dur+0.15); s.connect(hp); hp.connect(g); g.connect(musBus); s.start(t); s.stop(t+dur+0.2); }
+  function epicBar(t,bar,root){ const beat=60/EPIC.bpm, B=beat*4, k=bar%4, phrase=Math.floor(bar/4), lvl=[1,2,3,3,2][phrase%5], ch=EPIC.prog[k], r=root+45;
+    // nappe de cordes
+    ch.forEach(n=>saw(N2F(r+12+n),t,B+0.05,{vol:0.022,att:0.6,rel:0.5,cut:900+lvl*250}));
+    saw(N2F(r-12+EPIC.bass[k]),t,B,{vol:0.05,att:0.15,rel:0.3,cut:420,det:[-5,5]});
+    // ostinato de violoncelles en doubles croches (spiccato)
+    const pat=[0,0,12,0, 0,0,7,0, 0,0,12,0, 3,0,7,0];
+    pat.forEach((n,i)=>saw(N2F(r+EPIC.bass[k]+n),t+i*beat/4,beat/4*0.75,{vol:i%4===0?0.05:0.032,att:0.005,rel:0.06,cut:700,cutTo:2200+lvl*400,q:2,det:[-4,4]}));
+    if(lvl>=2){ // taikos et timbale
+      [[0,1],[1.5,0.6],[2,0.85],[3,0.7],[3.5,0.6]].forEach(([b,a])=>drum(t+b*beat,{vol:0.5*a,f0:95,f1:44,dec:0.6}));
+      drum(t,{f0:60,f1:38,vol:0.6,dec:1.1,noiseVol:0.15,nf:120});
+      if(k===3) for(let i=0;i<8;i++) drum(t+2*beat+i*beat/4,{f0:160,f1:110,vol:0.12+i*0.03,dec:0.18,noiseVol:0.2,nf:900}); }
+    if(lvl>=3&&(k===0||k===2)){ // cuivres « BRAAM »
+      ch.forEach(n=>saw(N2F(r+n),t,beat*2.2,{vol:0.045,att:0.18,rel:0.6,cut:250,cutTo:2600,q:1.2,det:[-9,0,9]}));
+      saw(N2F(r-12+ch[0]),t,beat*2.2,{vol:0.05,att:0.2,rel:0.6,cut:200,cutTo:1400}); }
+    if(lvl>=2&&k===3) swell(t+2*beat,2*beat,0.07+lvl*0.02);
+    if(lvl>=3){ const mel=[[7,0,1.5],[5,1.5,0.5],[3,2,1],[2,3,1]][k]; saw(N2F(r+24+ch[0]+mel[0]-ch[0]),t+mel[1]*beat,mel[2]*beat+0.6,{vol:0.03,att:0.08,rel:0.4,cut:2400,det:[-6,6],type:'sawtooth'}); }
+  }
+  function startMusic(){ if(!ctx||musTimer) return; musInit(); musG.gain.setTargetAtTime(0.42,T(),1.5); musBar=0; musNext=T()+0.15;
+    const sched=()=>{ if(!ctx||ctx.state!=='running'||document.hidden){ musNext=Math.max(musNext,T()+0.1); return; } const B=60/EPIC.bpm*4;
+      if(musNext<T()) musNext=T()+0.05; while(musNext<T()+1.2){ epicBar(musNext,musBar,musRoot); musNext+=B; musBar++; } };
+    sched(); musTimer=setInterval(sched,250); }
   function stopMusic(){ if(musTimer){ clearInterval(musTimer); musTimer=null; } if(musG) musG.gain.setTargetAtTime(0,T(),0.4); }
   function setRoot(id){ const map={xyn:0,linguia:2,enacto:-3,cnf:-5,hippocampus:4,minuit:-1,orbitale:-6,paysans:5}; musRoot=map[id]||0; }
   // iPhone : le son Web Audio ne démarre qu'au sein d'un geste (touchend / click), et il est coupé par l'interrupteur silencieux
@@ -2432,7 +2466,7 @@ const EVSND={glitch:'error',stamp:'stamp',news:'news',money:'cash',signs:'crowd'
 const IS_SITE=/^\/lejeududg/i.test(location.pathname);
 let INSTALL_EV=null;
 try{ if(IS_SITE&&'serviceWorker' in navigator) navigator.serviceWorker.register('/lejeuduDG/sw.js',{scope:'/lejeuduDG'}).catch(()=>{}); }catch(e){}
-const BUILD='20261102160443';
+const BUILD='20261102160747';
 function track(kind,extra){ try{ if(!IS_SITE) return; let v=localStorage.getItem('bde-vid'); if(!v){ v=(crypto.randomUUID?crypto.randomUUID():String(Math.random()).slice(2)+Date.now().toString(36)); localStorage.setItem('bde-vid',v); }
   fetch('/api/jeudg/event',{method:'POST',keepalive:true,headers:{'Content-Type':'application/json'},body:JSON.stringify({kind,visiteur:v,mobile:MOB(),appli:STANDALONE(),...(extra||{})})}).catch(()=>{}); }catch(e){} }
 try{ if(!sessionStorage.getItem('bde-vis')){ sessionStorage.setItem('bde-vis','1'); setTimeout(()=>track('visite'),1500); } }catch(e){}
