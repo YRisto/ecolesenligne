@@ -65,7 +65,7 @@ export async function POST(req) {
   const num = (v, lo, hi) => { const n = Number(v); return Number.isFinite(n) ? Math.max(lo, Math.min(hi, n)) : null; };
   const row = {
     partie_id: b.partie_id, type, dg, profil: clean(b.profil, 100),
-    saison: type === "saison" ? num(b.saison, 1, 5) : 0, // 0 pour une partie complète : la contrainte unique joue aussi (NULL ne la déclenche pas) annee: num(b.annee, 2026, 2030),
+    saison: type === "saison" ? num(b.saison, 1, 5) : 0, /* 0 pour une partie complète : la contrainte unique joue aussi (NULL ne la déclenche pas) */ annee: num(b.annee, 2026, 2030),
     resultat_pct: num(b.resultat_pct, -9000, 100) ?? 0, resultat_k: num(b.resultat_k, -1e7, 1e7), ca_k: num(b.ca_k, 0, 1e7), capital: num(b.capital, 0, 100), etudiants: num(b.etudiants, 0, 1e6),
     tresorerie_k: num(b.tresorerie_k, -1e6, 1e6), mesures: num(b.mesures, 0, 200), statut: clean(b.statut, 20) || null,
   };
