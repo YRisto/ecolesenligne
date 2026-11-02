@@ -1822,8 +1822,8 @@ function renderIntro(){
     <div class="tiles">
       <div class="tile rose"><b>🎯 Votre objectif</b>Chaque scénario fixe un résultat net à atteindre fin 2030, parfois avec un objectif de croissance, sans vous faire révoquer.</div>
       <div class="tile"><b>⚡ Votre capital</b>Chaque mesure consomme du capital auprès du conseil. Les résultats, la transparence et les bons choix en rapportent. À zéro, c'est la fin.</div>
-      <div class="tile cyan"><b>📣 Vos leads</b>Médias, brokers, prospection ou partenariats selon l'école : vous répartissez le budget, les commerciaux transforment.</div>
-      <div class="tile green"><b>📅 Chaque année</b>11 épisodes : cadrage, mesures, plan médias, guerre des enveloppes, gardiens, questions du CSE et des salariés, vote du conseil, imprévu, résultats, grand show de fin d'année, bilan. Et trois imprévus : une décision express chronométrée à un moment surprise, un imprévu moyen en avril, le plus lourd à la rentrée.</div>
+      <div class="tile cyan"><b>📣 Vos leads</b>Google, HelloFormation, Diplomomo, Meta : vous répartissez le budget, les commerciaux transforment. Hunting et Farming possibles en BtoB.</div>
+      <div class="tile green"><b>📅 Chaque année</b>11 épisodes : cadrage, mesures, plan médias, guerre des enveloppes, gardiens, questions du CSE et des salariés, vote du conseil, imprévu, résultats, grand show de fin d'année, bilan.</div>
     </div>
     <div id="mysaves"></div>
     <div style="display:flex;justify-content:center;gap:10px;flex-wrap:wrap;margin-top:4px" id="b"></div>
@@ -2503,7 +2503,7 @@ const EVSND={glitch:'error',stamp:'stamp',news:'news',money:'cash',signs:'crowd'
 const IS_SITE=/^\/lejeududg/i.test(location.pathname);
 let INSTALL_EV=null;
 try{ if(IS_SITE&&'serviceWorker' in navigator) navigator.serviceWorker.register('/lejeuduDG/sw.js',{scope:'/lejeuduDG'}).catch(()=>{}); }catch(e){}
-const BUILD='20261102161637';
+const BUILD='20261102161917';
 function track(kind,extra){ try{ if(!IS_SITE) return; let v=localStorage.getItem('bde-vid'); if(!v){ v=(crypto.randomUUID?crypto.randomUUID():String(Math.random()).slice(2)+Date.now().toString(36)); localStorage.setItem('bde-vid',v); }
   fetch('/api/jeudg/event',{method:'POST',keepalive:true,headers:{'Content-Type':'application/json'},body:JSON.stringify({kind,visiteur:v,mobile:MOB(),appli:STANDALONE(),...(extra||{})})}).catch(()=>{}); }catch(e){} }
 try{ if(!sessionStorage.getItem('bde-vis')){ sessionStorage.setItem('bde-vis','1'); setTimeout(()=>track('visite'),1500); } }catch(e){}
