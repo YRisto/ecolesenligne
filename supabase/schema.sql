@@ -142,3 +142,5 @@ create table if not exists jeu_dg_events (
 );
 create index if not exists jeu_dg_events_created_idx on jeu_dg_events (created_at);
 alter table jeu_dg_events enable row level security;  -- accès uniquement via la clé service (routes /api/jeudg/event et /api/jeudg/stats)
+grant select, insert on jeu_dg_events to service_role;
+grant usage, select on sequence jeu_dg_events_id_seq to service_role;
