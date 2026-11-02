@@ -228,6 +228,7 @@ th{font-size:10px;font-weight:900;letter-spacing:.1em;text-transform:uppercase;c
 .mch .mx{font-size:11.5px;color:var(--muted)}
 .mch .h .amt{white-space:nowrap}
 .mch .stats{justify-content:flex-start;margin:0}
+.costtag{color:var(--gold-hi)!important;font-weight:700}
 .guide1{margin:10px 0 2px;padding:8px 12px;border-radius:10px;background:rgba(126,224,160,.08);border:1px solid rgba(126,224,160,.35);font-size:13px;color:var(--fg)}
 .guide1 b{color:var(--green)}
 .mch .stats b{display:inline;font-size:15px;font-weight:800;color:var(--fg);line-height:1.3}
@@ -2101,11 +2102,13 @@ function confetti(){
   document.body.appendChild(c); setTimeout(()=>c.remove(),4200);
 }
 function nextPhase(){ S.phase++; S.sub=0; S.tmp=null; S.decided=false; renderGame(); }
+function costTag(f){ if(!f) return ''; const p=[]; if(f.once<0) p.push(fmt(-f.once)+' k€'); if(f.cost>0) p.push(fmt(f.cost)+' k€/an'); if(f.mk>0) p.push('+'+fmt(f.mk)+' k€ de budget '+SC.mediaWord); if(f.revY<0) p.push(fmt(-f.revY)+' k€ de chiffre d\'affaires en moins cette année');
+  return p.length?`<small class="costtag">💶 Coût : ${p.join(' · ')}</small>`:''; }
 function choices(container,list,after,label){
   const box=document.createElement('div'); box.className='opts';
   const ckey=S.year+'|'+S.phase+'|'+(S.sub||0)+'|'+(label||''); const prev=S.decided&&S.chosen&&S.chosen[ckey]; /* déjà répondu (rechargement) : on n'applique pas une seconde fois */
   list.forEach(([l,fx,out,sub,pre],bi)=>{ l=tx(l); out=tx(out); sub=tx(sub);
-    const b=btn(`${l}${sub?`<small>${sub}</small>`:''}`,()=>{ /* effets cachés avant le choix : on les découvre après */
+    const b=btn(`${l}${sub?`<small>${sub}</small>`:''}${(typeof fx!=='function'&&fx)?costTag(scf(fx)):''}`,()=>{ /* seul le coût est annoncé avant le choix ; les autres effets se découvrent après */
       if(box.dataset.done) return; box.dataset.done='1'; try{ const fo=typeof fx==='function'?null:fx; if(label==='Questions du CSE'){ const d=fo&&fo.g&&fo.g.cse; relBump(N.cse,d>0?1:d<0?-1:0); } else if(relOf(label)){ relBump(label,bi===0?1:/^(Refuser|Non\b|Dire non)/i.test(l)?-1:0); } }catch(e){} (S.choix=S.choix||[]).push({y:S.year,ph:S.phase,q:String(label||'').slice(0,60),a:String(l).replace(/<[^>]+>/g,'').slice(0,90)}); (S.chosen=S.chosen||{})[ckey]={i:bi,out:(typeof fx!=='function'&&fx&&fx.txt)?tx(fx.txt):out};
       box.querySelectorAll('button').forEach(x=>{x.disabled=true;}); b.classList.add('sel');
       const go=()=>{ const f=scf(typeof fx==='function'?fx():fx); apply(f,label);
@@ -2575,7 +2578,7 @@ const EVSND={glitch:'error',stamp:'stamp',news:'news',money:'cash',signs:'crowd'
 const IS_SITE=/^\/lejeududg/i.test(location.pathname);
 let INSTALL_EV=null;
 try{ if(IS_SITE&&'serviceWorker' in navigator) navigator.serviceWorker.register('/lejeuduDG/sw.js',{scope:'/lejeuduDG'}).catch(()=>{}); }catch(e){}
-const BUILD='20261102200754';
+const BUILD='20261102200949';
 function track(kind,extra){ try{ if(!IS_SITE) return; let v=localStorage.getItem('bde-vid'); if(!v){ v=(crypto.randomUUID?crypto.randomUUID():String(Math.random()).slice(2)+Date.now().toString(36)); localStorage.setItem('bde-vid',v); }
   fetch('/api/jeudg/event',{method:'POST',keepalive:true,headers:{'Content-Type':'application/json'},body:JSON.stringify({kind,visiteur:v,mobile:MOB(),appli:STANDALONE(),...(extra||{})})}).catch(()=>{}); }catch(e){} }
 try{ if(!sessionStorage.getItem('bde-vis')){ sessionStorage.setItem('bde-vis','1'); setTimeout(()=>track('visite'),1500); } }catch(e){}
