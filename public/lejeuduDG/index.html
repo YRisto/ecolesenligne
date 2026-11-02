@@ -2279,7 +2279,7 @@ function phMedias(){
   let mRaf=0;
   const draw=(partial)=>{
     const ins=inscriptions();
-    const mHtml=Object.keys(MEDIA).map(k=>{const c=MEDIA[k];const r=ins.channels[k];const mod=S.mediaMod[k]||1;return `<div class="mch ${mod>1.2?'warn':''}"><div class="h"><b>${c.ic} ${c.n}</b><span>coût moyen par ${SC.lead1} ${r.leads?fmt(S.media[k]*1000/r.leads)+' €':'–'} · transformation ${Math.round(c.conv*100)} %${c.per?` · ${c.per} ${SC.unit} par contrat`:''}${c.churn?` · abandons +${c.churn} pt`:''}</span></div><div class="d">${c.d}${mod!==1?` <b style="color:${mod>1?'var(--rose)':'var(--green)'}">Cette année : coût par ${SC.lead1} ${pct((mod-1)*100)}.</b>`:''}</div>
+    const mHtml=Object.keys(MEDIA).map(k=>{const c=MEDIA[k];const r=ins.channels[k];const mod=S.mediaMod[k]||1;return `<div class="mch ${mod>1.2?'warn':''}"><div class="h"><b>${c.ic} ${c.n}</b><span>coût moyen par ${SC.lead1} ${r.leads?fmt(S.media[k]*1000/r.leads)+' €':'–'} · transformation ${r.leads?(r.ins/r.leads/(c.per||1)*100).toFixed(1).replace('.',','):Math.round(c.conv*100)} %${c.per?` · ${c.per} ${SC.unit} par contrat`:''}${c.churn?` · abandons +${c.churn} pt`:''}</span></div><div class="d">${c.d}${mod!==1?` <b style="color:${mod>1?'var(--rose)':'var(--green)'}">Cette année : coût par ${SC.lead1} ${pct((mod-1)*100)}.</b>`:''}</div>
       <input type="range" id="r-${k}" min="0" max="${Math.max(Math.round(3000*SC.scale/50)*50,Math.round(MEDIA[k].base*2.5/50)*50)||300}" step="${SC.scale<0.5?10:50}" value="${S.media[k]}" data-k="${k}"><div class="stats"><span class="amt num">${fmt(S.media[k])} k€</span><span>${SC.leadWord.charAt(0).toUpperCase()+SC.leadWord.slice(1)} <b class="num">${fmt(r.leads)}</b></span><span>Inscriptions <b class="num">${fmt(r.ins)}</b></span><span>Coût par inscrit <b class="num">${r.cpi?fmt(r.cpi)+' €':'–'}</b></span></div></div>`;}).join('');
     if(partial){ /* pendant le glissement : on ne recrée pas les curseurs (sinon le doigt « lâche » le curseur et le navigateur mobile peut recharger la page) */
       const tmp=document.createElement('div'); tmp.innerHTML=mHtml; const olds=$('#media').querySelectorAll('.mch'), news=tmp.querySelectorAll('.mch');
@@ -2555,7 +2555,7 @@ const EVSND={glitch:'error',stamp:'stamp',news:'news',money:'cash',signs:'crowd'
 const IS_SITE=/^\/lejeududg/i.test(location.pathname);
 let INSTALL_EV=null;
 try{ if(IS_SITE&&'serviceWorker' in navigator) navigator.serviceWorker.register('/lejeuduDG/sw.js',{scope:'/lejeuduDG'}).catch(()=>{}); }catch(e){}
-const BUILD='20261102191231';
+const BUILD='20261102192245';
 function track(kind,extra){ try{ if(!IS_SITE) return; let v=localStorage.getItem('bde-vid'); if(!v){ v=(crypto.randomUUID?crypto.randomUUID():String(Math.random()).slice(2)+Date.now().toString(36)); localStorage.setItem('bde-vid',v); }
   fetch('/api/jeudg/event',{method:'POST',keepalive:true,headers:{'Content-Type':'application/json'},body:JSON.stringify({kind,visiteur:v,mobile:MOB(),appli:STANDALONE(),...(extra||{})})}).catch(()=>{}); }catch(e){} }
 try{ if(!sessionStorage.getItem('bde-vis')){ sessionStorage.setItem('bde-vis','1'); setTimeout(()=>track('visite'),1500); } }catch(e){}
