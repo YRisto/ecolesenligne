@@ -1751,9 +1751,29 @@ const $=s=>document.querySelector(s);
 const app=()=>document.getElementById('app');
 // Une sauvegarde par école (jusqu'à 5 parties en parallèle)
 const SAVE_KEY=id=>'bde-save-'+id;
+// ── Une seule fenêtre par partie : un verrou par école, entretenu toutes les 2 s par l'onglet qui joue.
+// Un second onglet sur la même partie est figé (impossible de tester une réponse dans un onglet puis une autre dans le second).
+const TAB=Math.random().toString(36).slice(2)+Date.now().toString(36);
+const LOCK_K=id=>'bde-lock-'+id, LOCK_TTL=6000;
+function lockRead(id){ try{ return JSON.parse(localStorage.getItem(LOCK_K(id))||'null'); }catch(e){ return null; } }
+function lockMine(id){ const l=lockRead(id); return !l||l.tab===TAB||Date.now()-l.t>LOCK_TTL; }
+function lockTake(id){ try{ localStorage.setItem(LOCK_K(id),JSON.stringify({tab:TAB,t:Date.now()})); }catch(e){} }
+function lockFree(){ try{ for(let i=0;i<localStorage.length;i++){ const k=localStorage.key(i); if(k&&k.startsWith('bde-lock-')){ const l=JSON.parse(localStorage.getItem(k)||'null'); if(l&&l.tab===TAB){ localStorage.removeItem(k); i--; } } } }catch(e){} }
+const inGame=()=>S&&['game','final','title'].includes(S.screen)&&SCENARIOS[S.sc];
+let LOCKED=false;
+function lockWall(){ if(LOCKED&&document.getElementById('lkHere')) return; LOCKED=true; try{ clearInterval(CR_T); }catch(e){} document.querySelectorAll('.sfx').forEach(x=>x.remove());
+  const id=SCENARIOS[S.sc].id, c=SCENARIOS[S.sc];
+  modal(`<div class="ic">🔒</div><h3>Partie ouverte dans un autre onglet</h3><p class="mt">Votre partie à ${c.ic} ${c.name} est en cours dans une autre fenêtre ou un autre onglet de ce navigateur. Pour qu'une réponse ne puisse pas être rejouée, une seule fenêtre peut jouer à la fois.</p><div class="mf"><button class="lnk" id="lkHome">Accueil</button><button class="mbtn" id="lkHere">Jouer ici</button></div>`,'gold');
+  document.getElementById('lkHere').onclick=()=>{ lockTake(id); LOCKED=false; closeModal(); const o=readSave(id); if(o) resume(o); else render(); };
+  document.getElementById('lkHome').onclick=()=>{ LOCKED=false; closeModal(); newGame(0); S.screen='intro'; render(); }; }
+function lockCheck(){ if(!inGame()) return true; const id=SCENARIOS[S.sc].id; if(lockMine(id)){ if(!LOCKED) lockTake(id); return !LOCKED; } lockWall(); return false; }
+setInterval(()=>{ if(!document.hidden) lockCheck(); },2000);
+window.addEventListener('storage',e=>{ if(e.key&&e.key.startsWith('bde-lock-')&&inGame()&&e.key===LOCK_K(SCENARIOS[S.sc].id)){ const l=lockRead(SCENARIOS[S.sc].id); if(l&&l.tab!==TAB) lockWall(); } });
+document.addEventListener('visibilitychange',()=>{ if(!document.hidden) lockCheck(); });
+window.addEventListener('pagehide',lockFree);
 let SAVE_OK=true;
 function save(){ SAVE_OK=true; try{ if(!S||S.sc===undefined||!SCENARIOS[S.sc]) return; if(['intro','scenario','profile'].includes(S.screen)||S.profile==null||!S.name) return;
-  const id=SCENARIOS[S.sc].id; localStorage.setItem(SAVE_KEY(id),JSON.stringify(S)); localStorage.setItem('bde-last',id); try{ sessionStorage.setItem('bde-live',id); }catch(_){} if(typeof saveFlash==='function') saveFlash(); }catch(e){ SAVE_OK=false; } }
+  const id=SCENARIOS[S.sc].id; if(LOCKED||!lockMine(id)) return; lockTake(id); localStorage.setItem(SAVE_KEY(id),JSON.stringify(S)); localStorage.setItem('bde-last',id); try{ sessionStorage.setItem('bde-live',id); }catch(_){} if(typeof saveFlash==='function') saveFlash(); }catch(e){ SAVE_OK=false; } }
 function readSave(id){ try{ const t=localStorage.getItem(SAVE_KEY(id)); if(!t) return null; const o=JSON.parse(t); return (o&&o.g&&o.used&&o.media&&o.sc!==undefined)?o:null; }catch(e){ return null; } }
 function saveInfo(o){ if(!o) return null; if(o.over) return {done:true,txt:'🏁 Partie terminée'+(o.over.lost?' (révoqué·e)':'')}; const ep=EPISODES[o.phase||0]; return {done:false,txt:'💾 Partie en cours · Saison '+((o.yi||0)+1)+' · '+(ep?ep[0]:'')+' '+(o.year||'')}; }
 function resume(o){ newGame(o.sc); /* recalibre les mesures propres comme en début de partie */ S=o; applyScenario(S.sc); if(['title','hof','badges','intro','scenario','profile'].includes(S.screen)) S.screen=S.over?'final':'game'; S.epKey=undefined; render(); }
@@ -1767,6 +1787,7 @@ function closeModal(){ document.getElementById('modal').innerHTML=''; try{ if(MO
 
 function toTop(){ try{window.scrollTo({top:0,left:0,behavior:'instant'});document.documentElement.scrollTop=0;document.body.scrollTop=0;}catch(e){window.scrollTo(0,0);} }
 function render(){ if(S.screen!=='intro') document.querySelectorAll('.sparks').forEach(x=>x.remove());
+  if(['intro','scenario','profile'].includes(S.screen)) lockFree(); else if(inGame()&&!lockMine(SCENARIOS[S.sc].id)){ lockWall(); }
   if(['intro','scenario','profile'].includes(S.screen)){ /* hors partie : plus de reprise automatique au rechargement, et plus rien de l'ancienne partie à l'écran */
     try{ sessionStorage.removeItem('bde-live'); }catch(e){} try{ clearInterval(CR_T); }catch(e){} const md=document.getElementById('modal'); if(md&&md.innerHTML) md.innerHTML=''; document.querySelectorAll('.sfx,.epcard,.savetoast:not(#updBar)').forEach(x=>x.remove()); }
   save(); toTop();
@@ -2411,7 +2432,7 @@ const EVSND={glitch:'error',stamp:'stamp',news:'news',money:'cash',signs:'crowd'
 const IS_SITE=/^\/lejeududg/i.test(location.pathname);
 let INSTALL_EV=null;
 try{ if(IS_SITE&&'serviceWorker' in navigator) navigator.serviceWorker.register('/lejeuduDG/sw.js',{scope:'/lejeuduDG'}).catch(()=>{}); }catch(e){}
-const BUILD='20261102155706';
+const BUILD='20261102160443';
 function track(kind,extra){ try{ if(!IS_SITE) return; let v=localStorage.getItem('bde-vid'); if(!v){ v=(crypto.randomUUID?crypto.randomUUID():String(Math.random()).slice(2)+Date.now().toString(36)); localStorage.setItem('bde-vid',v); }
   fetch('/api/jeudg/event',{method:'POST',keepalive:true,headers:{'Content-Type':'application/json'},body:JSON.stringify({kind,visiteur:v,mobile:MOB(),appli:STANDALONE(),...(extra||{})})}).catch(()=>{}); }catch(e){} }
 try{ if(!sessionStorage.getItem('bde-vis')){ sessionStorage.setItem('bde-vis','1'); setTimeout(()=>track('visite'),1500); } }catch(e){}
