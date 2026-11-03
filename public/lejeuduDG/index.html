@@ -2074,7 +2074,7 @@ function epCard(){ try{ if(!RM()) SND.play('whoosh'); }catch(_){} const ph=S.pha
     <h2><small>${e[0]}</small>${e[1]}</h2><p>${EPDESC[ph]||''}</p><div class="skip">toucher pour passer</div>`;
   document.body.appendChild(d); let done=false; const end=()=>{ if(done) return; done=true; d.classList.add('out'); setTimeout(()=>d.remove(),360); };
   d.addEventListener('click',end); setTimeout(end,MOB()?2300:1900); }
-function renderGame(){
+function renderGame(){ try{ SND.setMood([3,4,5,6].includes(S.phase)?'thriller':'epic'); }catch(e){}
   const ek=S.year+'-'+S.phase; const showEp=S.epKey!==undefined&&S.epKey!==ek&&S.phase>0&&!RM(); S.epKey=ek;
   toTop();
   const sk=S.year+'-'+S.phase; if(S.snapKey!==sk){ S.snapKey=sk; S.snap={ca:S.g.ca,etu:S.g.etu,com:S.g.com,cse:S.g.cse,cash:S.cash}; }
@@ -2645,9 +2645,38 @@ const SND=(()=>{
       saw(f*2,t,B,{vol:0.03,att:0.05,rel:0.2,cut:160,det:[0],dry:true}); }
     if(riser&&last) swell(t,B,0.09);
   }
-  function startMusic(){ if(!ctx||musTimer) return; musInit(); musG.gain.setTargetAtTime(0.26,T(),2); musBar=0; musNext=T()+0.15;
-    const sched=()=>{ if(!ctx||ctx.state!=='running'||document.hidden){ musNext=Math.max(musNext,T()+0.1); return; } const B=60/EPIC.bpm*4;
-      if(musNext<T()) musNext=T()+0.05; while(musNext<T()+1.2){ epicBar(musNext,musBar,musRoot); musNext+=B; musBar++; } };
+  // Thriller politique (composition originale) : pulsation de cordes graves, tic-tac, clusters aigus qui montent, accords secs, éclats de timbales, un motif de piano rare.
+  // Jouée pendant les épisodes de pouvoir (enveloppes, gardiens, CSE, vote du conseil). Cycle ≈ 2 min 40.
+  const THR={bpm:76}, TPR=[[0,3,7],[-4,0,3],[-7,-4,0],[-5,-1,2]]; // i – VI – iv – V (mineur harmonique)
+  //            nom        mesures pulse tic cluster accords timbales piano
+  const TSECT=[['ombre',     8,      1,    0,  0,      0,      0,       1],
+               ['manoeuvre', 8,      2,    1,  1,      0,      0,       1],
+               ['etau',      8,      2,    1,  2,      1,      1,       0],
+               ['coup',      8,      3,    1,  2,      2,      2,       1],
+               ['silence',   4,      0,    1,  1,      0,      0,       1]];
+  const TCYC=TSECT.reduce((a,x)=>a+x[1],0);
+  const TMOT=[[[0,0,1],[3,1,0.5],[2,1.5,2.5]],[[-1,0,3],[0,3,1]],[[7,0,1],[5,1,0.5],[3,1.5,1],[2,2.5,1.5]],[[2,0,1],[-1,1,3]]]; // motif de piano, en demi-tons
+  function piano(f,t,dur,vol){ [1,2,3].forEach((h,i)=>{ const o=ctx.createOscillator(), g=ctx.createGain(); o.type=i?'sine':'triangle'; o.frequency.value=f*h; g.gain.setValueAtTime(0.0001,t); g.gain.exponentialRampToValueAtTime(vol/(h*h),t+0.008); g.gain.exponentialRampToValueAtTime(0.0001,t+Math.min(3,dur*1.6+0.6)); o.connect(g); g.connect(musBus); o.start(t); o.stop(t+3.2); }); }
+  function thrillerBar(t,bar,root){ const beat=60/THR.bpm, B=beat*4;
+    const cyc=Math.floor(bar/TCYC); let pos=bar%TCYC, si=0; while(pos>=TSECT[si][1]){ pos-=TSECT[si][1]; si++; }
+    const [name,len,pulse,tic,clu,chords,timp,pno]=TSECT[si], k=pos%4, ch=TPR[k], r=root+45+[0,-2,3][cyc%3], last=pos===len-1, bn=ch[0];
+    saw(N2F(r-12+bn),t,B+0.1,{vol:0.022,att:name==='silence'?1.5:0.8,rel:0.8,cut:500,det:[-6,6]}); // nappe grave
+    if(pulse){ for(let i=0;i<8;i++){ const acc=i===0||(pulse>=2&&(i===3||i===6)); saw(N2F(r-12+bn+(pulse>=3&&i%2?12:0)),t+i*beat/2,beat/2*0.55,{vol:acc?0.045:0.028,att:0.006,rel:0.05,cut:420,cutTo:pulse>=3?1400:900,q:1.6,det:[-4,4]}); } }
+    if(tic) for(let i=0;i<4;i++) tone(i%2?2600:3100,t+i*beat,0.02,{type:'square',vol:0.012,dest:musBus});
+    if(clu){ const top=r+24+bn+(clu>=2?pos:0)*0.5; [0,1].forEach(d=>saw(N2F(top+d),t,B+0.05,{vol:0.009+0.002*clu,att:B*0.6,rel:0.3,cut:2500,det:[-3,3],type:'sawtooth'})); }
+    if(chords){ const hits=chords>=2?[0,0.75,1.5,2.5,3.25]:[0,1.5,3]; hits.forEach(b=>ch.forEach(n=>saw(N2F(r+n),t+b*beat,beat*0.22,{vol:0.03,att:0.004,rel:0.08,cut:900,cutTo:2600,q:1,det:[-8,8]}))); }
+    if(timp){ drum(t,{f0:110,f1:70,vol:0.4,dec:0.9,noiseVol:0.1,nf:300}); if(timp>=2&&k===3) for(let i=0;i<6;i++) drum(t+2*beat+i*beat/3,{f0:120,f1:80,vol:0.15+i*0.05,dec:0.4,noiseVol:0.08,nf:300}); }
+    if(name==='coup'&&pos===0){ boom(t,true); sub(N2F(r-24),t,B*1.8,0.22); }
+    if(pno&&(name!=='manoeuvre'||k%2===0)) TMOT[k].forEach(([d,st,du])=>piano(N2F(r+24+d),t+st*beat,du*beat,name==='silence'?0.05:0.07));
+    if(last&&name==='etau') swell(t,B,0.08);
+  }
+  let musMood='epic', musPlaying='epic';
+  function setMood(m){ musMood=m==='thriller'?'thriller':'epic'; }
+  function startMusic(){ if(!ctx||musTimer) return; musInit(); musG.gain.setTargetAtTime(0.26,T(),2); musBar=0; musNext=T()+0.15; musPlaying=musMood;
+    const sched=()=>{ if(!ctx||ctx.state!=='running'||document.hidden){ musNext=Math.max(musNext,T()+0.1); return; }
+      if(musNext<T()) musNext=T()+0.05;
+      while(musNext<T()+1.2){ if(musMood!==musPlaying){ musPlaying=musMood; musBar=0; } // changement d'ambiance à la mesure suivante
+        const th=musPlaying==='thriller', B=60/(th?THR.bpm:EPIC.bpm)*4; (th?thrillerBar:epicBar)(musNext,musBar,musRoot); musNext+=B; musBar++; } };
     sched(); musTimer=setInterval(sched,250); }
   function stopMusic(){ if(musTimer){ clearInterval(musTimer); musTimer=null; } if(musG) musG.gain.setTargetAtTime(0,T(),0.4); }
   function setRoot(id){ const map={xyn:0,linguia:2,enacto:-3,cnf:-5,hippocampus:4,minuit:-1,orbitale:-6,paysans:5}; musRoot=map[id]||0; }
@@ -2662,7 +2691,13 @@ const SND=(()=>{
   ['pointerdown','touchend','click','keydown'].forEach(ev=>document.addEventListener(ev,unlock,{capture:true,passive:true}));
   document.addEventListener('click',e=>{ const b=e.target.closest&&e.target.closest('button'); if(!b||b.id==='sndBtn') return; play(b.classList.contains('opt')||b.classList.contains('prof')?'pick':'click'); },{capture:true});
   document.addEventListener('visibilitychange',()=>{ if(!ctx) return; if(document.hidden) ctx.suspend(); else if(mode()>=1) ctx.resume(); });
-  return {play,unlock,mode,setMode,setRoot,label:()=>['🔇','🔊','🎵'][mode()],title:()=>['Son coupé','Effets sonores','Effets sonores et musique'][mode()]};
+  async function renderOffline(mood,secs){ // aperçu hors ligne (outil de test) : rend la musique dans un tampon audio
+    const old=[ctx,master,sfxG,musG,noiseBuf,musBus]; const oc=new OfflineAudioContext(2,44100*secs,44100); ctx=oc;
+    master=oc.createGain(); master.gain.value=0.9; master.connect(oc.destination); const comp=oc.createDynamicsCompressor(); comp.connect(master); musG=oc.createGain(); musG.gain.value=0.26; musG.connect(comp); sfxG=oc.createGain(); sfxG.connect(comp);
+    noiseBuf=oc.createBuffer(1,oc.sampleRate,oc.sampleRate); const d=noiseBuf.getChannelData(0); for(let i=0;i<d.length;i++) d[i]=Math.random()*2-1; musBus=null; musInit();
+    const th=mood==='thriller', B=60/(th?THR.bpm:EPIC.bpm)*4; for(let b=0,t=0.1;t<secs;b++,t+=B) (th?thrillerBar:epicBar)(t,b,musRoot);
+    const buf=await oc.startRendering(); [ctx,master,sfxG,musG,noiseBuf,musBus]=old; return buf; }
+  return {play,unlock,mode,setMode,setRoot,setMood,renderOffline,label:()=>['🔇','🔊','🎵'][mode()],title:()=>['Son coupé','Effets sonores','Effets sonores et musique'][mode()]};
 })();
 function sndBtnHtml(){ return `<button title="${SND.title()} (toucher pour changer)" aria-label="Son : ${SND.title()}" id="sndBtn">${SND.label()}</button>`; }
 function bindSnd(){ const b=document.getElementById('sndBtn'); if(!b) return; b.onclick=()=>{ const m=(SND.mode()+1)%3; SND.setMode(m); document.querySelectorAll('#sndBtn').forEach(x=>{ x.textContent=SND.label()+(x.classList.contains('sbtn')?' Son':''); x.title=SND.title(); x.setAttribute('aria-label','Son : '+SND.title()); }); if(m){ try{ SND.unlock(); }catch(e){} SND.play('ok'); } toast2(SND.label()+' '+SND.title()); }; }
@@ -2674,7 +2709,7 @@ const EVSND={glitch:'error',stamp:'stamp',news:'news',money:'cash',signs:'crowd'
 const IS_SITE=/^\/lejeududg/i.test(location.pathname);
 let INSTALL_EV=null;
 try{ if(IS_SITE&&'serviceWorker' in navigator) navigator.serviceWorker.register('/lejeuduDG/sw.js',{scope:'/lejeuduDG'}).catch(()=>{}); }catch(e){}
-const BUILD='20261102233404';
+const BUILD='20261103073441';
 function track(kind,extra){ try{ if(!IS_SITE) return; let v=localStorage.getItem('bde-vid'); if(!v){ v=(crypto.randomUUID?crypto.randomUUID():String(Math.random()).slice(2)+Date.now().toString(36)); localStorage.setItem('bde-vid',v); }
   fetch('/api/jeudg/event',{method:'POST',keepalive:true,headers:{'Content-Type':'application/json'},body:JSON.stringify({kind,visiteur:v,mobile:MOB(),appli:STANDALONE(),...(extra||{})})}).catch(()=>{}); }catch(e){} }
 try{ if(!sessionStorage.getItem('bde-vis')){ sessionStorage.setItem('bde-vis','1'); setTimeout(()=>track('visite'),1500); } }catch(e){}
