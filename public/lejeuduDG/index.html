@@ -2675,16 +2675,16 @@ const SND=(()=>{
   // Musique enregistrée (musique-jeu.mp3) : téléchargée puis décodée dans Web Audio et jouée en boucle sans couture, au volume de la musique.
   // (Un simple <audio> branché sur Web Audio reste muet quand la page n'a pas d'origine propre, comme dans l'aperçu.) Musique synthétisée en secours.
   let trackBuf=null, trackSrc=null, trackOK=null, trackLoading=false;
-  function startTrack(){ if(trackOK===false) return false;
+  function startTrack(){
     const go=()=>{ if(mode()<2||trackSrc) return; trackSrc=ctx.createBufferSource(); trackSrc.buffer=trackBuf; trackSrc.loop=true; trackSrc.connect(musG); musG.gain.cancelScheduledValues(T()); musG.gain.setValueAtTime(0.0001,T()); musG.gain.setTargetAtTime(0.24,T(),1.2); trackSrc.start(); };
     if(trackBuf){ go(); return true; }
     if(!trackLoading){ trackLoading=true;
-      fetch('musique-jeu.mp3').then(r=>{ if(!r.ok) throw new Error('http '+r.status); return r.arrayBuffer(); })
+      fetch(/^\/lejeududg/i.test(location.pathname)?'/lejeuduDG/musique-jeu.mp3':'musique-jeu.mp3').then(r=>{ if(!r.ok) throw new Error('http '+r.status); return r.arrayBuffer(); })
         .then(ab=>new Promise((ok,ko)=>{ const p=ctx.decodeAudioData(ab,ok,ko); if(p&&p.then) p.then(ok,ko); }))
         .then(b=>{ trackBuf=b; trackOK=true; trackLoading=false; go(); })
-        .catch(()=>{ trackOK=false; trackLoading=false; if(mode()>=2){ musTimer=null; startMusic(); } }); }
+        .catch(()=>{ trackLoading=false; }); } /* échec (réseau) : pas de musique synthétisée, on réessaiera au prochain clic */
     return true; }
-  function startMusic(){ if(!ctx||musTimer) return; if(startTrack()) return; musInit(); musG.gain.setTargetAtTime(0.26,T(),2); musBar=0; musNext=T()+0.15; musPlaying=musMood;
+  function startMusic(){ if(!ctx||musTimer) return; if(startTrack()) return; /* la musique synthétisée n'est plus utilisée */ musInit(); musG.gain.setTargetAtTime(0.26,T(),2); musBar=0; musNext=T()+0.15; musPlaying=musMood;
     const sched=()=>{ if(!ctx||ctx.state!=='running'||document.hidden){ musNext=Math.max(musNext,T()+0.1); return; }
       if(musNext<T()) musNext=T()+0.05;
       while(musNext<T()+1.2){ if(musMood!==musPlaying){ musPlaying=musMood; musBar=0; } // changement d'ambiance à la mesure suivante
@@ -2701,6 +2701,9 @@ const SND=(()=>{
       try{ const a=new Audio(SILENT); a.setAttribute('playsinline',''); a.volume=0.01; const pr=a.play(); if(pr) pr.catch(()=>{ unlocked=false; }); }catch(e){ unlocked=false; } }
     if(mode()>=2) startMusic(); }
   ['pointerdown','touchend','click','keydown'].forEach(ev=>document.addEventListener(ev,unlock,{capture:true,passive:true}));
+  // Dès le chargement : on prépare la musique (téléchargement et décodage) et on tente de la lancer. Si le navigateur l'autorise (souvent sur PC
+  // pour un site déjà visité), elle part tout de suite ; sinon elle démarre au premier clic, sans attendre le chargement.
+  setTimeout(()=>{ try{ if(mode()>=2&&init()){ if(ctx.state!=='running') ctx.resume().catch(()=>{}); } }catch(e){} },300);
   document.addEventListener('click',e=>{ const b=e.target.closest&&e.target.closest('button'); if(!b||b.id==='sndBtn') return; play(b.classList.contains('opt')||b.classList.contains('prof')?'pick':'click'); },{capture:true});
   document.addEventListener('visibilitychange',()=>{ if(!ctx) return; if(document.hidden) ctx.suspend(); else if(mode()>=1) ctx.resume(); });
   async function renderOffline(mood,secs){ // aperçu hors ligne (outil de test) : rend la musique dans un tampon audio
@@ -2721,7 +2724,7 @@ const EVSND={glitch:'error',stamp:'stamp',news:'news',money:'cash',signs:'crowd'
 const IS_SITE=/^\/lejeududg/i.test(location.pathname);
 let INSTALL_EV=null;
 try{ if(IS_SITE&&'serviceWorker' in navigator) navigator.serviceWorker.register('/lejeuduDG/sw.js',{scope:'/lejeuduDG'}).catch(()=>{}); }catch(e){}
-const BUILD='20261103095206';
+const BUILD='20261103095517';
 function track(kind,extra){ try{ if(!IS_SITE) return; let v=localStorage.getItem('bde-vid'); if(!v){ v=(crypto.randomUUID?crypto.randomUUID():String(Math.random()).slice(2)+Date.now().toString(36)); localStorage.setItem('bde-vid',v); }
   fetch('/api/jeudg/event',{method:'POST',keepalive:true,headers:{'Content-Type':'application/json'},body:JSON.stringify({kind,visiteur:v,mobile:MOB(),appli:STANDALONE(),...(extra||{})})}).catch(()=>{}); }catch(e){} }
 try{ if(!sessionStorage.getItem('bde-vis')){ sessionStorage.setItem('bde-vis','1'); setTimeout(()=>track('visite'),1500); } }catch(e){}
