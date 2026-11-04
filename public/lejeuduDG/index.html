@@ -812,15 +812,16 @@ html[data-sc] .titlecard .big{color:var(--sc-hi);text-shadow:0 0 30px var(--sc)}
 @keyframes crout{to{opacity:0;transform:scale(1.05)}}
 @keyframes crspin{from{transform:rotate(-12deg) scale(1)}to{transform:rotate(12deg) scale(1.12)}}
 @keyframes crtape{to{background-position:45px 0}}
-.modal.crisism{animation:panelin .3s ease both,crglow 1.2s ease-in-out infinite alternate;border-color:#ff8a5a}
-@keyframes crglow{from{box-shadow:0 20px 60px rgba(0,0,0,.6),0 0 0 0 rgba(255,110,90,.0)}to{box-shadow:0 20px 60px rgba(0,0,0,.6),0 0 0 6px rgba(255,110,90,.25),0 0 40px rgba(255,90,80,.35)}}
+.modal.crisism{animation:panelin .3s ease both;border-color:#ff8a5a;position:relative}
+.modal.crisism::after{content:"";position:absolute;inset:-4px;border-radius:inherit;border:3px solid rgba(255,110,90,.55);pointer-events:none;animation:crglow 1.2s ease-in-out infinite alternate}
+@keyframes crglow{from{opacity:.1}to{opacity:1}}
 .crisis .crbar i{background-image:repeating-linear-gradient(-45deg,rgba(255,255,255,.18) 0 8px,transparent 8px 16px),linear-gradient(90deg,var(--gold),#ff8a5a);background-size:22px 22px,100% 100%;animation:crstripe .6s linear infinite}
 @keyframes crstripe{to{background-position:22px 0,0 0}}
-.overlay:has(.crisis.hurry){animation:crvig .5s ease-in-out infinite alternate}
-@keyframes crvig{from{box-shadow:inset 0 0 0 0 rgba(255,40,60,0)}to{box-shadow:inset 0 0 120px 30px rgba(255,40,60,.45)}}
-.modal.crisism:has(.crisis.hurry){border-color:var(--rose);animation:crshake .5s ease-in-out infinite}
+.crvig{position:fixed;inset:0;z-index:84;pointer-events:none;background:radial-gradient(circle,rgba(255,40,60,0) 55%,rgba(255,40,60,.45) 100%);animation:crvig .5s ease-in-out infinite alternate}
+@keyframes crvig{from{opacity:.15}to{opacity:1}}
+.modal.crisism.hurry{border-color:var(--rose);animation:crshake .5s ease-in-out infinite}
 @keyframes crshake{0%,100%{transform:none}25%{transform:translateX(-2px) rotate(-.3deg)}75%{transform:translateX(2px) rotate(.3deg)}}
-@media (prefers-reduced-motion:reduce){.modal.crisism,.modal.crisism:has(.crisis.hurry),.overlay:has(.crisis.hurry),.crisis .crbar i{animation:none}}
+@media (prefers-reduced-motion:reduce){.modal.crisism,.modal.crisism.hurry,.modal.crisism::after,.crvig,.crisis .crbar i{animation:none}}
 .crisis .crwho{display:flex;gap:10px;align-items:center;margin-bottom:8px}
 .crisis .crwho .ic{font-size:34px}
 .crisis .crwho small{display:block;color:var(--muted);font-size:12px}
@@ -2547,6 +2548,10 @@ const SND=(()=>{
     sfxG=ctx.createGain(); sfxG.gain.value=0.55; sfxG.connect(comp); musG=ctx.createGain(); musG.gain.value=0; musG.connect(comp);
     noiseBuf=ctx.createBuffer(1,ctx.sampleRate,ctx.sampleRate); const d=noiseBuf.getChannelData(0); for(let i=0;i<d.length;i++) d[i]=Math.random()*2-1;
     apply(); return ctx; }
+  // Contexte audio bloqué (« interrupted » sur iPhone après verrouillage, appel, Siri…) : on le recrée, la musique déjà décodée est réutilisée
+  function rebuild(){ try{ ctx&&ctx.close(); }catch(e){} ctx=null; musBus=null; trackSrc=null; if(musTimer){ clearInterval(musTimer); musTimer=null; } unlocked=false; init(); try{ ctx.resume(); }catch(e){} }
+  // Vigie : si la musique doit jouer mais ne joue plus (contexte suspendu, source perdue), on la relance
+  setInterval(()=>{ if(!ctx||document.hidden||mode()<2) return; if(ctx.state==='running'&&!trackSrc&&trackBuf) startMusic(); },4000);
   function apply(){ if(!ctx) return; const m=mode(); sfxG.gain.setTargetAtTime(m>=1?0.55:0,ctx.currentTime,0.05); if(m>=2) startMusic(); else stopMusic(); }
   const T=()=>ctx.currentTime;
   function tone(f,t0,dur,{type='sine',vol=0.3,att=0.005,rel=null,to=null,dest=null}={}){ const o=ctx.createOscillator(), g=ctx.createGain(); o.type=type; o.frequency.setValueAtTime(f,t0); if(to) o.frequency.exponentialRampToValueAtTime(to,t0+dur);
@@ -2719,7 +2724,7 @@ const SND=(()=>{
   // sauf si la session audio passe en « lecture » : on joue un son HTML muet une fois pour la basculer.
   let unlocked=false; const SILENT='data:audio/wav;base64,UklGRkQDAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YSADAACAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgA==';
   function unlock(){ if(mode()<1) return; if(!init()) return; try{ if(navigator.audioSession) navigator.audioSession.type='playback'; }catch(e){}
-    if(ctx.state!=='running') ctx.resume().catch(()=>{});
+    if(ctx.state!=='running'){ const c0=ctx; ctx.resume().then(()=>setTimeout(()=>{ if(ctx===c0&&ctx.state!=='running'&&!document.hidden) rebuild(); },500)).catch(()=>{ if(ctx===c0) rebuild(); }); }
     if(!unlocked){ unlocked=true; try{ const bf=ctx.createBuffer(1,1,22050), sr=ctx.createBufferSource(); sr.buffer=bf; sr.connect(ctx.destination); sr.start(0); }catch(e){}
       try{ const a=new Audio(SILENT); a.setAttribute('playsinline',''); a.volume=0.01; const pr=a.play(); if(pr) pr.catch(()=>{ unlocked=false; }); }catch(e){ unlocked=false; } }
     if(mode()>=2) startMusic(); }
@@ -2747,7 +2752,7 @@ const EVSND={glitch:'error',stamp:'stamp',news:'news',money:'cash',signs:'crowd'
 const IS_SITE=/^\/lejeududg/i.test(location.pathname);
 let INSTALL_EV=null;
 try{ if(IS_SITE&&'serviceWorker' in navigator) navigator.serviceWorker.register('/lejeuduDG/sw.js',{scope:'/lejeuduDG'}).catch(()=>{}); }catch(e){}
-const BUILD='20261104223353';
+const BUILD='20261104223650';
 function track(kind,extra){ try{ if(!IS_SITE) return; let v=localStorage.getItem('bde-vid'); if(!v){ v=(crypto.randomUUID?crypto.randomUUID():String(Math.random()).slice(2)+Date.now().toString(36)); localStorage.setItem('bde-vid',v); }
   fetch('/api/jeudg/event',{method:'POST',keepalive:true,headers:{'Content-Type':'application/json'},body:JSON.stringify({kind,visiteur:v,mobile:MOB(),appli:STANDALONE(),...(extra||{})})}).catch(()=>{}); }catch(e){} }
 try{ if(!sessionStorage.getItem('bde-vis')){ sessionStorage.setItem('bde-vis','1'); setTimeout(()=>track('visite'),1500); } }catch(e){}
@@ -2863,7 +2868,7 @@ function crisisModal(cr,label,cb,m){
   modal(`<div class="crisis"><div class="crtop"><span class="ml">⏱ ${label}</span><span class="crn" id="crn">${secs}</span></div><div class="crbar"><i id="crbar"></i></div>
     <div class="crwho"><span class="ic">${cr.ic}</span><div><b>${esc(cr.who())}</b><small>${esc(typeof cr.role==='function'?cr.role():cr.role)}</small></div></div><div class="mt">${cr.t()}</div><div class="opts" id="cro"></div><div class="ms">Sans réponse avant la fin du compte à rebours, la situation décide pour vous.</div></div>`,'gold crisism');
   const S0=S; const box=document.getElementById('cro'); let done=false, left=secs*1000, last=performance.now(), tick=Math.ceil(secs);
-  const finish=(fx,txt,timeout,lab)=>{ if(done) return; if(S!==S0||S.screen!=='game'){ done=true; clearInterval(CR_T); closeModal(); return; } if(m) m.done=true; done=true; clearInterval(CR_T); fx=crisisFx(fx); try{ SND&&SND.play(timeout?'buzzer':'pick'); }catch(e){}
+  const finish=(fx,txt,timeout,lab)=>{ document.querySelectorAll('.crvig').forEach(x=>x.remove()); const md0=document.querySelector('.modal.crisism'); if(md0) md0.classList.remove('hurry'); if(done) return; if(S!==S0||S.screen!=='game'){ done=true; clearInterval(CR_T); closeModal(); return; } if(m) m.done=true; done=true; clearInterval(CR_T); fx=crisisFx(fx); try{ SND&&SND.play(timeout?'buzzer':'pick'); }catch(e){}
     (S.log=S.log||[]).push({y:S.year,kind:'décision',n:lab,eff:Math.round((fx.revY||0)+(fx.once||0)-(fx.cost||0)),cap:(fx.g&&fx.g.ca)||0,heart:fx.g?Object.values(fx.g).reduce((a,b)=>a+b,0):0,bad:isBad(fx)});
     (S.choix=S.choix||[]).push({y:S.year,ph:S.phase,q:'Décision express',x:CRISES.indexOf(cr),qt:String(cr.t()).replace(/<[^>]+>/g,'').slice(0,110),a:timeout?'⌛ Temps écoulé':lab.replace(/^Décision : /,'').slice(0,90)});
     apply(fx,lab); try{ const g=(fx&&fx.g)||{}; relBump(cr.who(),timeout?-1:Object.values(g).some(v=>v>0)?1:Object.values(g).some(v=>v<0)?-1:0); }catch(e){}
@@ -2872,9 +2877,9 @@ function crisisModal(cr,label,cb,m){
   cr.c.forEach(([l,fx,out])=>box.appendChild(btn(esc(l),()=>finish(fx,out,false,'Décision : '+l),'opt')));
   const bar=document.getElementById('crbar'), num=document.getElementById('crn');
   CR_T=setInterval(()=>{ const now=performance.now(); if(!document.hidden) left-=now-last; last=now;
-    if(!bar.isConnected){ clearInterval(CR_T); return; }
+    if(!bar.isConnected){ clearInterval(CR_T); document.querySelectorAll('.crvig').forEach(x=>x.remove()); return; }
     const s=Math.max(0,Math.ceil(left/1000)); num.textContent=s; bar.style.width=Math.max(0,left/(secs*10))+'%';
-    if(s<=5) num.parentElement.parentElement.classList.add('hurry');
+    if(s<=5&&!num.parentElement.parentElement.classList.contains('hurry')){ num.parentElement.parentElement.classList.add('hurry'); const md=document.querySelector('.modal.crisism'); if(md) md.classList.add('hurry'); if(!document.querySelector('.crvig')){ const v=document.createElement('div'); v.className='crvig'; document.body.appendChild(v); } }
     if(s<tick){ tick=s; try{ SND&&SND.play(s<=5?'tickHi':'tick'); if(s<=5) SND.play('heart'); }catch(e){} }
     if(left<=0) finish(cr.to[0],cr.to[1],true,'Décision express : temps écoulé'); },100);
 }
