@@ -18,7 +18,7 @@ export async function POST(req) {
   const lead = {
     prenom: b.prenom, nom: b.nom, email: b.email, telephone: b.telephone, code_postal: b.code_postal || null,
     situation: b.situation || null, formation_slug: f?.slug || null, formation_intitule: f?.intitule || null,
-    ecole_preferee_slug: autre ? "autre" : e?.slug || null, domaine: f?.domaine || null,
+    ecole_preferee_slug: autre ? "autre" : e?.slug || String(b.ecole_preferee).replace(/[^a-z0-9-]/gi, "").slice(0, 40) || null, domaine: f?.domaine || null,
     message: [b.lp ? `[LP : ${String(b.lp).slice(0, 60)}]` : null, souhaitee ? `[École souhaitée : ${souhaitee}]` : null, b.message ? String(b.message).slice(0, 1000) : null].filter(Boolean).join(" ") || null,
     consent_ecole_preferee: true, consent_autres_ecoles: !!b.consent_autres_ecoles, consent_cgu: true,
     ip: req.headers.get("x-forwarded-for")?.split(",")[0] || null, user_agent: req.headers.get("user-agent") || null, source: b.source || null,

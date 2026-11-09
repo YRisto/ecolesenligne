@@ -412,6 +412,30 @@ canvas.confetti{position:absolute;inset:0;pointer-events:none;z-index:8}
 .note{font-family:var(--font-display);font-size:44px;font-weight:700;text-align:center;line-height:1}
 .note small{font-family:var(--font-body);font-size:13px;color:var(--muted);font-weight:800}
 .chrono{height:6px;background:var(--line);border-radius:99px;overflow:hidden}.chrono i{display:block;height:100%;background:var(--plum);width:100%;animation:tick 40s linear forwards}
+
+/* === v7 : landing + capture de coordonnées + conseiller === */
+.gate{display:flex;flex-direction:column;align-items:center;text-align:center;gap:8px;padding:4px 0}
+.gate .big{font-size:52px;animation:breathe 2.4s infinite}
+.field input:invalid:not(:placeholder-shown){border-color:var(--bad)}
+.consent{display:flex;gap:10px;align-items:flex-start;font-size:12.5px;color:var(--muted);font-weight:700;line-height:1.4}
+.consent input{width:20px;height:20px;margin:1px 0 0;accent-color:var(--brand);flex:none}
+.err{color:var(--bad);font-size:12.5px;font-weight:800;min-height:1em}
+.locknote{display:flex;align-items:center;gap:8px;font-size:12.5px;color:var(--muted);font-weight:800}
+.telbox{display:flex;flex-direction:column;gap:6px;align-items:center;text-align:center;background:var(--surface);border:1.5px dashed var(--brand);border-radius:var(--r);padding:14px}
+.telbox .num{font-family:var(--font-display);font-size:26px;font-weight:700;letter-spacing:.04em;font-variant-numeric:tabular-nums;color:var(--brand)}
+.telbox small{font-size:12px;color:var(--muted);font-weight:800}
+.slots{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.slots button{border:1.5px solid var(--line);background:var(--surface);border-radius:14px;padding:11px 12px;font-weight:800;font-size:13.5px;text-align:left;line-height:1.3;transition:all .15s}
+.slots button b{display:block;font-size:12px;color:var(--muted);font-weight:800}
+.slots button.sel{border-color:var(--brand);background:var(--brand-soft)}
+.mod.gated .ico{filter:none;background:var(--gold-soft);border:1px dashed var(--gold)}
+.mod.soon .ico{background:var(--surface);border:1px dashed var(--line)}
+.trust{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;font-size:11.5px;color:var(--muted);font-weight:800}
+.trust span{display:inline-flex;align-items:center;gap:4px;background:var(--surface);border:1px solid var(--line);padding:4px 9px;border-radius:999px}
+.steps3{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.steps3 div{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:10px 8px;text-align:center;font-size:11.5px;font-weight:800;color:var(--muted);display:flex;flex-direction:column;gap:4px;align-items:center}
+.steps3 div i{font-style:normal;font-size:22px}
+.steps3 div b{color:var(--fg);font-size:12px}
 </style>
 </head>
 <body>
@@ -428,22 +452,28 @@ canvas.confetti{position:absolute;inset:0;pointer-events:none;z-index:8}
         <div class="row" style="justify-content:space-between"><div class="brand">XYN<small>par Xyn Education</small></div><button class="voice vbtn" onclick="toggleVoice()"><span>🔊</span>Léa parle</button></div>
         <div class="card vwrap" hidden style="padding:10px 14px;display:flex;gap:10px;align-items:center;flex-wrap:wrap"><span class="eyebrow">Voix de Léa</span><select class="sel vsel" onchange="setVoice(this.value)" style="flex:1;min-width:140px"></select><span class="muted" style="font-size:11.5px;width:100%">Voix du téléphone. Une voix neurale la remplacera dans l'appli finale.</span></div>
         <div class="hero"><div class="orb"></div><div class="orb"></div>
-          <h1>Apprends n'importe quel diplôme, en discutant.</h1>
-          <p>Un coach qui te met en situation. Jamais un cours à lire.</p>
+          <p class="eyebrow" style="color:rgba(255,255,255,.8);position:relative">CAP Accompagnant éducatif petite enfance</p>
+          <h1>Prépare ton CAP Petite Enfance en discutant avec Léa.</h1>
+          <p>Ta coach te met en situation en crèche dès la première minute. Jamais un cours à lire.</p>
+        </div>
+        <div class="steps3">
+          <div><i>🎙</i><b>2 min</b>Bilan vocal</div>
+          <div><i>🌅</i><b>8 min</b>1re séquence en crèche</div>
+          <div><i>📱</i><b>Module 1</b>offert sur ton téléphone</div>
         </div>
         <div>
           <p class="eyebrow">Que veux-tu préparer ?</p>
           <div class="goals" style="margin-top:8px">
-            <button class="goal sel"><b>CAP Petite Enfance</b><span>CAP AEPE · 3 épreuves pro</span></button>
+            <button class="goal sel"><b>CAP Petite Enfance</b><span>CAP AEPE · 3 épreuves pro · 100 % à distance</span></button>
             <button class="goal dim"><b>Titre pro ADVF</b><span>Bientôt</span></button>
             <button class="goal dim"><b>BAFA</b><span>Bientôt</span></button>
             <button class="goal dim"><b>Une compétence libre</b><span>Bientôt</span></button>
           </div>
         </div>
         <div class="social"><div class="faces"><i style="background:#7A3FB3">S</i><i style="background:#19A085">M</i><i style="background:#F06A5A">A</i><i style="background:#E9A63A">K</i></div><span><span class="live-dot"></span> <b id="livecount">1 284</b> futurs pros s'entraînent en ce moment</span></div>
-        <button class="btn pulse" onclick="ac();go('s-onb')">Commencer · gratuit</button>
-        <button class="btn ghost" onclick="skipToDash()">J'ai déjà un compte</button>
-        <p class="muted" style="text-align:center;font-size:12px">Sans carte. Tu décides après.</p>
+        <button class="btn pulse" onclick="ac();go('s-onb')">Essayer avec Léa · gratuit</button>
+        <button class="btn ghost" onclick="skipToDash()">J'ai déjà commencé</button>
+        <div class="trust"><span>✓ Sans carte bancaire</span><span>✓ Finançable CPF</span><span>✓ Conseiller en France</span></div>
       </div>
     </section>
 
@@ -492,7 +522,7 @@ canvas.confetti{position:absolute;inset:0;pointer-events:none;z-index:8}
         <div class="coach-row"><div class="avatar">L</div><p id="dashmsg">Il est 8h15 à la crèche des Lilas. Noah arrive dans les bras de sa maman et hurle. On y va ?</p></div>
         <div class="card" id="dailycard" style="padding:12px 14px"></div>
         <div>
-          <p class="eyebrow">EP1 · Accompagner le développement du jeune enfant</p>
+          <p class="eyebrow">Module 1 · EP1 · offert <span id="m1prog" style="letter-spacing:0;text-transform:none"></span></p>
           <div class="modules" style="margin-top:8px" id="mods1"></div>
         </div>
         <div>
@@ -549,6 +579,7 @@ canvas.confetti{position:absolute;inset:0;pointer-events:none;z-index:8}
         <div class="coach-row" style="text-align:left"><div class="avatar">L</div><p id="donecoach"></p></div>
         <button class="btn pulse" onclick="finishSeq()">Retour au parcours</button>
         <button class="btn ghost" onclick="go('s-fiches')">📝 Voir ma fiche mémo</button>
+        <p class="muted" style="font-size:12px" id="donenext"></p>
       </div>
     </section>
 
@@ -653,23 +684,54 @@ canvas.confetti{position:absolute;inset:0;pointer-events:none;z-index:8}
       </div>
     </section>
 
+
+    <!-- LEAD GATE -->
+    <section class="screen" id="s-lead">
+      <div class="blobs"><i></i><i></i><i></i></div>
+      <div class="bar"><span class="ttl">Module 1 · débloquer la suite</span><span class="sp"></span><span class="pill gold">Offert</span></div>
+      <div class="scroll rise">
+        <div class="gate"><div class="big">📱</div><h2 style="font-size:22px" id="leadtitle">Les 4 autres séquences du module, sur ton téléphone</h2><p class="muted" style="font-size:14px">Le repas, le sommeil, les premiers secours, les maladies infantiles. Léa te les envoie une par une, avec tes XP et tes badges conservés.</p></div>
+        <form class="stack" onsubmit="leadSubmit(event)" novalidate>
+          <div class="row" style="gap:10px;align-items:stretch">
+            <div class="field" style="flex:1;min-width:0"><label for="ldprenom">Prénom</label><input id="ldprenom" name="prenom" autocomplete="given-name" required placeholder="Camille"></div>
+            <div class="field" style="flex:1;min-width:0"><label for="ldnom">Nom</label><input id="ldnom" name="nom" autocomplete="family-name" required placeholder="Durand"></div>
+          </div>
+          <div class="field"><label for="ldtel">Téléphone portable</label><input id="ldtel" name="telephone" type="tel" inputmode="tel" autocomplete="tel" required placeholder="06 12 34 56 78"></div>
+          <div class="field"><label for="ldemail">E-mail</label><input id="ldemail" name="email" type="email" inputmode="email" autocomplete="email" required placeholder="camille@exemple.fr"></div>
+          <div class="field"><label for="ldcp">Code postal <span style="text-transform:none;letter-spacing:0;font-weight:700">(pour les stages près de chez toi)</span></label><input id="ldcp" name="code_postal" inputmode="numeric" autocomplete="postal-code" placeholder="75011" maxlength="5"></div>
+          <input type="text" name="website" tabindex="-1" autocomplete="off" style="position:absolute;left:-9999px" aria-hidden="true">
+          <label class="consent"><input type="checkbox" id="ldcgu" required><span>J'accepte que Xyn Education me contacte par SMS, e-mail ou téléphone au sujet de ma préparation au CAP AEPE. Pas de revente de données, désinscription en un clic.</span></label>
+          <p class="err" id="lderr"></p>
+          <button class="btn pulse" type="submit" id="ldbtn">Recevoir le module 1 sur mon téléphone</button>
+          <p class="muted" style="font-size:12px;text-align:center">Tu gardes <b class="xpv">0</b> XP et tes badges. Léa t'envoie la séquence 2 tout de suite.</p>
+        </form>
+      </div>
+    </section>
+
+    <!-- CONSEILLER -->
+    <section class="screen" id="s-advisor">
+      <div class="blobs"><i></i><i></i><i></i></div>
+      <div class="bar"><button class="back" onclick="go('s-dash')">‹</button><span class="ttl">Parcours complet</span><span class="sp"></span><span class="pill plum">Avec un conseiller</span></div>
+      <div class="scroll rise" id="advisorbody"></div>
+    </section>
+
     <!-- PAY -->
     <section class="screen" id="s-pay">
       <div class="blobs"><i></i><i></i><i></i></div>
-      <div class="bar"><button class="back" onclick="go('s-dash')">‹</button><span class="ttl">Continuer avec Léa</span></div>
+      <div class="bar"><button class="back" onclick="go('s-dash')">‹</button><span class="ttl">Continuer avec Léa</span><span class="sp"></span><button class="btn ghost sm" onclick="advisor('info')">📞 Conseiller</button></div>
       <div class="scroll rise">
         <div class="lockbox" id="lockbox"></div>
         <div class="plans">
           <div class="plan"><p class="eyebrow">Découverte</p><div class="price">0 €</div>
-            <ul><li>Bilan vocal de départ</li><li>3 séquences avec Léa</li><li>Badges et classement</li><li class="no">Les 84 autres séquences</li><li class="no">Gel de série, révisions illimitées</li></ul></div>
+            <ul><li>Bilan vocal de départ</li><li>Module 1 : 5 séquences avec Léa</li><li>Badges et classement</li><li class="no">Les 82 autres séquences</li><li class="no">Oraux blancs, dossier EP1</li></ul></div>
           <div class="plan pro"><span class="ribbon">Le plus choisi</span><p class="eyebrow">Premium</p><div class="price">20 €<small> / mois · sans engagement</small></div>
             <ul><li>Les 87 séquences du CAP AEPE</li><li>Léa en illimité, à la voix ou à l'écrit</li><li>XP ×2, gel de série, ligues Or et Diamant</li><li>Tous les futurs diplômes XYN inclus</li></ul>
-            <button class="btn" onclick="subscribe()">Essayer 7 jours gratuits</button></div>
+            <button class="btn" onclick="advisor('premium')">Activer avec un conseiller</button></div>
           <div class="plan cpf"><span class="ribbon">Éligible CPF</span><p class="eyebrow">Prépa finale examen</p><div class="price">1 200 €<small> · reste à charge 0 € possible</small></div>
             <ul><li>Tout Premium pendant 12 mois</li><li>3 oraux blancs avec un formateur</li><li>Dossier professionnel EP1 corrigé</li><li>Inscription à la session guidée</li></ul>
-            <button class="btn gold" onclick="go('s-cpf')">Financer avec mon CPF</button></div>
+            <button class="btn gold" onclick="advisor('cpf')">Financer avec mon CPF</button></div>
         </div>
-        <p class="muted" style="font-size:12px;text-align:center">Annulable en deux taps. Prix du modèle cible, à titre de démo.</p>
+        <p class="muted" style="font-size:12px;text-align:center">L'inscription au parcours complet se fait avec un conseiller Xyn Education, par téléphone. Sans engagement avant l'appel.</p>
       </div>
     </section>
 
@@ -754,7 +816,7 @@ canvas.confetti{position:absolute;inset:0;pointer-events:none;z-index:8}
     <canvas class="confetti" id="cfg" style="z-index:25"></canvas>
     <div class="toast" id="toast" hidden><span class="em" id="toastem"></span><span id="toasttx"></span></div>
   </div>
-  <p class="legend">Accueil → Bilan vocal → Parcours → Séquences avec Léa → Mini-jeux → Réviser / Défis / Badges / Classement → Premium → CPF via FranceConnect (simulé).</p>
+  <p class="legend">Landing XYN : Accueil → Onboarding → Bilan vocal → Séquence 1 → Coordonnées (module 1 offert) → Séquences 2-3 → Conseiller (appel ou rappel) pour le parcours complet et le CPF.</p>
 </div>
 
 <script>
@@ -763,14 +825,14 @@ const $=s=>document.querySelector(s),$$=s=>[...document.querySelectorAll(s)];
 const fr=n=>n.toLocaleString('fr-FR');
 function go(id){$$('.screen').forEach(s=>s.classList.remove('on'));const sc=$('#'+id);sc.classList.add('on');
  sc.querySelectorAll('.scroll,.chat').forEach(e=>e.scrollTop=0);try{window.scrollTo(0,0)}catch(e){}
- ({'s-dash':renderDash,'s-badges':renderBadges,'s-rank':renderLB,'s-revise':renderRevise,'s-quests':renderQuests,'s-notifs':renderNotifs,'s-settings':renderSettings,'s-cpf':renderCPF,'s-ref':renderRef,'s-fiches':renderFiches,'s-friends':renderFriends,'s-plan':renderPlan,'s-onb':renderOnb}[id]||(()=>{}))();
+ ({'s-dash':renderDash,'s-badges':renderBadges,'s-rank':renderLB,'s-revise':renderRevise,'s-quests':renderQuests,'s-notifs':renderNotifs,'s-settings':renderSettings,'s-cpf':renderCPF,'s-ref':renderRef,'s-fiches':renderFiches,'s-friends':renderFriends,'s-plan':renderPlan,'s-onb':renderOnb,'s-lead':renderLead,'s-advisor':renderAdvisor}[id]||(()=>{}))();
  $$('.tabs').forEach(n=>n.querySelectorAll('button').forEach(b=>b.classList.toggle('on',b.dataset.go===id)))}
 let tt;function toast(em,m){const t=$('#toast');$('#toastem').textContent=em;$('#toasttx').textContent=m;t.hidden=false;clearTimeout(tt);tt=setTimeout(()=>t.hidden=true,2800)}
 function floatXP(t){const f=document.createElement('div');f.className='float';f.textContent=t;$('#phone').appendChild(f);setTimeout(()=>f.remove(),1400)}
 function has(s,...w){s=s.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'').replace(/['’]/g,' ');return w.some(x=>s.includes(x.normalize('NFD').replace(/[̀-ͯ]/g,'')))}
 
 /* ============ state ============ */
-const S={xp:0,streak:3,badges:new Set(['streak3','bronze']),missed:new Set(),learned:new Set(),done:new Set(),premium:false,trialEnd:null,sound:true,freeText:0,perfectRuns:0,goodStreak:0,topShown:false,identity:null,cpfSent:false,revCount:0,name:'',exam:'2027-06-01',minutes:20,fs:'m',motion:false,duelsWon:0,oralDone:false,oralScore:null,slotsOff:new Set(),
+const S={xp:0,streak:3,badges:new Set(['streak3','bronze']),missed:new Set(),learned:new Set(),done:new Set(),premium:false,trialEnd:null,sound:true,freeText:0,perfectRuns:0,goodStreak:0,topShown:false,identity:null,cpfSent:false,revCount:0,lead:null,callback:null,name:'',exam:'2027-06-01',minutes:20,fs:'m',motion:false,duelsWon:0,oralDone:false,oralScore:null,slotsOff:new Set(),
  quests:{daily:[{id:'d1',e:'🎯',n:'Finis une séquence',p:0,m:1,r:40},{id:'d2',e:'🔥',n:'3 bonnes réponses d\'affilée',p:0,m:3,r:30},{id:'d3',e:'✍️',n:'Réponds à Léa avec tes mots, 2 fois',p:0,m:2,r:30}],
   weekly:[{id:'w1',e:'📋',n:'3 transmissions parfaites',p:0,m:3,r:120},{id:'w2',e:'🔥',n:'5 jours de flamme',p:3,m:5,r:150},{id:'w3',e:'🏁',n:'Dépasser Yanis au classement',p:0,m:1,r:100},{id:'w4',e:'🧠',n:'Réviser 5 notions',p:0,m:5,r:80}]}};
 
@@ -799,7 +861,7 @@ function pickVoice(){if(!('speechSynthesis' in window))return;const v=speechSynt
 function setVoice(i){frVoice=frVoices[+i]||null;if(!voiceOn)toggleVoice();else say("Bonjour, c'est Léa. Cette voix te va mieux ?")}
 if('speechSynthesis' in window){pickVoice();speechSynthesis.onvoiceschanged=pickVoice;setTimeout(pickVoice,700)}
 function toggleVoice(){if(!('speechSynthesis' in window)){toast('🔇','La synthèse vocale n\'est pas disponible dans ce navigateur.');return}
- voiceOn=!voiceOn;$$('.vbtn').forEach(b=>b.classList.toggle('on',voiceOn));$$('.vwrap').forEach(w=>w.hidden=!voiceOn);$('#swvoice').classList.toggle('on',voiceOn);
+ voiceOn=!voiceOn;$$('.vbtn').forEach(b=>b.classList.toggle('on',voiceOn));$$('.vwrap').forEach(w=>w.hidden=!voiceOn);if($('#swvoice'))$('#swvoice').classList.toggle('on',voiceOn);
  if(voiceOn){pickVoice();say("Salut, moi c'est Léa. On apprend en discutant, d'accord ?")}else speechSynthesis.cancel()}
 function say(text){if(!voiceOn)return;speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(text.replace(/<[^>]+>/g,'').replace(/[«»]/g,''));u.lang='fr-FR';if(frVoice)u.voice=frVoice;u.rate=1;u.pitch=1.08;
  const avs=$$('.avatar');u.onstart=()=>avs.forEach(a=>a.classList.add('talk'));u.onend=u.onerror=()=>avs.forEach(a=>a.classList.remove('talk'));speechSynthesis.speak(u)}
@@ -832,7 +894,8 @@ const BADGES=[
  {k:'bronze',e:'🥉',n:'Bronze',d:'Ligue atteinte',c:''},
  {k:'argent',e:'🥈',n:'Argent',d:'Top 5 de ligue',c:''},
  {k:'revise',e:'🧠',n:'Mémoire d\'éléphant',d:'5 révisions',c:'plum'},
- {k:'premium',e:'✨',n:'Membre',d:'Premium',c:'',lock:true},
+ {k:'module1',e:'📱',n:'Module 1 en poche',d:'Suite débloquée',c:'gold'},
+ {k:'premium',e:'✨',n:'Parcours complet',d:'Avec un conseiller',c:'',lock:true},
  {k:'ep1',e:'🎓',n:'Prête pour EP1',d:'Oral blanc ≥ 14/20',c:''}];
 let newBadge=null;
 function unlockBadge(k){if(S.badges.has(k))return;S.badges.add(k);newBadge=k;const b=BADGES.find(x=>x.k===k);dot('s-badges',true);setTimeout(()=>{toast(b.e,'Badge « '+b.n+' » débloqué');sfx.badge()},500)}
@@ -999,7 +1062,7 @@ function coachSay(items,then){busy=true;let k=0;const next=()=>{if(k>=items.leng
   const plain=it.text.replace(/<[^>]+>/g,'');const read=Math.min(6500,900+plain.length*(it.cls==='scene'?34:26));setTimeout(()=>{t.innerHTML=it.text;if(it.cls)t.classList.add(it.cls);say(it.text);k++;chat.scrollTop=chat.scrollHeight;setTimeout(next,voiceOn?Math.max(read,plain.length*58):read)},Math.min(1800,600+plain.length*4))};next()}
 function offer(list){choices.innerHTML='';list.forEach(l=>{const b=document.createElement('button');b.textContent=l;b.onclick=()=>answer(l,false);choices.appendChild(b)});chat.appendChild(choices);requestAnimationFrame(()=>chat.scrollTop=chat.scrollHeight)}
 function setStep(){const st=cur.steps[si];$('#stepn').textContent=(si+1)+' / '+(cur.steps.length+1);$('#stepname').textContent=st?st.name:'Vérifier';$('#seqmeter').style.width=((si+1)/(cur.steps.length+1)*100)+'%'}
-function startSeq(key){ac();cur=SEQS[key];si=0;seqxp=0;vagueCount=0;inRedo=false;chat.innerHTML='';choices.innerHTML='';chat.appendChild(choices);$('#seqxp').textContent='+0 XP';$('#seqtitle').textContent=cur.title;setStep();go('s-seq');
+function startSeq(key){if(key!=='seq1'&&!S.lead){leadGate(key);return}if(!SEQS[key]){toast('⏰','Cette séquence arrive bientôt.');return}ac();cur=SEQS[key];si=0;seqxp=0;vagueCount=0;inRedo=false;chat.innerHTML='';choices.innerHTML='';chat.appendChild(choices);$('#seqxp').textContent='+0 XP';$('#seqtitle').textContent=cur.title;setStep();go('s-seq');
  const intro=[...cur.intro];const missed=[...S.missed].filter(k=>!cur.notions.includes(k));
  if(missed.length){const m=NOTIONS[missed[0]];intro.splice(1,0,{memo:"La dernière fois, « "+m.n.toLowerCase()+" » t'avait échappé. Je la glisse quelque part dans cette séquence, ouvre l'œil."})}
  coachSay(intro,()=>offer(cur.steps[0].opts))}
@@ -1033,25 +1096,30 @@ function endSeq(){const pct=Math.round(gs/cur.game.length*100);go('s-done');
  $('#notionsdone').innerHTML=cur.notions.map(k=>`<span class="pill ${S.missed.has(k)?'coral':''}">${NOTIONS[k].e} ${NOTIONS[k].n}${S.missed.has(k)?' · à revoir':''}</span>`).join('');
  $('#donemsg').textContent=pct===100?'Léa te reposera ces notions dans 3 jours, mine de rien, pour que ça tienne.':'Les notions ratées sont dans « Réviser » et reviendront dans ta prochaine séquence, glissées dans une nouvelle situation.';
  $('#donecoach').innerHTML=cur.outro;say($('#donecoach').textContent);
- S.done.add(cur.badge);if(pct===100){S.perfectRuns++;unlockBadge('perfect')}
+ $('#donenext').textContent=S.lead?'':'Prochaine étape : les 4 autres séquences du module 1, offertes sur ton téléphone.';S.done.add(cur.badge);if(pct===100){S.perfectRuns++;unlockBadge('perfect')}
  if(S.done.size===1){S.streak=4;S.quests.weekly[1].p=4;setTimeout(()=>pushNotif('🔥','Flamme à 4 jours','Série prolongée. Demain, une séquence suffit.'),3000)}
  confetti($('#cf'));setTimeout(()=>{gainXP(total);unlockBadge(cur.badge);quest('d1')},500)}
-function finishSeq(){renderDash();go('s-dash');
- if(S.done.size===3&&!S.premium){setTimeout(()=>paywall('fin'),900)}
+function finishSeq(){renderDash();
+ if(S.done.size===1&&!S.lead){leadGate('seq2');return}
+ go('s-dash');
+ if(S.done.size===3&&!S.callback){setTimeout(()=>advisor('fin'),900)}
  else if(S.done.size===1){setTimeout(()=>pushNotif('🏆','Tu viens de dépasser Yanis','Il n\'a pas aimé. Le classement a bougé.',()=>go('s-rank')),2500);quest('w3')}}
 function confetti(c){const ctx=c.getContext('2d');c.width=c.offsetWidth||380;c.height=c.offsetHeight||700;const cols=['#0E6B5A','#19A085','#E9A63A','#F7C96A','#7A3FB3','#F06A5A'];
  const ps=Array.from({length:130},()=>({x:Math.random()*c.width,y:-20-Math.random()*c.height*.5,r:4+Math.random()*5,c:cols[Math.random()*cols.length|0],v:2+Math.random()*3,a:Math.random()*6,s:Math.random()*.2-.1}));
  let t=0;(function f(){ctx.clearRect(0,0,c.width,c.height);ps.forEach(p=>{p.y+=p.v;p.x+=Math.sin(p.a+=p.s)*1.2;ctx.save();ctx.translate(p.x,p.y);ctx.rotate(p.a);ctx.fillStyle=p.c;ctx.fillRect(-p.r/2,-p.r/2,p.r,p.r*.6);ctx.restore()});if(++t<180)requestAnimationFrame(f);else ctx.clearRect(0,0,c.width,c.height)})()}
 
 /* ============ dashboard ============ */
-const MODS=[{k:'seq1',ico:'🌅',t:'L\'accueil du matin et la séparation',s:'Séquence 1 · 8 min'},{k:'seq2',ico:'🥄',t:'Le repas : autonomie et sécurité',s:'Séquence 2 · 10 min'},{k:'seq3',ico:'😴',t:'Le sommeil et les rituels',s:'Séquence 3 · 7 min'},{k:'lock1',ico:'🩹',t:'Premiers secours : fausse route, chute',s:'Séquence 4',lock:'Les gestes de premiers secours'},{k:'lock2',ico:'🌡',t:'Fièvre, maladies infantiles, PAI',s:'Séquence 5',lock:'Les maladies infantiles'}];
-const DASHMSG={0:"Il est 8h15 à la crèche des Lilas. Noah arrive dans les bras de sa maman et hurle. On y va ?",1:"Noah est calmé, bravo. Maintenant on passe à table : Lina, 2 ans, refuse les petits pois et en met partout.",2:"Deux séquences, deux badges. Il reste la sieste de Sacha, et ça promet.",3:"Tu as fini le parcours gratuit. 84 séquences t'attendent, et je sais déjà lesquelles te feront progresser le plus."};
-function renderDash(){let nextSet=false;$('#mods1').innerHTML=MODS.map(m=>{if(m.lock&&!S.premium)return `<button class="mod locked" onclick="paywall('${m.lock}')"><div class="ico">${m.ico}</div><div class="t"><b>${m.t}</b><span>${m.s} · Premium</span></div><span class="pill lock">🔒</span></button>`;
-  const done=S.done.has(m.k);const isNext=!done&&!nextSet;if(isNext)nextSet=true;const click=m.lock?`toast('✨','Premium : cette séquence sera écrite sur le même modèle (démo).')`:`startSeq('${m.k}')`;
-  return `<button class="mod ${done?'done':''} ${isNext?'next':''}" onclick="${click}"><div class="ico">${m.ico}</div><div class="t"><b>${m.t}</b><span>${m.s}${done?' · validée ✓':isNext?' · à faire':''}</span></div>${done?'<span class="pill">✓</span>':'<span class="xpgain">+120 XP'+(S.premium?' ×2':'')+'</span>'}</button>`}).join('');
- $('#dashmsg').textContent=(S.name&&!S.done.size?S.name+', il':'Il')+DASHMSG[Math.min(3,S.done.size)].slice(2);if(S.done.size)$('#dashmsg').textContent=DASHMSG[Math.min(3,S.done.size)];$$('.hello').forEach(h=>h.textContent=S.name?'Salut '+S.name:'');updateXP();renderDaily();renderExam();
+const MODS=[{k:'seq1',ico:'🌅',t:'L\'accueil du matin et la séparation',s:'Séquence 1 · 8 min'},{k:'seq2',ico:'🥄',t:'Le repas : autonomie et sécurité',s:'Séquence 2 · 10 min',gate:true},{k:'seq3',ico:'😴',t:'Le sommeil et les rituels',s:'Séquence 3 · 7 min',gate:true},{k:'seq4',ico:'🩹',t:'Premiers secours : fausse route, chute',s:'Séquence 4 · 9 min',gate:true,soon:'demain 7h40'},{k:'seq5',ico:'🌡',t:'Fièvre, maladies infantiles, PAI',s:'Séquence 5 · 9 min',gate:true,soon:'mercredi'}];
+const DASHMSG={0:"Il est 8h15 à la crèche des Lilas. Noah arrive dans les bras de sa maman et hurle. On y va ?",1:"Noah est calmé, bravo. Maintenant on passe à table : Lina, 2 ans, refuse les petits pois et en met partout.",2:"Deux séquences, deux badges. Il reste la sieste de Sacha, et ça promet.",3:"Trois séquences en poche. La 4 arrive demain. Et pour la suite du CAP, un conseiller t'appelle quand tu veux."};
+function renderDash(){let nextSet=false;$('#mods1').innerHTML=MODS.map(m=>{const done=S.done.has(m.k);
+  if(m.gate&&!S.lead)return `<button class="mod gated" onclick="leadGate('${m.k}')"><div class="ico">${m.ico}</div><div class="t"><b>${m.t}</b><span>${m.s} · offert</span></div><span class="pill gold">📱</span></button>`;
+  if(m.soon&&!done)return `<button class="mod soon" onclick="toast('⏰','Léa t\'envoie cette séquence ${m.soon}. Une par jour, pour que ça tienne.')"><div class="ico">${m.ico}</div><div class="t"><b>${m.t}</b><span>${m.s} · arrive ${m.soon}</span></div><span class="pill lock">⏰</span></button>`;
+  const isNext=!done&&!nextSet;if(isNext)nextSet=true;
+  return `<button class="mod ${done?'done':''} ${isNext?'next':''}" onclick="startSeq('${m.k}')"><div class="ico">${m.ico}</div><div class="t"><b>${m.t}</b><span>${m.s}${done?' · validée ✓':isNext?' · à faire':''}</span></div>${done?'<span class="pill">✓</span>':'<span class="xpgain">+120 XP</span>'}</button>`}).join('');
+ const ep2=$('#mods1').parentElement.nextElementSibling;if(ep2){ep2.querySelector('.mod').outerHTML=`<button class="mod locked" onclick="advisor('ep2')"><div class="ico">🏫</div><div class="t"><b>Projet pédagogique et travail d'équipe</b><span>12 séquences · parcours complet</span></div><span class="pill lock">📞</span></button>`}
+ $('#m1prog').textContent='· '+[...S.done].filter(k=>/^seq/.test(k)).length+' / 5';$('#dashmsg').textContent=(S.name&&!S.done.size?S.name+', il':'Il')+DASHMSG[Math.min(3,S.done.size)].slice(2);if(S.done.size)$('#dashmsg').textContent=DASHMSG[Math.min(3,S.done.size)];$$('.hello').forEach(h=>h.textContent=S.name?'Salut '+S.name:'');updateXP();renderDaily();renderExam();
  const b=$('#dashbanner');if(S.premium){const h=Math.max(0,Math.round((S.trialEnd-Date.now())/36e5));b.innerHTML=`<div class="banner trial"><span>✨</span><span style="flex:1">Essai Premium · <b>${Math.floor(h/24)} j ${h%24} h</b> restants · XP ×2</span><button class="pill plum" onclick="go('s-settings')">Gérer</button></div>`}
- else if(S.done.size>=2){b.innerHTML=`<div class="banner danger"><span>🔥</span><span style="flex:1">Ta flamme s'éteint à minuit si tu rates demain. Le <b>gel de série</b> est Premium.</span><button class="pill coral" onclick="paywall('Le gel de série')">Voir</button></div>`}else b.innerHTML=''}
+ else if(S.done.size>=2){b.innerHTML=`<div class="banner danger"><span>🔥</span><span style="flex:1">Ta flamme s'éteint à minuit si tu rates demain. Le <b>gel de série</b> est inclus dans le parcours complet.</span><button class="pill coral" onclick="advisor('info')">Voir</button></div>`}else b.innerHTML=''}
 
 /* ============ révision espacée ============ */
 let revQ=null;
@@ -1082,14 +1150,14 @@ function checkTop5(){if(S.topShown)return;if(myRank()<=5&&S.done.size>=2){S.topS
 (function lbTimer(){const e=$('#lbtimer');const end=new Date();end.setDate(end.getDate()+(7-end.getDay())%7);end.setHours(23,59,0,0);const d=Math.max(0,end-Date.now());e.textContent='Fin dans '+Math.floor(d/864e5)+' j '+Math.floor(d%864e5/36e5)+' h';setTimeout(lbTimer,60000)})();
 
 /* ============ paywall + abonnement ============ */
-function paywall(title){ac();const lb=$('#lockbox');
+function paywall(title){ac();if(title==='fin'){advisor('fin');return}const lb=$('#lockbox');
  if(title==='fin')lb.innerHTML=`<div class="big">🏁</div><h2 style="font-size:22px">3 séquences sur 87. Tu as vu la méthode.</h2><div class="meter" style="width:100%;max-width:260px"><i style="width:3.4%"></i></div><p class="muted" style="font-size:14px">Léa connaît déjà tes points faibles. Le reste du CAP, c'est 20 € par mois, ou 0 € avec ton CPF.</p>`;
- else if(title)lb.innerHTML=`<div class="big">🔒</div><h2 style="font-size:22px">« ${title} »</h2><p class="muted" style="font-size:14px">${/gel|série/i.test(title)?'Le gel de série protège ta flamme un jour par semaine. Réservé aux membres.':/badge/i.test(title)?'Ce badge se gagne dans les séquences Premium.':'Cette séquence fait partie des 84 réservées aux membres. Léa t\'attend de l\'autre côté.'}</p>`;
+ else if(title)lb.innerHTML=`<div class="big">🔒</div><h2 style="font-size:22px">« ${title} »</h2><p class="muted" style="font-size:14px">${/gel|série/i.test(title)?'Le gel de série protège ta flamme un jour par semaine. Réservé aux membres.':/badge/i.test(title)?'Ce badge se gagne dans les séquences Premium.':'Cette séquence fait partie du parcours complet. Un conseiller l\'active avec toi, par téléphone.'}</p>`;
  else lb.innerHTML=`<div class="big">✨</div><h2 style="font-size:22px">Tout le CAP, avec Léa en illimité</h2><p class="muted" style="font-size:14px">Tu as vu la méthode. Voici comment aller jusqu'à l'examen.</p>`;go('s-pay')}
-function subscribe(){S.premium=true;S.trialEnd=Date.now()+7*864e5;unlockBadge('premium');sfx.badge();toast('✨','Essai Premium activé · 7 jours offerts, XP ×2.');gainXP(100);go('s-dash')}
+function subscribe(){advisor('premium');return;S.premium=true;S.trialEnd=Date.now()+7*864e5;unlockBadge('premium');sfx.badge();toast('✨','Essai Premium activé · 7 jours offerts, XP ×2.');gainXP(100);go('s-dash')}
 function renderSettings(){$('#idline').textContent=S.identity?'Vérifiée via FranceConnect+ · '+S.identity.nom:'Non vérifiée · requise pour le CPF';
  $('#subcard').innerHTML=S.premium?`<p class="eyebrow">Abonnement</p><div class="set"><div class="t"><b>Premium · essai gratuit</b><span>Se renouvelle à 20 €/mois le ${new Date(S.trialEnd).toLocaleDateString('fr-FR')}</span></div><span class="pill plum">Actif</span></div><div class="set"><div class="t"><b>Passer à la Prépa finale</b><span>1 200 €, finançable CPF</span></div><button class="btn gold sm" onclick="go('s-cpf')">Voir</button></div><div class="set"><div class="t"><b>Résilier</b><span>Deux taps, c'est promis</span></div><button class="btn ghost sm" onclick="go('s-cancel');renderCancel()">Résilier</button></div>`
- :`<p class="eyebrow">Abonnement</p><div class="set"><div class="t"><b>Découverte · gratuit</b><span>3 séquences, badges, classement</span></div><button class="btn sm" onclick="paywall(null)">Premium</button></div>`}
+ :`<p class="eyebrow">Mon parcours</p><div class="set"><div class="t"><b>Module 1 · offert</b><span>${S.lead?'Coordonnées enregistrées · '+S.lead.prenom:'5 séquences, badges, classement'}</span></div><button class="btn sm" onclick="advisor('info')">Parcours complet</button></div>${S.callback?`<div class="set"><div class="t"><b>Rappel demandé</b><span>${S.callback}</span></div><span class="pill">✓</span></div>`:''}`}
 let reason=null;
 function renderCancel(){reason=null;$('#cancelbody').innerHTML=`<div class="coach-row"><div class="avatar">L</div><p>Pas de drame. Dis-moi juste pourquoi, ça m'aide à faire mieux pour les suivants.</p></div>
  <div class="stack" id="reasons">${['C\'est trop cher','Je n\'ai pas le temps','Le contenu ne me convient pas','J\'ai eu mon diplôme 🎓','Autre'].map((r,i)=>`<button class="reason" onclick="pickReason(${i},this)">${r}</button>`).join('')}</div><div id="canceloffer"></div>`}
@@ -1108,16 +1176,12 @@ function renderCPF(){const id=S.identity;
    <div class="row" style="justify-content:space-between;margin-top:6px;flex-wrap:wrap;gap:8px"><span class="price" style="font-size:28px">1 200 €</span>${id?`<span class="pill" style="background:color-mix(in srgb,var(--ok) 18%,var(--surface));color:var(--ok)">Reste à charge : 0 €</span>`:`<span class="pill gold">Reste à charge : 0 € possible</span>`}</div>
    <p style="font-size:13.5px;margin-top:6px">Formation certifiante (RNCP 38565). Si ton solde couvre le montant, tu ne paies rien. Sinon, Xyn Education prend en charge l'écart jusqu'à 200 €.</p></div>
  <div class="cpf-steps">
-   <div class="step ${id?'ok':''}"><i>${id?'✓':'1'}</i><div><b>Vérifier ton identité avec FranceConnect+</b><span>${id?'Vérifiée · '+id.prenom+' '+id.nom:'Le niveau de sécurité exigé pour le CPF. Deux minutes.'}</span></div></div>
-   <div class="step ${id?'ok':''}"><i>${id?'✓':'2'}</i><div><b>Lire ton solde Mon Compte Formation</b><span>${id?'Solde disponible : '+fr(id.solde)+' €':'Lecture seule, avec ton accord, rien n\'est débité.'}</span></div></div>
-   <div class="step ${S.cpfSent?'ok':''}"><i>${S.cpfSent?'✓':'3'}</i><div><b>Déposer la demande « XYN · Prépa CAP AEPE »</b><span>${S.cpfSent?'Déposée · réponse sous 11 jours ouvrés':'La fiche est déjà référencée, rien à remplir.'}</span></div></div>
+   <div class="step ${S.callback?'ok':''}"><i>${S.callback?'✓':'1'}</i><div><b>Un conseiller t'appelle</b><span>${S.callback?'Rappel demandé · '+S.callback:'Il fait le point sur ton projet et ton calendrier.'}</span></div></div>
+   <div class="step"><i>2</i><div><b>Vous vérifiez ton solde CPF ensemble</b><span>Sur Mon Compte Formation, avec FranceConnect+. Rien n\'est débité.</span></div></div>
+   <div class="step"><i>3</i><div><b>Il dépose la demande « XYN · Prépa CAP AEPE »</b><span>Réponse sous 11 jours ouvrés. Léa continue de t'entraîner en attendant.</span></div></div>
  </div>
- ${!id?`<div class="fcbox"><span class="mark"><i>FC</i>FranceConnect+ · simulation</span><p style="font-size:13.5px">Dans l'appli, ce bouton ouvre la page officielle de l'État dans le navigateur sécurisé du téléphone. XYN ne voit jamais ton mot de passe : il reçoit seulement ton identité vérifiée et, avec ton accord, ton solde CPF.</p><button class="btn fc" onclick="fcStart()">S'identifier avec FranceConnect+</button></div>`
- :!S.cpfSent?`<div class="idcard"><span>Identité</span><b>${id.prenom} ${id.nom}</b><span>Née le</span><b>${id.naissance}</b><span>Solde CPF</span><b>${fr(id.solde)} €</b><span>Formation</span><b>Prépa CAP AEPE · 1 200 €</b><span>Reste à charge</span><b style="color:var(--ok)">0 €</b></div>
-   <button class="btn gold pulse" onclick="cpfSend()">Déposer ma demande de financement</button>`
- :`<div class="coach-row"><div class="avatar">L</div><p>Demande déposée. Pendant que la Caisse des Dépôts regarde ton dossier, je débloque déjà tes oraux blancs. On ne perd pas 11 jours.</p></div><button class="btn" onclick="S.premium=true;S.trialEnd=Date.now()+365*864e5;unlockBadge('premium');go('s-dash')">Commencer la Prépa finale</button>`}
- <button class="btn ghost" onclick="toast('📞','Un conseiller Xyn Education te rappelle sous 24 h.')">Je préfère être rappelé</button>
- <p class="muted" style="font-size:11.5px;text-align:center">Parcours simulé. La vraie connexion exige l'habilitation FranceConnect+ et l'accès EDOF de la Caisse des Dépôts, côté serveur.</p>`}
+ <div class="fcbox"><span class="mark"><i>FC</i>FranceConnect+ avec ton conseiller</span><p style="font-size:13.5px">Le financement CPF se finalise par téléphone avec un conseiller Xyn Education : il vérifie ton solde avec toi, t'accompagne sur Mon Compte Formation (FranceConnect+) et dépose la demande. Tu n'as rien à remplir seul.</p><button class="btn fc" onclick="advisor('cpf')">Finaliser avec un conseiller</button></div>
+ <p class="muted" style="font-size:11.5px;text-align:center">Formation certifiante éligible CPF. Le conseiller t'indique ton reste à charge exact avant toute inscription.</p>`}
 function fcStart(){ac();go('s-fc');const b=$('#fcbody');
  b.innerHTML=`<p class="eyebrow">Simulation · redirection sécurisée</p><div class="spinner"></div><h2 style="font-size:20px">Ouverture de FranceConnect+…</h2><p class="muted" style="font-size:13.5px;max-width:280px;margin:0 auto">Tu quittes XYN. L'État vérifie ton identité, puis te renvoie ici. XYN ne voit rien de ce que tu saisis.</p>`;
  setTimeout(()=>{b.innerHTML=`<p class="eyebrow">Simulation · FranceConnect+</p><div class="fcbox" style="text-align:left"><span class="mark"><i>FC</i>Identification réussie</span><p style="font-size:13.5px">XYN · Xyn Education demande l'accès à :</p><ul style="margin:0;padding-left:18px;font-size:13.5px;font-weight:800"><li>Identité pivot (nom, prénom, date de naissance)</li><li>Solde Mon Compte Formation (lecture seule)</li></ul><button class="btn fc" onclick="fcDone()">Accepter et revenir sur XYN</button><button class="btn ghost" onclick="go('s-cpf')">Refuser</button></div>`},2200)}
@@ -1228,8 +1292,69 @@ function oralEnd(){O.pts=O.pts.map(x=>Math.min(4,x));const total=O.pts.reduce((a
  $('#oralbody').innerHTML=`<div class="note">${note.toLocaleString('fr-FR')}<small> / 20</small></div><p style="text-align:center;font-weight:800">${note>=14?'Admissible, et avec de la marge.':note>=10?'Admissible, à consolider.':'Pas encore. Mais tu sais maintenant exactement quoi travailler.'}</p>
  <div class="card grid5"><p class="eyebrow">Grille du jury</p>${ORAL.crits.map((c,i)=>`<div class="crit"><div class="row"><span>${c}</span><b>${O.pts[i]} / 4</b></div><div class="meter"><i style="width:${O.pts[i]/4*100}%"></i></div><span class="c">${O.pts[i]>=3?com[i][0]:com[i][1]}</span></div>`).join('')}</div>
  <div class="jury"><div class="avatar">L</div><p>Version Prépa finale : 3 oraux complets de 25 minutes avec un formateur, ton vrai dossier relu et corrigé, et la grille officielle. Finançable CPF, 0 € de reste à charge possible.</p></div>
- <button class="btn gold pulse" onclick="go('s-cpf')">Voir la Prépa finale</button><button class="btn ghost" onclick="go('s-dash')">Retour au parcours</button>`;
+ <button class="btn gold pulse" onclick="advisor('cpf')">Finaliser avec un conseiller</button><button class="btn ghost" onclick="go('s-dash')">Retour au parcours</button>`;
  confetti($('#cfg'));gainXP(80);if(note>=14)unlockBadge('ep1');sfx.level();say("Grille du jury : "+note.toLocaleString('fr-FR')+" sur 20.")}
+
+
+/* ============ v7 : capture de coordonnées ============ */
+const CENTRE_TEL='09 72 00 00 00'; /* numéro du centre : à remplacer */
+let leadNext='seq2';
+function leadGate(next){leadNext=next||'seq2';go('s-lead')}
+function renderLead(){if(S.name&&!$('#ldprenom').value)$('#ldprenom').value=S.name;$('#lderr').textContent='';$('#ldbtn').disabled=false;$('#ldbtn').textContent='Recevoir le module 1 sur mon téléphone';say("Laisse-moi ton numéro, je t'envoie la suite.")}
+function leadPayload(extra){const f=$('#s-lead form');return {prenom:f.prenom.value.trim(),nom:f.nom.value.trim(),telephone:f.telephone.value.trim(),email:f.email.value.trim(),code_postal:f.code_postal.value.trim()||null,website:f.website.value,
+ formation:'cap-accompagnant-educatif-petite-enfance-aepe',ecole_preferee:'xyn',consent_cgu:true,consent_autres_ecoles:false,lp:'xyn',source:location.href,situation:'XYN · module 1',
+ message:['[XYN] '+(extra||'Module 1 débloqué après la séquence 1'),'XP : '+S.xp,'Séquences : '+[...S.done].join(', '),'Objectif : '+S.exam+' · '+S.minutes+' min/j',S.oralScore!=null?'Oral blanc : '+S.oralScore+'/20':null].filter(Boolean).join(' · ')}}
+async function postLead(payload){const real=/ecolesenligne\.fr$/i.test(location.hostname)||location.hostname==='localhost';
+ if(!real){await new Promise(r=>setTimeout(r,900));return {ok:true,demo:true}}
+ try{const r=await fetch('/api/leads',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});const j=await r.json().catch(()=>({}));return r.ok?{ok:true}:{ok:false,error:j.error||'Enregistrement impossible, réessaie.'}}catch(e){return {ok:false,error:'Pas de réseau. Réessaie dans un instant.'}}}
+async function leadSubmit(e){e.preventDefault();const f=e.target,err=$('#lderr');err.textContent='';
+ const tel=f.telephone.value.replace(/[\s.-]/g,'');
+ if(f.prenom.value.trim().length<2||f.nom.value.trim().length<2)return err.textContent='Ton prénom et ton nom, s\'il te plaît.';
+ if(!/^(\+33|0)[67]\d{8}$/.test(tel)&&!/^(\+33|0)\d{9}$/.test(tel))return err.textContent='Ce numéro ne ressemble pas à un numéro français.';
+ if(!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(f.email.value.trim()))return err.textContent='Cet e-mail ne semble pas valide.';
+ if(!$('#ldcgu').checked)return err.textContent='Coche la case pour que Léa puisse t\'envoyer la suite.';
+ $('#ldbtn').disabled=true;$('#ldbtn').textContent='Envoi…';sfx.tap();
+ const res=await postLead(leadPayload());
+ if(!res.ok){$('#ldbtn').disabled=false;$('#ldbtn').textContent='Réessayer';err.textContent=res.error;sfx.bad();return}
+ S.lead={prenom:f.prenom.value.trim(),nom:f.nom.value.trim(),tel:f.telephone.value.trim(),email:f.email.value.trim()};if(!S.name)S.name=S.lead.prenom;
+ try{localStorage.setItem('xyn_lead',JSON.stringify(S.lead))}catch(x){}
+ sfx.badge();confetti($('#cfg'));gainXP(40);unlockBadge('module1');
+ toast('📱','Module 1 envoyé'+(res.demo?' (simulation hors site)':'')+'. SMS en route.');
+ setTimeout(()=>pushNotif('💬','SMS de Léa','« '+S.lead.prenom+', ta séquence 2 est prête : xyn.app/s2 »'),2600);
+ renderDash();if(leadNext&&SEQS[leadNext])startSeq(leadNext);else go('s-dash')}
+
+/* ============ v7 : conseiller ============ */
+let advReason='info',advSlot=null;
+function advisor(reason){ac();advReason=reason||'info';go('s-advisor')}
+function renderAdvisor(){advSlot=null;const why={info:"Le module 1 est offert. Pour tout le CAP, les oraux blancs et le financement, on passe par un conseiller : c'est lui qui construit ton parcours et ton calendrier d'examen.",
+ premium:"Le parcours complet (87 séquences, Léa en illimité, oraux blancs) s'active avec un conseiller Xyn Education. Il vérifie ton calendrier d'examen et la meilleure formule pour toi.",
+ cpf:"Le financement CPF se fait avec un conseiller : vérification de ton solde, FranceConnect+, dépôt de la demande. Tu n'as rien à remplir seul, et tu connais ton reste à charge avant de t'engager.",
+ ep2:"Les modules 2 et 3 (accueil collectif, accueil individuel) font partie du parcours complet. Un conseiller l'active avec toi.",
+ fin:"Trois séquences, trois badges, et je commence à bien te connaître. Pour la suite du CAP, c'est un conseiller qui prend le relais : un appel de 15 minutes et ton parcours jusqu'en "+({'2027-06-01':'juin 2027','2027-09-15':'septembre 2027','2028-06-01':'juin 2028'}[S.exam])+" est calé."}[advReason];
+ const slots=[['Maintenant','dans les 10 min, 9h-19h'],['Ce midi','12h30 – 14h'],['Ce soir','18h – 20h'],['Demain matin','9h – 12h']];
+ $('#advisorbody').innerHTML=`<div class="coach-row"><div class="avatar">L</div><p>${why}</p></div>
+ ${S.callback?`<div class="card" style="border-color:var(--ok)"><div class="row"><div style="font-size:26px">✅</div><div style="flex:1;min-width:0"><b style="font-size:14px">Rappel demandé · ${S.callback}</b><p class="muted" style="font-size:12.5px">Un conseiller t'appelle au ${S.lead?S.lead.tel:'numéro indiqué'}. En attendant, Léa continue.</p></div></div></div>`:''}
+ <div class="telbox"><span class="eyebrow">Appeler le centre</span><a class="num" href="tel:${CENTRE_TEL.replace(/\s/g,'')}" style="text-decoration:none">${CENTRE_TEL}</a><small>Lundi–vendredi 9h–19h, samedi 9h–13h · appel non surtaxé</small><button class="btn ghost sm" onclick="copyTel(this)">Copier le numéro</button></div>
+ <p class="eyebrow">Ou être rappelé</p>
+ <div class="slots">${slots.map(([a,b],i)=>`<button type="button" onclick="pickSlot(${i},this)">${a}<b>${b}</b></button>`).join('')}</div>
+ ${S.lead?`<p class="muted" style="font-size:12.5px">Au ${S.lead.tel} · ${S.lead.prenom} ${S.lead.nom}</p>`:`<div class="row" style="gap:10px;align-items:stretch"><div class="field" style="flex:1;min-width:0"><label for="advprenom">Prénom</label><input id="advprenom" placeholder="Camille"></div><div class="field" style="flex:1;min-width:0"><label for="advtel">Téléphone</label><input id="advtel" type="tel" inputmode="tel" placeholder="06 12 34 56 78"></div></div>`}
+ <p class="err" id="adverr"></p>
+ <button class="btn pulse" id="advbtn" onclick="requestCallback()">Être rappelé par un conseiller</button>
+ <div class="card"><p class="eyebrow">Ce que le conseiller fait avec toi</p><div class="cpf-steps" style="margin-top:8px"><div class="step"><i>1</i><div><b>Ton projet et ta date d'examen</b><span>Session, temps disponible, stage.</span></div></div><div class="step"><i>2</i><div><b>Le financement</b><span>CPF, paiement en plusieurs fois, alternance.</span></div></div><div class="step"><i>3</i><div><b>L'inscription au parcours complet</b><span>87 séquences, oraux blancs, dossier EP1 corrigé.</span></div></div></div></div>
+ <div class="trust"><span>✓ Sans engagement avant l'appel</span><span>✓ Conseillers en France</span><span>✓ Qualiopi</span></div>`;say(why)}
+function pickSlot(i,el){$$('.slots button').forEach(b=>b.classList.remove('sel'));el.classList.add('sel');advSlot=el.textContent.replace(/(\S)(dans|\d)/,'$1 · $2');sfx.tap()}
+function copyTel(btn){const t=CENTRE_TEL;if(navigator.clipboard&&navigator.clipboard.writeText)navigator.clipboard.writeText(t).then(()=>{btn.textContent='Copié ✓';setTimeout(()=>btn.textContent='Copier le numéro',1800)}).catch(()=>toast('📞',t));else toast('📞',t)}
+async function requestCallback(){const err=$('#adverr');err.textContent='';if(!advSlot)return err.textContent='Choisis un créneau.';
+ let prenom,tel;if(S.lead){prenom=S.lead.prenom;tel=S.lead.tel}else{prenom=$('#advprenom').value.trim();tel=$('#advtel').value.trim();if(prenom.length<2)return err.textContent='Ton prénom, s\'il te plaît.';if(!/^(\+33|0)\d{9}$/.test(tel.replace(/[\s.-]/g,'')))return err.textContent='Ce numéro ne ressemble pas à un numéro français.'}
+ $('#advbtn').disabled=true;$('#advbtn').textContent='Envoi…';
+ const payload=S.lead?{...leadPayload('Demande de rappel · '+advSlot+' · motif : '+advReason)}:{prenom,nom:'(à compléter)',telephone:tel,email:'rappel@'+tel.replace(/\D/g,'')+'.xyn',code_postal:null,website:'',formation:'cap-accompagnant-educatif-petite-enfance-aepe',ecole_preferee:'xyn',consent_cgu:true,consent_autres_ecoles:false,lp:'xyn',source:location.href,situation:'XYN · rappel',message:'[XYN] Demande de rappel · '+advSlot+' · motif : '+advReason+' · XP : '+S.xp};
+ const res=await postLead(payload);
+ if(!res.ok){$('#advbtn').disabled=false;$('#advbtn').textContent='Réessayer';err.textContent=res.error;sfx.bad();return}
+ S.callback=advSlot;if(!S.lead)S.lead={prenom,nom:'',tel,email:''};if(!S.name)S.name=prenom;sfx.badge();gainXP(30);
+ toast('📞','Rappel demandé · '+advSlot+(res.demo?' (simulation hors site)':''));
+ setTimeout(()=>pushNotif('📞','Conseiller Xyn Education','« Bonjour '+prenom+', je vous appelle '+advSlot.split(' · ')[0].toLowerCase()+'. Préparez vos questions ! »'),2500);
+ renderAdvisor();$('#advisorbody').scrollIntoView&&$('#s-advisor .scroll').scrollTo(0,0)}
+try{const l=JSON.parse(localStorage.getItem('xyn_lead')||'null');if(l&&l.prenom){S.lead=l;S.name=S.name||l.prenom}}catch(x){}
 
 /* ============ init ============ */
 renderDash();
