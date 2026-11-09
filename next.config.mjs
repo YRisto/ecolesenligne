@@ -12,6 +12,9 @@ const nextConfig = {
       { source: '/lejeuduDG', destination: '/lejeuduDG/index.html' },
       { source: '/lejeududg', destination: '/lejeuduDG/index.html' },
       { source: '/lejeuduDG/stats', destination: '/lejeuduDG/stats.html' },
+      { source: '/xyn', destination: '/xyn/index.html' },
+      { source: '/Xyn', destination: '/xyn/index.html' },
+      { source: '/XYN', destination: '/xyn/index.html' },
     ];
   },
 };

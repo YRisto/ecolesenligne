@@ -1,0 +1,1239 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="description" content="XYN par Xyn Education : apprends n'importe quel diplôme en discutant avec Léa, ta coach. Démo CAP Petite Enfance.">
+<meta name="theme-color" content="#0E6B5A">
+<meta property="og:title" content="XYN · Apprends en discutant">
+<meta property="og:description" content="Un coach qui te met en situation, jamais un cours à lire. Démo CAP AEPE.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%230E6B5A'/%3E%3Ctext x='32' y='42' text-anchor='middle' font-family='Georgia,serif' font-weight='700' font-size='28' fill='%23F7C96A'%3EXYN%3C/text%3E%3C/svg%3E">
+<style>:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0;font-family:system-ui,sans-serif;font-size:14px}img{max-width:100%}[hidden]{display:none!important}</style>
+<title>XYN</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght,SOFT@9..144,500;9..144,700,100&family=Nunito:wght@400;600;700;800;900&display=swap">
+<style>
+/* Layout: one phone column (max 430px) framed on desktop, true full-screen on phones. Living surfaces: drifting blobs, XP bar that fills, badges that pop, leaderboard that moves. Pine green + gold core, plum (XP) and coral (streak) as life accents. */
+:root{
+  --bg:#EDF2EF; --surface:#FFFFFF; --surface-2:#F3F7F5; --fg:#13231E; --muted:#5A6D66; --line:#D5E0DA;
+  --brand:#0E6B5A; --brand-2:#19A085; --on-brand:#FFFFFF; --brand-soft:#D9F0E8;
+  --coach:#1B3630; --coach-fg:#F1FBF6;
+  --gold:#E9A63A; --gold-2:#F7C96A; --gold-soft:#FBEFD6; --on-gold:#2A1D05;
+  --plum:#7A3FB3; --plum-2:#B98BE8; --plum-soft:#EFE4FA; --coral:#F06A5A; --coral-soft:#FDE4E0;
+  --ok:#2E8B57; --bad:#C24B46; --fc:#1E3A8A; --fc-soft:#E3E9FA;
+  --font-display:"Fraunces",Georgia,serif; --font-body:"Nunito","Segoe UI",system-ui,sans-serif; --r:20px;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0A1412;--surface:#111F1A;--surface-2:#172A23;--fg:#ECF5F1;--muted:#98B0A6;--line:#233B33;
+  --brand:#45C09B;--brand-2:#7FE0C2;--on-brand:#06201A;--brand-soft:#143A2F;--coach:#1A362E;--coach-fg:#EAF7F1;
+  --gold:#F1B651;--gold-2:#FFD98A;--gold-soft:#3B2E12;--on-gold:#2A1D05;--plum:#B98BE8;--plum-2:#D6BDF5;--plum-soft:#2C1F42;--coral:#FF8A7A;--coral-soft:#4A1F1A;--fc:#8FA8F0;--fc-soft:#1A2440;color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0A1412;--surface:#111F1A;--surface-2:#172A23;--fg:#ECF5F1;--muted:#98B0A6;--line:#233B33;
+  --brand:#45C09B;--brand-2:#7FE0C2;--on-brand:#06201A;--brand-soft:#143A2F;--coach:#1A362E;--coach-fg:#EAF7F1;
+  --gold:#F1B651;--gold-2:#FFD98A;--gold-soft:#3B2E12;--on-gold:#2A1D05;--plum:#B98BE8;--plum-2:#D6BDF5;--plum-soft:#2C1F42;--coral:#FF8A7A;--coral-soft:#4A1F1A;--fc:#8FA8F0;--fc-soft:#1A2440;color-scheme:dark}
+
+html,body{height:100%}
+body{margin:0;background:var(--bg);color:var(--fg);font-family:var(--font-body);font-size:15px;line-height:1.5;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:0;box-sizing:border-box}
+*,*::before,*::after{box-sizing:inherit}
+h1,h2,h3{font-family:var(--font-display);font-weight:700;line-height:1.12;margin:0;text-wrap:balance;letter-spacing:-.01em}
+p{margin:0}
+button{font:inherit;color:inherit;cursor:pointer;border:0;background:none;padding:0;text-align:left}
+button:focus-visible,input:focus-visible,select:focus-visible{outline:3px solid var(--brand);outline-offset:2px;border-radius:8px}
+@media (prefers-reduced-motion:reduce){*{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}}
+
+.stage{min-height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;padding-block:16px}
+.demo-tag{font-size:12px;color:var(--muted);letter-spacing:.08em;text-transform:uppercase;font-weight:800;display:flex;gap:8px;flex-wrap:wrap;justify-content:center}
+.demo-tag span{background:var(--surface);border:1px solid var(--line);padding:3px 10px;border-radius:999px}
+.phone{width:100%;max-width:430px;background:var(--surface);border:1px solid var(--line);border-radius:36px;overflow:hidden;position:relative;
+  display:flex;flex-direction:column;height:min(880px,calc(100dvh - 86px));min-height:620px;box-shadow:0 40px 80px -36px rgba(10,30,25,.45)}
+.legend{font-size:12px;color:var(--muted);max-width:430px;text-align:center}
+/* true full-screen on phones */
+@media (max-width:520px){
+  body{padding-left:0;padding-right:0}
+  .stage{padding:0;gap:0;min-height:100dvh}
+  .demo-tag,.legend{display:none}
+  .phone{max-width:none;height:100dvh;min-height:0;border:0;border-radius:0;box-shadow:none}
+  .scroll,.bar,.chat,.compose,.progress-head{padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+}
+.screen{display:none;flex:1;flex-direction:column;min-height:0;overflow:hidden;position:relative}
+.screen.on{display:flex;animation:screenIn .3s cubic-bezier(.2,.8,.2,1)}
+@keyframes screenIn{from{opacity:0}to{opacity:1}}
+.scroll{flex:1;overflow-y:auto;overflow-x:hidden;min-height:0;padding:14px 18px 28px;display:flex;flex-direction:column;gap:16px;position:relative;z-index:1}
+.scroll>*{flex:none}
+.rise>*{animation:rise .45s cubic-bezier(.2,.8,.2,1) both}
+.rise>*:nth-child(2){animation-delay:.05s}.rise>*:nth-child(3){animation-delay:.1s}.rise>*:nth-child(4){animation-delay:.15s}.rise>*:nth-child(5){animation-delay:.2s}.rise>*:nth-child(n+6){animation-delay:.25s}
+@keyframes rise{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+.blobs{position:absolute;inset:0;overflow:hidden;pointer-events:none;z-index:0}
+.blobs i{position:absolute;border-radius:50%;filter:blur(36px);opacity:.5;animation:drift 14s ease-in-out infinite alternate}
+.blobs i:nth-child(1){width:260px;height:260px;background:var(--brand-2);top:-80px;right:-60px}
+.blobs i:nth-child(2){width:200px;height:200px;background:var(--gold-2);bottom:120px;left:-70px;animation-delay:-5s;animation-duration:18s}
+.blobs i:nth-child(3){width:160px;height:160px;background:var(--plum);bottom:-50px;right:20px;opacity:.28;animation-delay:-9s}
+@keyframes drift{from{transform:translate(0,0) scale(1)}to{transform:translate(30px,40px) scale(1.15)}}
+
+.bar{display:flex;align-items:center;gap:10px;padding:14px 16px 8px;min-height:52px;position:relative;z-index:2;flex:none}
+.back{width:36px;height:36px;border-radius:50%;display:grid;place-items:center;background:var(--surface-2);border:1px solid var(--line);font-size:18px;flex:none}
+.ttl{font-weight:900;font-size:15px}.sp{flex:1}
+.brand{font-family:var(--font-display);font-weight:700;font-size:22px;letter-spacing:.14em;color:var(--brand)}
+.brand small{display:block;font-family:var(--font-body);letter-spacing:.02em;font-size:11px;color:var(--muted);font-weight:800}
+.iconbtn{width:36px;height:36px;border-radius:50%;display:grid;place-items:center;background:var(--surface-2);border:1px solid var(--line);font-size:17px;position:relative;flex:none}
+.iconbtn .n{position:absolute;top:-4px;right:-4px;min-width:18px;height:18px;border-radius:9px;background:var(--coral);color:#fff;font-size:11px;font-weight:900;display:grid;place-items:center;padding:0 4px;animation:dot 1.4s infinite}
+
+.hud{display:flex;align-items:center;gap:8px}
+.chip{display:inline-flex;align-items:center;gap:5px;padding:5px 10px;border-radius:999px;font-size:12px;font-weight:900;background:var(--surface-2);border:1px solid var(--line);white-space:nowrap}
+.chip.flame{background:var(--coral-soft);color:var(--coral);border-color:transparent}
+.chip.flame span{display:inline-block;animation:flame 1.1s ease-in-out infinite alternate;transform-origin:50% 100%}
+@keyframes flame{from{transform:scale(1) rotate(-4deg)}to{transform:scale(1.18) rotate(5deg)}}
+.chip.xp{background:var(--plum-soft);color:var(--plum);border-color:transparent;font-variant-numeric:tabular-nums}
+.xpbar{height:10px;border-radius:99px;background:var(--line);overflow:hidden}
+.xpbar i{display:block;height:100%;border-radius:99px;background:linear-gradient(90deg,var(--brand),var(--brand-2),var(--gold-2));background-size:200% 100%;animation:shimmer 2.4s linear infinite;transition:width .9s cubic-bezier(.2,.8,.2,1)}
+@keyframes shimmer{to{background-position:-200% 0}}
+.lvl{display:flex;justify-content:space-between;font-size:12px;font-weight:900;color:var(--muted);gap:8px;flex-wrap:wrap}
+.lvl b{color:var(--fg)}
+
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;border-radius:999px;padding:14px 20px;font-weight:900;font-size:15px;width:100%;text-align:center;
+  background:linear-gradient(135deg,var(--brand),var(--brand-2));color:var(--on-brand);transition:transform .12s ease;position:relative;overflow:hidden;box-shadow:0 10px 24px -12px var(--brand)}
+.btn::after{content:"";position:absolute;inset:0;background:linear-gradient(110deg,transparent 30%,rgba(255,255,255,.35) 50%,transparent 70%);transform:translateX(-120%);animation:sheen 3.2s ease-in-out infinite}
+@keyframes sheen{0%,60%{transform:translateX(-120%)}100%{transform:translateX(120%)}}
+.btn:active{transform:scale(.97)}
+.btn.pulse{animation:btnpulse 2s ease-in-out infinite}
+@keyframes btnpulse{0%,100%{box-shadow:0 0 0 0 color-mix(in srgb,var(--brand) 45%,transparent)}60%{box-shadow:0 0 0 14px transparent}}
+.btn.ghost{background:var(--surface-2);color:var(--fg);border:1px solid var(--line);box-shadow:none}.btn.ghost::after{display:none}
+.btn.gold{background:linear-gradient(135deg,var(--gold),var(--gold-2));color:var(--on-gold);box-shadow:0 10px 24px -12px var(--gold)}
+.btn.fc{background:var(--fc);color:#fff;box-shadow:none}.btn.fc::after{display:none}
+.btn.sm{padding:9px 14px;font-size:13px;width:auto}
+.card{background:var(--surface-2);border:1px solid var(--line);border-radius:var(--r);padding:16px}
+.eyebrow{font-size:11px;letter-spacing:.11em;text-transform:uppercase;font-weight:900;color:var(--muted)}
+.muted{color:var(--muted)}
+.row{display:flex;align-items:center;gap:12px}
+.pill{display:inline-flex;align-items:center;gap:6px;padding:4px 10px;border-radius:999px;font-size:12px;font-weight:900;background:var(--brand-soft);color:var(--brand);white-space:nowrap}
+.pill.gold{background:var(--gold-soft);color:var(--gold)}
+.pill.lock{background:var(--surface);border:1px solid var(--line);color:var(--muted)}
+.pill.plum{background:var(--plum-soft);color:var(--plum)}
+.pill.coral{background:var(--coral-soft);color:var(--coral)}
+.meter{height:8px;background:var(--line);border-radius:99px;overflow:hidden}
+.meter i{display:block;height:100%;background:linear-gradient(90deg,var(--brand),var(--brand-2));border-radius:99px;transition:width .9s cubic-bezier(.2,.8,.2,1)}
+.stack{display:flex;flex-direction:column;gap:10px}
+.sw{position:relative;width:44px;height:26px;border-radius:13px;background:var(--line);transition:background .2s;flex:none}
+.sw::after{content:"";position:absolute;top:3px;left:3px;width:20px;height:20px;border-radius:50%;background:var(--surface);transition:transform .2s;box-shadow:0 1px 4px rgba(0,0,0,.25)}
+.sw.on{background:var(--brand)}.sw.on::after{transform:translateX(18px)}
+select.sel{font:inherit;font-weight:800;font-size:13px;color:var(--fg);background:var(--surface);border:1px solid var(--line);border-radius:999px;padding:7px 12px;max-width:100%}
+
+/* HOME */
+.hero{border-radius:28px;position:relative;overflow:hidden;color:#fff;background:linear-gradient(135deg,#0E6B5A 0%,#19A085 55%,#7A3FB3 140%);padding:22px 20px 20px;min-height:170px;display:flex;flex-direction:column;justify-content:flex-end;gap:6px}
+.hero .orb{position:absolute;border-radius:50%;background:rgba(255,255,255,.14);animation:orb 9s ease-in-out infinite alternate}
+.hero .orb:nth-child(1){width:240px;height:240px;right:-80px;top:-120px}
+.hero .orb:nth-child(2){width:140px;height:140px;left:-40px;bottom:-70px;background:rgba(233,166,58,.45);animation-delay:-4s}
+@keyframes orb{to{transform:translate(-16px,18px) scale(1.1)}}
+.hero h1{font-size:29px;color:#fff;position:relative}.hero p{color:rgba(255,255,255,.88);font-size:14px;position:relative}
+.goals{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.goal{border:1.5px solid var(--line);border-radius:16px;padding:12px;background:var(--surface);display:flex;flex-direction:column;gap:4px;min-height:84px;transition:transform .15s}
+.goal:hover{transform:translateY(-2px)}
+.goal b{font-size:14px}.goal span{font-size:12px;color:var(--muted)}
+.goal.sel{border-color:var(--brand);background:var(--brand-soft)}.goal.dim{opacity:.55}
+.social{display:flex;align-items:center;gap:10px;font-size:13px;color:var(--muted);font-weight:700}
+.faces{display:flex;flex:none}.faces i{width:26px;height:26px;border-radius:50%;border:2px solid var(--surface);margin-left:-8px;display:grid;place-items:center;font-size:11px;font-weight:900;color:#fff;font-style:normal}
+.faces i:first-child{margin-left:0}
+.live-dot{width:8px;height:8px;border-radius:50%;background:var(--ok);display:inline-block;animation:dot 1.4s infinite}
+@keyframes dot{50%{box-shadow:0 0 0 6px color-mix(in srgb,var(--ok) 25%,transparent)}}
+
+/* BILAN */
+.mic-wrap{display:flex;flex-direction:column;align-items:center;gap:14px;padding:6px 0}
+.mic{width:104px;height:104px;border-radius:50%;background:linear-gradient(135deg,var(--brand),var(--brand-2));display:grid;place-items:center;position:relative;color:var(--on-brand);font-size:38px;box-shadow:0 18px 40px -16px var(--brand);animation:breathe 3s ease-in-out infinite}
+@keyframes breathe{50%{transform:scale(1.04)}}
+.mic.live::before,.mic.live::after{content:"";position:absolute;inset:-12px;border-radius:50%;border:3px solid var(--brand);opacity:.6;animation:ring 1.3s infinite}
+.mic.live::after{animation-delay:.5s}
+@keyframes ring{0%{transform:scale(.85);opacity:.7}100%{transform:scale(1.35);opacity:0}}
+.wave{display:flex;gap:4px;align-items:center;height:40px}
+.wave i{width:5px;height:8px;background:var(--brand);border-radius:3px;opacity:.3}
+.wave.live i{animation:w .6s infinite ease-in-out alternate;opacity:1}
+.wave.live i:nth-child(2n){animation-delay:.1s}.wave.live i:nth-child(3n){animation-delay:.22s}.wave.live i:nth-child(5n){animation-delay:.36s}
+@keyframes w{from{height:6px}to{height:36px}}
+.transcript{font-family:var(--font-display);font-size:18px;font-weight:500;min-height:56px;text-align:center}
+.transcript.ph{color:var(--muted);font-style:italic}
+.q-dots{display:flex;gap:6px;justify-content:center}.q-dots i{width:8px;height:8px;border-radius:50%;background:var(--line);transition:all .3s}.q-dots i.on{background:var(--brand);width:22px}
+
+.coach-row{display:flex;gap:12px;align-items:flex-start;background:var(--coach);color:var(--coach-fg);border-radius:var(--r);padding:14px;position:relative;overflow:hidden}
+.coach-row::after{content:"";position:absolute;width:140px;height:140px;border-radius:50%;background:rgba(255,255,255,.05);right:-50px;top:-70px;pointer-events:none}
+.coach-row p{font-size:14px;position:relative}
+.avatar{width:44px;height:44px;border-radius:50%;background:linear-gradient(135deg,var(--gold),var(--gold-2));display:grid;place-items:center;font-family:var(--font-display);font-weight:700;color:var(--on-gold);flex:none;font-size:18px;position:relative}
+.avatar.talk::after{content:"";position:absolute;inset:-5px;border-radius:50%;border:2px solid var(--gold);animation:ring 1s infinite}
+.voice{display:inline-flex;align-items:center;gap:6px;padding:6px 10px;border-radius:999px;font-size:12px;font-weight:900;background:var(--surface-2);border:1px solid var(--line);color:var(--muted);white-space:nowrap}
+.voice.on{background:var(--gold-soft);color:var(--gold);border-color:transparent}
+.voice.on span{animation:flame 1s ease-in-out infinite alternate}
+
+/* modules */
+.modules{display:flex;flex-direction:column;gap:10px}
+.mod{display:flex;gap:12px;align-items:center;background:var(--surface-2);border:1px solid var(--line);border-radius:18px;padding:12px;width:100%;transition:transform .15s,border-color .2s;position:relative;overflow:hidden}
+.mod:hover{transform:translateY(-2px);border-color:var(--brand)}
+.mod.next{border-color:var(--brand);background:linear-gradient(135deg,var(--brand-soft),var(--surface-2))}
+.mod.next::before{content:"";position:absolute;inset:0;background:linear-gradient(110deg,transparent 40%,rgba(255,255,255,.3) 50%,transparent 60%);transform:translateX(-120%);animation:sheen 3s ease-in-out infinite;pointer-events:none}
+.mod.done{opacity:.85}
+.ico{width:44px;height:44px;border-radius:14px;background:var(--brand-soft);display:grid;place-items:center;font-size:22px;flex:none}
+.mod.locked .ico{background:var(--surface);border:1px dashed var(--line);filter:grayscale(1);opacity:.8}
+.mod .t{flex:1;min-width:0}.mod .t b{display:block;font-size:14px}.mod .t span{font-size:12px;color:var(--muted)}
+.xpgain{font-size:11px;font-weight:900;color:var(--plum);background:var(--plum-soft);padding:2px 7px;border-radius:999px;white-space:nowrap;flex:none}
+.tabs{display:flex;border-top:1px solid var(--line);background:var(--surface);padding:8px 4px calc(10px + env(safe-area-inset-bottom,0px));position:relative;z-index:2;flex:none}
+.tabs button{flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;font-size:10px;font-weight:900;color:var(--muted);padding:6px 0;position:relative;transition:transform .15s;text-align:center}
+.tabs button.on{color:var(--brand)}.tabs button:active{transform:scale(.92)}
+.tabs button span{font-size:20px}
+.tabs .dotn{position:absolute;top:2px;right:20%;width:8px;height:8px;border-radius:50%;background:var(--coral);animation:dot 1.4s infinite}
+.banner{display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:14px;font-size:13px;font-weight:800}
+.banner.trial{background:linear-gradient(135deg,var(--plum-soft),var(--surface-2));border:1px solid var(--plum);color:var(--fg)}
+.banner.danger{background:var(--coral-soft);border:1px solid var(--coral);color:var(--fg)}
+.banner b{font-variant-numeric:tabular-nums}
+
+/* CHAT */
+.chat{flex:1;overflow-y:auto;overflow-x:hidden;min-height:0;padding:14px 16px;display:flex;flex-direction:column;gap:10px}
+.msg{max-width:88%;padding:11px 14px;border-radius:18px;font-size:14.5px;line-height:1.5;animation:pop .3s cubic-bezier(.2,.8,.2,1);flex:none;overflow-wrap:anywhere}
+@keyframes pop{from{opacity:0;transform:translateY(8px) scale(.97)}to{opacity:1;transform:none}}
+.msg.coach{background:var(--coach);color:var(--coach-fg);border-bottom-left-radius:6px;align-self:flex-start}
+.msg.coach.scene{background:linear-gradient(135deg,var(--brand-soft),var(--surface-2));color:var(--fg);border:1px solid var(--line);font-family:var(--font-display);font-weight:500;font-size:15.5px}
+.msg.coach.scene::before{content:"Mise en situation";display:block;font-family:var(--font-body);font-size:11px;letter-spacing:.1em;text-transform:uppercase;font-weight:900;color:var(--brand);margin-bottom:4px}
+.msg.coach.memo{background:var(--plum-soft);color:var(--fg);border:1px solid var(--plum)}
+.msg.coach.memo::before{content:"Léa se souvient";display:block;font-size:11px;letter-spacing:.1em;text-transform:uppercase;font-weight:900;color:var(--plum);margin-bottom:4px}
+.msg.me{background:linear-gradient(135deg,var(--brand),var(--brand-2));color:var(--on-brand);border-bottom-right-radius:6px;align-self:flex-end}
+.typing{display:inline-flex;gap:4px;align-items:center;height:14px}
+.typing i{width:6px;height:6px;border-radius:50%;background:currentColor;opacity:.5;animation:blink 1s infinite}
+.typing i:nth-child(2){animation-delay:.2s}.typing i:nth-child(3){animation-delay:.4s}
+@keyframes blink{50%{opacity:1;transform:translateY(-2px)}}
+.choices{display:flex;flex-direction:column;gap:6px;padding:4px 0 0;flex:none;width:100%}
+.choices:empty{display:none}
+.choices button{background:var(--surface);border:1.5px solid var(--brand);color:var(--fg);border-radius:14px;padding:9px 12px;font-weight:800;font-size:13.5px;line-height:1.35;animation:rise .4s both;transition:transform .12s,background .2s}
+.choices button:nth-child(2){animation-delay:.08s}.choices button:nth-child(3){animation-delay:.16s}
+.choices::before{content:"Choisis, ou écris ta réponse en bas";font-size:11px;letter-spacing:.08em;text-transform:uppercase;font-weight:900;color:var(--muted);padding:2px 0}
+.choices button:hover{background:var(--brand-soft);transform:translateX(3px)}
+.compose{display:flex;gap:8px;padding:10px 16px calc(12px + env(safe-area-inset-bottom,0px));border-top:1px solid var(--line);background:var(--surface);flex:none}
+.compose input{flex:1;min-width:0;border:1.5px solid var(--line);background:var(--surface-2);border-radius:999px;padding:11px 16px;font:inherit;color:var(--fg)}
+.compose button{width:44px;height:44px;border-radius:50%;background:linear-gradient(135deg,var(--brand),var(--brand-2));color:var(--on-brand);font-size:18px;flex:none;display:grid;place-items:center}
+.progress-head{padding:0 16px 10px;display:flex;flex-direction:column;gap:6px;flex:none}
+.progress-head .row{justify-content:space-between;font-size:12px;font-weight:900;color:var(--muted)}
+
+.float{position:absolute;left:50%;top:40%;transform:translateX(-50%);font-family:var(--font-display);font-weight:700;font-size:26px;color:var(--plum);pointer-events:none;z-index:9;animation:floatup 1.3s cubic-bezier(.2,.8,.2,1) forwards;white-space:nowrap}
+@keyframes floatup{0%{opacity:0;transform:translate(-50%,10px) scale(.6)}20%{opacity:1;transform:translate(-50%,0) scale(1.15)}100%{opacity:0;transform:translate(-50%,-70px) scale(1)}}
+
+/* GAME */
+.game-q{font-family:var(--font-display);font-size:21px;font-weight:500}
+.opts{display:flex;flex-direction:column;gap:10px}
+.opt{border:1.5px solid var(--line);background:var(--surface);border-radius:14px;padding:13px 14px;font-weight:800;font-size:14px;transition:transform .12s}
+.opt:hover{transform:translateX(3px);border-color:var(--brand)}
+.opt.right{border-color:var(--ok);background:color-mix(in srgb,var(--ok) 15%,var(--surface));animation:win .5s}
+.opt.wrong{border-color:var(--bad);background:color-mix(in srgb,var(--bad) 12%,var(--surface));animation:shake .4s}
+@keyframes win{30%{transform:scale(1.03)}}
+@keyframes shake{25%{transform:translateX(-5px)}75%{transform:translateX(5px)}}
+.timer{height:5px;background:var(--line);border-radius:99px;overflow:hidden}.timer i{display:block;height:100%;background:var(--coral);width:100%;animation:tick 14s linear forwards}
+@keyframes tick{to{width:0}}
+.combo{font-size:12px;font-weight:900;color:var(--coral)}
+
+/* DONE */
+.score-ring{width:140px;height:140px;border-radius:50%;display:grid;place-items:center;margin:4px auto;position:relative;background:conic-gradient(var(--brand-2) calc(var(--pct)*1%),var(--line) 0);animation:spin-in .9s cubic-bezier(.2,.8,.2,1)}
+@keyframes spin-in{from{transform:rotate(-90deg) scale(.6);opacity:0}}
+.score-ring::after{content:"";position:absolute;inset:11px;border-radius:50%;background:var(--surface)}
+.score-ring b{position:relative;font-family:var(--font-display);font-size:34px;font-weight:700}
+.badge-pop{display:flex;flex-direction:column;align-items:center;gap:6px;text-align:center}
+.badge{width:84px;height:84px;border-radius:50%;display:grid;place-items:center;font-size:40px;position:relative;background:linear-gradient(135deg,var(--gold),var(--gold-2));box-shadow:0 16px 36px -14px var(--gold)}
+.badge.pop{animation:badgepop .9s cubic-bezier(.2,.9,.3,1.4)}
+@keyframes badgepop{0%{transform:scale(0) rotate(-40deg)}70%{transform:scale(1.15) rotate(6deg)}100%{transform:scale(1) rotate(0)}}
+.badge::before{content:"";position:absolute;inset:-8px;border-radius:50%;border:2px dashed var(--gold);animation:rot 12s linear infinite;opacity:.6}
+@keyframes rot{to{transform:rotate(360deg)}}
+canvas.confetti{position:absolute;inset:0;pointer-events:none;z-index:8}
+.notions{display:flex;flex-wrap:wrap;gap:6px;justify-content:center}
+
+/* BADGES */
+.bgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.bd{display:flex;flex-direction:column;align-items:center;gap:6px;text-align:center;background:var(--surface-2);border:1px solid var(--line);border-radius:18px;padding:12px 6px;font-size:11.5px;font-weight:800;transition:transform .15s;min-width:0}
+.bd:hover{transform:translateY(-3px)}
+.bd i{font-style:normal;width:52px;height:52px;border-radius:50%;display:grid;place-items:center;font-size:26px;background:linear-gradient(135deg,var(--gold),var(--gold-2));box-shadow:0 10px 20px -10px var(--gold)}
+.bd.plum i{background:linear-gradient(135deg,var(--plum),var(--plum-2))}
+.bd.green i{background:linear-gradient(135deg,var(--brand),var(--brand-2))}
+.bd.coral i{background:linear-gradient(135deg,var(--coral),#FFA595)}
+.bd.off{opacity:.55}.bd.off i{background:var(--line);filter:grayscale(1);box-shadow:none}
+.bd.new{animation:badgepop .8s cubic-bezier(.2,.9,.3,1.4)}
+.bd small{color:var(--muted);font-weight:700;font-size:10.5px}
+.week{display:flex;justify-content:space-between;gap:6px}
+.week div{flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;font-size:11px;font-weight:900;color:var(--muted)}
+.week i{width:30px;height:30px;border-radius:50%;background:var(--surface-2);border:1px solid var(--line);display:grid;place-items:center;font-style:normal;font-size:14px}
+.week .d i{background:var(--coral-soft);border-color:transparent}
+.week .t i{background:linear-gradient(135deg,var(--brand),var(--brand-2));border-color:transparent;animation:btnpulse 2s infinite}
+
+/* QUESTS / REVISION / NOTIFS */
+.quest{display:flex;gap:12px;align-items:center;background:var(--surface-2);border:1px solid var(--line);border-radius:16px;padding:12px}
+.quest .ico{width:40px;height:40px;font-size:20px;background:var(--plum-soft)}
+.quest .t{flex:1;min-width:0}.quest .t b{display:block;font-size:13.5px}.quest .t span{font-size:12px;color:var(--muted)}
+.quest .meter{margin-top:6px}
+.quest.done{border-color:var(--ok)}.quest.done .ico{background:color-mix(in srgb,var(--ok) 20%,var(--surface))}
+.rev{background:var(--surface-2);border:1px solid var(--line);border-radius:18px;padding:14px;display:flex;flex-direction:column;gap:10px}
+.rev .sc{font-family:var(--font-display);font-size:16px;font-weight:500}
+.notif{display:flex;gap:12px;align-items:flex-start;background:var(--surface-2);border:1px solid var(--line);border-radius:16px;padding:12px;width:100%}
+.notif.unread{border-color:var(--brand);background:linear-gradient(135deg,var(--brand-soft),var(--surface-2))}
+.notif .ico{width:40px;height:40px;font-size:20px}
+.notif .t{flex:1;min-width:0}.notif .t b{display:block;font-size:13.5px}.notif .t span{font-size:12.5px;color:var(--muted)}
+.notif .when{font-size:11px;color:var(--muted);font-weight:800;flex:none}
+.push{position:absolute;left:12px;right:12px;top:calc(10px + env(safe-area-inset-top,0px));background:var(--surface);border:1px solid var(--line);border-radius:18px;padding:12px 14px;display:flex;gap:10px;align-items:center;box-shadow:0 18px 40px -16px rgba(0,0,0,.45);z-index:30;animation:pushin .4s cubic-bezier(.2,.8,.2,1)}
+@keyframes pushin{from{transform:translateY(-30px);opacity:0}}
+.push .ico{width:38px;height:38px;font-size:19px}
+.push b{display:block;font-size:13px}.push span{font-size:12.5px;color:var(--muted)}
+
+/* LEADERBOARD */
+.podium{display:flex;align-items:flex-end;justify-content:center;gap:10px;height:150px;padding-top:10px}
+.pod{display:flex;flex-direction:column;align-items:center;gap:4px;flex:1;max-width:110px;min-width:0}
+.pod .f{width:46px;height:46px;border-radius:50%;display:grid;place-items:center;font-weight:900;color:#fff;font-size:15px;border:3px solid var(--surface);box-shadow:0 8px 18px -8px rgba(0,0,0,.3)}
+.pod .blk{width:100%;border-radius:12px 12px 0 0;display:grid;place-items:center;font-family:var(--font-display);font-weight:700;font-size:22px;color:var(--on-gold);animation:grow .8s cubic-bezier(.2,.8,.2,1) both;transform-origin:bottom}
+@keyframes grow{from{transform:scaleY(0)}}
+.pod:nth-child(1) .blk{height:60px;background:linear-gradient(180deg,#D7D9E0,#B9BCC7);animation-delay:.15s}
+.pod:nth-child(2) .blk{height:90px;background:linear-gradient(180deg,var(--gold-2),var(--gold))}
+.pod:nth-child(3) .blk{height:44px;background:linear-gradient(180deg,#E7B48E,#C98A5B);animation-delay:.3s}
+.pod .n{font-size:12px;font-weight:900;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}.pod .x{font-size:11px;color:var(--muted);font-weight:800;font-variant-numeric:tabular-nums}
+.lb{display:flex;flex-direction:column;gap:6px;position:relative}
+.lbr{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:14px;background:var(--surface-2);border:1px solid var(--line);font-size:13.5px;font-weight:800;transition:transform .7s cubic-bezier(.2,.8,.2,1),background .3s}
+.lbr .rk{width:22px;text-align:center;font-family:var(--font-display);font-weight:700;color:var(--muted)}
+.lbr .f{width:32px;height:32px;border-radius:50%;display:grid;place-items:center;font-size:12px;font-weight:900;color:#fff;flex:none}
+.lbr .nm{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.lbr .pt{font-variant-numeric:tabular-nums;color:var(--muted);flex:none}
+.lbr .pt.bump{animation:bump .6s}
+@keyframes bump{30%{transform:scale(1.25);color:var(--ok)}}
+.lbr.me{background:linear-gradient(135deg,var(--plum-soft),var(--surface-2));border-color:var(--plum)}
+.lbr.me .pt{color:var(--plum)}
+.lbr .up{font-size:11px;color:var(--ok);font-weight:900}
+.zone{font-size:11px;letter-spacing:.08em;text-transform:uppercase;font-weight:900;color:var(--ok);display:flex;align-items:center;gap:8px;padding:2px 4px}
+.zone::before,.zone::after{content:"";flex:1;height:1px;background:var(--ok);opacity:.4}
+.seg{display:flex;background:var(--surface-2);border:1px solid var(--line);border-radius:999px;padding:3px}
+.seg button{flex:1;padding:7px;border-radius:999px;font-size:12px;font-weight:900;color:var(--muted);text-align:center}
+.seg button.on{background:var(--surface);color:var(--fg);box-shadow:0 2px 8px rgba(0,0,0,.08)}
+.league{display:flex;align-items:center;gap:12px;background:linear-gradient(135deg,var(--plum),var(--plum-2));color:#fff;border-radius:var(--r);padding:14px;position:relative;overflow:hidden}
+.league::after{content:"";position:absolute;width:160px;height:160px;border-radius:50%;background:rgba(255,255,255,.12);right:-60px;top:-80px;animation:orb 7s ease-in-out infinite alternate;pointer-events:none}
+.league .em{font-size:34px;animation:breathe 2.5s infinite}
+.league b{display:block;font-size:15px}.league span{font-size:12.5px;opacity:.9}
+.cer{display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;gap:12px;flex:1;background:radial-gradient(circle at 50% 30%,color-mix(in srgb,var(--gold) 35%,transparent),transparent 60%)}
+.cer .big{font-size:96px;animation:badgepop 1.2s cubic-bezier(.2,.9,.3,1.4)}
+.cer h2{font-size:30px}
+
+/* PAYWALL */
+.plans{display:flex;flex-direction:column;gap:12px}
+.plan{border:1.5px solid var(--line);border-radius:22px;padding:16px;background:var(--surface);display:flex;flex-direction:column;gap:8px;position:relative;overflow:hidden}
+.plan.pro{border-color:var(--brand);background:linear-gradient(135deg,var(--brand-soft),var(--surface))}
+.plan.cpf{border-color:var(--gold);background:linear-gradient(135deg,var(--gold-soft),var(--surface))}
+.plan.pro::before{content:"";position:absolute;inset:0;background:linear-gradient(110deg,transparent 40%,rgba(255,255,255,.35) 50%,transparent 60%);transform:translateX(-120%);animation:sheen 4s ease-in-out infinite;pointer-events:none}
+.price{font-family:var(--font-display);font-size:32px;font-weight:700;font-variant-numeric:tabular-nums}
+.price small{font-family:var(--font-body);font-size:13px;font-weight:800;color:var(--muted)}
+.plan ul{margin:0;padding:0;list-style:none;display:flex;flex-direction:column;gap:5px;font-size:13.5px}
+.plan li::before{content:"✓ ";font-weight:900;color:var(--brand)}.plan.cpf li::before{color:var(--gold)}
+.plan li.no{color:var(--muted)}.plan li.no::before{content:"— ";color:var(--muted)}
+.ribbon{position:absolute;top:-10px;right:14px;font-size:11px;font-weight:900;letter-spacing:.06em;text-transform:uppercase;padding:3px 10px;border-radius:999px;background:linear-gradient(135deg,var(--brand),var(--brand-2));color:var(--on-brand)}
+.plan.cpf .ribbon{background:linear-gradient(135deg,var(--gold),var(--gold-2));color:var(--on-gold)}
+.lockbox{display:flex;flex-direction:column;align-items:center;text-align:center;gap:8px;padding:6px 0}
+.lockbox .big{font-size:48px;animation:breathe 2.4s infinite}
+.cpf-steps{display:flex;flex-direction:column;gap:10px}
+.step{display:flex;gap:12px;align-items:flex-start}
+.step i{font-style:normal;width:28px;height:28px;border-radius:50%;background:linear-gradient(135deg,var(--gold),var(--gold-2));color:var(--on-gold);display:grid;place-items:center;font-weight:900;font-size:13px;flex:none}
+.step.ok i{background:var(--ok);color:#fff}
+.step b{display:block;font-size:14px}.step span{font-size:13px;color:var(--muted)}
+.fcbox{border:1.5px solid var(--fc);background:var(--fc-soft);border-radius:var(--r);padding:16px;display:flex;flex-direction:column;gap:10px}
+.fcbox .mark{display:inline-flex;align-items:center;gap:8px;font-weight:900;color:var(--fc);font-size:13px}
+.fcbox .mark i{width:22px;height:22px;border-radius:6px;background:var(--fc);display:inline-grid;place-items:center;color:#fff;font-style:normal;font-size:12px}
+.spinner{width:56px;height:56px;border-radius:50%;border:5px solid var(--line);border-top-color:var(--fc);animation:rot 1s linear infinite;margin:10px auto}
+.idcard{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:14px;display:grid;grid-template-columns:auto 1fr;gap:4px 12px;font-size:13.5px}
+.idcard span{color:var(--muted);font-weight:800}
+.idcard b{font-variant-numeric:tabular-nums}
+.reason{border:1.5px solid var(--line);background:var(--surface);border-radius:14px;padding:12px 14px;font-weight:800;font-size:14px;transition:all .15s}
+.reason.sel{border-color:var(--plum);background:var(--plum-soft)}
+.toast{position:absolute;left:16px;right:16px;bottom:calc(92px + env(safe-area-inset-bottom,0px));background:var(--coach);color:var(--coach-fg);padding:12px 16px;border-radius:16px;font-weight:800;font-size:14px;box-shadow:0 14px 36px -12px rgba(0,0,0,.5);z-index:20;animation:pop .3s;display:flex;gap:10px;align-items:center}
+.toast .em{font-size:22px;flex:none}
+.set{display:flex;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid var(--line)}
+.set:last-child{border:0}
+.set .t{flex:1;min-width:0}.set .t b{display:block;font-size:14px}.set .t span{font-size:12.5px;color:var(--muted)}
+
+/* === v6 : accessibilité, onboarding, examen, référentiel, fiches, duel, planning, oral === */
+:root{--gold-ink:#8A5A0E;--fs:15px}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--gold-ink:#FFD98A}}
+:root[data-theme="dark"]{--gold-ink:#FFD98A}
+.pill.gold{color:var(--gold-ink)}
+.phone{font-size:var(--fs)}
+.phone.fs-l{--fs:17px}.phone.fs-s{--fs:13.5px}
+.phone.fs-l .msg{font-size:16.5px}.phone.fs-l .mod .t b,.phone.fs-l .quest .t b{font-size:16px}
+.nomotion *{animation:none!important;transition:none!important}
+.gamefoot{padding:10px 16px calc(12px + env(safe-area-inset-bottom,0px));border-top:1px solid var(--line);background:var(--surface);flex:none}
+.gamefoot:empty{display:none}
+.field{display:flex;flex-direction:column;gap:6px}
+.field label{font-size:12px;font-weight:900;color:var(--muted);letter-spacing:.06em;text-transform:uppercase}
+.field input{border:1.5px solid var(--line);background:var(--surface);border-radius:14px;padding:12px 14px;font:inherit;color:var(--fg);width:100%}
+.seg.wrap{flex-wrap:wrap;border-radius:16px}
+.seg.wrap button{flex:1 1 30%;min-width:0;white-space:nowrap}
+.exam{background:linear-gradient(135deg,var(--coach),#2a5a4d);color:var(--coach-fg);border-radius:var(--r);padding:16px;display:grid;grid-template-columns:1fr auto;gap:10px 14px;align-items:center;position:relative;overflow:hidden}
+.exam::after{content:"";position:absolute;width:200px;height:200px;border-radius:50%;background:rgba(255,255,255,.06);right:-80px;bottom:-110px;pointer-events:none}
+.exam .big{font-family:var(--font-display);font-size:34px;font-weight:700;line-height:1;font-variant-numeric:tabular-nums}
+.exam .lbl{font-size:11px;letter-spacing:.1em;text-transform:uppercase;font-weight:900;opacity:.75}
+.proba{position:relative;width:86px;height:86px;border-radius:50%;background:conic-gradient(var(--gold-2) calc(var(--p)*1%),rgba(255,255,255,.15) 0);display:grid;place-items:center;transition:--p 1s}
+.proba::after{content:"";position:absolute;inset:8px;border-radius:50%;background:var(--coach)}
+.proba b{position:relative;font-family:var(--font-display);font-size:22px;font-weight:700}
+.proba small{position:relative;font-size:9px;letter-spacing:.08em;text-transform:uppercase;font-weight:900;opacity:.8}
+.todo{display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid var(--line);font-size:13.5px;font-weight:800}
+.todo:last-child{border:0}
+.todo i{width:22px;height:22px;border-radius:50%;border:2px solid var(--brand);display:grid;place-items:center;font-style:normal;font-size:12px;flex:none}
+.todo.ok i{background:var(--brand);color:var(--on-brand)}
+.todo.ok{color:var(--muted);text-decoration:line-through}
+.todo .gain{margin-left:auto;font-size:11px;color:var(--plum);font-weight:900;white-space:nowrap}
+.blocks{display:flex;flex-direction:column;gap:12px}
+.block{background:var(--surface-2);border:1px solid var(--line);border-radius:18px;padding:14px;display:flex;flex-direction:column;gap:10px}
+.block .hd{display:flex;align-items:center;gap:10px}
+.block .hd b{flex:1;min-width:0;font-size:14px}
+.block .hd .pct{font-family:var(--font-display);font-weight:700;font-size:20px;font-variant-numeric:tabular-nums}
+.cells{display:grid;grid-template-columns:repeat(auto-fill,minmax(22px,1fr));gap:4px}
+.cells i{aspect-ratio:1;border-radius:5px;background:var(--line);display:block}
+.cells i.d{background:linear-gradient(135deg,var(--brand),var(--brand-2))}
+.cells i.f{background:var(--brand-soft);border:1px dashed var(--brand)}
+.chaps{display:flex;flex-direction:column;gap:4px;font-size:12.5px}
+.chaps div{display:flex;justify-content:space-between;gap:8px;color:var(--muted);font-weight:700}
+.chaps div b{color:var(--fg);font-weight:800;font-variant-numeric:tabular-nums}
+.fiche{background:var(--surface);border:1px solid var(--line);border-radius:20px;padding:18px;display:flex;flex-direction:column;gap:12px;position:relative;overflow:hidden}
+.fiche::before{content:"";position:absolute;left:0;top:0;bottom:0;width:6px;background:linear-gradient(180deg,var(--brand),var(--gold))}
+.fiche h3{font-size:20px}
+.fiche .key{font-family:var(--font-display);font-size:16px;font-weight:500;border-left:3px solid var(--gold);padding-left:10px;color:var(--fg)}
+.fiche ul{margin:0;padding:0;list-style:none;display:flex;flex-direction:column;gap:6px;font-size:13.5px}
+.fiche li b{color:var(--brand)}
+.friend{display:flex;align-items:center;gap:12px;background:var(--surface-2);border:1px solid var(--line);border-radius:16px;padding:12px}
+.friend .f{width:40px;height:40px;border-radius:50%;display:grid;place-items:center;font-weight:900;color:#fff;flex:none;position:relative}
+.friend .f.on::after{content:"";position:absolute;right:-1px;bottom:-1px;width:12px;height:12px;border-radius:50%;background:var(--ok);border:2px solid var(--surface)}
+.friend .t{flex:1;min-width:0}.friend .t b{display:block;font-size:14px}.friend .t span{font-size:12px;color:var(--muted)}
+.duelhead{display:grid;grid-template-columns:1fr auto 1fr;gap:10px;align-items:center;text-align:center}
+.duelhead .sc{font-family:var(--font-display);font-size:36px;font-weight:700;font-variant-numeric:tabular-nums}
+.duelhead .vs{font-size:12px;letter-spacing:.1em;font-weight:900;color:var(--muted)}
+.duelhead .who{font-size:12px;font-weight:900;color:var(--muted)}
+.slot{display:flex;align-items:center;gap:12px;background:var(--surface-2);border:1px solid var(--line);border-radius:16px;padding:12px}
+.slot .when{font-family:var(--font-display);font-weight:700;font-size:18px;min-width:58px;font-variant-numeric:tabular-nums}
+.slot .t{flex:1;min-width:0}.slot .t b{display:block;font-size:13.5px}.slot .t span{font-size:12px;color:var(--muted)}
+.slot.off{opacity:.55}
+.jury{display:flex;gap:12px;align-items:flex-start;background:var(--surface-2);border:1px solid var(--line);border-radius:var(--r);padding:14px}
+.jury .avatar{background:linear-gradient(135deg,var(--plum),var(--plum-2));color:#fff}
+.grid5{display:flex;flex-direction:column;gap:8px}
+.crit{display:flex;flex-direction:column;gap:4px;font-size:13px}
+.crit .row{justify-content:space-between;font-weight:800}
+.crit .row b{font-variant-numeric:tabular-nums}
+.crit span.c{font-size:12.5px;color:var(--muted);font-weight:700}
+.note{font-family:var(--font-display);font-size:44px;font-weight:700;text-align:center;line-height:1}
+.note small{font-family:var(--font-body);font-size:13px;color:var(--muted);font-weight:800}
+.chrono{height:6px;background:var(--line);border-radius:99px;overflow:hidden}.chrono i{display:block;height:100%;background:var(--plum);width:100%;animation:tick 40s linear forwards}
+</style>
+</head>
+<body>
+
+
+<div class="stage">
+  <div class="demo-tag"><span>Démo cliquable</span><span>XYN · Xyn Education</span><span>CAP AEPE</span></div>
+  <div class="phone" id="phone">
+
+    <!-- HOME -->
+    <section class="screen on" id="s-home">
+      <div class="blobs"><i></i><i></i><i></i></div>
+      <div class="scroll rise">
+        <div class="row" style="justify-content:space-between"><div class="brand">XYN<small>par Xyn Education</small></div><button class="voice vbtn" onclick="toggleVoice()"><span>🔊</span>Léa parle</button></div>
+        <div class="card vwrap" hidden style="padding:10px 14px;display:flex;gap:10px;align-items:center;flex-wrap:wrap"><span class="eyebrow">Voix de Léa</span><select class="sel vsel" onchange="setVoice(this.value)" style="flex:1;min-width:140px"></select><span class="muted" style="font-size:11.5px;width:100%">Voix du téléphone. Une voix neurale la remplacera dans l'appli finale.</span></div>
+        <div class="hero"><div class="orb"></div><div class="orb"></div>
+          <h1>Apprends n'importe quel diplôme, en discutant.</h1>
+          <p>Un coach qui te met en situation. Jamais un cours à lire.</p>
+        </div>
+        <div>
+          <p class="eyebrow">Que veux-tu préparer ?</p>
+          <div class="goals" style="margin-top:8px">
+            <button class="goal sel"><b>CAP Petite Enfance</b><span>CAP AEPE · 3 épreuves pro</span></button>
+            <button class="goal dim"><b>Titre pro ADVF</b><span>Bientôt</span></button>
+            <button class="goal dim"><b>BAFA</b><span>Bientôt</span></button>
+            <button class="goal dim"><b>Une compétence libre</b><span>Bientôt</span></button>
+          </div>
+        </div>
+        <div class="social"><div class="faces"><i style="background:#7A3FB3">S</i><i style="background:#19A085">M</i><i style="background:#F06A5A">A</i><i style="background:#E9A63A">K</i></div><span><span class="live-dot"></span> <b id="livecount">1 284</b> futurs pros s'entraînent en ce moment</span></div>
+        <button class="btn pulse" onclick="ac();go('s-onb')">Commencer · gratuit</button>
+        <button class="btn ghost" onclick="skipToDash()">J'ai déjà un compte</button>
+        <p class="muted" style="text-align:center;font-size:12px">Sans carte. Tu décides après.</p>
+      </div>
+    </section>
+
+    <!-- BILAN -->
+    <section class="screen" id="s-bilan">
+      <div class="blobs"><i></i><i></i><i></i></div>
+      <div class="bar"><button class="back" onclick="go('s-home')">‹</button><span class="ttl">Bilan de départ</span><span class="sp"></span><span class="pill">Gratuit</span></div>
+      <div class="scroll">
+        <div class="q-dots" id="bdots"><i class="on"></i><i></i><i></i></div>
+        <div class="coach-row"><div class="avatar">L</div><p id="bq"></p></div>
+        <div class="mic-wrap">
+          <button class="mic" id="mic" onclick="speak()" aria-label="Parler">🎙</button>
+          <div class="wave" id="wave"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
+          <p class="transcript ph" id="tr">Appuie et réponds à voix haute</p>
+        </div>
+        <div id="bnext" hidden class="stack"><button class="btn" onclick="bilanNext()">Question suivante</button></div>
+        <p class="muted" style="font-size:12px;text-align:center">Démo : ta voix est simulée, celle de Léa est réelle (active « Léa parle »).</p>
+      </div>
+    </section>
+
+    <!-- RESULT -->
+    <section class="screen" id="s-result">
+      <div class="blobs"><i></i><i></i><i></i></div>
+      <div class="bar"><span class="ttl">Ton point de départ</span></div>
+      <div class="scroll rise">
+        <div class="coach-row"><div class="avatar">L</div><p>Merci. Tu as déjà un vrai regard sur les enfants, ça s'entend. Ce qui te manque, c'est le vocabulaire du référentiel et les réflexes de sécurité. On commence par là.</p></div>
+        <div class="card stack">
+          <div><div class="row" style="justify-content:space-between;font-size:13px;font-weight:900"><span>Accompagner le développement</span><span>38 %</span></div><div class="meter"><i style="width:38%"></i></div></div>
+          <div><div class="row" style="justify-content:space-between;font-size:13px;font-weight:900"><span>Accueil collectif (crèche)</span><span>22 %</span></div><div class="meter"><i style="width:22%"></i></div></div>
+          <div><div class="row" style="justify-content:space-between;font-size:13px;font-weight:900"><span>Accueil individuel (domicile)</span><span>15 %</span></div><div class="meter"><i style="width:15%"></i></div></div>
+        </div>
+        <div class="card"><p class="eyebrow">Plan proposé</p><p style="margin-top:6px;font-size:14px" id="resultplan"></p></div>
+        <div class="badge-pop"><div class="badge pop">🎙</div><b>Badge « Première voix »</b><span class="xpgain">+50 XP</span></div>
+        <button class="btn" onclick="go('s-dash');gainXP(50);unlockBadge('voix')">Voir mon parcours</button>
+      </div>
+    </section>
+
+    <!-- DASH -->
+    <section class="screen" id="s-dash">
+      <div class="blobs"><i></i><i></i><i></i></div>
+      <div class="bar"><div class="brand" style="font-size:18px">XYN<small class="hello" style="letter-spacing:0"></small></div><span class="sp"></span><div class="hud"><span class="chip flame"><span>🔥</span><b class="streakv">3</b></span><span class="chip xp">✦ <b class="xpv">0</b> XP</span></div><button class="iconbtn" onclick="go('s-notifs')">🔔<span class="n" id="ncount" hidden>0</span></button><button class="iconbtn" onclick="go('s-settings')">⚙️</button></div>
+      <div class="scroll">
+        <div><div class="lvl"><span>Niveau <b class="lvlv">1</b> · <span class="lvlname">Débutante curieuse</span></span><span class="xpnext">150 XP → niv. 2</span></div><div class="xpbar" style="margin-top:6px"><i class="xpbarv" style="width:0%"></i></div></div>
+        <div id="dashbanner"></div>
+        <div id="examcard"></div>
+        <div class="coach-row"><div class="avatar">L</div><p id="dashmsg">Il est 8h15 à la crèche des Lilas. Noah arrive dans les bras de sa maman et hurle. On y va ?</p></div>
+        <div class="card" id="dailycard" style="padding:12px 14px"></div>
+        <div>
+          <p class="eyebrow">EP1 · Accompagner le développement du jeune enfant</p>
+          <div class="modules" style="margin-top:8px" id="mods1"></div>
+        </div>
+        <div>
+          <p class="eyebrow">EP2 · Accueil collectif</p>
+          <div class="modules" style="margin-top:8px">
+            <button class="mod locked" onclick="paywall('Le projet pédagogique')"><div class="ico">🏫</div><div class="t"><b>Projet pédagogique et travail d'équipe</b><span>12 séquences · Premium</span></div><span class="pill lock">🔒</span></button>
+          </div>
+        </div>
+        <div class="card" style="border-color:var(--plum);display:flex;gap:12px;align-items:center">
+          <div style="font-size:28px">🎤</div>
+          <div style="flex:1;min-width:0"><b style="font-size:14px">Oral blanc EP1</b><p class="muted" style="font-size:12.5px">Léa joue le jury. Aperçu gratuit, version complète en Prépa finale.</p></div>
+          <button class="pill plum" onclick="startOral()">Essayer</button>
+        </div>
+        <div class="card" style="border-color:var(--gold);display:flex;gap:12px;align-items:center">
+          <div style="font-size:28px">🎓</div>
+          <div style="flex:1;min-width:0"><b style="font-size:14px">Prépa finale à l'examen</b><p class="muted" style="font-size:12.5px">Oraux blancs, dossier EP1 corrigé, 100 % finançable CPF.</p></div>
+          <button class="pill gold" onclick="go('s-cpf')">Voir</button>
+        </div>
+        <div class="row" style="gap:8px;flex-wrap:wrap">
+          <button class="chip" onclick="go('s-ref')">📚 Référentiel complet</button>
+          <button class="chip" onclick="go('s-fiches')">📝 Mes fiches</button>
+          <button class="chip" onclick="go('s-plan')">📅 Ma semaine</button>
+        </div>
+      </div>
+      <nav class="tabs" data-tab="s-dash"></nav>
+    </section>
+
+    <!-- SEQ -->
+    <section class="screen" id="s-seq">
+      <div class="bar"><button class="back" onclick="go('s-dash')">‹</button><div style="min-width:0"><span class="ttl">Léa</span><br><span class="muted" style="font-size:12px" id="seqtitle"></span></div><span class="sp"></span><button class="voice vbtn" onclick="toggleVoice()"><span>🔊</span></button><div class="avatar" style="width:36px;height:36px;font-size:15px">L</div></div>
+      <div class="progress-head"><div class="row"><span id="stepname">Mise en situation</span><span><span id="stepn">1 / 5</span> · <span style="color:var(--plum)" id="seqxp">+0 XP</span></span></div><div class="meter"><i id="seqmeter" style="width:10%"></i></div></div>
+      <div class="chat" id="chat"><div class="choices" id="choices"></div></div>
+      <form class="compose" onsubmit="send(event)"><input id="inp" placeholder="Réponds à Léa avec tes mots…" autocomplete="off"><button type="submit" aria-label="Envoyer">↑</button></form>
+    </section>
+
+    <!-- GAME -->
+    <section class="screen" id="s-game">
+      <div class="blobs"><i></i><i></i><i></i></div>
+      <div class="bar"><span class="ttl">Mini-jeu · Vérifions</span><span class="sp"></span><span class="pill" id="gpill">1 / 3</span></div>
+      <div class="scroll" id="gamebody"></div>
+      <div class="gamefoot" id="gamefoot"></div>
+    </section>
+
+    <!-- DONE -->
+    <section class="screen" id="s-done">
+      <canvas class="confetti" id="cf"></canvas>
+      <div class="scroll" style="justify-content:center;text-align:center">
+        <p class="eyebrow" id="donelabel">Séquence validée</p>
+        <div class="score-ring" id="ring" style="--pct:0"><b id="scoretxt">0</b></div>
+        <h2 id="donetitle" style="font-size:26px">Bien joué</h2>
+        <div class="badge-pop" id="badgepop"></div>
+        <div class="notions" id="notionsdone"></div>
+        <p class="muted" id="donemsg" style="font-size:13.5px"></p>
+        <div class="coach-row" style="text-align:left"><div class="avatar">L</div><p id="donecoach"></p></div>
+        <button class="btn pulse" onclick="finishSeq()">Retour au parcours</button>
+        <button class="btn ghost" onclick="go('s-fiches')">📝 Voir ma fiche mémo</button>
+      </div>
+    </section>
+
+    <!-- REVISE -->
+    <section class="screen" id="s-revise">
+      <div class="blobs"><i></i><i></i><i></i></div>
+      <div class="bar"><span class="ttl">À réviser aujourd'hui</span><span class="sp"></span><span class="pill plum" id="revcount">0</span></div>
+      <div class="scroll rise" id="revbody"></div>
+      <nav class="tabs" data-tab="s-revise"></nav>
+    </section>
+
+    <!-- QUESTS -->
+    <section class="screen" id="s-quests">
+      <div class="blobs"><i></i><i></i><i></i></div>
+      <div class="bar"><span class="ttl">Défis</span><span class="sp"></span><span class="chip xp">✦ <b class="xpv">0</b> XP</span></div>
+      <div class="scroll rise" id="questbody"></div>
+      <nav class="tabs" data-tab="s-quests"></nav>
+    </section>
+
+    <!-- BADGES -->
+    <section class="screen" id="s-badges">
+      <div class="blobs"><i></i><i></i><i></i></div>
+      <div class="bar"><span class="ttl">Mes badges</span><span class="sp"></span><span class="chip xp">✦ <b class="xpv">0</b> XP</span></div>
+      <div class="scroll rise">
+        <div class="card">
+          <div class="row" style="justify-content:space-between"><p class="eyebrow">Série en cours</p><span class="chip flame"><span>🔥</span><b class="streakv">3</b> jours</span></div>
+          <div class="week" style="margin-top:10px" id="week"></div>
+          <p class="muted" style="font-size:12.5px;margin-top:10px" id="weekmsg">Une séquence aujourd'hui et la flamme passe à 4. Léa te relance à 19h si tu l'oublies.</p>
+        </div>
+        <div><p class="eyebrow">Collection</p><div class="bgrid" style="margin-top:8px" id="bgrid"></div></div>
+      </div>
+      <nav class="tabs" data-tab="s-badges"></nav>
+    </section>
+
+    <!-- RANK -->
+    <section class="screen" id="s-rank">
+      <div class="blobs"><i></i><i></i><i></i></div>
+      <div class="bar"><span class="ttl">Classement</span><span class="sp"></span><span class="muted" style="font-size:12px;font-weight:800" id="lbtimer">Fin dans 2 j 4 h</span></div>
+      <div class="scroll rise">
+        <div class="league" id="leaguebox"><div class="em">🥉</div><div><b>Ligue Bronze · groupe 14</b><span>Les 5 premiers montent en Argent dimanche soir.</span></div></div>
+        <div class="seg"><button class="on">Ma ligue</button><button onclick="toast('🎓','Classement de ta promo CAP AEPE 2027 (démo).')">Ma promo</button><button onclick="toast('🌍','Top 100 France (démo).')">France</button></div>
+        <div class="podium">
+          <div class="pod"><div class="f" style="background:#19A085">M</div><div class="n">Mélissa</div><div class="x">1 940</div><div class="blk">2</div></div>
+          <div class="pod"><div class="f" style="background:#7A3FB3">S</div><div class="n">Sofiane</div><div class="x">2 310</div><div class="blk">1</div></div>
+          <div class="pod"><div class="f" style="background:#F06A5A">A</div><div class="n">Awa</div><div class="x">1 720</div><div class="blk">3</div></div>
+        </div>
+        <div class="lb" id="lb"></div>
+        <div class="card" style="border-color:var(--coral);display:flex;gap:12px;align-items:center"><div style="font-size:28px">⚔️</div><div style="flex:1;min-width:0"><b style="font-size:14px">Défie un camarade</b><p class="muted" style="font-size:12.5px">5 questions, en direct. Le perdant paie le café.</p></div><button class="pill coral" onclick="go('s-friends')">Duel</button></div>
+      </div>
+      <nav class="tabs" data-tab="s-rank"></nav>
+    </section>
+
+    <!-- CEREMONY -->
+    <section class="screen" id="s-ceremony">
+      <canvas class="confetti" id="cf2"></canvas>
+      <div class="scroll cer">
+        <p class="eyebrow">Promotion</p>
+        <div class="big">🥈</div>
+        <h2>Ligue Argent</h2>
+        <p class="muted" style="max-width:280px">Tu entres dans le top 5 du groupe 14. Dimanche soir, tu montes. Léa : « Je te l'avais dit. »</p>
+        <span class="xpgain" style="font-size:14px;padding:6px 14px">+150 XP · badge Argent</span>
+        <button class="btn pulse" style="max-width:280px" onclick="gainXP(150);unlockBadge('argent');go('s-rank')">Continuer</button>
+      </div>
+    </section>
+
+    <!-- NOTIFS -->
+    <section class="screen" id="s-notifs">
+      <div class="blobs"><i></i><i></i><i></i></div>
+      <div class="bar"><button class="back" onclick="go('s-dash')">‹</button><span class="ttl">Léa te relance</span><span class="sp"></span><button class="btn ghost sm" onclick="markRead()">Tout lu</button></div>
+      <div class="scroll rise" id="notifbody"></div>
+    </section>
+
+    <!-- SETTINGS -->
+    <section class="screen" id="s-settings">
+      <div class="blobs"><i></i><i></i><i></i></div>
+      <div class="bar"><button class="back" onclick="go('s-dash')">‹</button><span class="ttl">Réglages</span></div>
+      <div class="scroll rise">
+        <div class="card">
+          <p class="eyebrow">Léa</p>
+          <div class="set"><div class="t"><b>Léa parle</b><span>Lit les scènes et ses réponses à voix haute</span></div><button class="sw" id="swvoice" onclick="toggleVoice()" aria-label="Léa parle"></button></div>
+          <div class="set"><div class="t"><b>Voix</b><span>Voix françaises installées sur ce téléphone</span></div><select class="sel vsel" onchange="setVoice(this.value)" style="max-width:150px"></select></div>
+          <div class="set"><div class="t"><b>Sons</b><span>XP, badges, bonnes et mauvaises réponses</span></div><button class="sw on" id="swsound" onclick="toggleSound()" aria-label="Sons"></button></div>
+          <div class="set"><div class="t"><b>Relances</b><span>Selon ta semaine type</span></div><button class="btn ghost sm" onclick="go('s-plan')">Planning</button></div>
+        </div>
+        <div class="card">
+          <p class="eyebrow">Affichage et accessibilité</p>
+          <div class="set"><div class="t"><b>Taille du texte</b><span>S'applique à toute l'appli</span></div><div class="seg" style="min-width:150px"><button class="fsb" data-fs="s" onclick="setFS('s')">A</button><button class="fsb on" data-fs="m" onclick="setFS('m')" style="font-size:14px">A</button><button class="fsb" data-fs="l" onclick="setFS('l')" style="font-size:16px">A</button></div></div>
+          <div class="set"><div class="t"><b>Réduire les animations</b><span>Fonds, confettis, transitions</span></div><button class="sw" id="swmotion" onclick="toggleMotion()" aria-label="Réduire les animations"></button></div>
+          <div class="set"><div class="t"><b>Thème</b><span>Suit le réglage du téléphone (clair / sombre)</span></div><span class="pill">Auto</span></div>
+        </div>
+        <div class="card" id="subcard"></div>
+        <div class="card">
+          <p class="eyebrow">Voix neurale (appli finale)</p>
+          <p style="font-size:13.5px;margin-top:6px">Chaque réplique de Léa est déjà écrite avec ses pauses et son intonation pour une voix de studio (ElevenLabs, OpenAI, Azure). Exemple :</p>
+          <pre style="margin:8px 0 0;white-space:pre-wrap;font:12.5px/1.5 ui-monospace,monospace;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:10px;overflow-x:auto" id="ssml"></pre>
+        </div>
+        <div class="card">
+          <p class="eyebrow">Compte</p>
+          <div class="set"><div class="t"><b>Objectif</b><span>CAP AEPE · session juin 2027</span></div></div>
+          <div class="set"><div class="t"><b>Identité</b><span id="idline">Non vérifiée · requise pour le CPF</span></div></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- PAY -->
+    <section class="screen" id="s-pay">
+      <div class="blobs"><i></i><i></i><i></i></div>
+      <div class="bar"><button class="back" onclick="go('s-dash')">‹</button><span class="ttl">Continuer avec Léa</span></div>
+      <div class="scroll rise">
+        <div class="lockbox" id="lockbox"></div>
+        <div class="plans">
+          <div class="plan"><p class="eyebrow">Découverte</p><div class="price">0 €</div>
+            <ul><li>Bilan vocal de départ</li><li>3 séquences avec Léa</li><li>Badges et classement</li><li class="no">Les 84 autres séquences</li><li class="no">Gel de série, révisions illimitées</li></ul></div>
+          <div class="plan pro"><span class="ribbon">Le plus choisi</span><p class="eyebrow">Premium</p><div class="price">20 €<small> / mois · sans engagement</small></div>
+            <ul><li>Les 87 séquences du CAP AEPE</li><li>Léa en illimité, à la voix ou à l'écrit</li><li>XP ×2, gel de série, ligues Or et Diamant</li><li>Tous les futurs diplômes XYN inclus</li></ul>
+            <button class="btn" onclick="subscribe()">Essayer 7 jours gratuits</button></div>
+          <div class="plan cpf"><span class="ribbon">Éligible CPF</span><p class="eyebrow">Prépa finale examen</p><div class="price">1 200 €<small> · reste à charge 0 € possible</small></div>
+            <ul><li>Tout Premium pendant 12 mois</li><li>3 oraux blancs avec un formateur</li><li>Dossier professionnel EP1 corrigé</li><li>Inscription à la session guidée</li></ul>
+            <button class="btn gold" onclick="go('s-cpf')">Financer avec mon CPF</button></div>
+        </div>
+        <p class="muted" style="font-size:12px;text-align:center">Annulable en deux taps. Prix du modèle cible, à titre de démo.</p>
+      </div>
+    </section>
+
+    <!-- CANCEL -->
+    <section class="screen" id="s-cancel">
+      <div class="blobs"><i></i><i></i><i></i></div>
+      <div class="bar"><button class="back" onclick="go('s-settings')">‹</button><span class="ttl">Avant de partir</span></div>
+      <div class="scroll rise" id="cancelbody"></div>
+    </section>
+
+    <!-- CPF -->
+    <section class="screen" id="s-cpf">
+      <div class="blobs"><i></i><i></i><i></i></div>
+      <div class="bar"><button class="back" onclick="go('s-pay')">‹</button><span class="ttl">Financement CPF</span></div>
+      <div class="scroll rise" id="cpfbody"></div>
+    </section>
+
+    <!-- FC interstitial -->
+    <section class="screen" id="s-fc">
+      <div class="scroll" style="justify-content:center;text-align:center;gap:14px" id="fcbody"></div>
+    </section>
+
+
+    <!-- ONBOARDING -->
+    <section class="screen" id="s-onb">
+      <div class="blobs"><i></i><i></i><i></i></div>
+      <div class="bar"><button class="back" onclick="go('s-home')">‹</button><span class="ttl">Faisons connaissance</span><span class="sp"></span><span class="pill">1 min</span></div>
+      <div class="scroll rise">
+        <div class="coach-row"><div class="avatar">L</div><p>Trois questions et je te prépare un plan. Promis, pas de formulaire de dix pages.</p></div>
+        <div class="field"><label for="onbname">Comment je t'appelle ?</label><input id="onbname" placeholder="Ton prénom ou un pseudo" autocomplete="off" maxlength="18"></div>
+        <div class="field"><label>Session visée</label><div class="seg wrap" id="onbexam">
+          <button class="on" data-v="2027-06-01">Juin 2027</button><button data-v="2027-09-15">Sept. 2027</button><button data-v="2028-06-01">Juin 2028</button></div></div>
+        <div class="field"><label>Temps par jour</label><div class="seg wrap" id="onbmin">
+          <button data-v="10">10 min</button><button class="on" data-v="20">20 min</button><button data-v="40">40 min</button></div></div>
+        <div class="card" id="onbplan" style="font-size:13.5px"></div>
+        <button class="btn pulse" onclick="onbDone()">C'est parti pour le bilan vocal</button>
+      </div>
+    </section>
+
+    <!-- RÉFÉRENTIEL -->
+    <section class="screen" id="s-ref">
+      <div class="blobs"><i></i><i></i><i></i></div>
+      <div class="bar"><button class="back" onclick="go('s-dash')">‹</button><span class="ttl">Le référentiel CAP AEPE</span><span class="sp"></span><span class="pill" id="refpct">0 %</span></div>
+      <div class="scroll rise" id="refbody"></div>
+    </section>
+
+    <!-- FICHES -->
+    <section class="screen" id="s-fiches">
+      <div class="blobs"><i></i><i></i><i></i></div>
+      <div class="bar"><button class="back" onclick="go('s-dash')">‹</button><span class="ttl">Mes fiches mémo</span><span class="sp"></span><span class="pill plum" id="fichecount">0</span></div>
+      <div class="scroll rise" id="fichebody"></div>
+    </section>
+
+    <!-- AMIS / DUEL -->
+    <section class="screen" id="s-friends">
+      <div class="blobs"><i></i><i></i><i></i></div>
+      <div class="bar"><button class="back" onclick="go('s-rank')">‹</button><span class="ttl">Amis et duels</span><span class="sp"></span><button class="btn ghost sm" onclick="invite()">+ Inviter</button></div>
+      <div class="scroll rise" id="friendbody"></div>
+    </section>
+    <section class="screen" id="s-duel">
+      <div class="blobs"><i></i><i></i><i></i></div>
+      <div class="bar"><span class="ttl">Duel</span><span class="sp"></span><span class="pill coral" id="duelpill">1 / 5</span></div>
+      <div class="scroll" id="duelbody"></div>
+      <div class="gamefoot" id="duelfoot"></div>
+    </section>
+
+    <!-- PLANNING -->
+    <section class="screen" id="s-plan">
+      <div class="blobs"><i></i><i></i><i></i></div>
+      <div class="bar"><button class="back" onclick="go('s-dash')">‹</button><span class="ttl">Ma semaine type</span></div>
+      <div class="scroll rise" id="planbody"></div>
+    </section>
+
+    <!-- ORAL BLANC -->
+    <section class="screen" id="s-oral">
+      <div class="blobs"><i></i><i></i><i></i></div>
+      <div class="bar"><button class="back" onclick="go('s-dash')">‹</button><div style="min-width:0"><span class="ttl">Oral blanc EP1</span><br><span class="muted" style="font-size:12px" id="oralsub">Jury · 3 questions</span></div><span class="sp"></span><span class="pill plum" id="oralpill">Préparation</span></div>
+      <div class="scroll" id="oralbody"></div>
+      <div class="gamefoot" id="oralfoot"></div>
+    </section>
+
+    <canvas class="confetti" id="cfg" style="z-index:25"></canvas>
+    <div class="toast" id="toast" hidden><span class="em" id="toastem"></span><span id="toasttx"></span></div>
+  </div>
+  <p class="legend">Accueil → Bilan vocal → Parcours → Séquences avec Léa → Mini-jeux → Réviser / Défis / Badges / Classement → Premium → CPF via FranceConnect (simulé).</p>
+</div>
+
+<script>
+/* ============ utils ============ */
+const $=s=>document.querySelector(s),$$=s=>[...document.querySelectorAll(s)];
+const fr=n=>n.toLocaleString('fr-FR');
+function go(id){$$('.screen').forEach(s=>s.classList.remove('on'));const sc=$('#'+id);sc.classList.add('on');
+ sc.querySelectorAll('.scroll,.chat').forEach(e=>e.scrollTop=0);try{window.scrollTo(0,0)}catch(e){}
+ ({'s-dash':renderDash,'s-badges':renderBadges,'s-rank':renderLB,'s-revise':renderRevise,'s-quests':renderQuests,'s-notifs':renderNotifs,'s-settings':renderSettings,'s-cpf':renderCPF,'s-ref':renderRef,'s-fiches':renderFiches,'s-friends':renderFriends,'s-plan':renderPlan,'s-onb':renderOnb}[id]||(()=>{}))();
+ $$('.tabs').forEach(n=>n.querySelectorAll('button').forEach(b=>b.classList.toggle('on',b.dataset.go===id)))}
+let tt;function toast(em,m){const t=$('#toast');$('#toastem').textContent=em;$('#toasttx').textContent=m;t.hidden=false;clearTimeout(tt);tt=setTimeout(()=>t.hidden=true,2800)}
+function floatXP(t){const f=document.createElement('div');f.className='float';f.textContent=t;$('#phone').appendChild(f);setTimeout(()=>f.remove(),1400)}
+function has(s,...w){s=s.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'').replace(/['’]/g,' ');return w.some(x=>s.includes(x.normalize('NFD').replace(/[̀-ͯ]/g,'')))}
+
+/* ============ state ============ */
+const S={xp:0,streak:3,badges:new Set(['streak3','bronze']),missed:new Set(),learned:new Set(),done:new Set(),premium:false,trialEnd:null,sound:true,freeText:0,perfectRuns:0,goodStreak:0,topShown:false,identity:null,cpfSent:false,revCount:0,name:'',exam:'2027-06-01',minutes:20,fs:'m',motion:false,duelsWon:0,oralDone:false,oralScore:null,slotsOff:new Set(),
+ quests:{daily:[{id:'d1',e:'🎯',n:'Finis une séquence',p:0,m:1,r:40},{id:'d2',e:'🔥',n:'3 bonnes réponses d\'affilée',p:0,m:3,r:30},{id:'d3',e:'✍️',n:'Réponds à Léa avec tes mots, 2 fois',p:0,m:2,r:30}],
+  weekly:[{id:'w1',e:'📋',n:'3 transmissions parfaites',p:0,m:3,r:120},{id:'w2',e:'🔥',n:'5 jours de flamme',p:3,m:5,r:150},{id:'w3',e:'🏁',n:'Dépasser Yanis au classement',p:0,m:1,r:100},{id:'w4',e:'🧠',n:'Réviser 5 notions',p:0,m:5,r:80}]}};
+
+/* ============ tabs ============ */
+const TABS=[['s-dash','🧭','Parcours'],['s-revise','🧠','Réviser'],['s-quests','🎯','Défis'],['s-rank','🏆','Classement'],['s-badges','🏅','Badges']];
+$$('.tabs').forEach(n=>{n.innerHTML=TABS.map(([id,e,l])=>`<button data-go="${id}" onclick="go('${id}')"><span>${e}</span>${l}<i class="dotn" data-dot="${id}" hidden></i></button>`).join('')});
+function dot(id,on){$$(`[data-dot="${id}"]`).forEach(d=>d.hidden=!on)}
+
+/* ============ live counter ============ */
+let live=1284;setInterval(()=>{live+=Math.random()<.5?1:-1;$('#livecount').textContent=fr(live)},2200);
+
+/* ============ sons (Web Audio) ============ */
+let AC=null;function ac(){if(!S.sound)return null;try{AC=AC||new (window.AudioContext||window.webkitAudioContext)();if(AC.state==='suspended')AC.resume();return AC}catch(e){return null}}
+function tone(f,t0,d,type='sine',g=.18){const c=ac();if(!c)return;const o=c.createOscillator(),v=c.createGain();o.type=type;o.frequency.setValueAtTime(f,c.currentTime+t0);v.gain.setValueAtTime(0,c.currentTime+t0);v.gain.linearRampToValueAtTime(g,c.currentTime+t0+.01);v.gain.exponentialRampToValueAtTime(.001,c.currentTime+t0+d);o.connect(v).connect(c.destination);o.start(c.currentTime+t0);o.stop(c.currentTime+t0+d+.02)}
+const sfx={xp(){tone(880,0,.12);tone(1320,.08,.16)},good(){tone(660,0,.1);tone(990,.09,.14)},bad(){tone(180,0,.22,'square',.08);tone(140,.12,.25,'square',.08)},badge(){[523,659,784,1046].forEach((f,i)=>tone(f,i*.09,.3))},level(){[392,523,659,784,1046,1318].forEach((f,i)=>tone(f,i*.07,.35,'triangle'))},tap(){tone(1200,0,.05,'sine',.06)},push(){tone(1046,0,.08);tone(1568,.1,.12)}};
+(function(){const unlock=()=>{const c=ac();if(c){try{const b=c.createBuffer(1,1,22050),src=c.createBufferSource();src.buffer=b;src.connect(c.destination);src.start(0)}catch(e){}}};['pointerdown','touchend','keydown'].forEach(ev=>document.addEventListener(ev,unlock,{passive:true}))})();
+function toggleSound(){S.sound=!S.sound;$('#swsound').classList.toggle('on',S.sound);if(S.sound)sfx.good()}
+
+/* ============ voix de Léa ============ */
+let voiceOn=false,frVoice=null,frVoices=[];
+const FEM=/am[ée]lie|aur[ée]lie|audrey|marie|c[ée]line|chantal|virginie|julie|sophie|female|femme|f[ée]minin|google fran|denise|eloise|vivienne|coralie|l[ée]a/i;
+function pickVoice(){if(!('speechSynthesis' in window))return;const v=speechSynthesis.getVoices();frVoices=v.filter(x=>/^fr/i.test(x.lang));
+ const score=x=>(FEM.test(x.name)?10:0)+(/premium|enhanced|am[ée]lior|neural|natural|siri/i.test(x.name)?5:0)+(/fr[-_]FR/i.test(x.lang)?2:0)+(/thomas|daniel|nicolas|male|homme|paul|henri/i.test(x.name)?-20:0);
+ frVoices.sort((a,b)=>score(b)-score(a));if(!frVoice||!frVoices.includes(frVoice))frVoice=frVoices[0]||null;
+ $$('.vsel').forEach(sel=>{sel.innerHTML=frVoices.length?frVoices.map((x,i)=>`<option value="${i}" ${x===frVoice?'selected':''}>${x.name.replace(/\(.*?\)/g,'').trim()}${FEM.test(x.name)?' ♀':''}</option>`).join(''):'<option>Aucune voix française</option>'})}
+function setVoice(i){frVoice=frVoices[+i]||null;if(!voiceOn)toggleVoice();else say("Bonjour, c'est Léa. Cette voix te va mieux ?")}
+if('speechSynthesis' in window){pickVoice();speechSynthesis.onvoiceschanged=pickVoice;setTimeout(pickVoice,700)}
+function toggleVoice(){if(!('speechSynthesis' in window)){toast('🔇','La synthèse vocale n\'est pas disponible dans ce navigateur.');return}
+ voiceOn=!voiceOn;$$('.vbtn').forEach(b=>b.classList.toggle('on',voiceOn));$$('.vwrap').forEach(w=>w.hidden=!voiceOn);$('#swvoice').classList.toggle('on',voiceOn);
+ if(voiceOn){pickVoice();say("Salut, moi c'est Léa. On apprend en discutant, d'accord ?")}else speechSynthesis.cancel()}
+function say(text){if(!voiceOn)return;speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(text.replace(/<[^>]+>/g,'').replace(/[«»]/g,''));u.lang='fr-FR';if(frVoice)u.voice=frVoice;u.rate=1;u.pitch=1.08;
+ const avs=$$('.avatar');u.onstart=()=>avs.forEach(a=>a.classList.add('talk'));u.onend=u.onerror=()=>avs.forEach(a=>a.classList.remove('talk'));speechSynthesis.speak(u)}
+$('#ssml').textContent=`<speak voice="lea-fr" style="chaleureuse">
+  Crèche des Lilas, <break time="300ms"/> 8h15.
+  Noah, 18 mois, arrive dans les bras de sa maman…
+  <break time="500ms"/>
+  <prosody rate="95%">Toi, tu fais quoi, là, maintenant ?</prosody>
+</speak>`;
+
+/* ============ XP / niveaux ============ */
+const LV=[0,150,400,800,1400,2200],LVN=['Débutante curieuse','Stagiaire attentive','Pro en devenir','Référente','Experte AEPE','Formatrice'];
+function level(){let l=1;for(let i=1;i<LV.length;i++)if(S.xp>=LV[i])l=i+1;return l}
+function updateXP(){const l=level(),base=LV[l-1],next=LV[l]||LV[LV.length-1]+800;
+ $$('.xpv').forEach(e=>e.textContent=fr(S.xp));$$('.lvlv').forEach(e=>e.textContent=l);$$('.lvlname').forEach(e=>e.textContent=LVN[l-1]);
+ $$('.xpnext').forEach(e=>e.textContent=(next-S.xp)+' XP → niv. '+(l+1));$$('.xpbarv').forEach(e=>e.style.width=Math.min(100,(S.xp-base)/(next-base)*100)+'%');$$('.streakv').forEach(e=>e.textContent=S.streak)}
+function gainXP(n){const before=level();const g=S.premium?n*2:n;S.xp+=g;updateXP();floatXP('+'+g+' XP');sfx.xp();
+ if(level()>before)setTimeout(()=>{toast('⬆️','Niveau '+level()+' · '+LVN[level()-1]+' ! Léa est fière de toi.');sfx.level()},900);checkTop5()}
+updateXP();
+
+/* ============ badges ============ */
+const BADGES=[
+ {k:'voix',e:'🎙',n:'Première voix',d:'Bilan terminé',c:''},
+ {k:'seq1',e:'🌅',n:'Séparation sereine',d:'Séquence 1',c:'green'},
+ {k:'streak3',e:'🔥',n:'3 jours de suite',d:'Série',c:'coral'},
+ {k:'perfect',e:'🎯',n:'Sans faute',d:'Mini-jeu 3/3',c:'plum'},
+ {k:'seq2',e:'🥄',n:'À table !',d:'Séquence 2',c:'green'},
+ {k:'seq3',e:'😴',n:'Marchande de sable',d:'Séquence 3',c:'green'},
+ {k:'free',e:'🗣',n:'Avec tes mots',d:'3 réponses libres',c:'plum'},
+ {k:'bronze',e:'🥉',n:'Bronze',d:'Ligue atteinte',c:''},
+ {k:'argent',e:'🥈',n:'Argent',d:'Top 5 de ligue',c:''},
+ {k:'revise',e:'🧠',n:'Mémoire d\'éléphant',d:'5 révisions',c:'plum'},
+ {k:'premium',e:'✨',n:'Membre',d:'Premium',c:'',lock:true},
+ {k:'ep1',e:'🎓',n:'Prête pour EP1',d:'Oral blanc ≥ 14/20',c:''}];
+let newBadge=null;
+function unlockBadge(k){if(S.badges.has(k))return;S.badges.add(k);newBadge=k;const b=BADGES.find(x=>x.k===k);dot('s-badges',true);setTimeout(()=>{toast(b.e,'Badge « '+b.n+' » débloqué');sfx.badge()},500)}
+function renderBadges(){$('#bgrid').innerHTML=BADGES.map(b=>{const ok=S.badges.has(b.k);return `<button class="bd ${b.c} ${ok?'':'off'} ${b.k===newBadge?'new':''}" onclick="${ok?'':(b.lock?`paywall('Badge ${b.n}')`:`toast('🔒','${b.d} pour débloquer ce badge.')`)}"><i>${b.e}</i>${b.n}<small>${b.d}</small></button>`}).join('');newBadge=null;dot('s-badges',false);
+ const days=['J','V','S','D','L','M','M'];$('#week').innerHTML=days.map((d,i)=>`<div class="${i<3?'d':i===3?(S.done.size?'d':'t'):''}"><i>${i<3||(i===3&&S.done.size)?'✓':i===3?'●':''}</i>${d}</div>`).join('');
+ $('#weekmsg').textContent=S.done.size?'Flamme à '+S.streak+' jours. Demain, une seule séquence suffit pour la garder.':'Une séquence aujourd\'hui et la flamme passe à 4. Léa te relance à 19h si tu l\'oublies.'}
+
+/* ============ quests ============ */
+function quest(id,inc=1){const q=[...S.quests.daily,...S.quests.weekly].find(q=>q.id===id);if(!q||q.p>=q.m)return;q.p=Math.min(q.m,q.p+inc);if(q.p>=q.m){setTimeout(()=>{toast(q.e,'Défi réussi : '+q.n+' · +'+q.r+' XP');gainXP(q.r)},1200);dot('s-quests',true)}}
+function renderQuests(){const r=(q)=>`<div class="quest ${q.p>=q.m?'done':''}"><div class="ico">${q.p>=q.m?'✅':q.e}</div><div class="t"><b>${q.n}</b><span>${q.p>=q.m?'Réussi · +'+q.r+' XP':q.p+' / '+q.m+' · +'+q.r+' XP'}</span><div class="meter"><i style="width:${q.p/q.m*100}%"></i></div></div></div>`;
+ $('#questbody').innerHTML=`<div class="card" style="display:flex;gap:12px;align-items:center"><div style="font-size:30px">⏳</div><div style="flex:1;min-width:0"><b style="font-size:14px">Défis du jour</b><p class="muted" style="font-size:12.5px">Se renouvellent à minuit · <b id="qtimer"></b></p></div></div>
+ <div class="stack">${S.quests.daily.map(r).join('')}</div>
+ <p class="eyebrow">Quêtes de la semaine</p><div class="stack">${S.quests.weekly.map(r).join('')}</div>
+ <div class="card" style="border-color:var(--gold)"><div class="row"><div style="font-size:26px">🏆</div><div style="flex:1;min-width:0"><b style="font-size:14px">Coffre de la semaine</b><p class="muted" style="font-size:12.5px">4 quêtes sur 4 : badge Or et 300 XP. Premium : coffre doublé.</p></div></div></div>`;
+ dot('s-quests',false);qtimer()}
+function qtimer(){const e=$('#qtimer');if(!e)return;const n=new Date(),m=new Date(n);m.setHours(24,0,0,0);const d=m-n;e.textContent=Math.floor(d/36e5)+' h '+Math.floor(d%36e5/6e4)+' min'}
+setInterval(qtimer,30000);
+function renderDaily(){const d=S.quests.daily;const done=d.filter(q=>q.p>=q.m).length;$('#dailycard').innerHTML=`<div class="row" style="justify-content:space-between"><span class="eyebrow">Défis du jour</span><span class="pill plum">${done} / ${d.length}</span></div><div class="row" style="margin-top:8px;gap:8px;flex-wrap:wrap">${d.map(q=>`<span class="chip" style="${q.p>=q.m?'opacity:.6;text-decoration:line-through':''}">${q.e} ${q.n}</span>`).join('')}</div>`}
+
+/* ============ notifications ============ */
+const NOTIFS=[{e:'🌅',t:'Noah t\'attend à la crèche',s:'La séquence 1 est prête. 8 minutes, promis.',w:'Il y a 2 h',u:true},
+ {e:'🏆',t:'Yanis vient de te dépasser',s:'Il a 1 390 XP. Une séquence et tu le reprends.',w:'Il y a 5 h',u:true},
+ {e:'🔥',t:'Ta flamme tient depuis 3 jours',s:'Joue avant minuit pour passer à 4.',w:'Hier, 19:00',u:false},
+ {e:'🎙',t:'Bilan terminé',s:'Léa a préparé ton plan jusqu\'en juin 2027.',w:'Hier',u:false}];
+function pushNotif(e,t,s,action){NOTIFS.unshift({e,t,s,w:'À l\'instant',u:true,action});updateNcount();sfx.push();
+ const p=document.createElement('button');p.className='push';p.innerHTML=`<div class="ico" style="background:var(--brand-soft)">${e}</div><div style="flex:1;min-width:0"><b>${t}</b><span>${s}</span></div>`;p.onclick=()=>{p.remove();if(action)action();else go('s-notifs')};$('#phone').appendChild(p);setTimeout(()=>p.remove(),5200)}
+function updateNcount(){const n=NOTIFS.filter(x=>x.u).length;$('#ncount').hidden=!n;$('#ncount').textContent=n}
+function renderNotifs(){$('#notifbody').innerHTML=NOTIFS.map((n,i)=>`<button class="notif ${n.u?'unread':''}" onclick="NOTIFS[${i}].u=false;updateNcount();${n.action?`NOTIFS[${i}].action()`:'renderNotifs()'}"><div class="ico" style="background:var(--brand-soft)">${n.e}</div><div class="t"><b>${n.t}</b><span>${n.s}</span></div><span class="when">${n.w}</span></button>`).join('')+`<p class="muted" style="font-size:12px;text-align:center">Relances simulées. Dans l'appli : notifications push, désactivables dans Réglages.</p>`}
+function markRead(){NOTIFS.forEach(n=>n.u=false);updateNcount();renderNotifs()}
+updateNcount();
+
+/* ============ bilan ============ */
+const BQ=[
+ {q:"Bonjour, moi c'est Léa. Pour commencer : qu'est-ce qui t'a donné envie de travailler avec les tout-petits ?",a:"J'ai gardé mes neveux pendant deux ans et j'ai adoré les voir grandir, surtout le moment où ils commencent à parler."},
+ {q:"Imagine : tu gardes un enfant de 2 ans, il refuse de manger et jette sa cuillère. Tu fais quoi, concrètement ?",a:"Je garde mon calme, je ne force pas, je lui propose de manger avec les doigts ou je reviens un peu plus tard."},
+ {q:"Dernière question. Le CAP a trois épreuves pro : EP1, EP2, EP3. Tu sais déjà ce qu'elles recouvrent ?",a:"Pas vraiment… je sais qu'il y a un truc sur la crèche et un sur la garde à domicile."}];
+let bi=0,speaking=false;
+function startBilan(){ac();bi=0;renderB();go('s-bilan');say(BQ[0].q)}
+function skipToDash(){ac();S.badges.add('voix');S.xp=50;S.name=S.name||'Camille';updateXP();go('s-dash')}
+function renderB(){$('#bq').textContent=BQ[bi].q;$('#tr').textContent="Appuie et réponds à voix haute";$('#tr').classList.add('ph');$('#bnext').hidden=true;[...$('#bdots').children].forEach((d,i)=>d.classList.toggle('on',i<=bi));$('#bnext').querySelector('button').textContent=bi===BQ.length-1?"Voir mon bilan":"Question suivante"}
+function speak(){if(speaking)return;speaking=true;if('speechSynthesis' in window)speechSynthesis.cancel();$('#mic').classList.add('live');$('#wave').classList.add('live');$('#tr').classList.remove('ph');$('#tr').textContent="";sfx.tap();
+ const txt=BQ[bi].a;let i=0;const iv=setInterval(()=>{$('#tr').textContent=txt.slice(0,i+=3);if(i>=txt.length){clearInterval(iv);$('#mic').classList.remove('live');$('#wave').classList.remove('live');speaking=false;$('#bnext').hidden=false;gainXP(10)}},40)}
+function bilanNext(){if(bi<BQ.length-1){bi++;renderB();say(BQ[bi].q)}else{go('s-result');$('#resultplan').innerHTML=planText();say("Merci. Tu as déjà un vrai regard sur les enfants, ça s'entend.")}}
+
+/* ============ notions (mémoire + révision) ============ */
+const NOTIONS={
+ sepann:{n:'Séparation annoncée',e:'👋',rev:{sc:"Papa dépose Inaya, 2 ans, et s'éclipse pendant qu'elle regarde l'aquarium. Elle se retourne : il n'est plus là.",o:["C'est malin, pas de pleurs","C'est une séparation non annoncée : elle n'a aucun repère pour savoir qu'il revient","C'est le rituel normal"],r:1}},
+ emotion:{n:'Nommer l\'émotion',e:'💬',rev:{sc:"Lou pleure après le départ de sa mère. Ta collègue lui dit : « Ce n'est rien, arrête. »",o:["Elle a raison, il faut dédramatiser","Mieux : nommer l'émotion et annoncer le retour avec un repère concret","Il vaut mieux ne rien dire du tout"],r:1}},
+ doudou:{n:'Objet transitionnel',e:'🐰',rev:{sc:"Le lapin de Noah traîne par terre. Une collègue veut le mettre au lavage tout de suite, devant lui.",o:["Oui, l'hygiène d'abord","Non : c'est son objet transitionnel, on ne le lave pas devant lui et jamais en punition","On le remplace par un lapin propre de la crèche"],r:1}},
+ transmission:{n:'Transmission',e:'📋',rev:{sc:"Fin de journée, la maman de Noah demande comment s'est passée la séparation.",o:["« Bien. »","« 8h15, séparation difficile, il a pris son lapin, calmé à 8h25. »","« La collègue vous dira. »"],r:1}},
+ neophobie:{n:'Néophobie alimentaire',e:'🥦',rev:{sc:"Lina, 2 ans, refuse pour la 6e fois les petits pois. Sa mère te demande d'insister.",o:["Insister : à force ça rentre","C'est la néophobie alimentaire, normale à cet âge : on représente l'aliment sans forcer, jusqu'à 10-15 fois","On arrête de proposer les légumes"],r:1}},
+ forcer:{n:'Ne jamais forcer',e:'🚫',rev:{sc:"Un collègue tient la cuillère devant la bouche fermée de Lina jusqu'à ce qu'elle ouvre.",o:["Efficace, elle mange","Jamais : le forçage crée des blocages et un rapport anxieux à la nourriture","Normal si elle n'a rien mangé"],r:1}},
+ fausseroute:{n:'Prévention fausse route',e:'🍇',rev:{sc:"Au goûter, des grains de raisin entiers sont posés devant Tom, 20 mois.",o:["Parfait, c'est sain","Risque de fausse route : on coupe en 4 dans la longueur, l'enfant est assis et surveillé","On lui donne un par un"],r:1}},
+ mains:{n:'Lavage des mains',e:'🧼',rev:{sc:"Avant le repas, les enfants arrivent de la cour. Le temps presse.",o:["On passe au repas, ils se laveront après","Lavage des mains systématique avant le repas, pour les enfants et pour toi","Un gel suffit"],r:1}},
+ rituel:{n:'Rituel d\'endormissement',e:'🎵',rev:{sc:"Sacha, 14 mois, pleure à chaque sieste. Chaque jour, c'est un adulte différent qui le couche, à sa façon.",o:["Il s'habituera","Un rituel d'endormissement stable (même gestes, même ordre) le sécurise et facilite l'endormissement","Il faut le laisser pleurer"],r:1}},
+ dos:{n:'Couchage sécurisé',e:'🛏',rev:{sc:"Tu installes un bébé de 6 mois pour la sieste. Il y a une couverture et une grosse peluche dans le lit.",o:["Sur le dos, dans une turbulette, sans couverture ni peluche","Sur le ventre, il dort mieux","Sur le côté, avec la couverture"],r:0}},
+ rythme:{n:'Respect du rythme',e:'⏰',rev:{sc:"Il est 15h, Sacha dort encore et le goûter est servi. Une collègue veut le réveiller.",o:["Oui, l'horaire c'est l'horaire","On respecte son rythme : il goûtera à son réveil","On le réveille mais en douceur"],r:1}},
+ surveillance:{n:'Surveillance du sommeil',e:'👀',rev:{sc:"Tous les enfants dorment. Ta collègue propose de fermer la porte du dortoir et d'aller préparer le goûter à deux.",o:["Bonne idée, ils dorment","Non : un adulte reste présent, surveillance visuelle et sonore continue","On laisse la porte ouverte, ça suffit"],r:1}}};
+
+/* ============ séquences (moteur à intentions) ============ */
+const SEQS={
+ seq1:{title:'Séquence 1 · L\'accueil du matin',badge:'seq1',ico:'🌅',notions:['sepann','emotion','doudou','transmission'],
+  intro:["Allez, on ne lit rien aujourd'hui. Tu es en stage. Je te plante le décor.",{scene:"Crèche des Lilas, 8h15. Noah, 18 mois, arrive dans les bras de sa maman qui est déjà en retard. Dès qu'elle fait un pas vers toi, il s'accroche à son cou et hurle. Elle te regarde, gênée : « Je file, ça ira mieux si je pars vite. »"},"Toi, tu fais quoi, là, maintenant ? Dis-le moi comme tu le ferais vraiment."],
+  steps:[
+   {name:'Mise en situation',notion:'sepann',opts:["Je prends Noah des bras de sa maman pour qu'elle puisse partir","Je propose à la maman de rester deux minutes et de dire au revoir","Je distrais Noah avec un jouet pendant qu'elle s'éclipse"],
+    vague:"Dis-m'en plus : qu'est-ce que tu fais exactement, avec tes mains et tes mots, pendant que Noah hurle ?",
+    intents:[
+     {k:['rester','au revoir','dire au','rituel','deux min','2 min','prenne le temps','annonce','explique','pose','parler a noah','qu elle le pose'],good:true,xp:30,say:["Oui. Tu viens de faire le geste le plus pro de la journée, et le moins évident.","Partir « vite » sans dire au revoir, c'est une <b>séparation non annoncée</b>. L'enfant ne comprend pas que maman revient. Il pleure plus longtemps, et le lendemain il s'accroche encore plus fort.","Donc la maman reste 2 minutes, dit « je vais au travail, je reviens après le goûter », et <i>elle</i> le pose. Maintenant : il hurle toujours. Qu'est-ce que tu lui dis, à Noah ?"]},
+     {k:['prends','bras','recupere','attrape','je le porte','le prendre','retire','arrache','je le prends'],good:false,xp:10,say:["C'est le réflexe de 80 % des stagiaires, et je comprends : tu veux soulager la maman.","Mais regarde la scène côté Noah : un adulte l'arrache aux bras de sa mère, qui disparaît. Pour lui, c'est une <b>séparation non annoncée</b>. Il pleurera plus longtemps aujourd'hui, et s'accrochera plus fort demain.","Rembobinons. La maman est encore là. Tu lui proposes quoi ?"],redo:["Qu'elle reste deux minutes et dise au revoir à Noah","Qu'elle parte sans se retourner, ça ira plus vite"]},
+     {k:['jouet','distrai','occupe','detourne','eclipse','discret','montre','livre','musique','pendant qu elle'],good:false,xp:10,say:["Le jouet, ça marche parfois 20 secondes. Mais quand Noah lève la tête, maman a disparu sans un mot : une <b>séparation non annoncée</b>. Il n'a aucun repère pour savoir qu'elle reviendra.","Il vaut mieux que la séparation soit courte mais <i>dite</i>. Tu proposes quoi à la maman ?"],redo:["Qu'elle reste deux minutes et dise au revoir à Noah","Qu'elle parte sans se retourner, ça ira plus vite"]}],
+    redoIntents:[{k:['reste','au revoir','deux','dise'],good:true,xp:15,say:["Voilà. Une séparation <b>annoncée</b> : courte, verbalisée, et c'est le parent qui pose l'enfant. Maintenant Noah hurle toujours. Tu lui dis quoi ?"]},{k:['retourner','vite','parte'],good:false,xp:0,say:["Non, on vient de voir pourquoi. Je te la refais : une séparation <b>annoncée</b> est courte, verbalisée, et c'est le parent qui pose l'enfant.","Noah hurle. Tu lui dis quoi ?"]}]},
+   {name:'Explorer',notion:'emotion',opts:["« Ce n'est rien, arrête de pleurer, maman revient »","« Tu es triste, maman part. Elle revient après le goûter. Je reste avec toi. »","Je ne dis rien, je le berce"],
+    vague:"Imagine que tu es accroupie face à lui. Quels mots sortent de ta bouche, exactement ?",
+    intents:[
+     {k:['rien','arrete','calme toi','pleure pas','c est pas grave','chut','stop'],good:false,xp:10,say:["« Ce n'est rien » : pour Noah, c'est énorme, en fait. En niant l'émotion, on lui apprend qu'elle n'a pas le droit d'exister. Le jury le relève à chaque fois.","Essaie plutôt : nommer l'émotion, annoncer le retour avec un repère concret, dire que tu restes. « Tu es triste, maman part. Elle revient après le goûter. Je reste avec toi. »","Autre chose : Noah a un lapin en tissu tout mâchouillé dans son sac. Tu lui donnes ?"]},
+     {k:['triste','revient','je reste','gouter','tu as le droit','je comprends','chagrin','colere','emotion','tu es'],good:true,xp:30,say:["Exactement. Tu <b>nommes l'émotion</b>, tu <b>annonces le retour</b> avec un repère concret (le goûter, pas « 17h »), et tu te poses comme figure d'attachement de remplacement.","Détail de pro : Noah a dans son sac un lapin en tissu tout mâchouillé. Tu lui donnes ?"]},
+     {k:['berce','rien dire','silence','calin','console','bras','chante'],good:false,xp:15,say:["Bercer, c'est bien, mais Noah a besoin de mots autant que de bras. Les mots lui donnent un repère : « Tu es triste, maman part. Elle revient après le goûter. Je reste avec toi. »","On continue. Noah a un lapin en tissu tout mâchouillé dans son sac. Tu lui donnes ?"]}]},
+   {name:'Comprendre',notion:'doudou',opts:["Oui, tout de suite","Non, il est sale","Je lui propose, mais je le laisse décider"],
+    vague:"Le lapin : tu le sors du sac ou tu le laisses dedans ? Et pourquoi ?",
+    intents:[
+     {k:['oui','donne','sors','propose','laisse decider','choisir','tout de suite','lui tend'],good:true,xp:25,say:["Oui. Ce lapin est un <b>objet transitionnel</b>, le fameux « doudou » de Winnicott. Il fait le pont entre la maison et la crèche. On ne le lave pas devant l'enfant, on ne le confisque jamais en punition.","Il est 8h25. Noah renifle encore mais il regarde les autres. Dernière chose avant de l'emmener jouer : qu'est-ce que tu notes, ou dis, à ta collègue ?"]},
+     {k:['non','sale','hygiene','lave','microbes','pas propre'],good:false,xp:10,say:["Sale, oui. Et c'est justement pour ça qu'il est précieux : il sent la maison. C'est un <b>objet transitionnel</b>, le fameux « doudou » de Winnicott. Il fait le pont entre la maison et la crèche. On ne le lave pas devant l'enfant, jamais en punition.","Il est 8h25. Noah renifle encore. Qu'est-ce que tu notes, ou dis, à ta collègue ?"]}]},
+   {name:'Approfondir',notion:'transmission',opts:["Rien, c'est réglé","Que Noah a eu du mal à se séparer, qu'il a son doudou, et l'heure","Que la maman était stressée"],
+    vague:"Imagine le cahier de transmission ouvert devant toi. Tu écris quoi, mot pour mot ?",
+    intents:[
+     {k:['doudou','heure','separ','lapin','calme','note','cahier','transmission','8h','pleur'],good:true,xp:25,say:["Voilà. C'est la <b>transmission</b> : « 8h15, séparation difficile, a son lapin, calmé à 8h25. » Trois infos, une ligne. Ta collègue saura quoi dire aux parents ce soir.","Récap de ce que tu viens d'apprendre en 10 minutes sans lire une page : <b>séparation annoncée</b>, <b>nommer l'émotion</b>, <b>objet transitionnel</b>, <b>transmission</b>.","On vérifie que ça tient ? Trois questions, chrono, bonus de combo."]},
+     {k:['rien','regle','pas besoin','fini'],good:false,xp:5,say:["Presque. Ce qui compte, c'est la <b>transmission</b> : « 8h15, séparation difficile, a son lapin, calmé à 8h25. » Trois infos, une ligne. Sans elle, personne ne saura quoi dire aux parents ce soir.","Récap : <b>séparation annoncée</b>, <b>nommer l'émotion</b>, <b>objet transitionnel</b>, <b>transmission</b>.","On vérifie que ça tient ? Trois questions, chrono."]},
+     {k:['maman','stress','mere','retard','parent'],good:false,xp:10,say:["L'état de la maman, tu peux le dire à l'oral, mais ce n'est pas ce qu'on note. La <b>transmission</b> parle de l'enfant : « 8h15, séparation difficile, a son lapin, calmé à 8h25. »","Récap : <b>séparation annoncée</b>, <b>nommer l'émotion</b>, <b>objet transitionnel</b>, <b>transmission</b>.","On vérifie ? Trois questions, chrono."]}]}],
+  game:[{q:"La maman veut « partir vite » sans dire au revoir. Pour Noah, c'est…",o:["Une séparation annoncée","Une séparation non annoncée","Un rituel d'accueil"],r:1,x:"Non annoncée : Noah n'a aucun repère pour savoir qu'elle revient.",n:'sepann'},
+   {q:"Le lapin mâchouillé de Noah, on l'appelle…",o:["Un objet transitionnel","Un objet de puériculture","Un support pédagogique"],r:0,x:"Objet transitionnel (Winnicott) : il fait le pont entre la maison et la crèche.",n:'doudou'},
+   {q:"Quelle transmission est complète ?",o:["« Noah a pleuré. »","« 8h15, séparation difficile, a son lapin, calmé à 8h25. »","« La maman était en retard et stressée. »"],r:1,x:"Heure, fait observé, ce qui a aidé, heure de retour au calme.",n:'transmission'}],
+  outro:"Tu viens d'apprendre la <b>séparation annoncée</b>, l'<b>objet transitionnel</b> et la <b>transmission</b>. Trois mots que le jury d'EP1 adore. Demain : le repas."},
+
+ seq2:{title:'Séquence 2 · Le repas',badge:'seq2',ico:'🥄',notions:['neophobie','forcer','fausseroute','mains'],
+  intro:["On passe à table. Même règle : tu me dis ce que tu ferais, pas ce qu'il faudrait faire.",{scene:"11h30, section des moyens. Lina, 2 ans, est assise devant son assiette : purée, petits pois, un morceau de poulet. Elle prend un petit pois, le regarde, le jette par terre. Puis un deuxième. Elle te fixe en souriant. Sa maman t'a dit ce matin : « Insistez, à la maison elle ne mange rien. »"},"Qu'est-ce que tu fais ?"],
+  steps:[
+   {name:'Mise en situation',notion:'neophobie',opts:["J'insiste doucement, une cuillère de petits pois, comme la maman l'a demandé","Je laisse les petits pois dans l'assiette sans commenter et je mange à côté d'elle","Je retire les petits pois, elle n'aime pas"],
+    vague:"Concrètement : tu touches à l'assiette, tu lui parles, tu fais quoi de tes mains ?",
+    intents:[
+     {k:['laisse','sans comment','a cote','je mange','montre l exemple','ignore','propose sans','on en reparle','ne force pas','tranquille','continue a proposer','reproposer'],good:true,xp:30,say:["Tu viens d'éviter le piège de la maman, et c'est fort.","Ce que fait Lina s'appelle la <b>néophobie alimentaire</b> : entre 2 et 6 ans, la plupart des enfants refusent le nouveau ou le vert. C'est normal, ce n'est pas un caprice. Il faut souvent présenter un aliment 10 à 15 fois, sans pression, pour qu'il soit accepté.","Toi tu manges tes petits pois à côté d'elle, l'air de rien. Maintenant elle a fini sa purée et pousse l'assiette : « Fini ! » Il reste le poulet. Tu fais quoi ?"]},
+     {k:['insiste','cuillere','maman a demande','goute','juste une','force','ouvre la bouche','avion','il faut manger','obligee'],good:false,xp:10,say:["Je comprends, la maman te l'a demandé. Mais « insister », chez un enfant de 2 ans, ça finit presque toujours en bras de fer, et c'est toi qui perds.","Ce que fait Lina s'appelle la <b>néophobie alimentaire</b> : entre 2 et 6 ans, refuser le nouveau ou le vert est normal. Il faut présenter un aliment 10 à 15 fois, sans pression. Ta mission n'est pas qu'elle mange ses petits pois aujourd'hui, c'est qu'elle les reverra demain sans peur.","Elle a fini sa purée et pousse l'assiette : « Fini ! » Il reste le poulet. Tu fais quoi ?"]},
+     {k:['retire','enleve','aime pas','remplace','autre chose','donne autre'],good:false,xp:10,say:["Si tu retires à la première grimace, Lina apprend que jeter = l'aliment disparaît. Et les petits pois ne reviendront jamais.","C'est la <b>néophobie alimentaire</b> : normale entre 2 et 6 ans. On laisse l'aliment dans l'assiette, sans commentaire, et on le re-propose 10 à 15 fois au fil des semaines.","Elle a fini sa purée et pousse l'assiette : « Fini ! » Il reste le poulet. Tu fais quoi ?"]}]},
+   {name:'Explorer',notion:'forcer',opts:["« Encore deux bouchées et tu auras ton dessert »","Je lui propose une fois, et si c'est non, c'est non","Je lui donne le dessert, elle a bien mangé sa purée"],
+    vague:"Avec le poulet qui reste : tu négocies, tu proposes, tu laisses ? Dis-le avec tes mots.",
+    intents:[
+     {k:['propose','une fois','si c est non','respecte','sa faim','satiete','elle sait','pas forcer','je n insiste pas','ecoute'],good:true,xp:30,say:["Oui. Lina connaît sa <b>satiété</b> mieux que toi. On <b>ne force jamais</b> : ni la cuillère devant la bouche, ni le chantage.","Le dessert n'est pas une récompense : il fait partie du repas, elle l'a de toute façon. Sinon on lui apprend que le légume est une punition et le sucre une victoire.","Changement de table. Tom, 20 mois, au goûter : sa grand-mère a glissé des grains de raisin entiers dans son sac. Tu les lui donnes ?"]},
+     {k:['deux bouchee','dessert si','encore','chantage','recompense','tu auras','negoci','marche'],good:false,xp:10,say:["Le dessert contre les bouchées, c'est le réflexe de toutes les familles de France. Mais regarde ce que Lina apprend : le poulet est une corvée, le sucre une récompense. À 15 ans, ça donne un rapport compliqué à l'assiette.","On <b>ne force jamais</b>, même gentiment : le dessert fait partie du repas, elle l'a quoi qu'il arrive. Une bouchée proposée, un non respecté.","Autre table. Tom, 20 mois, au goûter : sa grand-mère a glissé des grains de raisin entiers dans son sac. Tu les lui donnes ?"]},
+     {k:['donne le dessert','bien mange','elle a mange','dessert direct'],good:true,xp:20,say:["Tu respectes sa satiété, c'est bien. Juste un détail : propose le poulet une fois, calmement, avant. Un non est un non. Et le dessert n'est ni une récompense ni une punition : il fait partie du repas.","Autre table. Tom, 20 mois, au goûter : sa grand-mère a glissé des grains de raisin entiers dans son sac. Tu les lui donnes ?"]}]},
+   {name:'Comprendre',notion:'fausseroute',opts:["Oui, c'est un fruit, c'est sain","Je les coupe en quatre dans la longueur, et il mange assis, avec moi à côté","Non, pas de raisin à la crèche"],
+    vague:"Le raisin, concrètement : tu le donnes tel quel, tu le prépares, tu le refuses ?",
+    intents:[
+     {k:['coupe','quatre','longueur','assis','a cote','surveill','petits morceaux','ecrase','4'],good:true,xp:35,say:["Tu viens peut-être de sauver un enfant, littéralement. Le grain de raisin entier a exactement la taille de la trachée d'un enfant de moins de 4 ans : c'est l'aliment numéro un des <b>fausses routes</b> graves.","Donc : coupé en quatre dans la longueur, enfant <b>assis</b>, jamais en marchant ni couché, un adulte qui regarde. Même règle pour la saucisse, la tomate cerise, les bonbons durs, les noix.","Dernière chose. Les enfants reviennent de la cour, le repas est servi, il est tard. Tu passes à table ?"]},
+     {k:['oui','sain','fruit','donne','tel quel','pourquoi pas'],good:false,xp:5,say:["Stop. Là, c'est le moment de la séquence où je te retiens le bras. Le grain de raisin entier a exactement la taille de la trachée d'un enfant de moins de 4 ans : c'est l'aliment numéro un des <b>fausses routes</b> graves.","Règle : coupé en quatre dans la longueur, enfant <b>assis</b>, un adulte qui regarde. Même chose pour la saucisse, la tomate cerise, les bonbons durs, les noix.","Dernière chose. Les enfants reviennent de la cour, le repas est servi, il est tard. Tu passes à table ?"]},
+     {k:['non','pas de raisin','interdit','refuse','rends','je garde'],good:true,xp:20,say:["Prudente, je préfère ça. Mais le raisin n'est pas interdit : c'est la forme qui est dangereuse. Entier, il a la taille de la trachée d'un enfant de moins de 4 ans, première cause de <b>fausse route</b> grave.","Coupé en quatre dans la longueur, enfant <b>assis</b>, adulte présent, c'est un très bon goûter. Même règle pour saucisse, tomate cerise, bonbons durs, noix.","Dernière chose. Les enfants reviennent de la cour, le repas est servi, il est tard. Tu passes à table ?"]}]},
+   {name:'Approfondir',notion:'mains',opts:["Oui, ils se laveront les mains après","Non : lavage des mains d'abord, pour eux et pour moi, même si on perd 3 minutes","Un coup de gel hydroalcoolique et on y va"],
+    vague:"Entre la cour et l'assiette, qu'est-ce qui se passe, dans l'ordre ?",
+    intents:[
+     {k:['apres','passe a table','tard','faim','pas le temps','directement'],good:false,xp:5,say:["Je te comprends, les enfants ont faim. Mais le <b>lavage des mains</b> avant le repas est non négociable en collectivité : c'est la mesure d'hygiène numéro un, pour les enfants et pour toi. Trois minutes contre une gastro dans toute la section.","Récap : <b>néophobie alimentaire</b>, <b>ne jamais forcer</b>, <b>prévention des fausses routes</b>, <b>lavage des mains</b>. On vérifie ? Trois questions."]},
+     {k:['lav','mains','savon','eau','d abord','avant','meme si','3 min','hygiene'],good:true,xp:25,say:["Oui. Le <b>lavage des mains</b> avant le repas, c'est la mesure d'hygiène numéro un en collectivité, pour les enfants et pour toi. Trois minutes qui évitent une gastro à toute la section.","Et le gel ? Pas pour les tout-petits : il ne remplace pas le savon sur des mains sales, et ils le portent à la bouche.","Récap : <b>néophobie alimentaire</b>, <b>ne jamais forcer</b>, <b>prévention des fausses routes</b>, <b>lavage des mains</b>. On vérifie ? Trois questions."]},
+     {k:['gel','hydro','lingette','vite fait'],good:false,xp:10,say:["Le gel, pas pour les tout-petits : il ne remplace pas le savon sur des mains pleines de sable, et ils se mettent les doigts dans la bouche. Le <b>lavage des mains</b> à l'eau et au savon, avant chaque repas, pour eux et pour toi.","Récap : <b>néophobie alimentaire</b>, <b>ne jamais forcer</b>, <b>prévention des fausses routes</b>, <b>lavage des mains</b>. On vérifie ? Trois questions."]}]}],
+  game:[{q:"Lina refuse les petits pois pour la 6e fois. C'est…",o:["Un caprice à recadrer","La néophobie alimentaire, normale entre 2 et 6 ans","Un signe d'intolérance"],r:1,x:"Normale à cet âge : on re-propose 10 à 15 fois, sans pression.",n:'neophobie'},
+   {q:"« Encore deux bouchées et tu auras ton dessert. » Qu'en dit le référentiel ?",o:["Bonne motivation","On ne force jamais : le dessert fait partie du repas, pas une récompense","OK si c'est dit gentiment"],r:1,x:"Le chantage au dessert crée un rapport anxieux à l'assiette.",n:'forcer'},
+   {q:"Quel aliment est la première cause de fausse route grave chez les moins de 4 ans ?",o:["La purée","Le grain de raisin entier","Le yaourt"],r:1,x:"Taille de la trachée. Coupé en 4 dans la longueur, enfant assis, adulte présent.",n:'fausseroute'}],
+  outro:"<b>Néophobie</b>, <b>jamais forcer</b>, <b>fausse route</b>, <b>lavage des mains</b> : quatre notions que l'examinateur d'EP1 coche sur sa grille. Demain : la sieste."},
+
+ seq3:{title:'Séquence 3 · Le sommeil',badge:'seq3',ico:'😴',notions:['rituel','dos','rythme','surveillance'],
+  intro:["Dernière séquence gratuite. On baisse la lumière.",{scene:"12h45, dortoir des bébés. Sacha, 14 mois, arrive à la crèche depuis une semaine. Chaque jour, la sieste est un drame : il pleure dès qu'on l'approche du lit. Hier c'était Karim qui l'a couché, avant-hier Sophie, aujourd'hui c'est toi. Il a sa tétine à la main et te regarde, inquiet."},"Comment tu t'y prends ?"],
+  steps:[
+   {name:'Mise en situation',notion:'rituel',opts:["Je le couche vite et je sors, il finira par s'endormir","Je propose qu'on fixe un rituel : même personne quand c'est possible, mêmes gestes, même ordre, chaque jour","Je le garde dans les bras jusqu'à ce qu'il dorme"],
+    vague:"Décris-moi les deux ou trois minutes avant qu'il soit dans son lit. Qu'est-ce qui se passe ?",
+    intents:[
+     {k:['rituel','meme','ordre','chaque jour','repere','habitude','chanson','histoire','referent','etapes','routine','doucement','annonce'],good:true,xp:30,say:["Oui. Tu viens de mettre le doigt sur le vrai problème : ce n'est pas Sacha, c'est qu'il a eu trois adultes et trois manières en trois jours.","Un <b>rituel d'endormissement</b> : les mêmes gestes, dans le même ordre, avec les mêmes mots. On baisse la lumière, on change la couche, une petite chanson, la tétine, le doudou, « bonne sieste Sacha, je reste à côté ». Au bout de quelques jours, son corps sait ce qui vient.","Tu l'installes dans son lit. Dans le lit, il y a une petite couverture et un gros ours en peluche que sa mamie a apporté. Tu fais quoi ?"]},
+     {k:['vite','sors','finira','laisse pleurer','il s endormira','seul','pose et'],good:false,xp:5,say:["Il finira par s'endormir, oui, d'épuisement. Et demain ce sera pire, parce qu'il aura associé le lit à l'abandon.","Le vrai problème : trois adultes, trois manières en trois jours. Il lui faut un <b>rituel d'endormissement</b> : mêmes gestes, même ordre, mêmes mots, chaque jour. Au bout de quelques jours, son corps sait ce qui vient.","Tu l'installes. Dans le lit, il y a une petite couverture et un gros ours en peluche que sa mamie a apporté. Tu fais quoi ?"]},
+     {k:['bras','jusqu a','berce','endorme sur moi','porte','calin'],good:false,xp:15,say:["Les bras, c'est tendre, et aujourd'hui ça marchera peut-être. Mais tu ne pourras pas le faire tous les jours, et Sacha n'apprendra pas à s'endormir dans son lit.","Ce qu'il lui faut, c'est un <b>rituel d'endormissement</b> : mêmes gestes, même ordre, mêmes mots, chaque jour, dans son lit. Les bras peuvent en faire partie, trente secondes, puis on le pose éveillé.","Tu l'installes. Dans le lit, il y a une petite couverture et un gros ours en peluche que sa mamie a apporté. Tu fais quoi ?"]}]},
+   {name:'Explorer',notion:'dos',opts:["Je le couche sur le dos, dans une turbulette, et je retire la couverture et l'ours","Je le couche sur le ventre, il s'apaise mieux","Je laisse l'ours, il le rassure, et la couverture, il fait frais"],
+    vague:"Dans le lit : quelle position, et qu'est-ce qui reste ou part ?",
+    intents:[
+     {k:['dos','turbulette','gigoteuse','retire','enleve','sans couverture','sans peluche','rien dans le lit','ours dehors'],good:true,xp:35,say:["Impeccable. C'est le <b>couchage sécurisé</b>, et il n'y a aucune souplesse dessus : <b>sur le dos</b>, dans une <b>turbulette</b>, dans un lit <b>vide</b>. Pas de couverture, pas d'oreiller, pas de grosse peluche, pas de tour de lit.","C'est la recommandation de prévention de la mort inattendue du nourrisson. L'ours de mamie, tu l'expliques gentiment aux parents ce soir, et il attend sur l'étagère.","Il dort. Il est 15h, le goûter est servi, Sacha dort encore. Ta collègue veut le réveiller. Et toi ?"]},
+     {k:['ventre','apaise mieux','cote','sur le flanc'],good:false,xp:0,say:["Non. Celle-là, je ne peux pas la laisser passer : le couchage sur le ventre multiplie le risque de mort inattendue du nourrisson. <b>Sur le dos</b>, toujours, même s'il semble s'apaiser mieux sur le ventre.","Et le lit doit être <b>vide</b> : pas de couverture, pas d'oreiller, pas de grosse peluche. Une <b>turbulette</b> pour la chaleur. C'est le <b>couchage sécurisé</b>, sans exception.","Il dort. 15h, le goûter est servi, Sacha dort encore. Ta collègue veut le réveiller. Et toi ?"]},
+     {k:['laisse l ours','rassure','couverture','frais','garde','peluche'],good:false,xp:5,say:["Je comprends l'intention. Mais la couverture peut recouvrir son visage, et une grosse peluche aussi. Le <b>couchage sécurisé</b>, c'est : <b>sur le dos</b>, dans une <b>turbulette</b>, dans un lit <b>vide</b>. Pas de couverture, pas d'oreiller, pas de grosse peluche.","C'est la prévention de la mort inattendue du nourrisson. L'ours attend sur l'étagère et on l'explique aux parents ce soir.","Il dort. 15h, le goûter est servi, Sacha dort encore. Ta collègue veut le réveiller. Et toi ?"]}]},
+   {name:'Comprendre',notion:'rythme',opts:["On le réveille doucement, le goûter c'est le goûter","On le laisse : il goûtera à son réveil","On le réveille mais on lui donne son goûter dans le lit"],
+    vague:"Sacha dort, le goûter est là. Tu touches à Sacha ou pas ?",
+    intents:[
+     {k:['laisse','a son reveil','son rythme','dort','besoin','plus tard','on attend','respecte'],good:true,xp:30,say:["Oui. On <b>respecte le rythme</b> de l'enfant, pas le planning de la crèche. Un enfant de 14 mois qui dort a besoin de dormir ; le goûter l'attendra.","C'est aussi un point de vigilance pour le jury : l'organisation collective ne doit jamais écraser les besoins individuels.","Tous les enfants dorment maintenant. Ta collègue propose : « On ferme la porte du dortoir et on prépare le goûter à deux, ça ira plus vite. » Tu réponds quoi ?"]},
+     {k:['reveille','doucement','le gouter c est','horaire','planning','dans le lit'],good:false,xp:5,say:["Réveiller un enfant de 14 mois pour un horaire, c'est faire passer l'organisation avant l'enfant. On <b>respecte le rythme</b> : il goûtera à son réveil, et personne n'en mourra.","(Et jamais de nourriture dans le lit : couché, c'est un risque de fausse route.)","Tous les enfants dorment. Ta collègue propose : « On ferme la porte du dortoir et on prépare le goûter à deux, ça ira plus vite. » Tu réponds quoi ?"]}]},
+   {name:'Approfondir',notion:'surveillance',opts:["D'accord, ils dorment tous","Non : l'une de nous reste dans le dortoir, on ne laisse jamais des enfants dormir sans adulte","On laisse la porte ouverte, ça suffit"],
+    vague:"La collègue attend ta réponse. Tu sors du dortoir ou pas ?",
+    intents:[
+     {k:['reste','jamais seul','adulte present','non','je reste','regarde','surveill','une de nous'],good:true,xp:30,say:["Exactement. La <b>surveillance du sommeil</b> est continue : un adulte présent dans le dortoir, qui voit et qui entend. C'est pendant le sommeil que surviennent les accidents silencieux.","Récap de la séquence : <b>rituel d'endormissement</b>, <b>couchage sécurisé</b> sur le dos dans un lit vide, <b>respect du rythme</b>, <b>surveillance continue</b>. On vérifie ? Trois questions."]},
+     {k:['d accord','ils dorment','ok','plus vite','porte ouverte','suffit','on entend'],good:false,xp:5,say:["Non. Une porte ouverte n'est pas une surveillance. La <b>surveillance du sommeil</b> est continue : un adulte présent dans le dortoir, qui voit et qui entend. Les accidents du sommeil sont silencieux.","Récap : <b>rituel d'endormissement</b>, <b>couchage sécurisé</b> sur le dos dans un lit vide, <b>respect du rythme</b>, <b>surveillance continue</b>. On vérifie ? Trois questions."]}]}],
+  game:[{q:"Sacha, 14 mois, pleure à chaque sieste. Trois adultes différents l'ont couché en trois jours. La priorité ?",o:["Le laisser pleurer","Un rituel d'endormissement stable : mêmes gestes, même ordre","Le coucher plus tard"],r:1,x:"Le rituel donne des repères ; son corps sait ce qui vient.",n:'rituel'},
+   {q:"Couchage sécurisé d'un bébé, c'est…",o:["Sur le dos, turbulette, lit vide","Sur le ventre, avec sa couverture","Sur le côté, avec son ours"],r:0,x:"Prévention de la mort inattendue du nourrisson : aucune exception.",n:'dos'},
+   {q:"Tous les enfants dorment. On peut fermer la porte et aller préparer le goûter à deux ?",o:["Oui, ils dorment","Non, un adulte reste : surveillance visuelle et sonore continue","Oui si la porte reste ouverte"],r:1,x:"Les accidents du sommeil sont silencieux.",n:'surveillance'}],
+  outro:"<b>Rituel</b>, <b>couchage sécurisé</b>, <b>rythme</b>, <b>surveillance</b>. Tu as fini les trois séquences gratuites. Il en reste 84, et je commence à bien te connaître."}};
+
+/* ---- état de séquence ---- */
+const chat=$('#chat'),choices=$('#choices');let cur=null,si=0,busy=false,seqxp=0,vagueCount=0,inRedo=false;
+function bubble(cls,html){const d=document.createElement('div');d.className='msg '+cls;d.innerHTML=html;chat.insertBefore(d,choices);chat.scrollTop=chat.scrollHeight;return d}
+function addSeqXP(n){if(!n)return;seqxp+=n;$('#seqxp').textContent='+'+seqxp+' XP';floatXP('+'+n);sfx.xp()}
+function coachSay(items,then){busy=true;let k=0;const next=()=>{if(k>=items.length){busy=false;then&&then();return}
+  const raw=items[k];const it=typeof raw==='string'?{text:raw}:raw.scene?{text:raw.scene,cls:'scene'}:raw.memo?{text:raw.memo,cls:'memo'}:raw;
+  const t=bubble('coach','<span class="typing"><i></i><i></i><i></i></span>');
+  setTimeout(()=>{t.innerHTML=it.text;if(it.cls)t.classList.add(it.cls);say(it.text);k++;chat.scrollTop=chat.scrollHeight;setTimeout(next,voiceOn?Math.max(900,it.text.length*58):380)},Math.min(1500,450+it.text.length*7))};next()}
+function offer(list){choices.innerHTML='';list.forEach(l=>{const b=document.createElement('button');b.textContent=l;b.onclick=()=>answer(l,false);choices.appendChild(b)});chat.appendChild(choices);requestAnimationFrame(()=>chat.scrollTop=chat.scrollHeight)}
+function setStep(){const st=cur.steps[si];$('#stepn').textContent=(si+1)+' / '+(cur.steps.length+1);$('#stepname').textContent=st?st.name:'Vérifier';$('#seqmeter').style.width=((si+1)/(cur.steps.length+1)*100)+'%'}
+function startSeq(key){ac();cur=SEQS[key];si=0;seqxp=0;vagueCount=0;inRedo=false;chat.innerHTML='';choices.innerHTML='';chat.appendChild(choices);$('#seqxp').textContent='+0 XP';$('#seqtitle').textContent=cur.title;setStep();go('s-seq');
+ const intro=[...cur.intro];const missed=[...S.missed].filter(k=>!cur.notions.includes(k));
+ if(missed.length){const m=NOTIONS[missed[0]];intro.splice(1,0,{memo:"La dernière fois, « "+m.n.toLowerCase()+" » t'avait échappé. Je la glisse quelque part dans cette séquence, ouvre l'œil."})}
+ coachSay(intro,()=>offer(cur.steps[0].opts))}
+function answer(a,free){if(busy||!cur)return;choices.innerHTML='';bubble('me',a);sfx.tap();
+ if(free){S.freeText++;quest('d3');if(S.freeText>=3)unlockBadge('free')}
+ const st=cur.steps[si];const pool=inRedo?st.redoIntents:st.intents;
+ let hit=pool.find(b=>has(a,...b.k));
+ if(!hit&&!inRedo&&vagueCount<1&&(a.trim().length<14||free)){vagueCount++;coachSay([(free&&a.trim().length>=14?"Je ne suis pas sûre de te suivre. ":"")+st.vague],()=>offer(st.opts));return}
+ if(!hit)hit=pool[pool.length-1];
+ vagueCount=0;addSeqXP(hit.xp);
+ if(hit.good){S.goodStreak++;S.learned.add(st.notion);S.missed.delete(st.notion);if(S.goodStreak>=3)quest('d2',3);if(st.notion==='transmission')quest('w1')}else{S.goodStreak=0;S.missed.add(st.notion);dot('s-revise',true)}
+ if(hit.redo){inRedo=true;coachSay(hit.say,()=>offer(hit.redo));return}
+ inRedo=false;si++;
+ coachSay(hit.say,()=>{if(si<cur.steps.length){setStep();offer(cur.steps[si].opts)}else{setStep();offer(["Go 🎮"]);choices.querySelector('button').onclick=()=>startGame()}})}
+function send(e){e.preventDefault();const v=$('#inp').value.trim();if(!v||busy)return;$('#inp').value='';answer(v,true)}
+
+/* ============ mini-jeu ============ */
+let gi=0,gs=0,combo=0;
+function startGame(){gi=0;gs=0;combo=0;go('s-game');renderG()}
+function renderG(){const g=cur.game[gi];$('#gpill').textContent=(gi+1)+' / 3';
+ $('#gamefoot').innerHTML='';$('#gamebody').innerHTML=`<div class="timer"><i></i></div><div class="row" style="justify-content:space-between"><p class="eyebrow">Question ${gi+1}</p><span class="combo">${combo>1?'🔥 Combo ×'+combo:''}</span></div><p class="game-q">${g.q}</p><div class="opts">${g.o.map((o,i)=>`<button class="opt" onclick="pick(${i})">${o}</button>`).join('')}</div><p class="muted" id="gx" style="font-size:13.5px"></p>`;say(g.q)}
+function pick(i){const g=cur.game[gi];const btns=$$('.opt');btns.forEach(b=>b.onclick=null);$('.timer i').style.animationPlayState='paused';
+ btns[g.r].classList.add('right');if(i!==g.r){btns[i].classList.add('wrong');combo=0;S.missed.add(g.n);dot('s-revise',true);sfx.bad()}else{gs++;combo++;addSeqXP(20*combo);sfx.good();S.missed.delete(g.n)}
+ $('#gx').textContent=g.x;
+ const n=document.createElement('button');n.className='btn pulse';n.textContent=gi<cur.game.length-1?'Question suivante →':'Voir mon score';n.onclick=()=>{if(gi<cur.game.length-1){gi++;renderG()}else endSeq()};$('#gamefoot').appendChild(n)}
+function endSeq(){const pct=Math.round(gs/cur.game.length*100);go('s-done');
+ $('#donelabel').textContent=cur.title.split('·')[0].trim()+' validée';$('#ring').style.setProperty('--pct',pct);$('#scoretxt').textContent=gs+'/3';
+ $('#donetitle').textContent=pct===100?'Impeccable':pct>=60?'Bien joué':'On y est presque';
+ const total=120+seqxp;const b=BADGES.find(x=>x.k===cur.badge);
+ $('#badgepop').innerHTML=`<div class="badge pop">${b.e}</div><b>Badge « ${b.n} »</b><span class="xpgain">+${total} XP</span>`;
+ $('#notionsdone').innerHTML=cur.notions.map(k=>`<span class="pill ${S.missed.has(k)?'coral':''}">${NOTIONS[k].e} ${NOTIONS[k].n}${S.missed.has(k)?' · à revoir':''}</span>`).join('');
+ $('#donemsg').textContent=pct===100?'Léa te reposera ces notions dans 3 jours, mine de rien, pour que ça tienne.':'Les notions ratées sont dans « Réviser » et reviendront dans ta prochaine séquence, glissées dans une nouvelle situation.';
+ $('#donecoach').innerHTML=cur.outro;say($('#donecoach').textContent);
+ S.done.add(cur.badge);if(pct===100){S.perfectRuns++;unlockBadge('perfect')}
+ if(S.done.size===1){S.streak=4;S.quests.weekly[1].p=4;setTimeout(()=>pushNotif('🔥','Flamme à 4 jours','Série prolongée. Demain, une séquence suffit.'),3000)}
+ confetti($('#cf'));setTimeout(()=>{gainXP(total);unlockBadge(cur.badge);quest('d1')},500)}
+function finishSeq(){renderDash();go('s-dash');
+ if(S.done.size===3&&!S.premium){setTimeout(()=>paywall('fin'),900)}
+ else if(S.done.size===1){setTimeout(()=>pushNotif('🏆','Tu viens de dépasser Yanis','Il n\'a pas aimé. Le classement a bougé.',()=>go('s-rank')),2500);quest('w3')}}
+function confetti(c){const ctx=c.getContext('2d');c.width=c.offsetWidth||380;c.height=c.offsetHeight||700;const cols=['#0E6B5A','#19A085','#E9A63A','#F7C96A','#7A3FB3','#F06A5A'];
+ const ps=Array.from({length:130},()=>({x:Math.random()*c.width,y:-20-Math.random()*c.height*.5,r:4+Math.random()*5,c:cols[Math.random()*cols.length|0],v:2+Math.random()*3,a:Math.random()*6,s:Math.random()*.2-.1}));
+ let t=0;(function f(){ctx.clearRect(0,0,c.width,c.height);ps.forEach(p=>{p.y+=p.v;p.x+=Math.sin(p.a+=p.s)*1.2;ctx.save();ctx.translate(p.x,p.y);ctx.rotate(p.a);ctx.fillStyle=p.c;ctx.fillRect(-p.r/2,-p.r/2,p.r,p.r*.6);ctx.restore()});if(++t<180)requestAnimationFrame(f);else ctx.clearRect(0,0,c.width,c.height)})()}
+
+/* ============ dashboard ============ */
+const MODS=[{k:'seq1',ico:'🌅',t:'L\'accueil du matin et la séparation',s:'Séquence 1 · 8 min'},{k:'seq2',ico:'🥄',t:'Le repas : autonomie et sécurité',s:'Séquence 2 · 10 min'},{k:'seq3',ico:'😴',t:'Le sommeil et les rituels',s:'Séquence 3 · 7 min'},{k:'lock1',ico:'🩹',t:'Premiers secours : fausse route, chute',s:'Séquence 4',lock:'Les gestes de premiers secours'},{k:'lock2',ico:'🌡',t:'Fièvre, maladies infantiles, PAI',s:'Séquence 5',lock:'Les maladies infantiles'}];
+const DASHMSG={0:"Il est 8h15 à la crèche des Lilas. Noah arrive dans les bras de sa maman et hurle. On y va ?",1:"Noah est calmé, bravo. Maintenant on passe à table : Lina, 2 ans, refuse les petits pois et en met partout.",2:"Deux séquences, deux badges. Il reste la sieste de Sacha, et ça promet.",3:"Tu as fini le parcours gratuit. 84 séquences t'attendent, et je sais déjà lesquelles te feront progresser le plus."};
+function renderDash(){let nextSet=false;$('#mods1').innerHTML=MODS.map(m=>{if(m.lock&&!S.premium)return `<button class="mod locked" onclick="paywall('${m.lock}')"><div class="ico">${m.ico}</div><div class="t"><b>${m.t}</b><span>${m.s} · Premium</span></div><span class="pill lock">🔒</span></button>`;
+  const done=S.done.has(m.k);const isNext=!done&&!nextSet;if(isNext)nextSet=true;const click=m.lock?`toast('✨','Premium : cette séquence sera écrite sur le même modèle (démo).')`:`startSeq('${m.k}')`;
+  return `<button class="mod ${done?'done':''} ${isNext?'next':''}" onclick="${click}"><div class="ico">${m.ico}</div><div class="t"><b>${m.t}</b><span>${m.s}${done?' · validée ✓':isNext?' · à faire':''}</span></div>${done?'<span class="pill">✓</span>':'<span class="xpgain">+120 XP'+(S.premium?' ×2':'')+'</span>'}</button>`}).join('');
+ $('#dashmsg').textContent=(S.name&&!S.done.size?S.name+', il':'Il')+DASHMSG[Math.min(3,S.done.size)].slice(2);if(S.done.size)$('#dashmsg').textContent=DASHMSG[Math.min(3,S.done.size)];$$('.hello').forEach(h=>h.textContent=S.name?'Salut '+S.name:'');updateXP();renderDaily();renderExam();
+ const b=$('#dashbanner');if(S.premium){const h=Math.max(0,Math.round((S.trialEnd-Date.now())/36e5));b.innerHTML=`<div class="banner trial"><span>✨</span><span style="flex:1">Essai Premium · <b>${Math.floor(h/24)} j ${h%24} h</b> restants · XP ×2</span><button class="pill plum" onclick="go('s-settings')">Gérer</button></div>`}
+ else if(S.done.size>=2){b.innerHTML=`<div class="banner danger"><span>🔥</span><span style="flex:1">Ta flamme s'éteint à minuit si tu rates demain. Le <b>gel de série</b> est Premium.</span><button class="pill coral" onclick="paywall('Le gel de série')">Voir</button></div>`}else b.innerHTML=''}
+
+/* ============ révision espacée ============ */
+let revQ=null;
+function renderRevise(){const keys=[...S.missed];$('#revcount').textContent=keys.length;dot('s-revise',false);
+ if(!keys.length){$('#revbody').innerHTML=`<div class="coach-row"><div class="avatar">L</div><p>Rien à réviser pour l'instant. ${S.learned.size?'Tes '+S.learned.size+' notions tiennent. Je t\'en reposerai une dans 3 jours, l\'air de rien.':'Fais une séquence : ce que tu rates arrive ici, sous forme de nouvelles petites scènes.'}</p></div>
+ <div class="card"><p class="eyebrow">Comment ça marche</p><p style="font-size:13.5px;margin-top:6px">Chaque notion ratée revient à J+1, J+3, J+7 puis J+21, toujours dans une situation différente. Une notion validée 4 fois de suite est considérée acquise pour l'examen.</p></div>
+ ${S.learned.size?`<div><p class="eyebrow">Acquises</p><div class="notions" style="justify-content:flex-start;margin-top:8px">${[...S.learned].map(k=>`<span class="pill">${NOTIONS[k].e} ${NOTIONS[k].n}</span>`).join('')}</div></div>`:''}`;return}
+ const k=keys[0],n=NOTIONS[k];revQ=k;
+ $('#revbody').innerHTML=`<div class="coach-row"><div class="avatar">L</div><p>${keys.length} notion${keys.length>1?'s':''} à consolider. Nouvelle scène, même idée : tu vas voir si ça tient.</p></div>
+ <div class="rev"><div class="row" style="justify-content:space-between"><span class="pill coral">${n.e} ${n.n}</span><span class="muted" style="font-size:12px;font-weight:800">Révision · +25 XP</span></div><p class="sc">${n.rev.sc}</p><div class="opts">${n.rev.o.map((o,i)=>`<button class="opt" onclick="revPick(${i})">${o}</button>`).join('')}</div><p class="muted" id="revx" style="font-size:13.5px"></p></div>
+ ${keys.length>1?`<div><p class="eyebrow">Ensuite</p><div class="notions" style="justify-content:flex-start;margin-top:8px">${keys.slice(1).map(k=>`<span class="pill coral">${NOTIONS[k].e} ${NOTIONS[k].n}</span>`).join('')}</div></div>`:''}`}
+function revPick(i){const n=NOTIONS[revQ];const btns=$$('#revbody .opt');btns.forEach(b=>b.onclick=null);btns[n.rev.r].classList.add('right');
+ if(i===n.rev.r){sfx.good();$('#revx').textContent='Ça tient. Prochaine fois dans 3 jours.';S.missed.delete(revQ);S.learned.add(revQ);gainXP(25);quest('w4');S.revCount++;if(S.revCount>=5)unlockBadge('revise')}
+ else{btns[i].classList.add('wrong');sfx.bad();$('#revx').textContent='Pas encore. Je te la représente demain, autrement.'}
+ const b=document.createElement('button');b.className='btn';b.textContent=S.missed.size?'Notion suivante':'Terminer';b.onclick=renderRevise;$('#revbody .rev').appendChild(b)}
+
+/* ============ classement en direct ============ */
+let LBD=[{n:'Camille',x:1510,c:'#2E8B57'},{n:'Yanis',x:1390,c:'#0E6B5A'},{n:'Toi',x:0,c:'#7A3FB3',me:true},{n:'Inès',x:980,c:'#E9A63A'},{n:'Lucas B.',x:840,c:'#F06A5A'},{n:'Fatou',x:610,c:'#19A085'},{n:'Noémie',x:420,c:'#B98BE8'}];
+let lastRank=null;
+function myRank(){const me=LBD.find(r=>r.me);me.x=1190+S.xp;return [...LBD].sort((a,b)=>b.x-a.x).findIndex(r=>r.me)+4}
+function renderLB(bumpName){const me=LBD.find(r=>r.me);me.x=1190+S.xp;const sorted=[...LBD].sort((a,b)=>b.x-a.x);const rank=sorted.findIndex(r=>r.me)+4;
+ const rows=sorted.map((r,i)=>{const z=i===1?'<div class="zone">Zone de promotion</div>':'';return `<div class="lbr ${r.me?'me':''}" style="animation:rise .4s ${i*.04}s both"><span class="rk">${i+4}</span><span class="f" style="background:${r.c}">${r.n[0]}</span><span class="nm">${r.me?(S.name||'Toi'):r.n}${r.me&&lastRank&&rank<lastRank?' <span class="up">▲ '+(lastRank-rank)+'</span>':''}</span><span class="pt ${r.n===bumpName?'bump':''}">${fr(r.x)} XP</span></div>`+z}).join('');
+ $('#lb').innerHTML=rows;
+ if(lastRank&&rank<lastRank){toast('🏆','Tu passes '+(rank)+'e. '+sorted[sorted.findIndex(r=>r.me)+1].n+' est derrière toi.');sfx.good()}lastRank=rank;
+ $('#leaguebox').innerHTML=S.badges.has('argent')?`<div class="em">🥈</div><div><b>Ligue Argent · groupe 7</b><span>Les 3 premiers montent en Or dimanche soir.</span></div>`:`<div class="em">🥉</div><div><b>Ligue Bronze · groupe 14</b><span>Les 5 premiers montent en Argent dimanche soir.</span></div>`}
+setInterval(()=>{if(!$('#s-rank').classList.contains('on'))return;const others=LBD.filter(r=>!r.me);const r=others[Math.random()*others.length|0];r.x+=5+Math.floor(Math.random()*20);renderLB(r.n)},3800);
+function checkTop5(){if(S.topShown)return;if(myRank()<=5&&S.done.size>=2){S.topShown=true;setTimeout(()=>{go('s-ceremony');confetti($('#cf2'));sfx.level();say("Ligue Argent. Je te l'avais dit.")},1800)}}
+(function lbTimer(){const e=$('#lbtimer');const end=new Date();end.setDate(end.getDate()+(7-end.getDay())%7);end.setHours(23,59,0,0);const d=Math.max(0,end-Date.now());e.textContent='Fin dans '+Math.floor(d/864e5)+' j '+Math.floor(d%864e5/36e5)+' h';setTimeout(lbTimer,60000)})();
+
+/* ============ paywall + abonnement ============ */
+function paywall(title){ac();const lb=$('#lockbox');
+ if(title==='fin')lb.innerHTML=`<div class="big">🏁</div><h2 style="font-size:22px">3 séquences sur 87. Tu as vu la méthode.</h2><div class="meter" style="width:100%;max-width:260px"><i style="width:3.4%"></i></div><p class="muted" style="font-size:14px">Léa connaît déjà tes points faibles. Le reste du CAP, c'est 20 € par mois, ou 0 € avec ton CPF.</p>`;
+ else if(title)lb.innerHTML=`<div class="big">🔒</div><h2 style="font-size:22px">« ${title} »</h2><p class="muted" style="font-size:14px">${/gel|série/i.test(title)?'Le gel de série protège ta flamme un jour par semaine. Réservé aux membres.':/badge/i.test(title)?'Ce badge se gagne dans les séquences Premium.':'Cette séquence fait partie des 84 réservées aux membres. Léa t\'attend de l\'autre côté.'}</p>`;
+ else lb.innerHTML=`<div class="big">✨</div><h2 style="font-size:22px">Tout le CAP, avec Léa en illimité</h2><p class="muted" style="font-size:14px">Tu as vu la méthode. Voici comment aller jusqu'à l'examen.</p>`;go('s-pay')}
+function subscribe(){S.premium=true;S.trialEnd=Date.now()+7*864e5;unlockBadge('premium');sfx.badge();toast('✨','Essai Premium activé · 7 jours offerts, XP ×2.');gainXP(100);go('s-dash')}
+function renderSettings(){$('#idline').textContent=S.identity?'Vérifiée via FranceConnect+ · '+S.identity.nom:'Non vérifiée · requise pour le CPF';
+ $('#subcard').innerHTML=S.premium?`<p class="eyebrow">Abonnement</p><div class="set"><div class="t"><b>Premium · essai gratuit</b><span>Se renouvelle à 20 €/mois le ${new Date(S.trialEnd).toLocaleDateString('fr-FR')}</span></div><span class="pill plum">Actif</span></div><div class="set"><div class="t"><b>Passer à la Prépa finale</b><span>1 200 €, finançable CPF</span></div><button class="btn gold sm" onclick="go('s-cpf')">Voir</button></div><div class="set"><div class="t"><b>Résilier</b><span>Deux taps, c'est promis</span></div><button class="btn ghost sm" onclick="go('s-cancel');renderCancel()">Résilier</button></div>`
+ :`<p class="eyebrow">Abonnement</p><div class="set"><div class="t"><b>Découverte · gratuit</b><span>3 séquences, badges, classement</span></div><button class="btn sm" onclick="paywall(null)">Premium</button></div>`}
+let reason=null;
+function renderCancel(){reason=null;$('#cancelbody').innerHTML=`<div class="coach-row"><div class="avatar">L</div><p>Pas de drame. Dis-moi juste pourquoi, ça m'aide à faire mieux pour les suivants.</p></div>
+ <div class="stack" id="reasons">${['C\'est trop cher','Je n\'ai pas le temps','Le contenu ne me convient pas','J\'ai eu mon diplôme 🎓','Autre'].map((r,i)=>`<button class="reason" onclick="pickReason(${i},this)">${r}</button>`).join('')}</div><div id="canceloffer"></div>`}
+function pickReason(i,el){$$('.reason').forEach(b=>b.classList.remove('sel'));el.classList.add('sel');reason=i;const o=$('#canceloffer');
+ const offers={0:`<div class="plan pro" style="margin-top:4px"><span class="ribbon">Offre unique</span><p class="eyebrow">Le mois prochain à moitié prix</p><div class="price">10 €<small> au lieu de 20 €</small></div><p style="font-size:13.5px">Ou bascule sur la Prépa finale à 0 € de reste à charge avec ton CPF.</p><button class="btn" onclick="toast('✨','Réduction appliquée (démo).');go('s-settings')">Garder Léa à 10 €</button><button class="btn ghost" onclick="go('s-cpf')">Voir mon CPF</button></div>`,
+  1:`<div class="plan pro" style="margin-top:4px"><p class="eyebrow">Mettre en pause</p><p style="font-size:13.5px">Pause de 1 à 3 mois, gratuite. Ta flamme est gelée, tes badges restent, Léa t'attend. Une séquence, c'est 8 minutes dans les transports.</p><button class="btn" onclick="toast('⏸','Abonnement en pause 1 mois (démo).');go('s-settings')">Pause 1 mois</button></div>`,
+  2:`<div class="plan pro" style="margin-top:4px"><p class="eyebrow">Dis-m'en plus</p><p style="font-size:13.5px">Léa peut changer de ton (plus directe, plus douce), de format (plus court) ou de rythme. On essaie une semaine ?</p><button class="btn" onclick="toast('🎚','Léa passe en mode « court et direct » (démo).');go('s-settings')">Ajuster Léa</button></div>`,
+  3:`<div class="plan pro" style="margin-top:4px"><p class="eyebrow">Bravo !</p><p style="font-size:13.5px">Un CAP AEPE, c'est énorme. Ton compte reste, tes badges aussi, et le jour où tu veux un autre diplôme (ADVF, BAFA…), Léa se souvient de toi.</p></div>`,
+  4:`<div class="card" style="margin-top:4px"><p style="font-size:13.5px">Merci. On t'écrit pour en savoir plus, si tu veux bien.</p></div>`};
+ o.innerHTML=offers[i]+`<button class="btn ghost" style="margin-top:10px" onclick="S.premium=false;toast('👋','Résilié. Tu gardes l\\'accès jusqu\\'à la fin de l\\'essai.');go('s-settings')">Confirmer la résiliation</button>`}
+
+/* ============ CPF via FranceConnect+ (parcours simulé) ============ */
+function renderCPF(){const id=S.identity;
+ $('#cpfbody').innerHTML=`<div class="card" style="background:linear-gradient(135deg,var(--gold-soft),var(--surface-2));border-color:var(--gold)">
+   <p class="eyebrow">Prépa finale · CAP AEPE</p>
+   <div class="row" style="justify-content:space-between;margin-top:6px;flex-wrap:wrap;gap:8px"><span class="price" style="font-size:28px">1 200 €</span>${id?`<span class="pill" style="background:color-mix(in srgb,var(--ok) 18%,var(--surface));color:var(--ok)">Reste à charge : 0 €</span>`:`<span class="pill gold">Reste à charge : 0 € possible</span>`}</div>
+   <p style="font-size:13.5px;margin-top:6px">Formation certifiante (RNCP 38565). Si ton solde couvre le montant, tu ne paies rien. Sinon, Xyn Education prend en charge l'écart jusqu'à 200 €.</p></div>
+ <div class="cpf-steps">
+   <div class="step ${id?'ok':''}"><i>${id?'✓':'1'}</i><div><b>Vérifier ton identité avec FranceConnect+</b><span>${id?'Vérifiée · '+id.prenom+' '+id.nom:'Le niveau de sécurité exigé pour le CPF. Deux minutes.'}</span></div></div>
+   <div class="step ${id?'ok':''}"><i>${id?'✓':'2'}</i><div><b>Lire ton solde Mon Compte Formation</b><span>${id?'Solde disponible : '+fr(id.solde)+' €':'Lecture seule, avec ton accord, rien n\'est débité.'}</span></div></div>
+   <div class="step ${S.cpfSent?'ok':''}"><i>${S.cpfSent?'✓':'3'}</i><div><b>Déposer la demande « XYN · Prépa CAP AEPE »</b><span>${S.cpfSent?'Déposée · réponse sous 11 jours ouvrés':'La fiche est déjà référencée, rien à remplir.'}</span></div></div>
+ </div>
+ ${!id?`<div class="fcbox"><span class="mark"><i>FC</i>FranceConnect+ · simulation</span><p style="font-size:13.5px">Dans l'appli, ce bouton ouvre la page officielle de l'État dans le navigateur sécurisé du téléphone. XYN ne voit jamais ton mot de passe : il reçoit seulement ton identité vérifiée et, avec ton accord, ton solde CPF.</p><button class="btn fc" onclick="fcStart()">S'identifier avec FranceConnect+</button></div>`
+ :!S.cpfSent?`<div class="idcard"><span>Identité</span><b>${id.prenom} ${id.nom}</b><span>Née le</span><b>${id.naissance}</b><span>Solde CPF</span><b>${fr(id.solde)} €</b><span>Formation</span><b>Prépa CAP AEPE · 1 200 €</b><span>Reste à charge</span><b style="color:var(--ok)">0 €</b></div>
+   <button class="btn gold pulse" onclick="cpfSend()">Déposer ma demande de financement</button>`
+ :`<div class="coach-row"><div class="avatar">L</div><p>Demande déposée. Pendant que la Caisse des Dépôts regarde ton dossier, je débloque déjà tes oraux blancs. On ne perd pas 11 jours.</p></div><button class="btn" onclick="S.premium=true;S.trialEnd=Date.now()+365*864e5;unlockBadge('premium');go('s-dash')">Commencer la Prépa finale</button>`}
+ <button class="btn ghost" onclick="toast('📞','Un conseiller Xyn Education te rappelle sous 24 h.')">Je préfère être rappelé</button>
+ <p class="muted" style="font-size:11.5px;text-align:center">Parcours simulé. La vraie connexion exige l'habilitation FranceConnect+ et l'accès EDOF de la Caisse des Dépôts, côté serveur.</p>`}
+function fcStart(){ac();go('s-fc');const b=$('#fcbody');
+ b.innerHTML=`<p class="eyebrow">Simulation · redirection sécurisée</p><div class="spinner"></div><h2 style="font-size:20px">Ouverture de FranceConnect+…</h2><p class="muted" style="font-size:13.5px;max-width:280px;margin:0 auto">Tu quittes XYN. L'État vérifie ton identité, puis te renvoie ici. XYN ne voit rien de ce que tu saisis.</p>`;
+ setTimeout(()=>{b.innerHTML=`<p class="eyebrow">Simulation · FranceConnect+</p><div class="fcbox" style="text-align:left"><span class="mark"><i>FC</i>Identification réussie</span><p style="font-size:13.5px">XYN · Xyn Education demande l'accès à :</p><ul style="margin:0;padding-left:18px;font-size:13.5px;font-weight:800"><li>Identité pivot (nom, prénom, date de naissance)</li><li>Solde Mon Compte Formation (lecture seule)</li></ul><button class="btn fc" onclick="fcDone()">Accepter et revenir sur XYN</button><button class="btn ghost" onclick="go('s-cpf')">Refuser</button></div>`},2200)}
+function fcDone(){S.identity={prenom:'Camille',nom:'Durand',naissance:'14/03/1996',solde:1700};sfx.badge();go('s-cpf');setTimeout(()=>toast('✅','Identité vérifiée · solde CPF lu : 1 700 €'),400)}
+function cpfSend(){S.cpfSent=true;confetti($('#cfg'));sfx.level();renderCPF();gainXP(200);toast('📨','Demande déposée. Réponse sous 11 jours ouvrés.')}
+
+
+/* ============ v6 : onboarding ============ */
+function renderOnb(){$('#onbname').value=S.name;$$('#onbexam button').forEach(b=>{b.classList.toggle('on',b.dataset.v===S.exam);b.onclick=()=>{S.exam=b.dataset.v;renderOnb()}});$$('#onbmin button').forEach(b=>{b.classList.toggle('on',+b.dataset.v===S.minutes);b.onclick=()=>{S.minutes=+b.dataset.v;renderOnb()}});
+ $('#onbplan').innerHTML=`<p class="eyebrow">Ce que Léa propose</p><p style="margin-top:6px">${planText()}</p>`;$('#onbname').oninput=e=>{S.name=e.target.value.trim()}}
+function weeksLeft(){return Math.max(1,Math.round((new Date(S.exam)-Date.now())/6048e5))}
+function daysLeft(){return Math.max(0,Math.round((new Date(S.exam)-Date.now())/864e5))}
+function perWeek(){return Math.ceil(87/Math.max(1,weeksLeft()-4))}
+function capacity(){return {10:5,20:9,40:16}[S.minutes]||9}
+function planText(){const w=weeksLeft(),need=perWeek(),cap=capacity();const ex={'2027-06-01':'juin 2027','2027-09-15':'septembre 2027','2028-06-01':'juin 2028'}[S.exam];
+ return `Session de <b>${ex}</b> : ${w} semaines. Pour couvrir les 87 séquences avec un mois de révision, il faut <b>${need} séquence${need>1?'s':''} par semaine</b>. Avec ${S.minutes} min par jour, tu en tiens ${cap} : ${cap>=need?'large, on pourra même approfondir.':'c\'est serré, Léa raccourcira certaines séquences.'} On commence par <b>3 séquences gratuites</b>.`}
+function onbDone(){S.name=$('#onbname').value.trim();startBilan()}
+
+/* ============ v6 : tableau de bord examen ============ */
+function proba(){let p=32+S.learned.size*4+S.done.size*5-S.missed.size*2+(S.premium?8:0)+S.revCount+(S.oralDone?6:0)+S.duelsWon*2;return Math.max(12,Math.min(95,Math.round(p)))}
+function renderExam(){const e=$('#examcard');if(!e)return;const d=daysLeft(),pr=proba();
+ const todos=[{t:'Faire la séquence du jour',ok:S.done.size>0,g:'+5 %'},{t:'Réviser les notions ratées',ok:S.missed.size===0&&S.learned.size>0,g:'+2 %'},{t:'Tenter l\'oral blanc EP1',ok:S.oralDone,g:'+6 %'},{t:'Un duel pour ancrer le vocabulaire',ok:S.duelsWon>0,g:'+2 %'}];
+ e.innerHTML=`<div class="exam"><div><div class="lbl">Examen dans</div><div class="big">${d} j</div><div class="lbl" style="margin-top:6px">${weeksLeft()} semaines · ${perWeek()} séq./sem. à tenir</div></div><div class="proba" style="--p:${pr}"><b>${pr} %</b><small>réussite</small></div></div>
+ <div class="card" style="padding:10px 14px"><div class="row" style="justify-content:space-between"><span class="eyebrow">Cette semaine, pour faire monter la jauge</span></div>${todos.map(t=>`<div class="todo ${t.ok?'ok':''}"><i>${t.ok?'✓':''}</i>${t.t}<span class="gain">${t.g}</span></div>`).join('')}</div>`}
+
+/* ============ v6 : référentiel ============ */
+const REF=[{ep:'EP1',t:'Accompagner le développement du jeune enfant',n:32,ch:[['Accueil et séparation',6],['Soins du quotidien',8],['Repas et alimentation',6],['Sommeil',4],['Jeu et activités d\'éveil',8]]},
+ {ep:'EP2',t:'Exercer son activité en accueil collectif',n:30,ch:[['Projet pédagogique',6],['Travail en équipe et transmissions',6],['Hygiène des locaux',8],['Sécurité et premiers secours',6],['Partenariat avec les familles',4]]},
+ {ep:'EP3',t:'Exercer son activité en accueil individuel',n:25,ch:[['Cadre légal de l\'assistante maternelle',5],['Organisation du domicile',6],['Entretien du logement et du linge',6],['Préparation des repas',5],['Relation contractuelle avec les parents',3]]}];
+function renderRef(){const done=S.done.size;const total=87;$('#refpct').textContent=Math.round(done/total*100)+' %';
+ $('#refbody').innerHTML=`<div class="coach-row"><div class="avatar">L</div><p>87 séquences, trois épreuves. Chaque case est une mise en situation de 8 à 10 minutes. Voilà exactement ce qu'il y a derrière le mot « CAP ».</p></div>
+ <div class="blocks">${REF.map((b,bi)=>{const d=bi===0?done:0,f=bi===0?Math.max(0,3-done):0;const pct=Math.round(d/b.n*100);
+  return `<div class="block"><div class="hd"><span class="pill">${b.ep}</span><b>${b.t}</b><span class="pct">${pct} %</span></div><div class="cells">${Array.from({length:b.n},(_,i)=>`<i class="${i<d?'d':i<d+f?'f':''}"></i>`).join('')}</div><div class="chaps">${b.ch.map(([c,n],ci)=>`<div><span>${c}</span><b>${bi===0&&ci===0?Math.min(done,1):bi===0&&ci===2?(S.done.has('seq2')?1:0):bi===0&&ci===3?(S.done.has('seq3')?1:0):0} / ${n}</b></div>`).join('')}</div>${bi>0||!S.premium?`<button class="btn ghost sm" onclick="paywall('${b.t}')">Débloquer ce bloc</button>`:''}</div>`}).join('')}</div>
+ <p class="muted" style="font-size:12px;text-align:center">Vert : fait · pointillé : gratuit · gris : Premium. Les intitulés suivent le référentiel officiel du CAP AEPE.</p>`}
+
+/* ============ v6 : fiches mémo ============ */
+const DEF={sepann:'Le parent dit au revoir, annonce son retour avec un repère concret, et pose lui-même l\'enfant.',emotion:'« Tu es triste, maman part, elle revient après le goûter, je reste avec toi. »',doudou:'Le doudou fait le pont maison-crèche. Jamais lavé devant l\'enfant, jamais confisqué.',transmission:'Heure, fait observé, ce qui a aidé, heure de retour au calme. Une ligne.',neophobie:'Refus du nouveau, normal de 2 à 6 ans. Re-proposer 10 à 15 fois sans pression.',forcer:'Ni cuillère forcée, ni chantage au dessert : le dessert fait partie du repas.',fausseroute:'Raisin, saucisse, tomate cerise : coupés en 4 dans la longueur, enfant assis, adulte présent.',mains:'Eau et savon avant chaque repas, enfants et adultes. Le gel ne remplace pas.',rituel:'Mêmes gestes, même ordre, mêmes mots, chaque jour : le corps sait ce qui vient.',dos:'Sur le dos, en turbulette, lit vide : ni couverture, ni oreiller, ni grosse peluche.',rythme:'On ne réveille pas un enfant pour un horaire : il goûtera à son réveil.',surveillance:'Un adulte présent dans le dortoir, qui voit et entend, tout le temps.'};
+const KEY={seq1:'« Une séparation courte, mais dite. »',seq2:'« Mon rôle n\'est pas qu\'elle mange aujourd\'hui, c\'est qu\'elle n\'ait pas peur demain. »',seq3:'« Sur le dos, lit vide, un adulte qui regarde. Sans exception. »'};
+function renderFiches(){const keys=['seq1','seq2','seq3'].filter(k=>S.done.has(k));$('#fichecount').textContent=keys.length;
+ $('#fichebody').innerHTML=(keys.length?'':`<div class="coach-row"><div class="avatar">L</div><p>Ta première fiche apparaît dès que tu termines une séquence. Une page, les 4 notions, la phrase à retenir.</p></div>`)+
+ keys.map(k=>{const q=SEQS[k];return `<div class="fiche"><p class="eyebrow">${q.title}</p><h3>${q.intro[1].scene.split('.')[0]}.</h3><p class="key">${KEY[k]}</p><ul>${q.notions.map(n=>`<li><b>${NOTIONS[n].e} ${NOTIONS[n].n}</b> · ${DEF[n]}</li>`).join('')}</ul><div class="row" style="gap:8px"><button class="btn ghost sm" onclick="shareFiche('${k}',this)">Copier la fiche</button><button class="pill gold" onclick="paywall('Fiches illustrées')">Version illustrée ✨</button></div></div>`}).join('')+
+ `<p class="muted" style="font-size:12px;text-align:center">Les fiches se partagent en texte. En Premium : PDF illustré, export vers tes notes.</p>`}
+function shareFiche(k,btn){const q=SEQS[k];const txt=`XYN · ${q.title}\n${KEY[k]}\n`+q.notions.map(n=>'• '+NOTIONS[n].n+' : '+DEF[n]).join('\n');
+ const done=()=>{btn.textContent='Copiée ✓';sfx.good();setTimeout(()=>btn.textContent='Copier la fiche',2000)};
+ if(navigator.clipboard&&navigator.clipboard.writeText)navigator.clipboard.writeText(txt).then(done).catch(()=>toast('📋','Copie impossible ici : sélectionne le texte à la main.'));else toast('📋','Copie non disponible dans ce navigateur.')}
+
+/* ============ v6 : amis et duels ============ */
+const FRIENDS=[{n:'Yanis',c:'#0E6B5A',on:true,x:1390,s:'Promo CAP AEPE 2027 · en ligne'},{n:'Inès',c:'#E9A63A',on:true,x:980,s:'Même crèche de stage'},{n:'Mélissa',c:'#19A085',on:false,x:1940,s:'Vue il y a 2 h'},{n:'Sofiane',c:'#7A3FB3',on:false,x:2310,s:'Vu hier'}];
+function renderFriends(){$('#friendbody').innerHTML=`<div class="coach-row"><div class="avatar">L</div><p>Un duel, c'est 5 questions tirées de ce que vous avez tous les deux travaillé. Le vocabulaire rentre deux fois plus vite quand il y a un café en jeu.</p></div>
+ <p class="eyebrow">Ma promo</p><div class="stack">${FRIENDS.map((f,i)=>`<div class="friend"><div class="f ${f.on?'on':''}" style="background:${f.c}">${f.n[0]}</div><div class="t"><b>${f.n}</b><span>${f.s} · ${fr(f.x)} XP</span></div>${f.on?`<button class="btn sm" onclick="startDuel(${i})">Défier</button>`:`<button class="btn ghost sm" onclick="toast('📨','Défi envoyé à ${f.n}. Il/elle a 24 h pour répondre.')">Défi différé</button>`}</div>`).join('')}</div>
+ <div class="card" style="border-color:var(--gold)"><div class="row"><div style="font-size:26px">🎁</div><div style="flex:1;min-width:0"><b style="font-size:14px">Parraine un camarade</b><p class="muted" style="font-size:12.5px">Un mois Premium offert pour toi et pour lui à sa première séquence.</p></div><button class="pill gold" onclick="invite()">Lien</button></div></div>
+ ${S.duelsWon?`<p class="muted" style="font-size:12.5px;text-align:center">Duels gagnés : ${S.duelsWon}</p>`:''}`}
+function invite(){const txt='Rejoins-moi sur XYN pour préparer le CAP AEPE avec Léa : xyn.app/i/'+(S.name||'toi').toLowerCase();if(navigator.clipboard&&navigator.clipboard.writeText)navigator.clipboard.writeText(txt).then(()=>toast('🔗','Lien d\'invitation copié (démo).')).catch(()=>toast('🔗','xyn.app/i/'+(S.name||'toi').toLowerCase()));else toast('🔗',txt)}
+let D=null;
+function startDuel(i){ac();const pool=Object.values(SEQS).flatMap(q=>q.game);const qs=[...pool].sort(()=>Math.random()-.5).slice(0,5);D={opp:FRIENDS[i],qs,i:0,me:0,op:0};go('s-duel');renderDuel()}
+function renderDuel(){const q=D.qs[D.i];$('#duelpill').textContent=(D.i+1)+' / 5';$('#duelfoot').innerHTML='';
+ $('#duelbody').innerHTML=`<div class="duelhead"><div><div class="sc" style="color:var(--plum)">${D.me}</div><div class="who">${S.name||'Toi'}</div></div><div class="vs">VS</div><div><div class="sc" id="opsc">${D.op}</div><div class="who">${D.opp.n}</div></div></div>
+ <div class="timer"><i style="animation-duration:10s"></i></div><p class="game-q">${q.q}</p><div class="opts">${q.o.map((o,k)=>`<button class="opt" onclick="duelPick(${k})">${o}</button>`).join('')}</div><p class="muted" id="dx" style="font-size:13px"></p>`;
+ D.oppTimer=setTimeout(()=>{if(Math.random()<.65){D.op++;$('#opsc').textContent=D.op;$('#opsc').classList.add('bump');toast('⚡',D.opp.n+' a répondu juste. Dépêche-toi.')}},2500+Math.random()*4000)}
+function duelPick(k){clearTimeout(D.oppTimer);const q=D.qs[D.i];const btns=$$('#duelbody .opt');btns.forEach(b=>b.onclick=null);btns[q.r].classList.add('right');
+ if(k===q.r){D.me++;sfx.good();$('#dx').textContent='Juste. '+q.x}else{btns[k].classList.add('wrong');sfx.bad();S.missed.add(q.n);dot('s-revise',true);$('#dx').textContent=q.x}
+ if(Math.random()<.6&&$('#opsc').textContent==String(D.op)){D.op++;$('#opsc').textContent=D.op}
+ $('#duelbody .duelhead .sc').textContent=D.me;
+ const b=document.createElement('button');b.className='btn pulse';b.textContent=D.i<4?'Question suivante →':'Résultat';b.onclick=()=>{if(D.i<4){D.i++;renderDuel()}else endDuel()};$('#duelfoot').appendChild(b)}
+function endDuel(){const win=D.me>D.op,tie=D.me===D.op;$('#duelfoot').innerHTML='';
+ $('#duelbody').innerHTML=`<div class="duelhead"><div><div class="sc" style="color:var(--plum)">${D.me}</div><div class="who">${S.name||'Toi'}</div></div><div class="vs">${win?'🏆':tie?'🤝':'😬'}</div><div><div class="sc">${D.op}</div><div class="who">${D.opp.n}</div></div></div>
+ <h2 style="text-align:center;font-size:26px">${win?'Victoire':tie?'Égalité':'Perdu, de peu'}</h2>
+ <div class="coach-row"><div class="avatar">L</div><p>${win?D.opp.n+' paie le café. Et surtout : les notions sur lesquelles tu as répondu vite, c\'est celles qui tiennent le jour J.':tie?'Égalité. Vous reposez ça demain, j\'ai déjà choisi les questions.':'Pas grave. Ce que tu as raté est déjà dans « Réviser ». '+D.opp.n+' ne le sait pas, mais tu le rattrapes cette semaine.'}</p></div>
+ <button class="btn pulse" onclick="go('s-friends')">Retour</button><button class="btn ghost" onclick="startDuel(${FRIENDS.indexOf(D.opp)})">Revanche</button>`;
+ if(win){S.duelsWon++;confetti($('#cfg'));gainXP(60);quest('w3');if(D.opp.n==='Yanis')quest('w3')}else gainXP(20)}
+
+/* ============ v6 : semaine type et rappels ============ */
+const SLOTS=[{id:'a',w:'7h40',t:'Dans les transports',s:'Une séquence avec Léa · 8 min',d:'Lun · Mar · Jeu · Ven'},{id:'b',w:'12h30',t:'Pause déjeuner',s:'Révision des notions ratées · 5 min',d:'Tous les jours'},{id:'c',w:'21h15',t:'Canapé',s:'Mini-jeu ou duel · 5 min',d:'Mer · Dim'},{id:'d',w:'10h00',t:'Samedi matin',s:'Séquence longue + fiche mémo · 20 min',d:'Sam'}];
+function renderPlan(){const cap=capacity(),need=perWeek();const active=SLOTS.filter(x=>!S.slotsOff.has(x.id));
+ $('#planbody').innerHTML=`<div class="coach-row"><div class="avatar">L</div><p>${S.minutes} minutes par jour, ${need} séquences par semaine à tenir jusqu'en ${{'2027-06-01':'juin 2027','2027-09-15':'septembre 2027','2028-06-01':'juin 2028'}[S.exam]}. Voilà où je te propose de les glisser. Tu décoches, j'adapte.</p></div>
+ <p class="eyebrow">Mes créneaux</p><div class="stack">${SLOTS.map(x=>`<div class="slot ${S.slotsOff.has(x.id)?'off':''}"><div class="when">${x.w}</div><div class="t"><b>${x.t}</b><span>${x.s} · ${x.d}</span></div><button class="sw ${S.slotsOff.has(x.id)?'':'on'}" onclick="toggleSlot('${x.id}')" aria-label="${x.t}"></button></div>`).join('')}</div>
+ <div class="card"><div class="row" style="justify-content:space-between"><span class="eyebrow">Capacité hebdo</span><span class="pill ${active.length>=2?'':'coral'}">${active.length>=2?'OK':'Insuffisant'}</span></div><div class="meter" style="margin-top:8px"><i style="width:${Math.min(100,active.length/4*100)}%"></i></div><p class="muted" style="font-size:12.5px;margin-top:6px">${active.length} créneaux actifs sur 4. ${active.length>=2?'Assez pour tenir le rythme avec une marge.':'Léa raccourcira les séquences, mais ajoute un créneau si tu peux.'}</p></div>
+ <p class="eyebrow">Relances programmées (aperçu)</p><div class="stack">${active.slice(0,3).map(x=>`<div class="notif"><div class="ico" style="background:var(--brand-soft)">🔔</div><div class="t"><b>${x.w.replace('h',':').padEnd(5,'0')} · ${x.t}</b><span>${x.id==='a'?(S.name?S.name+', ':'')+'Noah t\'attend à la crèche. 8 minutes.':x.id==='b'?'2 notions à consolider, l\'air de rien.':x.id==='c'?'Yanis est en ligne. Un duel ?':'Ta fiche mémo du samedi est prête.'}</span></div><span class="when">${x.d.split(' ')[0]}</span></div>`).join('')}</div>
+ <button class="btn" onclick="toast('📅','Semaine type enregistrée. Léa te relancera à ces heures (démo).');sfx.good()">Enregistrer ma semaine</button>`}
+function toggleSlot(id){if(S.slotsOff.has(id))S.slotsOff.delete(id);else S.slotsOff.add(id);sfx.tap();renderPlan()}
+
+/* ============ v6 : accessibilité ============ */
+function setFS(v){S.fs=v;$('#phone').classList.remove('fs-s','fs-l');if(v!=='m')$('#phone').classList.add('fs-'+v);$$('.fsb').forEach(b=>b.classList.toggle('on',b.dataset.fs===v));sfx.tap()}
+function toggleMotion(){S.motion=!S.motion;$('#swmotion').classList.toggle('on',S.motion);$('#phone').classList.toggle('nomotion',S.motion)}
+
+/* ============ v6 : oral blanc EP1 ============ */
+const ORAL={dossier:'Stage en multi-accueil « Les Lilas » · Activité menée : peinture au doigt avec 4 enfants de 2 ans, 20 minutes.',
+ qs:[{q:"Présentez-nous votre activité en une minute : l'objectif, le déroulement, et ce que vous avez observé.",o:["J'ai fait de la peinture au doigt, les enfants ont bien aimé, c'était joli.","Objectif : motricité fine et exploration sensorielle. Quatre enfants de 2 ans, 20 minutes, tabliers, peinture adaptée à l'âge. J'ai observé que Lina a d'abord refusé de toucher, puis a participé en regardant les autres.","L'objectif était de faire un cadeau pour la fête des mères, chaque enfant a fait une feuille."],sc:[0,2,1],k:['objectif','motricite','sensori','observ'],crit:[0,1]},
+  {q:"Un enfant porte la peinture à la bouche. Que faites-vous, et pourquoi avez-vous choisi cette peinture-là ?",o:["Je le gronde pour qu'il comprenne que ça ne se fait pas.","Je retire calmement sa main en verbalisant « ce n'est pas pour manger ». La peinture est non toxique, choisie exprès parce qu'à 2 ans tout passe par la bouche.","J'arrête l'activité pour tout le monde, par sécurité."],sc:[0,2,1],k:['non toxique','comestible','verbalis','calme','bouche'],crit:[3,2]},
+  {q:"Comment avez-vous transmis cette activité à l'équipe et aux familles ?",o:["Je ne l'ai pas fait, ce n'était qu'une activité.","Affichage des productions avec une photo, transmission orale individualisée le soir : ce que l'enfant a fait et son attitude. Et une ligne dans le cahier d'équipe.","J'ai mis les dessins dans les sacs des enfants."],sc:[0,2,1],k:['transmission','parents','equipe','cahier','affich'],crit:[2,4]}],
+ crits:['Connaissances du développement','Analyse de la pratique','Communication et transmission','Hygiène et sécurité','Posture professionnelle']};
+let O=null;
+function startOral(){ac();O={i:0,ans:[],pts:[0,0,0,0,0]};go('s-oral');$('#oralpill').textContent='Préparation';$('#oralfoot').innerHTML='';
+ $('#oralbody').innerHTML=`<div class="jury"><div class="avatar">J</div><p><b>Léa joue le jury.</b> Deux examinateurs, 25 minutes, ton dossier devant eux. Ici : 3 questions, 40 secondes chacune, puis la grille d'évaluation commentée, comme le jour J.</p></div>
+ <div class="card"><p class="eyebrow">Ton dossier professionnel (fiche 1)</p><p style="font-size:13.5px;margin-top:6px">${ORAL.dossier}</p></div>
+ <div class="card" style="border-color:var(--plum)"><p class="eyebrow">Ce que le jury note</p><div class="chaps" style="margin-top:6px">${ORAL.crits.map(c=>`<div><span>${c}</span><b>/ 4</b></div>`).join('')}</div></div>`;
+ $('#oralfoot').innerHTML=`<button class="btn pulse" onclick="oralQ()">Entrer dans la salle</button>`;say("Bonjour, asseyez-vous. Nous avons lu votre dossier.")}
+function oralQ(){const q=ORAL.qs[O.i];$('#oralpill').textContent='Question '+(O.i+1)+' / 3';$('#oralfoot').innerHTML='';
+ $('#oralbody').innerHTML=`<div class="jury"><div class="avatar">J</div><p>${q.q}</p></div><div class="chrono"><i></i></div><p class="eyebrow">Réponds à voix haute, puis choisis la réponse la plus proche de la tienne</p><div class="opts">${q.o.map((o,k)=>`<button class="opt" onclick="oralPick(${k})">${o}</button>`).join('')}</div>
+ <form class="compose" style="border:0;padding:0;background:none" onsubmit="oralFree(event)"><input id="oralinp" placeholder="…ou écris ta réponse" autocomplete="off"><button type="submit" aria-label="Envoyer">↑</button></form>`;say(q.q)}
+function oralScore(k){const q=ORAL.qs[O.i];O.ans.push(k);const pts=q.sc[k];q.crit.forEach(c=>O.pts[c]+=pts);O.pts[4]+=pts>0?1:0;
+ $$('#oralbody .opt').forEach(b=>b.onclick=null);const btns=$$('#oralbody .opt');btns[q.sc.indexOf(2)].classList.add('right');if(pts<2)btns[k].classList.add('wrong');sfx[pts===2?'good':'bad']();
+ $('#oralfoot').innerHTML=`<button class="btn pulse" onclick="${O.i<2?'O.i++;oralQ()':'oralEnd()'}">${O.i<2?'Question suivante →':'Voir la grille du jury'}</button>`}
+function oralPick(k){oralScore(k)}
+function oralFree(e){e.preventDefault();const v=$('#oralinp').value.trim();if(!v)return;const q=ORAL.qs[O.i];const hits=q.k.filter(w=>has(v,w)).length;const k=hits>=2?q.sc.indexOf(2):hits===1?q.sc.indexOf(1):q.sc.indexOf(0);S.freeText++;oralScore(k)}
+function oralEnd(){O.pts=O.pts.map(x=>Math.min(4,x));const total=O.pts.reduce((a,b)=>a+b,0);const note=Math.round(total/14*20*10)/10;S.oralDone=true;S.oralScore=note;$('#oralpill').textContent='Grille';$('#oralfoot').innerHTML='';
+ const com=[['Tu nommes les stades et les besoins de l\'âge.','Cite le stade de développement : à 2 ans, exploration sensorielle et motricité fine.'],['Tu expliques pourquoi tu as fait ces choix.','Le jury veut ton « pourquoi », pas seulement ton « quoi ».'],['Transmission orale et écrite, individualisée.','La transmission est une compétence évaluée, pas un détail.'],['Peinture adaptée, geste calme, verbalisation.','Un enfant de 2 ans met tout à la bouche : anticipe-le dans ton choix de matériel.'],['Calme, structurée, tu assumes tes choix.','Réponds en « je », avec des faits observés.']];
+ $('#oralbody').innerHTML=`<div class="note">${note.toLocaleString('fr-FR')}<small> / 20</small></div><p style="text-align:center;font-weight:800">${note>=14?'Admissible, et avec de la marge.':note>=10?'Admissible, à consolider.':'Pas encore. Mais tu sais maintenant exactement quoi travailler.'}</p>
+ <div class="card grid5"><p class="eyebrow">Grille du jury</p>${ORAL.crits.map((c,i)=>`<div class="crit"><div class="row"><span>${c}</span><b>${O.pts[i]} / 4</b></div><div class="meter"><i style="width:${O.pts[i]/4*100}%"></i></div><span class="c">${O.pts[i]>=3?com[i][0]:com[i][1]}</span></div>`).join('')}</div>
+ <div class="jury"><div class="avatar">L</div><p>Version Prépa finale : 3 oraux complets de 25 minutes avec un formateur, ton vrai dossier relu et corrigé, et la grille officielle. Finançable CPF, 0 € de reste à charge possible.</p></div>
+ <button class="btn gold pulse" onclick="go('s-cpf')">Voir la Prépa finale</button><button class="btn ghost" onclick="go('s-dash')">Retour au parcours</button>`;
+ confetti($('#cfg'));gainXP(80);if(note>=14)unlockBadge('ep1');sfx.level();say("Grille du jury : "+note.toLocaleString('fr-FR')+" sur 20.")}
+
+/* ============ init ============ */
+renderDash();
+setTimeout(()=>{if($('#s-home').classList.contains('on'))pushNotif('👋','Léa : « On commence par un bilan de 2 minutes ? »','Sans compte, sans carte.',()=>go('s-onb'))},9000);
+</script>
+
+</body>
+</html>
