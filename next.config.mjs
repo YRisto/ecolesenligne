@@ -5,6 +5,8 @@ const nextConfig = {
     return [
       { source: '/lejeuduDG/sw.js', headers: [{ key: 'Service-Worker-Allowed', value: '/lejeuduDG' }, { key: 'Cache-Control', value: 'no-cache' }] },
       { source: '/lejeuduDG/manifest.webmanifest', headers: [{ key: 'Content-Type', value: 'application/manifest+json' }] },
+      { source: '/landoflord/sw.js', headers: [{ key: 'Service-Worker-Allowed', value: '/landoflord' }, { key: 'Cache-Control', value: 'no-cache' }] },
+      { source: '/landoflord/manifest.webmanifest', headers: [{ key: 'Content-Type', value: 'application/manifest+json' }] },
     ];
   },
   async rewrites() {
