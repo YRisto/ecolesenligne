@@ -6,42 +6,50 @@
 <title>Le Général déchu — prototype</title>
 <style>
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
-html,body{margin:0;height:100%;background:#12100d;color:#e9dfc6;font-family:Georgia,"Times New Roman",serif;overscroll-behavior:none}
+html,body{margin:0;height:100%;background:#0c0a08;color:#e9dfc6;font-family:Georgia,"Times New Roman",serif;overscroll-behavior:none}
 body{touch-action:manipulation;user-select:none;-webkit-user-select:none}
-button{font:inherit;color:inherit;cursor:pointer;touch-action:manipulation}
-#app{max-width:540px;margin:0 auto;padding:6px;display:flex;flex-direction:column;gap:6px;min-height:100%}
-#viewWrap{position:relative;border:3px solid #6b5630;border-radius:4px;background:#000;box-shadow:0 0 0 1px #c9a24a inset}
+button{font:inherit;color:inherit;cursor:pointer;touch-action:manipulation;padding:0}
+img{image-rendering:pixelated;display:block}
+#app{max-width:540px;margin:0 auto;padding:6px;display:grid;gap:6px;grid-template-columns:auto minmax(0,1fr);grid-template-areas:"view view" "log log" "party party" "pad sys" "inv inv";align-content:start;min-height:100%;background:#3a2a1b var(--wood);background-size:192px;image-rendering:pixelated;border:solid #1c130b;border-width:0 3px}
+#deco{display:none;grid-area:deco}#viewWrap{grid-area:view}#log{grid-area:log}#party{grid-area:party}#pad{grid-area:pad}#sys{grid-area:sys}#inv{grid-area:inv}
+.pl{background:linear-gradient(#54422a,#2e2416);border:2px solid;border-color:#a8894a #2a1f10 #2a1f10 #a8894a;border-radius:3px;color:#f0cf74;position:relative;overflow:hidden}
+.pl:active{border-color:#2a1f10 #a8894a #a8894a #2a1f10;filter:brightness(1.25)}
+.pl:disabled{opacity:.35}
+.inset{border:2px solid;border-color:#140d07 #7a6236 #7a6236 #140d07;background:rgba(10,7,4,.55)}
+#viewWrap{position:relative;border:3px solid;border-color:#140d07 #8a6f3a #8a6f3a #140d07;background:#000}
 #view{display:block;width:100%;aspect-ratio:16/10;image-rendering:pixelated;image-rendering:crisp-edges}
 #viewWrap.shake{animation:shake .4s}
 @keyframes shake{20%{transform:translate(4px,-3px)}40%{transform:translate(-4px,3px)}60%{transform:translate(3px,2px)}80%{transform:translate(-2px,-2px)}}
 #lvlname{position:absolute;left:0;right:0;top:8px;text-align:center;font-variant:small-caps;letter-spacing:.12em;font-size:15px;color:#f3e3b0;text-shadow:0 1px 3px #000,0 0 8px #000;opacity:0;transition:opacity 1s;pointer-events:none}
 #lvlname.on{opacity:1}
-#gold{position:absolute;right:6px;bottom:4px;font-size:12px;color:#f0d27a;text-shadow:0 1px 2px #000;pointer-events:none}
-#log{min-height:54px;background:#1c1813;border:1px solid #3d3324;border-radius:4px;padding:5px 8px;font-size:13px;line-height:1.3;display:flex;flex-direction:column;justify-content:flex-end}
-#log div{opacity:.55}#log div:last-child{opacity:1;color:#f3e9cf}
-#party{display:grid;grid-template-columns:repeat(4,1fr);gap:5px}
-.card{background:#231d15;border:1px solid #5a4828;border-radius:4px;padding:4px;display:flex;flex-direction:column;gap:3px;min-width:0}
-.card.empty{align-items:center;justify-content:center;color:#6d6048;font-size:11px;font-style:italic;border-style:dashed;min-height:120px}
-.card.ko{filter:grayscale(1) brightness(.6)}
-.card.hit{border-color:#e0492f;background:#3a1a14}
-.pt{display:flex;align-items:center;gap:4px;background:none;border:0;padding:0;min-width:0;text-align:left}
-.pt img{width:30px;height:30px;image-rendering:pixelated;border:1px solid #8a7240;border-radius:2px;flex:none}
-.pt b{font-size:12px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.bar{position:relative;height:11px;background:#0e0c09;border:1px solid #3d3324;border-radius:2px;overflow:hidden}
-.bar i{position:absolute;left:0;top:0;bottom:0}
-.bar.hp i{background:#a8322a}.bar.sf i{background:#3f7a8c}.bar.xp i{background:#b9973f}
-.bar span{position:absolute;inset:0;font:9px/10px Verdana,sans-serif;text-align:center;color:#fff;text-shadow:0 0 2px #000}
-.atk,.spc{position:relative;overflow:hidden;border:1px solid #8a7240;border-radius:3px;background:#3b2f1c;height:32px;padding:0 2px;font-size:11px}
-.spc{background:#1f3238;border-color:#4d7c8a;height:26px}
-.atk i,.spc i{position:absolute;left:0;top:0;bottom:0;background:rgba(0,0,0,.62);width:0}
-.atk span,.spc span{position:relative;display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.atk:active,.spc:active,#pad button:active,#acts button:active{filter:brightness(1.4)}
-#controls{display:flex;gap:8px;align-items:stretch}
-#pad{display:grid;grid-template-columns:repeat(3,1fr);gap:5px;flex:1.2}
-#acts{display:grid;grid-template-columns:1fr 1fr;gap:5px;flex:1}
-#pad button,#acts button{height:52px;border:1px solid #6b5630;border-radius:5px;background:#2a2217;font-size:20px}
-#acts button{font-size:14px;font-variant:small-caps;letter-spacing:.05em}
-#acts #bAct{background:#4a3a1a;border-color:#c9a24a}
+#gold{position:absolute;right:0;bottom:0;display:flex;flex-direction:column;align-items:center;gap:1px;padding:3px 6px 2px;background:rgba(20,13,7,.78);border:solid #8a6f3a;border-width:2px 0 0 2px;font:bold 13px Verdana,sans-serif;color:#f0d27a;pointer-events:none}
+#gold img{width:24px;height:24px}
+#log{height:48px;background:#e2d5b1;color:#2a2116;border:2px solid;border-color:#140d07 #7a6236 #7a6236 #140d07;box-shadow:inset 0 0 10px rgba(90,60,20,.45);padding:3px 8px;font-size:12.5px;line-height:1.35;overflow:hidden;display:flex;flex-direction:column;justify-content:flex-end}
+#log div{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;opacity:.6}#log div:last-child{opacity:1;white-space:normal;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
+#party{display:grid;grid-template-columns:1fr 1fr;gap:5px}
+.card{display:grid;grid-template-columns:58px 8px 8px 40px minmax(0,1fr);gap:3px;height:68px;padding:3px;border:2px solid;border-color:#140d07 #7a6236 #7a6236 #140d07;background:rgba(10,7,4,.55)}
+.card.empty{display:flex;align-items:center;justify-content:center;color:#8a7a5a;font-size:11px;font-style:italic}
+.card.ko .pt img{filter:grayscale(1) brightness(.5)}
+.card.hit{background:#5a1a12;border-color:#e0492f}
+.pt{background:#000;border:1px solid #c9a24a;height:58px;width:58px}.pt img{width:56px;height:56px}
+.vb{position:relative;background:#0a0806;border:1px solid #000;height:58px}
+.vb i{position:absolute;left:0;right:0;bottom:0}.vb.hp i{background:linear-gradient(90deg,#d2463a,#8c241c)}.vb.sf i{background:linear-gradient(90deg,#5aa0b8,#2c5f74)}
+.ab{display:grid;grid-template-rows:1fr 1fr;gap:3px;height:58px}
+.ab img{width:22px;height:22px;margin:auto}
+.ab i{position:absolute;left:0;top:0;bottom:0;width:0;background:rgba(0,0,0,.68)}
+.spc.pl{background:linear-gradient(#2d4650,#182a31);border-color:#6fa3b3 #0f1c21 #0f1c21 #6fa3b3}
+.nm{font-size:12px;line-height:1.25;overflow:hidden;align-self:center}.nm b{display:block;font-variant:small-caps;letter-spacing:.04em;font-size:13px;color:#f3e3b0;overflow:hidden;text-overflow:ellipsis}
+.nm span{display:block;font:10px Verdana,sans-serif}.nm .h{color:#f08a7e}.nm .s{color:#8fc7da}
+#pad{display:grid;grid-template-columns:repeat(3,54px);grid-template-rows:54px 54px;gap:4px}
+#pad button{font-size:24px;line-height:1}
+#sys{display:grid;grid-template-columns:repeat(3,1fr);gap:4px}
+#sys button{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;font-size:12px;font-variant:small-caps;letter-spacing:.05em}
+#sys img{width:32px;height:32px}
+#inv{display:flex;gap:3px;padding:4px;background:#4a271c;border:2px solid;border-color:#140d07 #7a6236 #7a6236 #140d07}
+#inv .ar{width:34px;flex:none;font-size:16px}
+.sl{flex:1 1 0;min-width:0;aspect-ratio:1;max-height:56px;background:#6b3a2a;border:2px solid;border-color:#3a1c12 #96604a #96604a #3a1c12;display:flex;align-items:center;justify-content:center}
+.sl img{width:78%;max-width:40px}
+.sl.on{background:#c9a24a;border-color:#fff1b0}
 .sheet{position:fixed;inset:0;background:rgba(6,5,4,.72);display:flex;align-items:flex-end;justify-content:center;z-index:10}
 .sheet[hidden]{display:none}
 .box{width:100%;max-width:540px;max-height:88vh;overflow:auto;background:#efe4c8;color:#2a2116;border-top:3px solid #c9a24a;border-radius:10px 10px 0 0;padding:14px 14px 18px;user-select:text;-webkit-user-select:text}
@@ -54,21 +62,23 @@ button{font:inherit;color:inherit;cursor:pointer;touch-action:manipulation}
 .box button:disabled{opacity:.4}
 .box button.main{background:#3b2f1c;color:#f3e3b0;border-color:#3b2f1c}
 .list{display:flex;flex-direction:column;gap:5px}
-.list button{display:flex;justify-content:space-between;align-items:center;gap:8px;text-align:left}
-.list button.on{background:#e3cf93;border-color:#7a5a12}
+.list button{display:flex;justify-content:flex-start;align-items:center;gap:10px;text-align:left}
+.list button>span{flex:1}.list img{width:28px;height:28px;flex:none}
 .list small{display:block;color:#6d5d3d;font-size:12px}
 .list em{font-style:normal;color:#7a5a12;white-space:nowrap;font-size:13px}
 .row{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
 .row button{flex:1 1 auto}
-.who{display:flex;align-items:center;gap:8px;margin-bottom:4px}
-.who img{width:44px;height:44px;image-rendering:pixelated;border:2px solid #8a7240;border-radius:3px}
+.who{display:flex;align-items:center;gap:10px;margin-bottom:4px}
+.who img{width:64px;height:64px;border:2px solid #8a7240;background:#000}
 .who b{font-variant:small-caps;letter-spacing:.08em;font-size:17px}
 .who.narr b{color:#7a6a4a;font-style:italic;font-variant:normal;font-size:14px}
 #dlgText{font-size:16px;line-height:1.5;min-height:72px}
 .stat{display:grid;grid-template-columns:1fr 1fr;gap:4px 12px;font-size:14px}
 .skill{margin:5px 0}.skill div:first-child{display:flex;justify-content:space-between;font-size:14px}
-.box .bar{background:#cbbd96;border-color:#a8976a;height:8px}
-.eq{display:flex;justify-content:space-between;align-items:center;gap:8px;font-size:14px;margin:4px 0}
+.bar{position:relative;height:8px;background:#cbbd96;border:1px solid #a8976a;border-radius:2px;overflow:hidden}
+.bar i{position:absolute;left:0;top:0;bottom:0;background:#b9973f}
+.eq{display:flex;align-items:center;gap:10px;font-size:14px;margin:4px 0}
+.eq img{width:32px;height:32px;background:#6b3a2a;border:1px solid #3a1c12;padding:2px;flex:none}.eq span{flex:1}
 .eq button{min-height:34px;padding:4px 10px;font-size:13px}
 #mapC{display:block;margin:0 auto;max-width:100%;image-rendering:pixelated;border:1px solid #a8976a;background:#d9cba3}
 #title{position:fixed;inset:0;z-index:20;background:radial-gradient(ellipse at 50% 30%,#3a2c17,#0c0a08 75%);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px;text-align:center}
@@ -78,28 +88,38 @@ button{font:inherit;color:inherit;cursor:pointer;touch-action:manipulation}
 #title button{width:240px;margin:6px;padding:14px;border:1px solid #c9a24a;background:#2a2217;border-radius:6px;font-size:17px;font-variant:small-caps;letter-spacing:.08em}
 #title .keys{margin-top:26px;font:12px/1.5 Verdana,sans-serif;color:#7d7058;max-width:340px}
 @media (min-width:900px) and (min-height:560px){
- #app{max-width:1180px;display:grid;grid-template-columns:minmax(0,1fr) 390px;grid-template-rows:auto auto 1fr;gap:10px;padding:14px;align-items:start}
- #viewWrap{grid-row:1/4}
- #party{grid-template-columns:1fr 1fr}
+ #app{max-width:min(1100px,calc((100vh - 330px)*1.6 + 290px));grid-template-columns:250px minmax(0,1fr);grid-template-areas:"deco view" "deco log" "pad party" "sys inv";padding:12px;gap:8px;min-height:0;margin-top:10px;border-width:3px;border-radius:6px}
+ #deco{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;text-align:center;padding:14px;border:2px solid;border-color:#140d07 #7a6236 #7a6236 #140d07;background:rgba(10,7,4,.35)}
+ #crest{width:144px;height:168px;image-rendering:pixelated}
+ #decoT{font-variant:small-caps;letter-spacing:.14em;font-size:21px;color:#f0d27a;text-shadow:0 2px 0 #1c130b}
+ #decoL{font-style:italic;color:#cdbb90;font-size:14px}
+ #party{grid-template-columns:repeat(4,1fr)}
+ .card{grid-template-columns:88px 9px 9px minmax(0,1fr);grid-template-rows:88px auto;height:auto}
+ .pt{width:88px;height:88px}.pt img{width:86px;height:86px}.vb,.ab{height:88px}.ab img{width:30px;height:30px}
+ .nm{grid-column:1/-1;display:flex;gap:8px;align-items:baseline;white-space:nowrap}
+ #pad{justify-self:center;align-self:center;grid-template-columns:repeat(3,64px);grid-template-rows:64px 64px}
+ #sys{align-self:stretch;min-height:64px}#sys button{font-size:11px;gap:2px}#sys img{width:28px;height:28px}
+ #log{font-size:14px;height:48px}
  .sheet{align-items:center}.box{border-radius:10px;border:3px solid #c9a24a}
 }
 </style>
 </head>
 <body>
 <div id="app">
- <div id="viewWrap"><canvas id="view" width="320" height="200"></canvas><div id="lvlname"></div><div id="gold"></div></div>
+ <div id="deco"><canvas id="crest" width="48" height="56"></canvas><div id="decoT">Le Général déchu</div><div id="decoL"></div></div>
+ <div id="viewWrap"><canvas id="view" width="320" height="200"></canvas><div id="lvlname"></div><div id="gold"><img id="goldI" alt="écus"><span id="goldN"></span></div></div>
  <div id="log"></div>
  <div id="party"></div>
- <div id="controls">
-  <div id="pad">
-   <button data-mv="tl" aria-label="Tourner à gauche">↶</button><button data-mv="f" aria-label="Avancer">▲</button><button data-mv="tr" aria-label="Tourner à droite">↷</button>
-   <button data-mv="l" aria-label="Pas à gauche">◀</button><button data-mv="b" aria-label="Reculer">▼</button><button data-mv="r" aria-label="Pas à droite">▶</button>
-  </div>
-  <div id="acts">
-   <button id="bAct">Agir</button><button id="bBag">Sac</button>
-   <button id="bMap">Carte</button><button id="bRest">Repos</button>
-  </div>
+ <div id="pad">
+  <button class="pl" data-mv="tl" aria-label="Tourner à gauche">↶</button><button class="pl" data-mv="f" aria-label="Avancer">▲</button><button class="pl" data-mv="tr" aria-label="Tourner à droite">↷</button>
+  <button class="pl" data-mv="l" aria-label="Pas à gauche">◀</button><button class="pl" data-mv="b" aria-label="Reculer">▼</button><button class="pl" data-mv="r" aria-label="Pas à droite">▶</button>
  </div>
+ <div id="sys">
+  <button class="pl" id="bMenu"><img id="iMenu" alt=""><span>Chronique</span></button>
+  <button class="pl" id="bRest"><img id="iRest" alt=""><span>Repos</span></button>
+  <button class="pl" id="bMap"><img id="iMap" alt=""><span>Carte</span></button>
+ </div>
+ <div id="inv"></div>
 </div>
 <div id="dlg" class="sheet" hidden><div class="box"><div class="who" id="dlgWho"></div><p id="dlgText"></p><div class="row" id="dlgBtns"></div></div></div>
 <div id="modal" class="sheet" hidden><div class="box" id="modalBox"></div></div>
@@ -108,7 +128,7 @@ button{font:inherit;color:inherit;cursor:pointer;touch-action:manipulation}
  <div class="sub">Chronique d'une trahison, d'une évasion<br>et d'un geôlier qui n'avait rien demandé.</div>
  <button id="tNew">Nouvelle partie</button>
  <button id="tCont" hidden>Continuer</button>
- <div class="keys">Clavier : flèches ou W/S pour avancer et reculer, A/D pas de côté, Q/E ou ←/→ pour tourner, Espace pour agir, 1 à 4 pour frapper, I sac, M carte, R repos.</div>
+ <div class="keys">Clavier : flèches ou W/S pour avancer et reculer, A/D pas de côté, Q/E ou ←/→ pour tourner, Espace pour agir, 1 à 4 pour frapper, M carte, R repos, Échap chronique.</div>
 </div>
 <script>
 /*DATA*/
@@ -323,7 +343,7 @@ function bind(){LV=LEVELS[S.lv];LS=S.L[S.lv];MH=LS.g.length;MW=LS.g[0].length;an
 function save(){try{localStorage.setItem(SAVE,JSON.stringify(S));}catch(e){}}
 function load(){try{const s=localStorage.getItem(SAVE);if(!s)return false;S=JSON.parse(s);bind();return true;}catch(e){return false;}}
 function hasSave(){try{return!!localStorage.getItem(SAVE);}catch(e){return false;}}
-function banner(){const e=$('lvlname');e.textContent=LV.name;e.classList.add('on');setTimeout(()=>e.classList.remove('on'),3500);}
+function banner(){const e=$('lvlname');e.textContent=LV.name;$('decoL').textContent=LV.name;e.classList.add('on');setTimeout(()=>e.classList.remove('on'),3500);}
 
 /* ---------- carte ---------- */
 const cell=(x,y)=>(y<0||y>=MH||x<0||x>=MW)?'#':LS.g[y][x];
@@ -338,8 +358,8 @@ function markSeen(){for(let dy=-1;dy<=1;dy++)for(let dx=-1;dx<=1;dx++)LS.seen[(S
  let x=S.x,y=S.y;for(let i=0;i<5;i++){x+=DX[S.d];y+=DY[S.d];const sd=(S.d+1)%4;LS.seen[x+','+y]=1;LS.seen[(x+DX[sd])+','+(y+DY[sd])]=1;LS.seen[(x-DX[sd])+','+(y-DY[sd])]=1;if(!pass(x,y))break;}}
 
 /* ---------- journal & dialogues ---------- */
-function log(m){logs.push(m);if(logs.length>3)logs.shift();drawLog();}
-function drawLog(){$('log').innerHTML=logs.map(m=>'<div>'+m+'</div>').join('');$('gold').textContent=S?S.gold+' écus':'';}
+function log(m){logs.push(m);if(logs.length>2)logs.shift();drawLog();}
+function drawLog(){$('log').innerHTML=logs.map(m=>'<div>'+m+'</div>').join('');$('goldN').textContent=S?S.gold:'';drawInv();}
 const NAMES={aldric:"Aldric",pepin:"Pépin",brune:"Brune",goupil:"Mère Goupil",anselme:"Maître Anselme",fulbert:"Maître Fulbert",sergent:"Sergent Brisemotte",borgne:"Le Borgne"};
 let DQ=[],DEnd=null;
 function say(lines,end){DQ=lines.slice();DEnd=end||null;nextLine();}
@@ -365,7 +385,7 @@ const SC={
   ['aldric',"Alors tu as le choix : l'expliquer au sergent, ou venir avec moi."],
   ['pepin',"Je veux qu'il soit noté quelque part que je vous ai fait évader par erreur. Le trousseau ? Je l'ai lâché de saisissement, il est tombé dans la grille. Ne me regardez pas ainsi, le sergent a le même regard."],
   [null,"Pépin rejoint votre troupe. Il apporte une louche, six écus et un avis sur tout."]
- ],()=>log("Touchez la vue ou « Agir » pour ouvrir, parler, fouiller."));},
+ ],()=>log("Touchez la vue pour ouvrir, parler, fouiller. Un objet du sac, puis un portrait, pour l'équiper."));},
  couloir(){say([['pepin',"À gauche les cellules, à droite l'armurerie, en bas le sergent. Je propose une quatrième direction, dès qu'on en trouve une."],
   ['aldric',"Il me faut une arme."],['pepin',"Il y a un tabouret cassé plus loin. Je sais, je sais. Vous avez commandé dix mille hommes."]]);},
  cantine(){say([['pepin',"Vous sentez ? La cantine. La Mère Goupil vend de tout à tout le monde. C'est la seule personne honnête de Castelroc : elle vole chacun pareil."]]);},
@@ -416,7 +436,7 @@ function interact(){if(paused())return;const x=S.x+DX[S.d],y=S.y+DY[S.d],n=npcAt
  if(c==='D'){setCell(x,y,'d');log("La porte s'ouvre en grinçant.");}
  else if(c==='d'){if(monAt(x,y))return;setCell(x,y,'D');log("Vous refermez la porte.");}
  else if(c==='L')tryLock(x,y);
- else if(c==='W'){if(has('poudre')){S.bag.splice(S.bag.indexOf('poudre'),1);setCell(x,y,'.');shake();const b=best('savoir');if(b)gainXp(b,'savoir',30);
+ else if(c==='W'){if(has('poudre')){S.bag.splice(S.bag.indexOf('poudre'),1);hand=null;setCell(x,y,'.');shake();const b=best('savoir');if(b)gainXp(b,'savoir',30);
    log("Le tonnelet fait son office. Le mur cesse d'en être un.");}else log("Un mur fissuré, qui sonne creux. Avec de la poudre, on s'entendrait.");}
  else if(c==='X')exitLevel();
  else if(c==='#')log(["Un mur. Il ne cédera pas à l'argumentation.","De la pierre, de la bonne.","Rien de particulier, sinon l'humidité."][rnd(0,2)]);
@@ -481,13 +501,60 @@ function rest(){if(paused())return;if(LS.mons.some(m=>m.hp>0&&m.aw&&df[m.y*MW+m.
  log(S.party.length>2?"La troupe se repose. Pépin ronfle le premier, par dévouement. Brune le réveille, par principe.":"La troupe se repose. Pépin ronfle le premier, par dévouement.");}
 
 /* ---------- interface ---------- */
+let hand=null,shopId=null;const ICON={};
+function buildIcons(){
+ const R=(g,c,...a)=>{g.fillStyle=c;for(const r of a)g.fillRect(r[0],r[1],r[2],r[3]);};
+ const D=(g,c,x0,y0,x1,y1,w)=>{const n=Math.max(Math.abs(x1-x0),Math.abs(y1-y0));g.fillStyle=c;for(let i=0;i<=n;i++)g.fillRect(Math.round(x0+(x1-x0)*i/n),Math.round(y0+(y1-y0)*i/n),w,w);};
+ const ST='#d5d9dd',IR='#8d9197',WD='#8a5c34',GD='#c9a24a';
+ const blade=len=>g=>{D(g,ST,5,9,5+len,9-len,2);D(g,GD,3,8,7,12,1);D(g,WD,2,12,4,10,2);};
+ const body=(c,dot)=>g=>{R(g,c,[4,3,8,11],[2,3,2,6],[12,3,2,6]);R(g,'rgba(0,0,0,.35)',[7,3,2,2]);g.fillStyle=dot;for(let y=6;y<13;y+=2)for(let x=5+(y>>1)%2;x<12;x+=2)g.fillRect(x,y,1,1);};
+ const key=c=>g=>{R(g,c,[2,5,5,5],[7,7,7,1],[11,8,1,2],[13,8,1,2]);R(g,'#1b1712',[4,7,1,1]);};
+ const F={
+  fist:g=>{R(g,'#d8a67c',[4,5,8,7],[3,7,1,4]);R(g,'rgba(0,0,0,.3)',[6,5,1,4],[8,5,1,4],[10,5,1,4],[4,9,8,1]);},
+  botte:g=>{R(g,GD,[7,1,2,14],[1,7,14,2]);D(g,GD,3,3,12,12,1);D(g,GD,12,3,3,12,1);R(g,'#fff3c4',[6,6,4,4]);},
+  louche:g=>{D(g,IR,5,10,12,3,1);R(g,IR,[2,10,5,4]);R(g,'#3a3632',[3,11,3,2]);},
+  tabouret:g=>{D(g,WD,3,11,10,4,3);R(g,'#5a3a1e',[10,3,3,3]);},
+  dague:blade(4),epee_c:blade(6),epee_l:g=>{D(g,ST,5,9,13,1,2);D(g,GD,2,7,8,13,1);D(g,WD,1,13,4,10,2);},
+  hache:g=>{D(g,WD,2,13,10,5,2);R(g,IR,[9,1,5,6],[8,2,1,4]);R(g,ST,[13,1,1,6]);},
+  pioche:g=>{D(g,WD,2,13,10,5,2);D(g,IR,5,2,13,10,2);},
+  fronde:g=>{D(g,WD,3,2,6,10,1);D(g,WD,12,2,9,10,1);R(g,'#5a3a1e',[6,10,4,3]);R(g,IR,[7,9,2,2]);},
+  arbalete:g=>{R(g,WD,[7,3,2,11]);R(g,IR,[2,4,12,2],[2,6,1,2],[13,6,1,2]);R(g,'#e9dfc6',[3,8,10,1]);},
+  gambison:body('#c9b68a','#8a7a55'),cuir:body('#7a4e2c','#c9a24a'),mailles:body('#8d9197','#d5d9dd'),
+  casque:g=>{R(g,IR,[4,4,8,6],[5,3,6,1],[7,10,2,4]);R(g,ST,[5,4,3,1]);},
+  bouclier:g=>{g.fillStyle=WD;g.beginPath();g.arc(8,8,6.5,0,7);g.fill();g.fillStyle=IR;g.beginPath();g.arc(8,8,2.2,0,7);g.fill();R(g,GD,[7,2,2,1],[7,13,2,1],[2,7,1,2],[13,7,1,2]);},
+  pain:g=>{g.fillStyle='#d09a52';g.beginPath();g.ellipse(8,9,6.5,4,0,0,7);g.fill();R(g,'#8a5a22',[5,7,1,3],[8,7,1,3],[11,7,1,3]);},
+  onguent:g=>{R(g,'#b8703f',[5,6,6,8],[4,8,8,4]);R(g,'#e6dfcf',[4,4,8,2]);R(g,'#7fb878',[6,9,4,2]);},
+  vin:g=>{g.fillStyle='#8a5632';g.beginPath();g.ellipse(8,10,5,4.5,0,0,7);g.fill();R(g,'#8a5632',[7,3,2,4]);R(g,'#2a1d12',[7,2,2,1]);R(g,GD,[4,9,8,1]);},
+  potfeu:g=>{g.fillStyle='#2e2b28';g.beginPath();g.arc(8,10,5,0,7);g.fill();R(g,'#e8842c',[7,2,2,4]);R(g,'#ffd866',[7,3,1,2]);R(g,'#6b665e',[6,5,4,1]);},
+  poudre:g=>{R(g,WD,[4,3,8,11],[3,5,10,7]);R(g,'#2d2b2a',[3,5,10,1],[3,11,10,1]);R(g,'#111',[7,7,2,2]);},
+  cle_fer:key(IR),cle_cuivre:key('#d98a45'),
+  repos:g=>{D(g,WD,3,13,12,10,2);D(g,WD,12,13,3,10,2);R(g,'#e8842c',[6,5,4,6],[7,3,2,2]);R(g,'#ffd866',[7,7,2,4]);},
+  carte:g=>{R(g,'#e9dfc6',[2,3,12,10]);R(g,'#b3a37c',[6,3,1,10],[10,3,1,10]);D(g,'#b3261e',4,10,11,5,1);R(g,'#b3261e',[11,4,2,2]);},
+  menu:g=>{R(g,'#8a2f2f',[3,2,10,12]);R(g,GD,[3,2,1,12],[5,5,6,1],[5,7,6,1]);R(g,'#e9dfc6',[12,3,1,10]);},
+  ecus:g=>{R(g,'#e2b53a',[3,11,7,3],[6,8,7,3],[4,5,7,3]);R(g,'#fff1b0',[4,5,7,1],[6,8,7,1],[3,11,7,1]);}
+ };
+ for(const k in F)ICON[k]=mk(16,16,F[k]).toDataURL();
+ const wood=mk(96,96,g=>{const r=rng(5);for(let y=0;y<96;y+=24){g.fillStyle=`rgb(${62+(r()*14|0)},${44+(r()*8|0)},${28+(r()*6|0)})`;g.fillRect(0,y,96,23);
+  for(let i=0;i<60;i++){g.fillStyle=`rgba(0,0,0,${r()*.2})`;g.fillRect(r()*96|0,y+(r()*23|0),6+(r()*30|0),1);}
+  g.fillStyle='rgba(255,255,255,.06)';g.fillRect(0,y,96,1);g.fillStyle='#1c130b';g.fillRect(0,y+23,96,1);const nx=8+(r()*70|0);g.fillStyle='#17100a';g.fillRect(nx,y+10,3,3);g.fillStyle='#8d7a52';g.fillRect(nx,y+10,1,1);}});
+ document.documentElement.style.setProperty('--wood',`url(${wood.toDataURL()})`);
+ const c=$('crest').getContext('2d');c.fillStyle='#c9a24a';c.fillRect(2,0,44,36);c.beginPath();c.moveTo(2,36);c.lineTo(24,56);c.lineTo(46,36);c.fill();
+ c.fillStyle='#7a1f1f';c.fillRect(4,2,40,34);c.beginPath();c.moveTo(4,36);c.lineTo(24,53);c.lineTo(44,36);c.fill();
+ R(c,'#c9a24a',[17,15,14,19],[15,10,4,6],[22,10,4,6],[29,10,4,6]);R(c,'#3a1010',[22,25,4,9],[19,18,2,3],[27,18,2,3]);D(c,'#140d07',40,3,7,42,2);
+ $('goldI').src=ICON.ecus;$('iMenu').src=ICON.menu;$('iRest').src=ICON.repos;$('iMap').src=ICON.carte;
+}
+const slotsN=()=>innerWidth>=900?11:6;
+function drawInv(){if(!S)return;const n=slotsN();if(hand!=null&&!S.bag[hand])hand=null;S.off=clamp(S.off||0,0,Math.max(0,S.bag.length-n));
+ let h=`<button class="pl ar" data-inv="-1" ${S.off>0?'':'disabled'} aria-label="Objets précédents">◀</button>`;
+ for(let i=0;i<n;i++){const bi=S.off+i,id=S.bag[bi];h+=id?`<button class="sl${bi===hand?' on':''}" data-slot="${bi}" title="${ITEMS[id].n}"><img src="${ICON[id]}" alt="${ITEMS[id].n}"></button>`:'<div class="sl"></div>';}
+ h+=`<button class="pl ar" data-inv="1" ${S.off+n<S.bag.length?'':'disabled'} aria-label="Objets suivants">▶</button>`;$('inv').innerHTML=h;}
 function drawParty(){if(!S)return;let h='';for(let i=0;i<4;i++){const c=S.party[i];
  if(!c){h+='<div class="card empty">Place libre</div>';continue;}const k=CH[c.id];
- h+=`<div class="card${c.hp<=0?' ko':''}" id="card${i}"><button class="pt" data-sheet="${i}"><img src="${PORT[c.id]}" alt=""><b>${k.n}</b></button>
- <div class="bar hp"><i style="width:${c.hp/c.hpM*100}%"></i><span>${c.hp}/${c.hpM}</span></div>
- <div class="bar sf"><i style="width:${c.sf/c.sfM*100}%"></i><span>${c.sf}/${c.sfM}</span></div>
- <button class="atk" data-atk="${i}"><i id="cd${i}"></i><span>${wpn(c).n.split(' ')[0]}</span></button>
- <button class="spc" data-spc="${i}"><i id="cs${i}"></i><span>${k.spN} ·${k.spC}</span></button></div>`;}
+ h+=`<div class="card${c.hp<=0?' ko':''}" id="card${i}"><button class="pt" data-pt="${i}" aria-label="${k.n}"><img src="${PORT[c.id]}" alt=""></button>
+ <div class="vb hp" title="Vie"><i style="height:${c.hp/c.hpM*100}%"></i></div><div class="vb sf" title="Souffle"><i style="height:${c.sf/c.sfM*100}%"></i></div>
+ <div class="ab"><button class="pl atk" data-atk="${i}" aria-label="Attaquer : ${wpn(c).n}"><img src="${ICON[c.eq.main||'fist']}" alt=""><i id="cd${i}"></i></button>
+ <button class="pl spc" data-spc="${i}" aria-label="${k.spN}"><img src="${ICON.botte}" alt=""><i id="cs${i}"></i></button></div>
+ <div class="nm"><b>${k.n}</b><span class="h">Vie ${c.hp}/${c.hpM}</span><span class="s">Souffle ${c.sf}</span></div></div>`;}
  $('party').innerHTML=h;}
 function uiTick(){if(!S)return;for(let i=0;i<S.party.length;i++){const c=S.party[i],a=$('cd'+i),b=$('cs'+i),cd=$('card'+i);
  if(a)a.style.width=clamp((c.cd-S.T)/c.cdD*100,0,100)+'%';if(b)b.style.width=clamp((c.cs-S.T)/2500*100,0,100)+'%';
@@ -496,32 +563,27 @@ function openModal(h){$('modalBox').innerHTML=h;$('modal').hidden=false;}
 function closeModal(){$('modal').hidden=true;drawParty();drawLog();}
 function info(id){const it=ITEMS[id];if(it.k==='main')return`Arme ${it.dmg[0]}–${it.dmg[1]} · ${it.spd<900?'rapide':it.spd<1300?'moyenne':'lente'}${it.rng?' · à distance':''} · ${SKL[it.sk]}`;
  if(it.prot)return`Protection +${it.prot} (${it.k==='corps'?'corps':'appoint'})`;if(it.heal)return`Soin +${it.heal}`;if(it.sf)return`Souffle +${it.sf}`;if(it.k==='throw')return`À lancer · ${it.dmg[0]}–${it.dmg[1]}`;return'Objet de quête';}
-function openBag(sel){let h=`<h2>Sac de la troupe <small>${S.gold} écus</small></h2>`;
- if(!S.bag.length)h+='<p class="dim">Le sac est vide. Il pèse pourtant.</p>';
- h+='<div class="list">'+S.bag.map((id,i)=>`<button data-bag="${i}" class="${i===sel?'on':''}"><span><b>${ITEMS[id].n}</b><small>${info(id)}</small></span></button>`).join('')+'</div>';
- if(sel!=null&&S.bag[sel]){const id=S.bag[sel],it=ITEMS[id];h+=`<h3>${it.n}</h3><p>${it.d}</p><div class="row">`;
-  if(it.k==='main'||it.k==='corps'||it.k==='appoint')S.party.forEach((c,ci)=>h+=`<button data-eq="${sel},${ci}">Équiper ${CH[c.id].n}</button>`);
-  if(it.k==='use')S.party.forEach((c,ci)=>h+=`<button data-use="${sel},${ci}">Donner à ${CH[c.id].n}</button>`);
-  if(it.k==='throw')h+=`<button data-throw="${sel}">Lancer devant soi</button>`;h+='</div>';}
- h+='<div class="row"><button class="main" data-close>Fermer</button></div>';openModal(h);}
-function equip(bi,ci){const id=S.bag[bi],it=ITEMS[id],c=S.party[ci],old=c.eq[it.k];c.eq[it.k]=id;S.bag.splice(bi,1);if(old)S.bag.push(old);log(`${CH[c.id].n} s'équipe : ${it.n}.`);openBag();}
-function useItem(bi,ci){const it=ITEMS[S.bag[bi]],c=S.party[ci],b=best('savoir'),mul=1+(b?b.sk.savoir.l*.1:0);
- if(it.heal){if(c.hp>=c.hpM){log(`${CH[c.id].n} se porte déjà comme un charme.`);openBag(bi);return;}const h=Math.round(it.heal*mul);c.hp=Math.min(c.hpM,c.hp+h);log(`${CH[c.id].n} récupère ${h} points de vie.`);if(b)gainXp(b,'savoir',5);}
- if(it.sf){c.sf=Math.min(c.sfM,c.sf+it.sf);log(`${CH[c.id].n} reprend son souffle.`);}
- S.bag.splice(bi,1);openBag();}
-function openSheet(i){const c=S.party[i],k=CH[c.id],w=wpn(c);
+function tapSlot(bi){if(paused())return;if(hand===bi){hand=null;drawInv();return;}hand=bi;const id=S.bag[bi],it=ITEMS[id];
+ log(`<b>${it.n}</b> (${info(id)}). ${it.k==='throw'?'Touchez la vue pour le lancer.':it.k==='key'?it.d:'Touchez un portrait pour '+(it.k==='use'?'le donner.':"l'équiper.")}`);}
+function tapPt(i){if(paused())return;const c=S.party[i];if(hand==null||!S.bag[hand]){openSheet(i);return;}const id=S.bag[hand],it=ITEMS[id],n=CH[c.id].n;
+ if(it.k==='main'||it.k==='corps'||it.k==='appoint'){const old=c.eq[it.k];c.eq[it.k]=id;S.bag.splice(hand,1);if(old)S.bag.push(old);hand=null;drawParty();log(`${n} s'équipe : ${it.n}.`);}
+ else if(it.k==='use'){const b=best('savoir'),mul=1+(b?b.sk.savoir.l*.1:0);
+  if(it.heal){if(c.hp>=c.hpM){log(`${n} se porte déjà comme un charme.`);return;}const h=Math.round(it.heal*mul);c.hp=Math.min(c.hpM,c.hp+h);if(b)gainXp(b,'savoir',5);S.bag.splice(hand,1);hand=null;drawParty();log(`${n} récupère ${h} points de vie.`);}
+  else{c.sf=Math.min(c.sfM,c.sf+it.sf);S.bag.splice(hand,1);hand=null;drawParty();log(`${n} reprend son souffle.`);}}
+ else log(`${n} n'en a pas l'usage.`);}
+function tapView(){if(paused())return;if(hand!=null&&S.bag[hand]&&ITEMS[S.bag[hand]].k==='throw'){const h=hand;hand=null;throwPot(h);drawLog();}else interact();}
+function openSheet(i){const c=S.party[i],k=CH[c.id];
  let h=`<div class="who"><img src="${PORT[c.id]}" alt=""><span><b>${k.full}</b><br><small>${k.role}</small></span></div>
  <div class="stat"><span>Vie : ${c.hp}/${c.hpM}</span><span>Souffle : ${c.sf}/${c.sfM}</span><span>Force : ${c.force}</span><span>Protection : ${prot(c)}</span></div><h3>Talents — ils progressent à l'usage</h3>`;
- for(const s of SKN){const v=c.sk[s];h+=`<div class="skill"><div><span>${SKL[s]}</span><b>niveau ${v.l}</b></div><div class="bar xp"><i style="width:${v.x/need(v.l)*100}%"></i></div></div>`;}
+ for(const s of SKN){const v=c.sk[s];h+=`<div class="skill"><div><span>${SKL[s]}</span><b>niveau ${v.l}</b></div><div class="bar"><i style="width:${v.x/need(v.l)*100}%"></i></div></div>`;}
  h+='<h3>Équipement</h3>';for(const[sl,lb]of[['main','Arme'],['corps','Corps'],['appoint','Appoint']]){const id=c.eq[sl];
-  h+=`<div class="eq"><span>${lb} : <b>${id?ITEMS[id].n:(sl==='main'?'Poings':'—')}</b>${id?'<br><small>'+info(id)+'</small>':''}</span>${id?`<button data-uneq="${i},${sl}">Retirer</button>`:''}</div>`;}
- h+=`<h3>Botte secrète</h3><p>${k.spD}</p><div class="row"><button class="main" data-close>Fermer</button></div>`;openModal(h);}
-let shopId=null;
-function openShop(id){shopId=id;let h=`<h2>${NAMES[id]} <small>${S.gold} écus</small></h2><h3>Acheter</h3><div class="list">`;
- for(const it of SHOPS[id])h+=`<button data-buy="${it}" ${S.gold<ITEMS[it].p?'disabled':''}><span><b>${ITEMS[it].n}</b><small>${info(it)}</small></span><em>${ITEMS[it].p} écus</em></button>`;
+  h+=`<div class="eq"><img src="${ICON[id||(sl==='main'?'fist':'')]||'data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=='}" alt=""><span>${lb} : <b>${id?ITEMS[id].n:(sl==='main'?'Poings':'—')}</b>${id?'<br><small>'+info(id)+'</small>':''}</span>${id?`<button data-uneq="${i},${sl}">Retirer</button>`:''}</div>`;}
+ h+=`<p class="dim">Pour équiper ou soigner : touchez un objet du sac, puis ce portrait.</p><h3>Botte secrète</h3><p>${k.spD}</p><div class="row"><button class="main" data-close>Fermer</button></div>`;openModal(h);}
+function openShop(id){shopId=id;hand=null;let h=`<h2>${NAMES[id]} <small>${S.gold} écus</small></h2><h3>Acheter</h3><div class="list">`;
+ for(const it of SHOPS[id])h+=`<button data-buy="${it}" ${S.gold<ITEMS[it].p?'disabled':''}><img src="${ICON[it]}" alt=""><span><b>${ITEMS[it].n}</b><small>${info(it)}</small></span><em>${ITEMS[it].p} écus</em></button>`;
  h+='</div><h3>Vendre</h3><div class="list">';const sell=S.bag.map((b,i)=>[b,i]).filter(a=>ITEMS[a[0]].p>0);
  if(!sell.length)h+='<p class="dim">Rien qui intéresse le commerce.</p>';
- for(const[b,i]of sell)h+=`<button data-sell="${i}"><span><b>${ITEMS[b].n}</b></span><em>+${Math.max(1,ITEMS[b].p>>1)} écus</em></button>`;
+ for(const[b,i]of sell)h+=`<button data-sell="${i}"><img src="${ICON[b]}" alt=""><span><b>${ITEMS[b].n}</b></span><em>+${Math.max(1,ITEMS[b].p>>1)} écus</em></button>`;
  h+='</div><div class="row"><button class="main" data-close>Fermer</button></div>';openModal(h);}
 function openMap(){const cs=18;openModal(`<h2>${LV.name}</h2><canvas id="mapC" width="${MW*cs}" height="${MH*cs}"></canvas><p class="dim">Seules les galeries reconnues figurent sur la carte.</p><div class="row"><button class="main" data-close>Fermer</button></div>`);
  const g=$('mapC').getContext('2d');for(let y=0;y<MH;y++)for(let x=0;x<MW;x++){if(!LS.seen[x+','+y])continue;const c=cell(x,y);
@@ -530,27 +592,36 @@ function openMap(){const cs=18;openModal(`<h2>${LV.name}</h2><canvas id="mapC" w
   if(c==='X'){g.fillStyle='#3f7a4c';g.fillRect(x*cs+2,y*cs+2,cs-4,cs-4);}
   const n=npcAt(x,y);if(n){g.fillStyle='#3b5fa8';g.beginPath();g.arc(x*cs+cs/2,y*cs+cs/2,4,0,7);g.fill();}}
  g.save();g.translate(S.x*cs+cs/2,S.y*cs+cs/2);g.rotate(S.d*Math.PI/2);g.fillStyle='#b3261e';g.beginPath();g.moveTo(0,-7);g.lineTo(6,6);g.lineTo(-6,6);g.fill();g.restore();}
+function openMenu(){openModal(`<h2>Chronique de campagne</h2><div class="list"><button class="main" data-close><span>Reprendre</span></button><button data-m="save"><span>Sauvegarder</span></button>
+ <button data-m="load" ${hasSave()?'':'disabled'}><span>Recharger la dernière sauvegarde</span></button><button data-m="help"><span>Aide</span></button><button data-m="new"><span>Nouvelle partie</span></button></div>`);}
+const HELP=`<h2>Aide</h2><p><b>Vue</b> : touchez-la pour ouvrir une porte, parler, crocheter, fouiller.</p><p><b>Portraits</b> : la plaque du haut frappe avec l'arme tenue, celle du bas déclenche la botte secrète (elle coûte du souffle). Jauge rouge : vie. Jauge bleue : souffle.</p>
+<p><b>Sac</b> : touchez un objet pour le prendre en main, puis un portrait pour l'équiper ou le donner, ou la vue pour le lancer. Sans objet en main, toucher un portrait ouvre la fiche du personnage.</p>
+<p><b>Clavier</b> : flèches ou W/S avancer et reculer, A/D pas de côté, Q/E tourner, Espace agir, 1 à 4 frapper, M carte, R repos.</p><div class="row"><button class="main" data-close>Fermer</button></div>`;
 
 $('modal').addEventListener('click',e=>{const t=e.target.closest('button');if(!t){if(e.target===$('modal'))closeModal();return;}const d=t.dataset;
  if('close'in d)closeModal();
- else if(d.bag)openBag(+d.bag);
- else if(d.eq){const[a,b]=d.eq.split(',');equip(+a,+b);}
- else if(d.use){const[a,b]=d.use.split(',');useItem(+a,+b);}
- else if(d.throw){closeModal();throwPot(+d.throw);}
  else if(d.uneq){const[i,sl]=d.uneq.split(','),c=S.party[+i];S.bag.push(c.eq[sl]);c.eq[sl]=null;openSheet(+i);}
  else if(d.buy){const it=ITEMS[d.buy];if(S.gold>=it.p){S.gold-=it.p;S.bag.push(d.buy);log(`Acheté : ${it.n}.`);openShop(shopId);}}
- else if(d.sell){const id=S.bag[+d.sell];S.gold+=Math.max(1,ITEMS[id].p>>1);S.bag.splice(+d.sell,1);log(`Vendu : ${ITEMS[id].n}.`);openShop(shopId);}});
+ else if(d.sell){const id=S.bag[+d.sell];S.gold+=Math.max(1,ITEMS[id].p>>1);S.bag.splice(+d.sell,1);log(`Vendu : ${ITEMS[id].n}.`);openShop(shopId);}
+ else if(d.m==='save'){save();closeModal();log("La chronique est à jour : partie sauvegardée.");}
+ else if(d.m==='load'){closeModal();if(load())log("Vous reprenez à la dernière sauvegarde.");}
+ else if(d.m==='help')openModal(HELP);
+ else if(d.m==='new')openModal('<h2>Nouvelle partie</h2><p>Recommencer depuis la cellule ? La sauvegarde actuelle sera remplacée.</p><div class="row"><button data-m="new2">Oui, recommencer</button><button class="main" data-close>Non</button></div>');
+ else if(d.m==='new2'){$('modal').hidden=true;newGame();}});
 $('party').addEventListener('pointerdown',e=>{const t=e.target.closest('button');if(!t)return;const d=t.dataset;
- if(d.atk)attack(+d.atk);else if(d.spc)special(+d.spc);else if(d.sheet&&!paused())openSheet(+d.sheet);});
+ if(d.atk)attack(+d.atk);else if(d.spc)special(+d.spc);else if(d.pt)tapPt(+d.pt);});
+$('inv').addEventListener('pointerdown',e=>{const t=e.target.closest('button');if(!t||t.disabled)return;const d=t.dataset;
+ if(d.slot)tapSlot(+d.slot);else if(d.inv){S.off=(S.off||0)+(+d.inv);drawInv();}});
 const MV={f:()=>move(0),b:()=>move(2),l:()=>move(3),r:()=>move(1),tl:()=>turn(-1),tr:()=>turn(1)};
 $('pad').addEventListener('pointerdown',e=>{const t=e.target.closest('button');if(t)MV[t.dataset.mv]();});
-$('view').addEventListener('pointerdown',()=>interact());
-$('bAct').onclick=interact;$('bBag').onclick=()=>{if(!paused())openBag();};$('bMap').onclick=()=>{if(!paused())openMap();};$('bRest').onclick=rest;
+$('view').addEventListener('pointerdown',tapView);
+$('bMenu').onclick=()=>{if(!paused())openMenu();};$('bMap').onclick=()=>{if(!paused())openMap();};$('bRest').onclick=rest;
+addEventListener('resize',drawInv);
 addEventListener('keydown',e=>{if(e.repeat&&!/Arrow|Key[WASDQE]/.test(e.code))return;
  if(!$('dlg').hidden){if(e.code==='Space'||e.code==='Enter'){e.preventDefault();const b=$('dlgBtns').querySelector('button');if(b&&$('dlgBtns').children.length===1)b.click();}return;}
  if(!$('modal').hidden){if(e.code==='Escape')closeModal();return;}
- const k={ArrowUp:MV.f,KeyW:MV.f,ArrowDown:MV.b,KeyS:MV.b,KeyA:MV.l,KeyD:MV.r,ArrowLeft:MV.tl,KeyQ:MV.tl,ArrowRight:MV.tr,KeyE:MV.tr,Space:interact,
-  Digit1:()=>attack(0),Digit2:()=>attack(1),Digit3:()=>attack(2),Digit4:()=>attack(3),KeyI:()=>openBag(),KeyM:openMap,KeyR:rest}[e.code];
+ const k={ArrowUp:MV.f,KeyW:MV.f,ArrowDown:MV.b,KeyS:MV.b,KeyA:MV.l,KeyD:MV.r,ArrowLeft:MV.tl,KeyQ:MV.tl,ArrowRight:MV.tr,KeyE:MV.tr,Space:tapView,
+  Digit1:()=>attack(0),Digit2:()=>attack(1),Digit3:()=>attack(2),Digit4:()=>attack(3),KeyM:openMap,KeyR:rest,Escape:openMenu}[e.code];
  if(k&&!paused()){e.preventDefault();k();}});
 $('tNew').onclick=()=>{$('title').hidden=true;newGame();};
 $('tCont').onclick=()=>{if(load()){$('title').hidden=true;log("Vous reprenez la route.");}};
@@ -592,7 +663,7 @@ let last=0;
 function loop(ts){const dt=Math.min(100,ts-last);last=ts;
  if(S&&!paused()){S.T+=dt;tickMons();if(S.T-S.sfT>3000){S.sfT=S.T;let ch=false;for(const c of S.party)if(c.hp>0&&c.sf<c.sfM){c.sf++;ch=true;}if(ch)drawParty();}}
  render(ts);uiTick();requestAnimationFrame(loop);}
-buildArt();if(hasSave())$('tCont').hidden=false;requestAnimationFrame(loop);
+buildArt();buildIcons();if(hasSave())$('tCont').hidden=false;requestAnimationFrame(loop);
 </script>
 </body>
 </html>
