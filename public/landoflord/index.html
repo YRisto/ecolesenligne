@@ -1,0 +1,598 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>Le Général déchu — prototype</title>
+<style>
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;height:100%;background:#12100d;color:#e9dfc6;font-family:Georgia,"Times New Roman",serif;overscroll-behavior:none}
+body{touch-action:manipulation;user-select:none;-webkit-user-select:none}
+button{font:inherit;color:inherit;cursor:pointer;touch-action:manipulation}
+#app{max-width:540px;margin:0 auto;padding:6px;display:flex;flex-direction:column;gap:6px;min-height:100%}
+#viewWrap{position:relative;border:3px solid #6b5630;border-radius:4px;background:#000;box-shadow:0 0 0 1px #c9a24a inset}
+#view{display:block;width:100%;aspect-ratio:16/10;image-rendering:pixelated;image-rendering:crisp-edges}
+#viewWrap.shake{animation:shake .4s}
+@keyframes shake{20%{transform:translate(4px,-3px)}40%{transform:translate(-4px,3px)}60%{transform:translate(3px,2px)}80%{transform:translate(-2px,-2px)}}
+#lvlname{position:absolute;left:0;right:0;top:8px;text-align:center;font-variant:small-caps;letter-spacing:.12em;font-size:15px;color:#f3e3b0;text-shadow:0 1px 3px #000,0 0 8px #000;opacity:0;transition:opacity 1s;pointer-events:none}
+#lvlname.on{opacity:1}
+#gold{position:absolute;right:6px;bottom:4px;font-size:12px;color:#f0d27a;text-shadow:0 1px 2px #000;pointer-events:none}
+#log{min-height:54px;background:#1c1813;border:1px solid #3d3324;border-radius:4px;padding:5px 8px;font-size:13px;line-height:1.3;display:flex;flex-direction:column;justify-content:flex-end}
+#log div{opacity:.55}#log div:last-child{opacity:1;color:#f3e9cf}
+#party{display:grid;grid-template-columns:repeat(4,1fr);gap:5px}
+.card{background:#231d15;border:1px solid #5a4828;border-radius:4px;padding:4px;display:flex;flex-direction:column;gap:3px;min-width:0}
+.card.empty{align-items:center;justify-content:center;color:#6d6048;font-size:11px;font-style:italic;border-style:dashed;min-height:120px}
+.card.ko{filter:grayscale(1) brightness(.6)}
+.card.hit{border-color:#e0492f;background:#3a1a14}
+.pt{display:flex;align-items:center;gap:4px;background:none;border:0;padding:0;min-width:0;text-align:left}
+.pt img{width:30px;height:30px;image-rendering:pixelated;border:1px solid #8a7240;border-radius:2px;flex:none}
+.pt b{font-size:12px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.bar{position:relative;height:11px;background:#0e0c09;border:1px solid #3d3324;border-radius:2px;overflow:hidden}
+.bar i{position:absolute;left:0;top:0;bottom:0}
+.bar.hp i{background:#a8322a}.bar.sf i{background:#3f7a8c}.bar.xp i{background:#b9973f}
+.bar span{position:absolute;inset:0;font:9px/10px Verdana,sans-serif;text-align:center;color:#fff;text-shadow:0 0 2px #000}
+.atk,.spc{position:relative;overflow:hidden;border:1px solid #8a7240;border-radius:3px;background:#3b2f1c;height:32px;padding:0 2px;font-size:11px}
+.spc{background:#1f3238;border-color:#4d7c8a;height:26px}
+.atk i,.spc i{position:absolute;left:0;top:0;bottom:0;background:rgba(0,0,0,.62);width:0}
+.atk span,.spc span{position:relative;display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.atk:active,.spc:active,#pad button:active,#acts button:active{filter:brightness(1.4)}
+#controls{display:flex;gap:8px;align-items:stretch}
+#pad{display:grid;grid-template-columns:repeat(3,1fr);gap:5px;flex:1.2}
+#acts{display:grid;grid-template-columns:1fr 1fr;gap:5px;flex:1}
+#pad button,#acts button{height:52px;border:1px solid #6b5630;border-radius:5px;background:#2a2217;font-size:20px}
+#acts button{font-size:14px;font-variant:small-caps;letter-spacing:.05em}
+#acts #bAct{background:#4a3a1a;border-color:#c9a24a}
+.sheet{position:fixed;inset:0;background:rgba(6,5,4,.72);display:flex;align-items:flex-end;justify-content:center;z-index:10}
+.sheet[hidden]{display:none}
+.box{width:100%;max-width:540px;max-height:88vh;overflow:auto;background:#efe4c8;color:#2a2116;border-top:3px solid #c9a24a;border-radius:10px 10px 0 0;padding:14px 14px 18px;user-select:text;-webkit-user-select:text}
+.box h2{margin:0 0 8px;font-variant:small-caps;letter-spacing:.06em;font-size:19px;display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+.box h2 small{font-size:13px;color:#7a5a12;font-variant:normal;letter-spacing:0}
+.box h3{margin:12px 0 4px;font-size:13px;text-transform:uppercase;letter-spacing:.1em;color:#7a6a4a}
+.box p{margin:6px 0;line-height:1.45;font-size:15px}
+.box .dim{color:#8a7a5a;font-style:italic}
+.box button{border:1px solid #8a7240;background:#fbf4de;border-radius:5px;padding:9px 10px;min-height:42px;font-size:14px;color:#2a2116}
+.box button:disabled{opacity:.4}
+.box button.main{background:#3b2f1c;color:#f3e3b0;border-color:#3b2f1c}
+.list{display:flex;flex-direction:column;gap:5px}
+.list button{display:flex;justify-content:space-between;align-items:center;gap:8px;text-align:left}
+.list button.on{background:#e3cf93;border-color:#7a5a12}
+.list small{display:block;color:#6d5d3d;font-size:12px}
+.list em{font-style:normal;color:#7a5a12;white-space:nowrap;font-size:13px}
+.row{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+.row button{flex:1 1 auto}
+.who{display:flex;align-items:center;gap:8px;margin-bottom:4px}
+.who img{width:44px;height:44px;image-rendering:pixelated;border:2px solid #8a7240;border-radius:3px}
+.who b{font-variant:small-caps;letter-spacing:.08em;font-size:17px}
+.who.narr b{color:#7a6a4a;font-style:italic;font-variant:normal;font-size:14px}
+#dlgText{font-size:16px;line-height:1.5;min-height:72px}
+.stat{display:grid;grid-template-columns:1fr 1fr;gap:4px 12px;font-size:14px}
+.skill{margin:5px 0}.skill div:first-child{display:flex;justify-content:space-between;font-size:14px}
+.box .bar{background:#cbbd96;border-color:#a8976a;height:8px}
+.eq{display:flex;justify-content:space-between;align-items:center;gap:8px;font-size:14px;margin:4px 0}
+.eq button{min-height:34px;padding:4px 10px;font-size:13px}
+#mapC{display:block;margin:0 auto;max-width:100%;image-rendering:pixelated;border:1px solid #a8976a;background:#d9cba3}
+#title{position:fixed;inset:0;z-index:20;background:radial-gradient(ellipse at 50% 30%,#3a2c17,#0c0a08 75%);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px;text-align:center}
+#title[hidden]{display:none}
+#title h1{font-variant:small-caps;letter-spacing:.14em;font-size:34px;margin:0;color:#f0d27a;text-shadow:0 2px 0 #5a4010}
+#title .sub{font-style:italic;color:#bfae86;margin:10px 0 28px;max-width:340px;line-height:1.4}
+#title button{width:240px;margin:6px;padding:14px;border:1px solid #c9a24a;background:#2a2217;border-radius:6px;font-size:17px;font-variant:small-caps;letter-spacing:.08em}
+#title .keys{margin-top:26px;font:12px/1.5 Verdana,sans-serif;color:#7d7058;max-width:340px}
+@media (min-width:900px) and (min-height:560px){
+ #app{max-width:1180px;display:grid;grid-template-columns:minmax(0,1fr) 390px;grid-template-rows:auto auto 1fr;gap:10px;padding:14px;align-items:start}
+ #viewWrap{grid-row:1/4}
+ #party{grid-template-columns:1fr 1fr}
+ .sheet{align-items:center}.box{border-radius:10px;border:3px solid #c9a24a}
+}
+</style>
+</head>
+<body>
+<div id="app">
+ <div id="viewWrap"><canvas id="view" width="320" height="200"></canvas><div id="lvlname"></div><div id="gold"></div></div>
+ <div id="log"></div>
+ <div id="party"></div>
+ <div id="controls">
+  <div id="pad">
+   <button data-mv="tl" aria-label="Tourner à gauche">↶</button><button data-mv="f" aria-label="Avancer">▲</button><button data-mv="tr" aria-label="Tourner à droite">↷</button>
+   <button data-mv="l" aria-label="Pas à gauche">◀</button><button data-mv="b" aria-label="Reculer">▼</button><button data-mv="r" aria-label="Pas à droite">▶</button>
+  </div>
+  <div id="acts">
+   <button id="bAct">Agir</button><button id="bBag">Sac</button>
+   <button id="bMap">Carte</button><button id="bRest">Repos</button>
+  </div>
+ </div>
+</div>
+<div id="dlg" class="sheet" hidden><div class="box"><div class="who" id="dlgWho"></div><p id="dlgText"></p><div class="row" id="dlgBtns"></div></div></div>
+<div id="modal" class="sheet" hidden><div class="box" id="modalBox"></div></div>
+<div id="title">
+ <h1>Le Général déchu</h1>
+ <div class="sub">Chronique d'une trahison, d'une évasion<br>et d'un geôlier qui n'avait rien demandé.</div>
+ <button id="tNew">Nouvelle partie</button>
+ <button id="tCont" hidden>Continuer</button>
+ <div class="keys">Clavier : flèches ou W/S pour avancer et reculer, A/D pas de côté, Q/E ou ←/→ pour tourner, Espace pour agir, 1 à 4 pour frapper, I sac, M carte, R repos.</div>
+</div>
+<script>
+/*DATA*/
+const ITEMS={
+ louche:{n:"Louche de geôlier",k:'main',dmg:[1,3],spd:800,sk:'armes',p:1,d:"Sert la soupe et, à défaut, les coups. Dans les deux cas, on en redemande rarement."},
+ tabouret:{n:"Pied de tabouret",k:'main',dmg:[2,5],spd:1000,sk:'armes',p:1,d:"Trois campagnes victorieuses pour en arriver là."},
+ dague:{n:"Dague",k:'main',dmg:[2,6],spd:650,sk:'armes',p:14,d:"Courte, vive, discrète. Tout ce que Pépin n'est pas."},
+ epee_c:{n:"Épée courte",k:'main',dmg:[3,8],spd:1000,sk:'armes',p:30,d:"L'arme réglementaire des gardes. Réglementairement émoussée."},
+ epee_l:{n:"Épée longue",k:'main',dmg:[5,11],spd:1200,sk:'armes',p:60,d:"Une lame de chevalier. Elle exige de la place et un peu de tenue."},
+ hache:{n:"Hache d'armes",k:'main',dmg:[6,14],spd:1650,sk:'armes',p:70,d:"Lente à lever, brève à convaincre."},
+ pioche:{n:"Pioche de sape",k:'main',dmg:[4,10],spd:1400,sk:'armes',p:25,d:"Elle a fait tomber quatre remparts et un beau-frère."},
+ fronde:{n:"Fronde",k:'main',dmg:[2,6],spd:1300,sk:'adresse',rng:4,p:16,d:"Frappe à distance. Les cailloux sont fournis par le royaume."},
+ arbalete:{n:"Arbalète",k:'main',dmg:[5,12],spd:2100,sk:'adresse',rng:5,p:65,d:"Frappe loin et fort. Le rechargement laisse le temps de réfléchir à ses actes."},
+ gambison:{n:"Gambison",k:'corps',prot:2,p:28,d:"Veste matelassée. Protège des coups et de l'hiver."},
+ cuir:{n:"Cuir clouté",k:'corps',prot:3,p:45,d:"Souple, solide, et d'une odeur qui tient l'ennemi à distance."},
+ mailles:{n:"Cotte de mailles",k:'corps',prot:5,p:95,d:"Vingt mille anneaux rivés à la main par quelqu'un de très patient."},
+ casque:{n:"Casque à nasal",k:'appoint',prot:1,p:20,d:"Protège le crâne et donne l'air de savoir ce qu'on fait."},
+ bouclier:{n:"Bouclier rond",k:'appoint',prot:2,p:34,d:"Une planche avec des ambitions."},
+ pain:{n:"Pain de munition",k:'use',heal:8,p:3,d:"Rend quelques points de vie. Peut aussi servir de projectile."},
+ onguent:{n:"Onguent",k:'use',heal:25,p:12,d:"Soigne les plaies. La recette est secrète, ce qui vaut sans doute mieux."},
+ vin:{n:"Gourde de vin coupé",k:'use',sf:12,p:6,d:"Rend du souffle. Coupé à l'eau, précise l'étiquette, sans dire dans quelle proportion."},
+ potfeu:{n:"Pot à feu",k:'throw',dmg:[12,20],p:20,d:"À lancer devant soi. Blesse tous les adversaires de la case visée."},
+ poudre:{n:"Tonnelet de poudre",k:'key',p:0,d:"De quoi ouvrir un mur fissuré. À tenir loin de la pipe de Pépin."},
+ cle_fer:{n:"Clé de fer",k:'key',p:0,d:"La clé du sergent. Elle ouvre la sortie des geôles."},
+ cle_cuivre:{n:"Clé de cuivre",k:'key',p:0,d:"Prise au Borgne. Elle ouvre la grille du puits sud."}
+};
+const MON={
+ rat:{n:"le rat",hp:8,atk:[1,3],def:1,spd:900,mv:650,sc:.34,gold:[0,0],ko:"Le rat bat en retraite, vexé."},
+ garde:{n:"le garde",hp:22,atk:[2,6],def:4,spd:1300,mv:800,sc:.86,gold:[2,6],ko:"Le garde s'effondre. Il aura mal au crâne et une anecdote."},
+ sergent:{n:"le sergent Brisemotte",hp:50,atk:[4,9],def:6,spd:1500,mv:900,sc:.95,gold:[15,15],drop:'cle_fer',ko:"Le sergent Brisemotte s'effondre avec la dignité d'une armoire. Sa clé tinte sur les dalles."},
+ pillard:{n:"le pillard",hp:30,atk:[3,8],def:5,spd:1250,mv:750,sc:.86,gold:[3,9],ko:"Le pillard s'écroule et renonce à la carrière."},
+ molosse:{n:"le molosse",hp:16,atk:[2,6],def:3,spd:800,mv:450,sc:.5,gold:[0,0],ko:"Le molosse file en couinant."},
+ borgne:{n:"le Borgne",hp:95,atk:[5,12],def:7,spd:1500,mv:850,sc:1,gold:[40,40],drop:'cle_cuivre',ko:"Le Borgne tombe. Il avait l'œil, mais pas le bon."}
+};
+const CH={
+ aldric:{n:"Aldric",full:"Aldric de Morvane",role:"Général déchu, vainqueur de trois campagnes",hp:40,sf:14,force:12,sk:[3,1,1],eq:{},spN:"Taille",spC:6,spD:"Coup de taille : touche à coup sûr, dégâts doublés (6 de souffle)."},
+ pepin:{n:"Pépin",full:"Pépin",role:"Geôlier, évadé par erreur",hp:24,sf:16,force:6,sk:[1,2,1],eq:{main:'louche'},spN:"Croc",spC:5,spD:"Croc-en-jambe : l'adversaire reste étourdi quelques secondes (5 de souffle)."},
+ brune:{n:"Brune",full:"Brune la Sapeuse",role:"Maîtresse sapeuse, de mauvaise humeur",hp:34,sf:14,force:10,sk:[2,1,3],eq:{main:'pioche',corps:'cuir'},spN:"Sape",spC:6,spD:"Coup de sape : ignore l'armure, dégâts ×1,5 (6 de souffle)."}
+};
+const LEVELS={
+ geoles:{name:"Les geôles de Castelroc",theme:'stone',start:[1,1,1],next:'mine',
+  map:[
+  "################",
+  "#..d......#....#",
+  "####.####.D....#",
+  "#..D.#..#.#....#",
+  "####.#..D.######",
+  "#..D.#..#.#...##",
+  "####.####.#...##",
+  "#..L.####.#...##",
+  "####.####.##D###",
+  "#..D..........##",
+  "#..##########L##",
+  "#..##########.##",
+  "#############X##",
+  "################"],
+  locks:{"3,7":{diff:1},"13,10":{key:'cle_fer',diff:9,no:"Une serrure de fer, massive. Le sergent en garde la clé à sa ceinture."}},
+  mons:[['rat',1,5],['rat',2,5],['rat',4,6],['garde',9,5],['garde',6,9],['garde',12,2],['garde',13,3],['rat',1,10],['rat',2,11],['sergent',12,6],['garde',11,5]],
+  items:[['tabouret',6,1],['pain',1,3],['fronde',2,3],['or',2,5,6],['epee_c',14,1],['casque',13,1],['gambison',11,3],['bouclier',14,3],['potfeu',1,9],['pain',2,10],['or',1,11,22],['or',13,5,15],['onguent',13,7]],
+  npcs:[{id:'goupil',x:6,y:3,spr:'goupil'},{id:'anselme',x:1,y:7,spr:'anselme'}],
+  trig:[[4,1,'couloir'],[9,3,'cantine'],[12,8,'sergent']]},
+ mine:{name:"La mine d'argent de Val-Griset",theme:'mine',start:[2,2,1],next:null,
+  map:[
+  "################",
+  "#...#......#...#",
+  "#...D.####.W...#",
+  "#...#.#..#.#####",
+  "###.#.#..D.....#",
+  "#...#.####.###.#",
+  "#.###......#...#",
+  "#.#...####.#.###",
+  "#.#.#.#..#.#...#",
+  "#...#.#..D.#####",
+  "#####.####.#...#",
+  "#.....#....L...#",
+  "#.###...##.#..X#",
+  "################"],
+  locks:{"11,11":{key:'cle_cuivre',diff:9,no:"Une grille cadenassée. Le Borgne en porte la clé, dit-on, près du cœur. Ou de la gourde."}},
+  mons:[['pillard',5,5],['pillard',10,6],['pillard',7,6],['pillard',3,7],['molosse',1,7],['molosse',5,11],['molosse',2,11],['pillard',10,10],['pillard',12,4],['pillard',13,6],['molosse',12,8],['borgne',13,8],['pillard',13,10],['pillard',12,12]],
+  items:[['vin',8,3],['poudre',7,8],['onguent',8,8],['or',7,9,18],['mailles',14,1],['or',13,2,60],['epee_l',14,2],['hache',1,12],['or',6,12,12],['pain',1,5],['potfeu',3,8]],
+  npcs:[{id:'fulbert',x:3,y:1,spr:'fulbert'},{id:'brune',x:7,y:3,spr:'brune'}],
+  trig:[[5,2,'galerie'],[14,5,'borgne']]}
+};
+const SHOPS={
+ goupil:['pain','onguent','vin','dague','fronde','gambison','potfeu'],
+ fulbert:['pain','onguent','vin','potfeu','epee_l','arbalete','bouclier','casque','mailles']
+};
+/*ENDDATA*/
+
+const $=id=>document.getElementById(id);
+const rnd=(a,b)=>a+Math.floor(Math.random()*(b-a+1));
+const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
+const DX=[0,1,0,-1],DY=[-1,0,1,0],ANG=[-Math.PI/2,0,Math.PI/2,Math.PI];
+const SKN=['armes','adresse','savoir'],SKL={armes:"Armes",adresse:"Adresse",savoir:"Savoir"};
+const FIST={n:"Poings",dmg:[1,2],spd:800,sk:'armes'};
+const VW=320,VH=200,PLANE=.66,HS=VW/(2*PLANE);
+const SAVE='general_dechu_v1';
+let S=null,LS=null,LV=null,MW=16,MH=14,df=[],anim=null,fx=[],hurtT=-1e9,lockCd=0,logs=[];
+
+/* ---------- dessin procédural ---------- */
+function mk(w,h,fn){const c=document.createElement('canvas');c.width=w;c.height=h;const g=c.getContext('2d');g.imageSmoothingEnabled=false;fn(g);return c;}
+function rng(s){return()=>{s=(s*1664525+1013904223)>>>0;return s/4294967296;};}
+function pStone(g,seed){const r=rng(seed);g.fillStyle='#2b2825';g.fillRect(0,0,64,64);
+ for(let row=0;row<4;row++){const off=row%2?16:0;for(let col=-1;col<2;col++){const x=col*32+off,y=row*16,v=92+(r()*38|0);
+  g.fillStyle=`rgb(${v},${v-5},${v-13})`;g.fillRect(x+1,y+1,30,14);g.fillStyle='rgba(255,255,255,.09)';g.fillRect(x+1,y+1,30,2);g.fillStyle='rgba(0,0,0,.2)';g.fillRect(x+1,y+13,30,2);}}
+ for(let i=0;i<260;i++){g.fillStyle=`rgba(0,0,0,${r()*.28})`;g.fillRect(r()*64|0,r()*64|0,1+(r()*2|0),1);}}
+function pMine(g,seed){const r=rng(seed);g.fillStyle='#4a3a2a';g.fillRect(0,0,64,64);
+ for(let i=0;i<90;i++){const v=50+(r()*50|0);g.fillStyle=`rgb(${v+18},${v+4},${v-12})`;g.fillRect(r()*64|0,r()*64|0,3+(r()*9|0),2+(r()*5|0));}
+ for(let i=0;i<14;i++){g.fillStyle='rgba(210,215,225,.55)';g.fillRect(r()*60|0,r()*60|0,2,1);}
+ for(let i=0;i<200;i++){g.fillStyle=`rgba(0,0,0,${r()*.3})`;g.fillRect(r()*64|0,r()*64|0,2,1);}
+ g.fillStyle='#5d4022';g.fillRect(0,0,6,64);g.fillRect(58,0,6,64);g.fillRect(0,0,64,7);g.fillStyle='rgba(0,0,0,.3)';g.fillRect(5,7,1,57);g.fillRect(58,7,1,57);g.fillRect(6,6,52,1);
+ g.fillStyle='rgba(255,255,255,.1)';g.fillRect(0,0,64,1);g.fillRect(0,0,1,64);}
+function pDoor(g,locked){g.fillStyle='#17130f';g.fillRect(9,7,46,57);g.fillStyle='#6a4526';g.fillRect(11,9,42,55);
+ for(let x=11;x<53;x+=7){g.fillStyle='rgba(0,0,0,.28)';g.fillRect(x,9,1,55);g.fillStyle='rgba(255,255,255,.06)';g.fillRect(x+1,9,1,55);}
+ g.fillStyle='#2d2b2a';g.fillRect(11,16,42,4);g.fillRect(11,48,42,4);g.fillStyle='#8d8a84';for(let x=13;x<52;x+=6){g.fillRect(x,17,2,2);g.fillRect(x,49,2,2);}
+ if(locked){g.fillStyle='#2d2b2a';g.fillRect(25,27,14,16);g.fillStyle='#b9973f';g.fillRect(27,29,10,12);g.fillStyle='#111';g.fillRect(31,32,2,3);g.fillRect(31,35,1,4);}
+ else{g.strokeStyle='#8d8a84';g.lineWidth=2;g.beginPath();g.arc(44,34,4,0,7);g.stroke();}}
+function pExit(g){g.fillStyle='#0b0a09';g.fillRect(12,8,40,56);for(let i=0;i<7;i++){const v=40+i*22;g.fillStyle=`rgb(${v},${v-4},${v-14})`;g.fillRect(14+i*2,56-i*7,36-i*4,7);}
+ g.fillStyle='rgba(190,205,255,.5)';g.fillRect(26,10,12,8);}
+function pCrack(g){g.strokeStyle='#0a0908';g.lineWidth=2;g.beginPath();g.moveTo(30,0);g.lineTo(26,14);g.lineTo(35,24);g.lineTo(28,38);g.lineTo(37,50);g.lineTo(31,64);g.moveTo(35,24);g.lineTo(46,30);g.moveTo(28,38);g.lineTo(17,44);g.stroke();}
+function pTorch(g,f){g.fillStyle='#2d2b2a';g.fillRect(30,30,4,14);g.fillRect(27,42,10,2);g.fillStyle='rgba(255,170,60,.18)';g.beginPath();g.arc(32,24,17,0,7);g.fill();
+ g.fillStyle='#e8842c';g.fillRect(29,22-f,6,9+f);g.fillStyle='#ffd866';g.fillRect(30,25-f,4,5+f);g.fillStyle='#fff3c4';g.fillRect(31,27,2,2);}
+const TX={wall:{},torch:{},crack:{}};
+function human(o){return mk(64,64,g=>{const sk=o.skin||'#d8a67c';
+ if(o.pole){g.fillStyle='#6b4a2a';g.fillRect(50,3,2,58);g.fillStyle='#c4c8cc';g.fillRect(47,3,8,5);g.fillRect(52,8,5,7);}
+ g.fillStyle=o.legs||'#3a3026';if(o.robe){g.fillStyle=o.body;g.fillRect(20,44,24,18);}else{g.fillRect(23,44,7,18);g.fillRect(34,44,7,18);g.fillStyle='#1c1612';g.fillRect(22,59,9,3);g.fillRect(33,59,9,3);}
+ g.fillStyle=o.body;g.fillRect(20,22,24,24);g.fillRect(13,23,7,17);g.fillRect(44,23,7,17);
+ g.fillStyle='rgba(0,0,0,.22)';g.fillRect(20,42,24,3);g.fillRect(19,23,1,17);g.fillRect(44,23,1,17);
+ if(o.trim){g.fillStyle=o.trim;g.fillRect(29,22,6,24);}
+ if(o.apron){g.fillStyle='#e6dfcf';g.fillRect(23,28,18,26);}
+ if(o.belt){g.fillStyle='#231a12';g.fillRect(20,38,24,3);g.fillStyle='#b9973f';g.fillRect(30,38,4,3);}
+ g.fillStyle=sk;g.fillRect(13,40,7,4);g.fillRect(44,40,7,4);g.fillRect(25,7,14,15);
+ g.fillStyle='#16110d';g.fillRect(28,13,2,2);g.fillRect(34,13,2,2);g.fillRect(29,18,6,1);
+ if(o.hair){g.fillStyle=o.hair;g.fillRect(24,5,16,5);if(o.long){g.fillRect(23,8,3,14);g.fillRect(38,8,3,14);}}
+ if(o.beard){g.fillStyle=o.beard;g.fillRect(25,17,14,o.beardL||6);g.fillStyle='#16110d';g.fillRect(30,18,4,1);}
+ if(o.helm){g.fillStyle=o.helm;g.fillRect(24,4,16,7);g.fillRect(31,11,2,5);g.fillStyle='rgba(255,255,255,.3)';g.fillRect(25,5,6,1);}
+ if(o.plume){g.fillStyle=o.plume;g.fillRect(30,0,4,5);g.fillRect(33,1,4,3);}
+ if(o.hat){g.fillStyle=o.hat;g.fillRect(21,7,22,3);g.fillRect(26,2,12,6);}
+ if(o.cone){g.fillStyle=o.cone;g.beginPath();g.moveTo(22,9);g.lineTo(32,-6);g.lineTo(42,9);g.fill();g.fillStyle='#e9d27a';g.fillRect(30,3,2,2);g.fillRect(34,6,1,1);}
+ if(o.bonnet){g.fillStyle='#e6dfcf';g.fillRect(23,4,18,6);g.fillRect(23,8,2,8);g.fillRect(39,8,2,8);}
+ if(o.patch){g.fillStyle='#111';g.fillRect(33,12,5,4);g.fillRect(24,10,16,1);}
+ if(o.sword){g.fillStyle='#d5d9dd';g.fillRect(46,12,3,28);g.fillStyle='#8a6a2a';g.fillRect(43,38,9,2);}
+ if(o.axe){g.fillStyle='#6b4a2a';g.fillRect(47,8,2,36);g.fillStyle='#c4c8cc';g.fillRect(49,8,8,10);g.fillRect(41,10,6,6);}
+ if(o.pick){g.fillStyle='#6b4a2a';g.fillRect(47,10,2,34);g.fillStyle='#9a9ea2';g.fillRect(40,9,16,3);g.fillRect(38,11,3,3);g.fillRect(55,11,3,3);}
+ if(o.pack){g.fillStyle='#7a5a32';g.fillRect(8,18,9,22);g.fillStyle='#b9973f';g.fillRect(10,24,5,2);}
+ if(o.ladle){g.fillStyle='#9a9ea2';g.fillRect(47,20,2,22);g.fillRect(45,16,6,5);}
+});}
+function beast(o){return mk(64,64,g=>{
+ if(o.rat){g.fillStyle='#6d665e';g.beginPath();g.ellipse(30,48,17,10,0,0,7);g.fill();g.beginPath();g.ellipse(46,46,8,7,0,0,7);g.fill();
+  g.fillStyle='#b98d86';g.fillRect(2,50,13,2);g.fillRect(52,45,3,2);g.beginPath();g.arc(43,39,3,0,7);g.arc(49,39,3,0,7);g.fill();
+  g.fillStyle='#e0452f';g.fillRect(45,44,2,2);g.fillRect(49,44,2,2);g.fillStyle='#3a3530';g.fillRect(20,56,4,5);g.fillRect(36,56,4,5);}
+ else{g.fillStyle='#4a3626';g.fillRect(12,30,36,16);g.fillRect(14,44,6,18);g.fillRect(40,44,6,18);g.fillRect(24,46,5,16);g.fillRect(8,26,4,12);
+  g.fillRect(40,18,16,16);g.fillStyle='#2e2118';g.fillRect(40,14,4,7);g.fillRect(52,14,4,7);g.fillRect(52,28,8,6);
+  g.fillStyle='#f1e9d6';g.fillRect(53,33,2,3);g.fillRect(57,33,2,3);g.fillStyle='#ffd23f';g.fillRect(45,23,2,2);g.fillRect(51,23,2,2);g.fillStyle='#8a2a22';g.fillRect(40,33,12,2);}
+});}
+function tint(src,col){return mk(64,64,g=>{g.drawImage(src,0,0);g.globalCompositeOperation='source-atop';g.fillStyle=col;g.fillRect(0,0,64,64);});}
+const SPR={};
+function addSpr(n,c){SPR[n]=[c,tint(c,'rgba(0,0,0,.36)'),tint(c,'rgba(0,0,0,.62)'),tint(c,'rgba(255,70,40,.6)')];}
+function face(o){return mk(48,48,g=>{g.fillStyle=o.bg||'#3d3324';g.fillRect(0,0,48,48);
+ g.fillStyle=o.cloth;g.fillRect(5,38,38,10);g.fillStyle=o.skin;g.fillRect(20,32,8,8);g.fillRect(13,10,22,24);
+ g.fillStyle='rgba(0,0,0,.12)';g.fillRect(13,10,3,24);
+ g.fillStyle=o.hair;g.fillRect(12,7,24,6);if(o.long){g.fillRect(10,9,4,24);g.fillRect(34,9,4,24);}
+ if(o.cap){g.fillStyle=o.cap;g.fillRect(10,4,28,8);g.fillRect(8,10,32,2);}
+ g.fillStyle='#fff';g.fillRect(17,19,5,4);g.fillRect(26,19,5,4);g.fillStyle='#1d1712';g.fillRect(19+(o.look||0),20,2,3);g.fillRect(28+(o.look||0),20,2,3);
+ g.fillStyle=o.hair;if(o.stern){g.fillRect(16,16,7,2);g.fillRect(25,16,7,2);g.fillRect(22,17,1,1);g.fillRect(25,17,1,1);}else{g.fillRect(17,15,5,1);g.fillRect(26,15,5,1);}
+ g.fillStyle='rgba(0,0,0,.25)';g.fillRect(23,22,2,6);
+ if(o.beard){g.fillStyle=o.hair;g.fillRect(13,26,22,9);g.fillRect(16,35,16,2);}
+ g.fillStyle='#6e2f26';g.fillRect(20,29,8,o.smile?1:2);if(o.smile){g.fillRect(19,28,1,1);g.fillRect(28,28,1,1);}
+ if(o.soot){g.fillStyle='rgba(20,15,10,.4)';g.fillRect(27,24,5,3);g.fillRect(15,13,4,2);}
+ if(o.scar){g.fillStyle='#8f4a3c';g.fillRect(31,14,1,10);}
+});}
+const PORT={};
+function buildArt(){
+ TX.wall.stone=mk(64,64,g=>pStone(g,7));TX.wall.mine=mk(64,64,g=>pMine(g,11));
+ for(const th of['stone','mine']){const p=th==='stone'?pStone:pMine,s=th==='stone'?7:11;
+  TX.torch[th]=[0,2].map(f=>mk(64,64,g=>{p(g,s);pTorch(g,f);}));
+  TX.crack[th]=mk(64,64,g=>{p(g,s+3);pCrack(g);});
+  TX['door_'+th]=mk(64,64,g=>{p(g,s);pDoor(g,false);});TX['lock_'+th]=mk(64,64,g=>{p(g,s);pDoor(g,true);});TX['exit_'+th]=mk(64,64,g=>{p(g,s);pExit(g);});
+  TX['bg_'+th]=mk(VW,VH,g=>{const c=g.createLinearGradient(0,0,0,VH/2);c.addColorStop(0,th==='stone'?'#2a2622':'#33261a');c.addColorStop(1,'#050403');g.fillStyle=c;g.fillRect(0,0,VW,VH/2);
+   const f=g.createLinearGradient(0,VH/2,0,VH);f.addColorStop(0,'#050403');f.addColorStop(1,th==='stone'?'#4a443c':'#5a4630');g.fillStyle=f;g.fillRect(0,VH/2,VW,VH/2);
+   for(let y=VH/2+4,s2=3;y<VH;y+=s2,s2*=1.45){g.fillStyle='rgba(0,0,0,.22)';g.fillRect(0,y|0,VW,1);}});}
+ addSpr('rat',beast({rat:1}));addSpr('molosse',beast({}));
+ addSpr('garde',human({body:'#7a2b2b',trim:'#c9a24a',helm:'#9aa0a6',pole:1,belt:1}));
+ addSpr('sergent',human({body:'#27375a',trim:'#c9a24a',helm:'#b8bec4',plume:'#c22f2f',sword:1,belt:1,beard:'#3a2a1c',beardL:5}));
+ addSpr('pillard',human({body:'#4d5a33',hair:'#2a1d12',sword:1,belt:1,beard:'#2a1d12',beardL:4,legs:'#3a2c1c'}));
+ addSpr('borgne',human({body:'#3a2420',hair:'#111',patch:1,axe:1,belt:1,beard:'#111',beardL:8,trim:'#7a1f1f'}));
+ addSpr('goupil',human({body:'#6a4a5a',apron:1,bonnet:1,ladle:1,robe:1}));
+ addSpr('anselme',human({body:'#3b3470',robe:1,cone:'#3b3470',beard:'#e8e4da',beardL:16,trim:'#e9d27a'}));
+ addSpr('fulbert',human({body:'#7a5a20',hat:'#3a2c1c',pack:1,belt:1,beard:'#8a5a2a',beardL:4}));
+ addSpr('brune',human({body:'#5a3a22',hair:'#8a3a1e',long:1,pick:1,belt:1}));
+ addSpr('sac',mk(64,64,g=>{g.fillStyle='#8a6a3a';g.beginPath();g.ellipse(32,50,13,11,0,0,7);g.fill();g.fillRect(27,34,10,8);g.fillStyle='#5a4020';g.fillRect(26,38,12,3);g.fillStyle='rgba(255,255,255,.15)';g.fillRect(24,44,4,8);}));
+ addSpr('or',mk(64,64,g=>{g.fillStyle='#e2b53a';for(const[a,b]of[[24,56],[32,56],[40,56],[28,51],[36,51],[32,46]]){g.beginPath();g.ellipse(a,b,5,3,0,0,7);g.fill();}g.fillStyle='#fff1b0';g.fillRect(30,45,3,1);g.fillRect(26,50,3,1);}));
+ const P={aldric:face({cloth:'#5a2424',skin:'#cf9f78',hair:'#3a3632',beard:1,stern:1,scar:1}),
+  pepin:face({cloth:'#6a6248',skin:'#e3b48e',hair:'#b9772e',cap:'#57503a',smile:1,look:1,bg:'#4a4230'}),
+  brune:face({cloth:'#5a3a22',skin:'#d6a37c',hair:'#8a3a1e',long:1,stern:1,soot:1,bg:'#40301f'}),
+  goupil:face({cloth:'#e6dfcf',skin:'#dcae8c',hair:'#e6dfcf',cap:'#e6dfcf',smile:1,bg:'#4a3a40'}),
+  anselme:face({cloth:'#3b3470',skin:'#dcb79a',hair:'#e8e4da',beard:1,cap:'#3b3470',bg:'#262244'}),
+  fulbert:face({cloth:'#7a5a20',skin:'#d3a17a',hair:'#8a5a2a',beard:1,cap:'#3a2c1c',smile:1}),
+  sergent:face({cloth:'#27375a',skin:'#c9906c',hair:'#3a2a1c',beard:1,stern:1,cap:'#b8bec4',bg:'#1f2a44'}),
+  borgne:face({cloth:'#3a2420',skin:'#b98866',hair:'#111',beard:1,stern:1,scar:1,bg:'#2a1614'})};
+ for(const k in P)PORT[k]=P[k].toDataURL();
+}
+
+/* ---------- état ---------- */
+function mkChar(id){const c=CH[id];return{id,hp:c.hp,hpM:c.hp,sf:c.sf,sfM:c.sf,force:c.force,
+ sk:{armes:{l:c.sk[0],x:0},adresse:{l:c.sk[1],x:0},savoir:{l:c.sk[2],x:0}},eq:{main:c.eq.main||null,corps:c.eq.corps||null,appoint:null},cd:0,cdD:1,cs:0};}
+function initLevel(id){const L=LEVELS[id];return{g:L.map.slice(),mons:L.mons.map(m=>({t:m[0],x:m[1],y:m[2],hp:MON[m[0]].hp,next:0,aw:0})),
+ items:L.items.map(a=>({id:a[0],x:a[1],y:a[2],q:a[3]||0})),seen:{},fired:{},gone:{}};}
+function newGame(){S={lv:'',x:0,y:0,d:0,gold:6,bag:[],party:[mkChar('aldric'),mkChar('pepin')],L:{},flags:{},T:0,sfT:0};logs=[];enterLevel('geoles');}
+function enterLevel(id){S.lv=id;if(!S.L[id])S.L[id]=initLevel(id);const st=LEVELS[id].start;S.x=st[0];S.y=st[1];S.d=st[2];bind();save();banner();fire('intro_'+id);}
+function bind(){LV=LEVELS[S.lv];LS=S.L[S.lv];MH=LS.g.length;MW=LS.g[0].length;anim=null;computeDF();markSeen();drawParty();drawLog();}
+function save(){try{localStorage.setItem(SAVE,JSON.stringify(S));}catch(e){}}
+function load(){try{const s=localStorage.getItem(SAVE);if(!s)return false;S=JSON.parse(s);bind();return true;}catch(e){return false;}}
+function hasSave(){try{return!!localStorage.getItem(SAVE);}catch(e){return false;}}
+function banner(){const e=$('lvlname');e.textContent=LV.name;e.classList.add('on');setTimeout(()=>e.classList.remove('on'),3500);}
+
+/* ---------- carte ---------- */
+const cell=(x,y)=>(y<0||y>=MH||x<0||x>=MW)?'#':LS.g[y][x];
+const pass=(x,y)=>{const c=cell(x,y);return c==='.'||c==='d';};
+function setCell(x,y,c){LS.g[y]=LS.g[y].substring(0,x)+c+LS.g[y].substring(x+1);computeDF();markSeen();}
+const monAt=(x,y)=>LS.mons.find(m=>m.hp>0&&m.x===x&&m.y===y);
+const npcAt=(x,y)=>LV.npcs.find(n=>!LS.gone[n.id]&&n.x===x&&n.y===y);
+const occupied=(x,y)=>!!(monAt(x,y)||npcAt(x,y)||(S.x===x&&S.y===y));
+function computeDF(){df=new Array(MW*MH).fill(99);const q=[[S.x,S.y]];df[S.y*MW+S.x]=0;
+ while(q.length){const[x,y]=q.shift(),d=df[y*MW+x];for(let k=0;k<4;k++){const nx=x+DX[k],ny=y+DY[k];if(pass(nx,ny)&&df[ny*MW+nx]>d+1){df[ny*MW+nx]=d+1;q.push([nx,ny]);}}}}
+function markSeen(){for(let dy=-1;dy<=1;dy++)for(let dx=-1;dx<=1;dx++)LS.seen[(S.x+dx)+','+(S.y+dy)]=1;
+ let x=S.x,y=S.y;for(let i=0;i<5;i++){x+=DX[S.d];y+=DY[S.d];const sd=(S.d+1)%4;LS.seen[x+','+y]=1;LS.seen[(x+DX[sd])+','+(y+DY[sd])]=1;LS.seen[(x-DX[sd])+','+(y-DY[sd])]=1;if(!pass(x,y))break;}}
+
+/* ---------- journal & dialogues ---------- */
+function log(m){logs.push(m);if(logs.length>3)logs.shift();drawLog();}
+function drawLog(){$('log').innerHTML=logs.map(m=>'<div>'+m+'</div>').join('');$('gold').textContent=S?S.gold+' écus':'';}
+const NAMES={aldric:"Aldric",pepin:"Pépin",brune:"Brune",goupil:"Mère Goupil",anselme:"Maître Anselme",fulbert:"Maître Fulbert",sergent:"Sergent Brisemotte",borgne:"Le Borgne"};
+let DQ=[],DEnd=null;
+function say(lines,end){DQ=lines.slice();DEnd=end||null;nextLine();}
+function nextLine(){
+ if(!DQ.length){$('dlg').hidden=true;const e=DEnd;DEnd=null;if(e)e();return;}
+ const l=DQ.shift(),w=$('dlgWho'),b=$('dlgBtns');$('dlg').hidden=false;
+ if(l[0]){w.className='who';w.innerHTML=(PORT[l[0]]?`<img src="${PORT[l[0]]}" alt="">`:'')+`<b>${NAMES[l[0]]||l[0]}</b>`;}
+ else{w.className='who narr';w.innerHTML='<b>Chronique</b>';}
+ $('dlgText').textContent=l[1];b.innerHTML='';
+ if(l[2]){l[2].forEach(ch=>{const bt=document.createElement('button');bt.textContent=ch[0];bt.onclick=()=>{ch[1]();nextLine();};b.appendChild(bt);});}
+ else{const bt=document.createElement('button');bt.className='main';bt.textContent=DQ.length?'Suite':'Bien';bt.onclick=nextLine;b.appendChild(bt);}
+}
+const paused=()=>!S||!$('dlg').hidden||!$('modal').hidden||!$('title').hidden;
+function fire(id){if(!SC[id]||LS.fired[id])return;LS.fired[id]=1;SC[id]();}
+
+const SC={
+ intro_geoles(){say([
+  [null,"Geôles royales de Castelroc, troisième sous-sol. Voilà quarante jours que le général Aldric de Morvane, vainqueur de trois campagnes, y médite sur la gratitude des rois."],
+  [null,"Une clé tourne dans la serrure. C'est l'heure de la soupe."],
+  ['pepin',"Votre soupe, mon général. Elle est froide, mais je vous rassure : elle l'était déjà chaude."],
+  ['aldric',"Pépin. Tu as laissé la porte ouverte derrière toi."],
+  ['pepin',"Ah. C'est que j'ai pris le trousseau du sergent au lieu du mien. Celui qui ouvre tout. Celui qu'il recompte chaque soir."],
+  ['aldric',"Alors tu as le choix : l'expliquer au sergent, ou venir avec moi."],
+  ['pepin',"Je veux qu'il soit noté quelque part que je vous ai fait évader par erreur. Le trousseau ? Je l'ai lâché de saisissement, il est tombé dans la grille. Ne me regardez pas ainsi, le sergent a le même regard."],
+  [null,"Pépin rejoint votre troupe. Il apporte une louche, six écus et un avis sur tout."]
+ ],()=>log("Touchez la vue ou « Agir » pour ouvrir, parler, fouiller."));},
+ couloir(){say([['pepin',"À gauche les cellules, à droite l'armurerie, en bas le sergent. Je propose une quatrième direction, dès qu'on en trouve une."],
+  ['aldric',"Il me faut une arme."],['pepin',"Il y a un tabouret cassé plus loin. Je sais, je sais. Vous avez commandé dix mille hommes."]]);},
+ cantine(){say([['pepin',"Vous sentez ? La cantine. La Mère Goupil vend de tout à tout le monde. C'est la seule personne honnête de Castelroc : elle vole chacun pareil."]]);},
+ sergent(){say([['sergent',"Morvane ! Et Pépin. Pépin, tu me déçois. Et pourtant je n'attendais rien."],
+  ['pepin',"C'est une erreur administrative, sergent !"],['sergent',"Alors je vais la corriger. À la main."]]);},
+ intro_mine(){say([
+  [null,"Trois jours de marche plus tard. La mine d'argent de Val-Griset devrait résonner de coups de pioche. On n'y entend que des rires gras : depuis la défaite, des pillards s'y sont installés."],
+  ['pepin',"Une mine occupée par des bandits. Évidemment. Vous ne pouviez pas avoir une lieutenante bergère."],
+  ['aldric',"Brune a miné les remparts de Sarrelouve en une nuit. Si elle est encore ici, c'est qu'elle l'a décidé."]]);},
+ galerie(){say([['pepin',"Je marche derrière. Non par prudence : pour surveiller nos arrières. C'est un poste de confiance."]]);},
+ borgne(){say([['borgne',"Tiens donc, le général sans armée ! Je vous avais à l'œil. C'est une façon de parler, ne riez pas."],
+  ['brune',"Il a bu ma réserve de trois ans. Laissez-m'en un morceau."]].filter(l=>l[0]!=='brune'||S.party.some(c=>c.id==='brune')));}
+};
+const NPC={
+ goupil(){if(!S.flags.goupil){S.flags.goupil=1;say([['goupil',"Mère Goupil, cantinière. Je vends aux gardes, aux prisonniers et aux évadés, sans distinction. La soupe n'a pas d'opinion."],
+  ['pepin',"Elle ne nous dénoncera pas ?"],['goupil',"Dénoncer un client ? J'ai des principes, mon petit. Ils sont affichés, avec les prix."]],()=>openShop('goupil'));}else openShop('goupil');},
+ anselme(){if(!S.flags.anselme){S.flags.anselme=1;say([['anselme',"Enfin de la visite. Maître Anselme, astrologue de la cour. Ancien astrologue."],
+  ['aldric',"Qu'aviez-vous prédit ?"],['anselme',"Une année calme et prospère. On m'a arrêté le lendemain de la défaite. Notez que, me concernant, l'année est effectivement très calme."],
+  ['anselme',"Un conseil qui ne doit rien aux étoiles : le sergent Brisemotte porte la clé de la sortie. Il frappe fort mais lentement. Prenez cet onguent, il me rappelle trop l'infirmerie."],
+  ['pepin',"Vous ne venez pas avec nous ?"],['anselme',"Dehors, on me demanderait des prédictions. Ici, on me laisse en paix."]],()=>{S.bag.push('onguent');log("Vous recevez un onguent.");});}
+  else say([['anselme',"Les astres vous souhaitent bonne chance. Moi aussi, c'est plus sûr."]]);},
+ fulbert(){if(!S.flags.fulbert){S.flags.fulbert=1;say([['fulbert',"Maître Fulbert, colporteur. Je suivais l'armée ; à présent je suis les pillards. Le commerce est une forme de fidélité."],
+  ['aldric',"Vous vendez aux brigands."],['fulbert',"Et à ceux qui viennent les déloger. Je suis, si l'on veut, des deux côtés de la solution."]],()=>openShop('fulbert'));}else openShop('fulbert');},
+ brune(){say([['brune',"Général ? On vous disait pendu. Ou traître. Ou les deux, dans l'ordre qui vous arrange."],
+  ['aldric',"Ni l'un ni l'autre, Brune. J'ai une bataille à livrer et personne pour creuser sous l'ennemi."],
+  ['brune',"Et moi j'ai une mine pleine de pillards et un chef borgne qui vide ma réserve. Débarrassez-m'en et je vous suis. Non, tenez, je vous suis tout de suite : sans moi vous allez encore passer par la porte."],
+  ['pepin',"Elle est toujours comme ça ?"],['aldric',"Non. D'habitude elle est de mauvaise humeur."],
+  ['brune',"La réserve du sud garde un tonnelet de poudre. Et le mur fissuré près de l'entrée, c'est moi : j'y ai muré la paie des mineurs. Le Borgne tient la clé du puits de sortie."],
+  [null,"Brune la Sapeuse rejoint votre troupe, avec sa pioche et ses opinions."]],()=>{LS.gone.brune=1;S.party.push(mkChar('brune'));drawParty();save();});}
+};
+
+/* ---------- déplacement ---------- */
+function startAnim(fx_,fy_,fa,tx,ty,ta,dur){anim={t0:performance.now(),dur,fx:fx_,fy:fy_,fa,tx,ty,ta};}
+function turn(s){if(paused()||anim)return;const a=ANG[S.d];S.d=(S.d+s+4)%4;startAnim(S.x+.5,S.y+.5,a,S.x+.5,S.y+.5,a+s*Math.PI/2,150);markSeen();}
+function move(rel){if(paused()||anim)return;const d=(S.d+rel)%4,nx=S.x+DX[d],ny=S.y+DY[d],c=cell(nx,ny);
+ if(rel===0&&'DLXW'.includes(c)){interact();return;}
+ if(!pass(nx,ny)||monAt(nx,ny)||npcAt(nx,ny))return;
+ const ox=S.x,oy=S.y;S.x=nx;S.y=ny;startAnim(ox+.5,oy+.5,ANG[S.d],nx+.5,ny+.5,ANG[S.d],170);computeDF();markSeen();pickup();
+ for(const t of LV.trig)if(t[0]===nx&&t[1]===ny)fire(t[2]);}
+function pickup(){const here=LS.items.filter(i=>i.x===S.x&&i.y===S.y);if(!here.length)return;
+ for(const it of here){if(it.id==='or'){S.gold+=it.q;log(`Vous ramassez ${it.q} écus.`);}else{S.bag.push(it.id);log(`Ramassé : ${ITEMS[it.id].n}.`);}}
+ LS.items=LS.items.filter(i=>!(i.x===S.x&&i.y===S.y));drawLog();}
+function has(id){return id&&S.bag.includes(id);}
+function best(sk){let b=null;for(const c of S.party)if(c.hp>0&&(!b||c.sk[sk].l>b.sk[sk].l))b=c;return b;}
+function interact(){if(paused())return;const x=S.x+DX[S.d],y=S.y+DY[S.d],n=npcAt(x,y);
+ if(n){NPC[n.id]();return;}
+ const c=cell(x,y);
+ if(c==='D'){setCell(x,y,'d');log("La porte s'ouvre en grinçant.");}
+ else if(c==='d'){if(monAt(x,y))return;setCell(x,y,'D');log("Vous refermez la porte.");}
+ else if(c==='L')tryLock(x,y);
+ else if(c==='W'){if(has('poudre')){S.bag.splice(S.bag.indexOf('poudre'),1);setCell(x,y,'.');shake();const b=best('savoir');if(b)gainXp(b,'savoir',30);
+   log("Le tonnelet fait son office. Le mur cesse d'en être un.");}else log("Un mur fissuré, qui sonne creux. Avec de la poudre, on s'entendrait.");}
+ else if(c==='X')exitLevel();
+ else if(c==='#')log(["Un mur. Il ne cédera pas à l'argumentation.","De la pierre, de la bonne.","Rien de particulier, sinon l'humidité."][rnd(0,2)]);
+ else log("Rien à signaler.");}
+function tryLock(x,y){const lk=LV.locks[x+','+y]||{diff:9};
+ if(has(lk.key)){setCell(x,y,'d');log("La clé tourne. La voie est libre.");save();return;}
+ if(lk.diff>5){log(lk.no||"Serrure massive. Il faut la clé.");return;}
+ if(S.T<lockCd)return;lockCd=S.T+900;const c=best('adresse');if(!c)return;
+ if(rnd(1,100)<=30+20*c.sk.adresse.l-15*lk.diff){setCell(x,y,'d');gainXp(c,'adresse',15);log(`${CH[c.id].n} crochète la serrure avec une épingle et beaucoup de commentaires.`);}
+ else{gainXp(c,'adresse',4);log(`${CH[c.id].n} tripote la serrure. Elle résiste. Réessayez.`);}}
+function shake(){const e=$('viewWrap');e.classList.remove('shake');void e.offsetWidth;e.classList.add('shake');}
+function exitLevel(){
+ if(S.lv==='geoles')say([[null,"Derrière la porte, un escalier, puis l'air froid de la nuit. Castelroc dort. Personne n'a encore recompté les prisonniers."],
+  ['aldric',"On m'a volé une bataille. Je vais la reprendre, et il me faut mes lieutenants. Brune la Sapeuse d'abord : elle dirige une mine d'argent à Val-Griset."],
+  ['pepin',"C'est loin ?"],['aldric',"Trois jours de marche."],['pepin',"En prison, au moins, on était assis."]],()=>enterLevel('mine'));
+ else say([[null,"La mine de Val-Griset est libre, et Brune a retrouvé sa pioche de campagne. Trois lieutenants manquent encore à l'appel : un chirurgien acariâtre, un cavalier devenu brigand, une espionne à la cour."],
+  ['pepin',"Et au bout, il y a une bataille. Je me disais aussi qu'il manquait quelque chose."],
+  [null,"Fin du prototype. À suivre : le monastère fortifié de Frère Odon."]],()=>{save();$('tCont').hidden=false;$('title').hidden=false;});}
+
+/* ---------- combat ---------- */
+const wpn=c=>ITEMS[c.eq.main]||FIST;
+const prot=c=>(c.eq.corps?ITEMS[c.eq.corps].prot:0)+(c.eq.appoint?ITEMS[c.eq.appoint].prot:0);
+const need=l=>12*l*l;
+function gainXp(c,sk,a){const s=c.sk[sk];s.x+=a;while(s.x>=need(s.l)){s.x-=need(s.l);s.l++;c.hpM+=sk==='armes'?4:2;c.sfM+=sk==='armes'?1:2;if(sk==='armes')c.force++;
+ log(`<b>${CH[c.id].n} progresse en ${SKL[sk]} : niveau ${s.l}.</b>`);}drawParty();}
+function target(r){let x=S.x,y=S.y;for(let i=1;i<=r;i++){x+=DX[S.d];y+=DY[S.d];if(!pass(x,y))return null;const m=monAt(x,y);if(m)return m;}return null;}
+function floatT(t,col){fx.push({t,col:col||'#fff',t0:performance.now(),x:VW/2+rnd(-26,26)});}
+function attack(i){const c=S.party[i];if(!c||c.hp<=0||paused()||S.T<c.cd)return;const w=wpn(c),m=target(w.rng||1);
+ if(!m){c.cd=S.T+350;c.cdD=350;log(`${CH[c.id].n} frappe dans le vide, avec conviction.`);return;}
+ c.cd=S.T+w.spd;c.cdD=w.spd;const mt=MON[m.t];
+ if(rnd(1,100)>clamp(55+7*c.sk[w.sk].l-3*mt.def,15,95)){floatT('raté','#bbb');m.aw=1;return;}
+ hurt(m,rnd(w.dmg[0],w.dmg[1])+(w.rng?c.sk.adresse.l:Math.floor(c.force/4)),c,w.sk);}
+function special(i){const c=S.party[i];if(!c||c.hp<=0||paused()||S.T<c.cs)return;const k=CH[c.id];
+ if(c.sf<k.spC){log(`${k.n} n'a plus assez de souffle.`);return;}
+ const m=target(1);if(!m){log("Personne à portée.");return;}
+ c.sf-=k.spC;c.cs=S.T+2500;const w=wpn(c),base=rnd(w.dmg[0],w.dmg[1])+Math.floor(c.force/4);
+ if(c.id==='pepin'){m.stun=S.T+4500;floatT('étourdi','#8fd3e8');log(`Pépin fait un croc-en-jambe : ${MON[m.t].n} cherche le sol, et le trouve.`);gainXp(c,'adresse',8);m.aw=1;}
+ else if(c.id==='brune'){log("Brune frappe là où le mur est faible. Les gens aussi ont des murs.");hurt(m,Math.round(base*1.5)+2,c,'savoir');}
+ else{log("Aldric abat un coup de taille digne d'un manuel.");hurt(m,base*2,c,'armes');}
+ drawParty();}
+function hurt(m,dmg,c,sk){dmg=Math.max(1,dmg);m.hp-=dmg;m.flash=S.T+170;m.aw=1;floatT('-'+dmg,'#ffd23f');if(c)gainXp(c,sk,Math.min(dmg,m.hp+dmg));
+ if(m.hp<=0){const mt=MON[m.t];log(mt.ko);const g=rnd(mt.gold[0],mt.gold[1]);if(g){S.gold+=g;log(`Vous récupérez ${g} écus.`);}
+  if(mt.drop)LS.items.push({id:mt.drop,x:m.x,y:m.y,q:0});drawLog();}}
+function throwPot(idx){let x=S.x,y=S.y,hit=[];for(let i=1;i<=3;i++){x+=DX[S.d];y+=DY[S.d];if(!pass(x,y))break;hit=LS.mons.filter(m=>m.hp>0&&m.x===x&&m.y===y);if(hit.length)break;}
+ S.bag.splice(idx,1);shake();const b=best('savoir');if(!hit.length){log("Le pot à feu éclate plus loin. Très beau. Parfaitement inutile.");return;}
+ const it=ITEMS.potfeu;log("Le pot à feu éclate au milieu de l'adversaire.");for(const m of hit)hurt(m,rnd(it.dmg[0],it.dmg[1])+(b?b.sk.savoir.l*2:0),b,'savoir');}
+function tickMons(){for(const m of LS.mons){if(m.hp<=0)continue;const d=df[m.y*MW+m.x];
+ if(!m.aw){if(d<=5){m.aw=1;m.next=S.T+500;}else continue;}
+ if(S.T<m.next||(m.stun&&S.T<m.stun))continue;const mt=MON[m.t];
+ if(d===1){monAttack(m,mt);m.next=S.T+mt.spd;}
+ else if(d<99){for(let k=0;k<4;k++){const nx=m.x+DX[k],ny=m.y+DY[k];if(pass(nx,ny)&&df[ny*MW+nx]<d&&!occupied(nx,ny)){m.x=nx;m.y=ny;break;}}m.next=S.T+mt.mv;}
+ else m.next=S.T+600;}}
+function monAttack(m,mt){m.atkT=S.T;const al=S.party.filter(c=>c.hp>0);if(!al.length)return;const c=al[rnd(0,al.length-1)];
+ if(rnd(1,100)>78){log(`${cap(mt.n)} manque ${CH[c.id].n}.`);return;}
+ const dmg=Math.max(1,rnd(mt.atk[0],mt.atk[1])-Math.floor(prot(c)/2));c.hp=Math.max(0,c.hp-dmg);c.hitT=S.T;hurtT=performance.now();
+ log(`${cap(mt.n)} frappe ${CH[c.id].n} : ${dmg}.`);if(c.hp<=0)log(`<b>${CH[c.id].n} est assommé${c.id==='brune'?'e':''}.</b>`);drawParty();
+ if(S.party.every(p=>p.hp<=0))gameOver();}
+const cap=s=>s[0].toUpperCase()+s.slice(1);
+function gameOver(){say([[null,"Toute la troupe est à terre. On vous ramène en cellule. Le sergent, bon prince, vous borde."]],()=>{if(!load())newGame();log("Vous reprenez au début du niveau.");});}
+function rest(){if(paused())return;if(LS.mons.some(m=>m.hp>0&&m.aw&&df[m.y*MW+m.x]<8)){log("Impossible de se reposer : on vous cherche des noises.");return;}
+ for(const c of S.party){c.hp=c.hp<=0?Math.ceil(c.hpM/2):c.hpM;c.sf=c.sfM;}S.T+=3000;drawParty();
+ log(S.party.length>2?"La troupe se repose. Pépin ronfle le premier, par dévouement. Brune le réveille, par principe.":"La troupe se repose. Pépin ronfle le premier, par dévouement.");}
+
+/* ---------- interface ---------- */
+function drawParty(){if(!S)return;let h='';for(let i=0;i<4;i++){const c=S.party[i];
+ if(!c){h+='<div class="card empty">Place libre</div>';continue;}const k=CH[c.id];
+ h+=`<div class="card${c.hp<=0?' ko':''}" id="card${i}"><button class="pt" data-sheet="${i}"><img src="${PORT[c.id]}" alt=""><b>${k.n}</b></button>
+ <div class="bar hp"><i style="width:${c.hp/c.hpM*100}%"></i><span>${c.hp}/${c.hpM}</span></div>
+ <div class="bar sf"><i style="width:${c.sf/c.sfM*100}%"></i><span>${c.sf}/${c.sfM}</span></div>
+ <button class="atk" data-atk="${i}"><i id="cd${i}"></i><span>${wpn(c).n.split(' ')[0]}</span></button>
+ <button class="spc" data-spc="${i}"><i id="cs${i}"></i><span>${k.spN} ·${k.spC}</span></button></div>`;}
+ $('party').innerHTML=h;}
+function uiTick(){if(!S)return;for(let i=0;i<S.party.length;i++){const c=S.party[i],a=$('cd'+i),b=$('cs'+i),cd=$('card'+i);
+ if(a)a.style.width=clamp((c.cd-S.T)/c.cdD*100,0,100)+'%';if(b)b.style.width=clamp((c.cs-S.T)/2500*100,0,100)+'%';
+ if(cd)cd.classList.toggle('hit',c.hitT!=null&&S.T-c.hitT<260);}}
+function openModal(h){$('modalBox').innerHTML=h;$('modal').hidden=false;}
+function closeModal(){$('modal').hidden=true;drawParty();drawLog();}
+function info(id){const it=ITEMS[id];if(it.k==='main')return`Arme ${it.dmg[0]}–${it.dmg[1]} · ${it.spd<900?'rapide':it.spd<1300?'moyenne':'lente'}${it.rng?' · à distance':''} · ${SKL[it.sk]}`;
+ if(it.prot)return`Protection +${it.prot} (${it.k==='corps'?'corps':'appoint'})`;if(it.heal)return`Soin +${it.heal}`;if(it.sf)return`Souffle +${it.sf}`;if(it.k==='throw')return`À lancer · ${it.dmg[0]}–${it.dmg[1]}`;return'Objet de quête';}
+function openBag(sel){let h=`<h2>Sac de la troupe <small>${S.gold} écus</small></h2>`;
+ if(!S.bag.length)h+='<p class="dim">Le sac est vide. Il pèse pourtant.</p>';
+ h+='<div class="list">'+S.bag.map((id,i)=>`<button data-bag="${i}" class="${i===sel?'on':''}"><span><b>${ITEMS[id].n}</b><small>${info(id)}</small></span></button>`).join('')+'</div>';
+ if(sel!=null&&S.bag[sel]){const id=S.bag[sel],it=ITEMS[id];h+=`<h3>${it.n}</h3><p>${it.d}</p><div class="row">`;
+  if(it.k==='main'||it.k==='corps'||it.k==='appoint')S.party.forEach((c,ci)=>h+=`<button data-eq="${sel},${ci}">Équiper ${CH[c.id].n}</button>`);
+  if(it.k==='use')S.party.forEach((c,ci)=>h+=`<button data-use="${sel},${ci}">Donner à ${CH[c.id].n}</button>`);
+  if(it.k==='throw')h+=`<button data-throw="${sel}">Lancer devant soi</button>`;h+='</div>';}
+ h+='<div class="row"><button class="main" data-close>Fermer</button></div>';openModal(h);}
+function equip(bi,ci){const id=S.bag[bi],it=ITEMS[id],c=S.party[ci],old=c.eq[it.k];c.eq[it.k]=id;S.bag.splice(bi,1);if(old)S.bag.push(old);log(`${CH[c.id].n} s'équipe : ${it.n}.`);openBag();}
+function useItem(bi,ci){const it=ITEMS[S.bag[bi]],c=S.party[ci],b=best('savoir'),mul=1+(b?b.sk.savoir.l*.1:0);
+ if(it.heal){if(c.hp>=c.hpM){log(`${CH[c.id].n} se porte déjà comme un charme.`);openBag(bi);return;}const h=Math.round(it.heal*mul);c.hp=Math.min(c.hpM,c.hp+h);log(`${CH[c.id].n} récupère ${h} points de vie.`);if(b)gainXp(b,'savoir',5);}
+ if(it.sf){c.sf=Math.min(c.sfM,c.sf+it.sf);log(`${CH[c.id].n} reprend son souffle.`);}
+ S.bag.splice(bi,1);openBag();}
+function openSheet(i){const c=S.party[i],k=CH[c.id],w=wpn(c);
+ let h=`<div class="who"><img src="${PORT[c.id]}" alt=""><span><b>${k.full}</b><br><small>${k.role}</small></span></div>
+ <div class="stat"><span>Vie : ${c.hp}/${c.hpM}</span><span>Souffle : ${c.sf}/${c.sfM}</span><span>Force : ${c.force}</span><span>Protection : ${prot(c)}</span></div><h3>Talents — ils progressent à l'usage</h3>`;
+ for(const s of SKN){const v=c.sk[s];h+=`<div class="skill"><div><span>${SKL[s]}</span><b>niveau ${v.l}</b></div><div class="bar xp"><i style="width:${v.x/need(v.l)*100}%"></i></div></div>`;}
+ h+='<h3>Équipement</h3>';for(const[sl,lb]of[['main','Arme'],['corps','Corps'],['appoint','Appoint']]){const id=c.eq[sl];
+  h+=`<div class="eq"><span>${lb} : <b>${id?ITEMS[id].n:(sl==='main'?'Poings':'—')}</b>${id?'<br><small>'+info(id)+'</small>':''}</span>${id?`<button data-uneq="${i},${sl}">Retirer</button>`:''}</div>`;}
+ h+=`<h3>Botte secrète</h3><p>${k.spD}</p><div class="row"><button class="main" data-close>Fermer</button></div>`;openModal(h);}
+let shopId=null;
+function openShop(id){shopId=id;let h=`<h2>${NAMES[id]} <small>${S.gold} écus</small></h2><h3>Acheter</h3><div class="list">`;
+ for(const it of SHOPS[id])h+=`<button data-buy="${it}" ${S.gold<ITEMS[it].p?'disabled':''}><span><b>${ITEMS[it].n}</b><small>${info(it)}</small></span><em>${ITEMS[it].p} écus</em></button>`;
+ h+='</div><h3>Vendre</h3><div class="list">';const sell=S.bag.map((b,i)=>[b,i]).filter(a=>ITEMS[a[0]].p>0);
+ if(!sell.length)h+='<p class="dim">Rien qui intéresse le commerce.</p>';
+ for(const[b,i]of sell)h+=`<button data-sell="${i}"><span><b>${ITEMS[b].n}</b></span><em>+${Math.max(1,ITEMS[b].p>>1)} écus</em></button>`;
+ h+='</div><div class="row"><button class="main" data-close>Fermer</button></div>';openModal(h);}
+function openMap(){const cs=18;openModal(`<h2>${LV.name}</h2><canvas id="mapC" width="${MW*cs}" height="${MH*cs}"></canvas><p class="dim">Seules les galeries reconnues figurent sur la carte.</p><div class="row"><button class="main" data-close>Fermer</button></div>`);
+ const g=$('mapC').getContext('2d');for(let y=0;y<MH;y++)for(let x=0;x<MW;x++){if(!LS.seen[x+','+y])continue;const c=cell(x,y);
+  g.fillStyle=c==='#'?'#5b4a3a':c==='W'?'#7a5a4a':'#f3e9cf';g.fillRect(x*cs,y*cs,cs,cs);
+  if(c==='D'||c==='L'||c==='d'){g.fillStyle=c==='L'?'#b9973f':'#8a5a2b';g.fillRect(x*cs+3,y*cs+3,cs-6,cs-6);}
+  if(c==='X'){g.fillStyle='#3f7a4c';g.fillRect(x*cs+2,y*cs+2,cs-4,cs-4);}
+  const n=npcAt(x,y);if(n){g.fillStyle='#3b5fa8';g.beginPath();g.arc(x*cs+cs/2,y*cs+cs/2,4,0,7);g.fill();}}
+ g.save();g.translate(S.x*cs+cs/2,S.y*cs+cs/2);g.rotate(S.d*Math.PI/2);g.fillStyle='#b3261e';g.beginPath();g.moveTo(0,-7);g.lineTo(6,6);g.lineTo(-6,6);g.fill();g.restore();}
+
+$('modal').addEventListener('click',e=>{const t=e.target.closest('button');if(!t){if(e.target===$('modal'))closeModal();return;}const d=t.dataset;
+ if('close'in d)closeModal();
+ else if(d.bag)openBag(+d.bag);
+ else if(d.eq){const[a,b]=d.eq.split(',');equip(+a,+b);}
+ else if(d.use){const[a,b]=d.use.split(',');useItem(+a,+b);}
+ else if(d.throw){closeModal();throwPot(+d.throw);}
+ else if(d.uneq){const[i,sl]=d.uneq.split(','),c=S.party[+i];S.bag.push(c.eq[sl]);c.eq[sl]=null;openSheet(+i);}
+ else if(d.buy){const it=ITEMS[d.buy];if(S.gold>=it.p){S.gold-=it.p;S.bag.push(d.buy);log(`Acheté : ${it.n}.`);openShop(shopId);}}
+ else if(d.sell){const id=S.bag[+d.sell];S.gold+=Math.max(1,ITEMS[id].p>>1);S.bag.splice(+d.sell,1);log(`Vendu : ${ITEMS[id].n}.`);openShop(shopId);}});
+$('party').addEventListener('pointerdown',e=>{const t=e.target.closest('button');if(!t)return;const d=t.dataset;
+ if(d.atk)attack(+d.atk);else if(d.spc)special(+d.spc);else if(d.sheet&&!paused())openSheet(+d.sheet);});
+const MV={f:()=>move(0),b:()=>move(2),l:()=>move(3),r:()=>move(1),tl:()=>turn(-1),tr:()=>turn(1)};
+$('pad').addEventListener('pointerdown',e=>{const t=e.target.closest('button');if(t)MV[t.dataset.mv]();});
+$('view').addEventListener('pointerdown',()=>interact());
+$('bAct').onclick=interact;$('bBag').onclick=()=>{if(!paused())openBag();};$('bMap').onclick=()=>{if(!paused())openMap();};$('bRest').onclick=rest;
+addEventListener('keydown',e=>{if(e.repeat&&!/Arrow|Key[WASDQE]/.test(e.code))return;
+ if(!$('dlg').hidden){if(e.code==='Space'||e.code==='Enter'){e.preventDefault();const b=$('dlgBtns').querySelector('button');if(b&&$('dlgBtns').children.length===1)b.click();}return;}
+ if(!$('modal').hidden){if(e.code==='Escape')closeModal();return;}
+ const k={ArrowUp:MV.f,KeyW:MV.f,ArrowDown:MV.b,KeyS:MV.b,KeyA:MV.l,KeyD:MV.r,ArrowLeft:MV.tl,KeyQ:MV.tl,ArrowRight:MV.tr,KeyE:MV.tr,Space:interact,
+  Digit1:()=>attack(0),Digit2:()=>attack(1),Digit3:()=>attack(2),Digit4:()=>attack(3),KeyI:()=>openBag(),KeyM:openMap,KeyR:rest}[e.code];
+ if(k&&!paused()){e.preventDefault();k();}});
+$('tNew').onclick=()=>{$('title').hidden=true;newGame();};
+$('tCont').onclick=()=>{if(load()){$('title').hidden=true;log("Vous reprenez la route.");}};
+
+/* ---------- rendu ---------- */
+const G=$('view').getContext('2d');G.imageSmoothingEnabled=false;const zb=new Float32Array(VW);
+const SH=[];for(let i=0;i<=20;i++)SH.push(`rgba(0,0,0,${(i/20*.9).toFixed(3)})`);
+function texFor(c,x,y,fl){const th=LV.theme;if(c==='D')return TX['door_'+th];if(c==='L')return TX['lock_'+th];if(c==='X')return TX['exit_'+th];if(c==='W')return TX.crack[th];
+ if((x*7+y*13)%9===0)return TX.torch[th][fl];return TX.wall[th];}
+function render(ts){if(!S)return;let vx=S.x+.5,vy=S.y+.5,va=ANG[S.d];
+ if(anim){let k=(ts-anim.t0)/anim.dur;if(k>=1)anim=null;else{k=Math.max(0,k);k=k*(2-k);vx=anim.fx+(anim.tx-anim.fx)*k;vy=anim.fy+(anim.ty-anim.fy)*k;va=anim.fa+(anim.ta-anim.fa)*k;}}
+ const dX=Math.cos(va),dY=Math.sin(va),pX=-dY*PLANE,pY=dX*PLANE,fl=(ts/230|0)&1;
+ G.drawImage(TX['bg_'+LV.theme],0,0);
+ for(let x=0;x<VW;x++){const cam=2*x/VW-1,rx=dX+pX*cam,ry=dY+pY*cam;let mx=Math.floor(vx),my=Math.floor(vy);
+  const ddx=Math.abs(1/rx),ddy=Math.abs(1/ry);let sx,sy,sdx,sdy,side=0,c='#';
+  if(rx<0){sx=-1;sdx=(vx-mx)*ddx;}else{sx=1;sdx=(mx+1-vx)*ddx;}
+  if(ry<0){sy=-1;sdy=(vy-my)*ddy;}else{sy=1;sdy=(my+1-vy)*ddy;}
+  for(let i=0;i<40;i++){if(sdx<sdy){sdx+=ddx;mx+=sx;side=0;}else{sdy+=ddy;my+=sy;side=1;}c=cell(mx,my);if(c!=='.'&&c!=='d')break;}
+  const dist=Math.max(.05,side===0?sdx-ddx:sdy-ddy);zb[x]=dist;const h=HS/dist;let wx=side===0?vy+dist*ry:vx+dist*rx;wx-=Math.floor(wx);
+  if((side===0&&rx<0)||(side===1&&ry>0))wx=1-wx;
+  G.drawImage(texFor(c,mx,my,fl),Math.min(63,wx*64|0),0,1,64,x,(VH-h)/2,1,h);
+  const sh=clamp(Math.round((dist/7+(side?.1:0))*20/.9),0,20);if(sh){G.fillStyle=SH[sh];G.fillRect(x,(VH-h)/2,1,h);}}
+ const sp=[];
+ for(const it of LS.items)sp.push([it.x+.5,it.y+.5,it.id==='or'?'or':'sac',.42,0]);
+ for(const n of LV.npcs)if(!LS.gone[n.id])sp.push([n.x+.5,n.y+.5,n.spr,.84,0]);
+ for(const m of LS.mons)if(m.hp>0){const mt=MON[m.t];sp.push([m.x+.5,m.y+.5,m.t,mt.sc*(m.atkT!=null&&S.T-m.atkT<180?1.12:1),m.flash&&S.T<m.flash?1:0]);}
+ for(const s of sp)s[5]=(s[0]-vx)*(s[0]-vx)+(s[1]-vy)*(s[1]-vy);sp.sort((a,b)=>b[5]-a[5]);
+ const inv=1/(pX*dY-dX*pY);
+ for(const s of sp){const ax=s[0]-vx,ay=s[1]-vy,tX=inv*(dY*ax-dX*ay),tY=inv*(-pY*ax+pX*ay);if(tY<.25)continue;
+  const wh=HS/tY,size=wh*s[3],top=VH/2+wh/2-size,left=VW/2*(1+tX/tY)-size/2,img=SPR[s[2]][s[4]?3:tY<2.6?0:tY<4.5?1:2];
+  const x0=Math.max(0,Math.floor(left)),x1=Math.min(VW-1,Math.ceil(left+size)-1);let run=-1;
+  for(let x=x0;x<=x1+1;x++){const vis=x<=x1&&zb[x]>tY;if(vis&&run<0)run=x;else if(!vis&&run>=0){
+   const u0=clamp((run-left)/size*64,0,64),u1=clamp((x-left)/size*64,0,64);if(u1>u0)G.drawImage(img,u0,0,u1-u0,64,run,top,x-run,size);run=-1;}}}
+ const now=performance.now();if(now-hurtT<220){G.fillStyle=`rgba(200,30,20,${.35*(1-(now-hurtT)/220)})`;G.fillRect(0,0,VW,VH);}
+ G.font='bold 13px Verdana,sans-serif';G.textAlign='center';fx=fx.filter(f=>now-f.t0<750);
+ for(const f of fx){const k=(now-f.t0)/750;G.fillStyle='#000';G.fillText(f.t,f.x+1,96-k*34+1);G.fillStyle=f.col;G.fillText(f.t,f.x,96-k*34);}
+}
+let last=0;
+function loop(ts){const dt=Math.min(100,ts-last);last=ts;
+ if(S&&!paused()){S.T+=dt;tickMons();if(S.T-S.sfT>3000){S.sfT=S.T;let ch=false;for(const c of S.party)if(c.hp>0&&c.sf<c.sfM){c.sf++;ch=true;}if(ch)drawParty();}}
+ render(ts);uiTick();requestAnimationFrame(loop);}
+buildArt();if(hasSave())$('tCont').hidden=false;requestAnimationFrame(loop);
+</script>
+</body>
+</html>
