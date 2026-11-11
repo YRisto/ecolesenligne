@@ -52,6 +52,7 @@ window.BOT={mem:null,
   return{k:'wait'};},
  think(){const m=this.mem;m.stat.acts++;
   if(!$('dlg').hidden)return this.dlg();
+  if(!$('heroSel').hidden){const P=m.P;return{k:'hero',id:P.hero||(P.trempe===0&&P.tent===2?'gauvain':['aldric','thibaut','anselin'][P.trempe||0])};}
   if(!$('modal').hidden)return this.modal();
   if(!$('title').hidden)return{k:'done'};
   if(resting)return{k:'wait'};
@@ -86,7 +87,7 @@ window.BOT={mem:null,
     if(it.k==='appoint'&&lack('appoint')&&!S.bag.some(b=>ITEMS[b].k==='appoint'))want.push(id);
     if(it.k==='main'&&!it.rng&&S.party.some(c=>c.sk.armes.l>=2&&wpn(c).m+1.5<it.m)&&!S.bag.some(b=>ITEMS[b].k==='main'&&ITEMS[b].m>=it.m))want.push(id);}
    if(cnt('onguent')<3)want.push('onguent');if(cnt('herbes')<2&&SHOPS[shopId].includes('herbes'))want.push('herbes');if(LV.dark&&cnt('huile')<1&&SHOPS[shopId].includes('huile'))want.push('huile');
-   for(const id of want){const b=box.querySelector(`[data-buy="${id}"]`);if(b&&!b.disabled&&m.stat.buys<60){m.stat.buys++;return{k:'buy',id};}}}
+   for(const id of want){const b=box.querySelector(`[data-buy="${id}"]`);if(b&&!b.disabled&&!b.classList.contains('no')&&m.stat.buys<60){m.stat.buys++;return{k:'buy',id};}}}
   return{k:'close'};},
  check(){const v=this.mem.viol,bad=s=>{if(v.length<12&&!v.includes(s))v.push(s);};
   if(!S||!LS)return;if(!pass(S.x,S.y))bad('joueur dans un mur '+S.lv+' '+S.x+','+S.y);if(!isFinite(S.T))bad('temps invalide');if(S.bag.length>BAGMAX)bad('sac > 48');
@@ -103,6 +104,7 @@ window.BOT={mem:null,
    case'rest':m.stat.rests++;rest();this.adv(100);break;
    case'use':case'equip':{const i=S.bag.indexOf(a.id);if(i<0)break;if(S.hand)stow();S.hand=S.bag.splice(i,1)[0];tapPt(a.i);if(S.hand)stow();if(a.k==='use')m.stat.items++;this.adv(50);break;}
    case'dlg':{twDone();const bs=[...$('dlgBtns').querySelectorAll('button')];if(a.n<0)nextLine();else bs[a.n].click();break;}
+   case'hero':chooseHero(a.id);break;
    case'buy':$('modalBox').querySelector(`[data-buy="${a.id}"]`).click();break;case'close':$('modal').hidden=true;ui();break;}},
  run(P,levels){const out={name:P.name,levels:[],errors:[]};try{
    $('title').hidden=true;newGame(P.diff);this.init(P);const m=this.mem;let cur=null,L=null,guard=0;

@@ -29,7 +29,13 @@ def ui(b,name,mode,secs=150):
     def down(sel):
         if touch:pg.tap(sel)
         else:
-            bb=pg.query_selector(sel).bounding_box();pg.mouse.move(bb['x']+bb['width']/2,bb['y']+bb['height']/2);pg.mouse.down();pg.mouse.up()
+            bb=None
+            for _ in range(5):
+                e=pg.query_selector(sel);bb=e.bounding_box() if e else None
+                if bb:break
+                pg.wait_for_timeout(40)
+            if not bb:return
+            pg.mouse.move(bb['x']+bb['width']/2,bb['y']+bb['height']/2);pg.mouse.down();pg.mouse.up()
     out=dict(name=name,errors=[],steps=0)
     try:
         if mode=='key':pg.focus('#tNew');pg.keyboard.press('Enter');pg.wait_for_timeout(80);pg.keyboard.press('Enter')
@@ -39,6 +45,10 @@ def ui(b,name,mode,secs=150):
         while time.time()-t0<secs:
             a=pg.evaluate("(()=>{const a=BOT.think();if(a.k==='use'||a.k==='equip')a.slot=S.bag.indexOf(a.id);if(a.k==='cast')a.si=S.strats.indexOf(a.id);return a})()");out['steps']+=1;k=a['k']
             if k in('done','softlock'):out['end']=k;break
+            if k=='hero':
+                if mode=='key':pg.keyboard.press('Digit1');pg.wait_for_timeout(120);pg.keyboard.press('Enter')
+                else:tap('[data-hero="aldric"]');pg.wait_for_timeout(120);tap('#heroYes')
+                continue
             if pg.evaluate("S&&S.lv") not in ('','geoles'):out['end']='niveau terminé';break
             if mode=='key':
                 if k in KEYS:pg.keyboard.press(KEYS[k](a))
@@ -75,7 +85,8 @@ def ui(b,name,mode,secs=150):
             if out['steps']%30==0:pg.evaluate("BOT.check()")
         out.update(pg.evaluate("({lv:S.lv,x:S.x,y:S.y,dead:BOT.mem.dead,hp:S.party.map(c=>c.hp+'/'+c.hpM).join(' '),strats:S.strats.length,viol:BOT.mem.viol,alive:LS.mons.filter(m=>m.hp>0&&!m.gone).length,stat:BOT.mem.stat})"))
         pg.screenshot(path=f"bot_{mode}.png")
-    except Exception as e:out['errors'].append('pilote: '+str(e)[:300])
+    except Exception as e:
+        import traceback;out['errors'].append('pilote: '+str(e)[:300]+' | '+traceback.format_exc()[-420:]+' | '+str(locals().get('a')))
     out['errors']+=errs;pg.context.close();print(name,'|',{k:v for k,v in out.items() if k!='stat'},flush=True);return out
 def monkey(b,secs=75):
     pg,errs=page(b,{'width':1280,'height':800});random.seed(7);out=dict(name='20 Singe (entrées au hasard)',errors=[],steps=0)
@@ -92,7 +103,8 @@ def monkey(b,secs=75):
                 pg.evaluate("BOT.check()")
                 if pg.evaluate("!document.getElementById('title').hidden"):pg.click('#tNew');pg.click('[data-diff="1"]')
         out.update(pg.evaluate("({lv:S&&S.lv,viol:BOT.mem.viol,bag:S&&S.bag.length})"))
-    except Exception as e:out['errors'].append('pilote: '+str(e)[:300])
+    except Exception as e:
+        import traceback;out['errors'].append('pilote: '+str(e)[:300]+' | '+traceback.format_exc()[-420:]+' | '+str(locals().get('a')))
     out['errors']+=errs;pg.context.close();print(out['name'],'|',out,flush=True);return out
 if __name__=='__main__':
     what=sys.argv[1] if len(sys.argv)>1 else 'all'
