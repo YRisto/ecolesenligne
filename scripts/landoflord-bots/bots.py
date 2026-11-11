@@ -24,7 +24,7 @@ def sim(b,runs=2):
     return res
 KEYS={'turn':lambda a:'Numpad7' if a['s']<0 else 'Numpad9','move':lambda a:'Numpad8','interact':lambda a:'Space','rest':lambda a:'KeyR','close':lambda a:'Escape'}
 def ui(b,name,mode,secs=150):
-    touch=mode=='touch';pg,errs=page(b,{'width':390,'height':780} if touch else {'width':1280,'height':800},touch)
+    land=mode=='land';touch=mode=='touch' or land;pg,errs=page(b,{'width':667,'height':331} if land else {'width':390,'height':780} if touch else {'width':1280,'height':800},touch)
     tap=(lambda sel:pg.tap(sel)) if touch else (lambda sel:pg.click(sel))
     def down(sel):
         if touch:pg.tap(sel)
@@ -36,6 +36,12 @@ def ui(b,name,mode,secs=150):
                 pg.wait_for_timeout(40)
             if not bb:return
             pg.mouse.move(bb['x']+bb['width']/2,bb['y']+bb['height']/2);pg.mouse.down();pg.mouse.up()
+    def ltap(sel):
+        try:pg.tap(sel,timeout=1200)
+        except Exception:pass   # une réplique s'est ouverte entre-temps : on réessaiera au tour suivant
+    def ltap_el(el):
+        try:el.tap(timeout=1200)
+        except Exception:pass
     out=dict(name=name,errors=[],steps=0)
     try:
         if mode=='key':pg.focus('#tNew');pg.keyboard.press('Enter');pg.wait_for_timeout(80);pg.keyboard.press('Enter')
@@ -61,6 +67,30 @@ def ui(b,name,mode,secs=150):
                     pg.keyboard.press(f"Digit{a['i']+1}");pg.keyboard.press('Escape') if pg.evaluate("!!S.hand") else None
                 elif k=='dlg':pg.keyboard.press('Enter' if a['n']<0 else f"Digit{a['n']+1}")
                 elif k=='buy':pg.click(f"[data-buy=\"{a['id']}\"]")
+                else:pg.wait_for_timeout(50)
+            elif land and k not in('dlg','buy','close') and pg.evaluate("!$('dlg').hidden||!$('modal').hidden"):pg.wait_for_timeout(40)   # une réplique vient de s'ouvrir : on la lira au tour suivant
+            elif land:
+                if k=='turn':ltap('[data-mv="tl"]' if a['s']<0 else '[data-mv="tr"]')
+                elif k=='move':ltap('[data-mv="f"]')
+                elif k in('interact','attack'):ltap('#bMain')
+                elif k=='cast':
+                    q=pg.evaluate(f"(S.qs||[]).indexOf('{a['id']}')")
+                    if q>=0:
+                        ltap(f'.qs[data-qs="{q}"]');pg.wait_for_timeout(60)
+                        if pg.query_selector(f"#pick [data-lv=\"{a['lv']}\"]:not(:disabled)"):ltap(f"#pick [data-lv=\"{a['lv']}\"]")
+                        else:pg.evaluate("closePick()")
+                    else:pg.evaluate(f"cast({a['i']},'{a['id']}',{a['lv']})")
+                elif k=='use' and pg.evaluate(f"!!ITEMS['{a['id']}'].heal"):ltap('#bHeal')
+                elif k in('use','equip'):
+                    ltap('#bBag');pg.wait_for_timeout(60);ltap(f"[data-bagi=\"{a['slot']}\"]");pg.wait_for_timeout(60)
+                    if pg.query_selector(f"[data-bagto=\"{a['i']}\"]:not(:disabled)"):ltap(f"[data-bagto=\"{a['i']}\"]");pg.wait_for_timeout(60)
+                    elif a['id']=='huile' and pg.query_selector('[data-bagoil]'):ltap('[data-bagoil]');pg.wait_for_timeout(60)
+                    ltap('#mClose')
+                elif k=='rest':ltap('#bRest')
+                elif k=='dlg':
+                    bs=pg.query_selector_all('#dlgBtns button');ltap_el(bs[0] if a['n']<0 else bs[a['n']])
+                elif k=='buy':ltap(f"[data-buy=\"{a['id']}\"]")
+                elif k=='close':ltap('#mClose')
                 else:pg.wait_for_timeout(50)
             else:
                 if k=='turn':down('[data-mv="tl"]' if a['s']<0 else '[data-mv="tr"]')
@@ -111,5 +141,6 @@ if __name__=='__main__':
     with sync_playwright() as p:
         b=p.chromium.launch(executable_path='/usr/bin/google-chrome',args=['--no-sandbox']);R={}
         if what in('all','sim'):R['sim']=sim(b,int(sys.argv[2]) if len(sys.argv)>2 else 2)
-        if what in('all','ui'):R['ui']=[ui(b,'17 Clavier seul','key'),ui(b,'18 Souris seule','mouse'),ui(b,'19 Tactile mobile','touch'),monkey(b)]
+        if what in('all','ui'):R['ui']=[ui(b,'17 Clavier seul','key'),ui(b,'18 Souris seule','mouse'),ui(b,'19 Tactile mobile','touch'),ui(b,'21 Tactile couché (deux pouces)','land'),monkey(b)]
+        if what=='land':R['land']=[ui(b,'21 Tactile couché (deux pouces)','land',int(sys.argv[2]) if len(sys.argv)>2 else 150)]
         json.dump(R,open(f'bots_{what}.json','w'),ensure_ascii=False,indent=1);b.close()
