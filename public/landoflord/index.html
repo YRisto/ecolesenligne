@@ -306,6 +306,17 @@ body.ls #title:not([hidden]){display:grid;grid-template-columns:auto minmax(0,30
 body.ls #titleBg{grid-column:1;grid-row:1/6;align-self:center;width:min(46vw,360px);margin:0}
 body.ls #title h1{grid-column:2;font-size:25px}body.ls #title .sub{grid-column:2;margin:6px 0 10px;font-size:13px}body.ls #title button{grid-column:2;width:auto;margin:4px 0;padding:11px}body.ls #title .keys{display:none}
 @media(max-width:620px){body.ls .pt{width:40px;height:40px}body.ls .pt img{width:38px;height:38px}body.ls .vb{height:40px}body.ls #sys button{width:38px;height:38px}body.ls #pad{grid-template-columns:repeat(3,54px);grid-template-rows:50px 50px}body.ls #log{left:184px;right:204px}}
+/*p17*/
+html.ls{height:var(--H,100%);overflow:hidden}
+body.ls{position:relative;left:auto;top:auto;width:100%;height:var(--H,100%);margin:0;overflow:hidden}
+body.ls #app{position:absolute}
+body.ls #viewWrap{left:0;top:0;width:100%;height:var(--H)}
+body.ls #view{position:absolute;left:var(--vx);top:var(--vy);width:var(--vw);height:var(--vh)}
+body.ls #gold,body.ls #compass,body.ls #oil,body.ls #lvlname,body.ls #hand,body.ls #pick,body.ls #mClose{position:absolute}
+body.ls .sheet,body.ls #title,body.ls #heroSel{position:absolute}
+#tw{position:absolute;width:22px;height:22px;margin:-11px 0 0 -11px;border-radius:50%;background:rgba(255,40,30,.75);border:2px solid #fff;z-index:99;pointer-events:none;opacity:0;transition:opacity .5s}
+#tw.on{opacity:1;transition:none}
+
 </style>
 </head>
 <body>
@@ -2025,7 +2036,7 @@ function slotList(mode){let h=`<h2>${mode==='save'?'Sauvegarder':'Charger'}</h2>
   h+=`<button data-${mode}="${s}" ${mode==='load'&&!m?'disabled':''}><span><b>${s==='auto'?'Sauvegarde automatique':'Emplacement '+s}</b><small>${m?`${m.lv} · ${m.n} compagnon${m.n>1?'s':''} · ${DIFF[m.d||0].n} · ${d.toLocaleDateString('fr-FR')} ${d.toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'})}`:'Vide'}</small></span></button>`;}
  return h+'</div><div class="row"><button class="main" data-close>Fermer</button></div>';}
 function optModal(){openModal(`<h2>Réglages</h2><div class="list"><button data-m="mus"><span>Musique : <b>${PREF.mus?'oui':'non'}</b>${ONSITE?'':'<small>Disponible sur ecolesenligne.fr</small>'}</span></button><button data-m="sfx"><span>Bruitages : <b>${PREF.sfx?'oui':'non'}</b></span></button><button data-m="auto"><span>Scènes en lecture automatique : <b>${PREF.auto!==0?'oui':'non'}</b><small>Comme un film ; un clic passe à la réplique suivante.</small></span></button>
- ${document.documentElement.requestFullscreen?'<button data-m="full"><span>Plein écran</span></button>':''}</div>${/iPhone|iPad|iPod/.test(navigator.userAgent)&&!navigator.standalone?'<p class="dim">Sur iPhone, Safari garde sa barre d\'adresse. Pour un vrai plein écran : bouton Partager, puis « Sur l\'écran d\'accueil », et lancez le jeu depuis son icône.</p>':''}<div class="row"><button class="main" data-close>Fermer</button></div>`);}
+ ${document.documentElement.requestFullscreen?'<button data-m="full"><span>Plein écran</span></button>':''}<button data-m="tw"><span>Témoin tactile : <b>${PREF.tw?'oui':'non'}</b><small>Un point rouge marque l\'endroit où l\'écran situe votre doigt.</small></span></button></div><p class="dim" style="font-size:11px">Affichage : ${innerWidth}×${innerHeight}${window.visualViewport?' · visible '+Math.round(visualViewport.width)+'×'+Math.round(visualViewport.height)+' · décalage '+Math.round(visualViewport.offsetTop)+'/'+Math.round(visualViewport.pageTop):''} · défilement ${Math.round(window.pageYOffset)} · ${LSM?'paysage':'portrait'}${navigator.standalone?' · icône':''}</p>${/iPhone|iPad|iPod/.test(navigator.userAgent)&&!navigator.standalone?'<p class="dim">Sur iPhone, Safari garde sa barre d\'adresse. Pour un vrai plein écran : bouton Partager, puis « Sur l\'écran d\'accueil », et lancez le jeu depuis son icône.</p>':''}<div class="row"><button class="main" data-close>Fermer</button></div>`);}
 const TABN={geoles:'Geôles',egouts:'Égouts',egouts2:'Collecteur',village:'Val-Griset',mine:'Mine',mine2:'Fonds',abbaye:'Abbaye',crypte:'Crypte',foret:'Forêt',ruines:'Tour',marais:'Marais',faubourgs:'Faubourgs',cour:'Cour',palais2:'Galerie',palais3:'Chancellerie',camp:'Camp',galeries:'Sapes',bataille:'Bataille'};
 const HELP=`<h2>Aide et commandes</h2>
 <h3>Souris ou doigt</h3><p><b>Vue</b> : cliquer ouvre une porte, actionne un levier, parle, ramasse l'objet posé devant vous, ou frappe l'adversaire qui vous fait face.</p>
@@ -2078,6 +2089,7 @@ $('modal').addEventListener('click',e=>{const t=e.target.closest('button');if(!t
  else if(d.m==='help')openModal(HELP);else if(d.m==='carnet')openModal('<h2>Carnet de stratagèmes</h2><p class="dim">Commun à toute la troupe. Chacun peut les lancer avec son propre souffle ; le talent Savoir en augmente l\'effet. Quatre puissances, de plus en plus chères.</p>'+S.strats.map(id=>`<div class="eq"><img src="${ICON['st_'+id]}" alt=""><span><b>${STRATS[id].n}</b> — souffle ${STRATS[id].c.join(' / ')}<br><small>${STRATS[id].d}</small></span></div>`).join('')+`<p class="dim">${S.strats.length} sur 7. Les autres s\'apprennent en chemin.</p><div class="row"><button class="main" data-close>Fermer</button></div>`);else if(d.m==='credits')openModal('<h2>Crédits</h2><p><b>Visages</b> : portraits du jeu libre Flare (Justin Nichol et contributeurs), licence CC-BY-SA 3.0, recadrés et animés pour ce jeu ; ils restent sous la même licence.</p><p><b>Fonds des scènes</b> : illustrations libres d\'OpenGameArt (détail ci-dessous), et vues composées avec les décors du jeu.</p>'+CREDITS.map(c=>`<p><b>${c[0]}</b> : ${c[1]}, <a href="${c[3]}" target="_blank" rel="noopener">${c[2]}</a>.</p>`).join('')+'<p><b>Soldats animés</b> : tirés du jeu libre Flare (Clint Bellanger et contributeurs), licence CC-BY-SA 3.0, recomposés et retraités pour ce jeu. Ces images restent sous la même licence.</p><p><b>Musiques</b> : RandomMind (dix morceaux médiévaux : The Bard\'s Tale, Exploration, Minstrel Dance, King\'s Feast, Market Day, The Old Tower Inn…), domaine public CC0, OpenGameArt. Combats : la musique du Jeu du DG.</p><p><b>Bêtes</b> : loup et molosse d\'après les modèles animés de Quaternius (Ultimate Animated Animals), rat d\'après le « Street Rat » de Poly Haven, tous deux CC0 ; rendus en images, pose par pose, pour ce jeu.</p><p><b>Bruitages</b> : Kenney (RPG Audio) et artisticdude (RPG Sound Pack), CC0, OpenGameArt.</p><p><b>Ambiances et cris</b> : IgnasD (donjon), supergamez2014 (gouttes), 2DPIXX (grillons), Thimras (oiseaux, vent), StarNinjas (foule, feu), CaveboyTup et Chasersgaming (loup), pauliuw et qubodup (chien), artificialintel, looneybits et qubodup (rat), StumpyStrust (corne) ; tous CC0, OpenGameArt.</p><p><b>Murs et sols</b> : rubberduck, illin et contributeurs d\'OpenGameArt, CC0, retraités en 256 couleurs.</p><p class="dim">Le reste est dessiné par le programme.</p><div class="row"><button class="main" data-close>Fermer</button></div>');else if(d.m==='opt')optModal();
  else if(d.m==='mus'){PREF.mus=PREF.mus?0:1;savePref();music();optModal();}
  else if(d.m==='auto'){PREF.auto=PREF.auto!==0?0:1;savePref();optModal();}
+ else if(d.m==='tw'){PREF.tw=PREF.tw?0:1;savePref();optModal();}
  else if(d.m==='sfx'){PREF.sfx=PREF.sfx?0:1;savePref();if(amb)amb.gain.value=PREF.sfx?.05:0;ambKey='-';ambience();optModal();}
  else if(d.m==='full'){try{(document.fullscreenElement?document.exitFullscreen():document.documentElement.requestFullscreen()).catch(()=>{});}catch(x){}}
  else if(d.m==='quit'){$('modal').hidden=true;save('auto');showTitle();}});
@@ -2127,12 +2139,18 @@ addEventListener('keydown',e=>{const k=e.code;if(e.ctrlKey||e.metaKey||e.altKey)
  else if(k==='Escape'){if(pickI!=null)closePick();else if(S.hand)stow();else openMenu();}});
 /* ---------- paysage à deux pouces ---------- */
 let LSM=false,vSw=null,ptT=0,ptL=0,ptI=null,qsT=0,qsL=0,qsK=null;
-function fit(){const W=innerWidth,H=innerHeight,ls=W>H&&H<=480,r=document.documentElement.style,vw=Math.min(W,Math.round(H*1.6)),vh=Math.round(vw/1.6),s=Math.max(W/400,H/200);
+let fitW=0,fitH=0;const visH=()=>{const v=window.visualViewport;return Math.round(v&&v.height&&Math.abs((v.scale||1)-1)<.02?Math.min(innerHeight,v.height):innerHeight);};
+const unscroll=()=>{if(LSM&&(window.pageYOffset||window.pageXOffset||document.documentElement.scrollTop||document.body.scrollTop)){window.scrollTo(0,0);document.documentElement.scrollTop=0;document.body.scrollTop=0;}};
+function fit(){const W=innerWidth,H=visH(),ls=W>H&&H<=480,r=document.documentElement.style,vw=Math.min(W,Math.round(H*1.6)),vh=Math.round(vw/1.6),s=Math.max(W/400,H/200);
  r.setProperty('--H',H+'px');r.setProperty('--vw',vw+'px');r.setProperty('--vh',vh+'px');r.setProperty('--vx',Math.round((W-vw)/2)+'px');r.setProperty('--vy',Math.round((H-vh)/2)+'px');
  r.setProperty('--cw',Math.ceil(400*s)+'px');r.setProperty('--ch',Math.ceil(200*s)+'px');r.setProperty('--cx',Math.round((W-400*s)/2)+'px');r.setProperty('--cy',Math.round((H-200*s)/2)+'px');
- document.body.classList.toggle('lsS',ls&&H<300);if(ls!==LSM){LSM=ls;document.body.classList.toggle('ls',ls);document.documentElement.classList.toggle('ls',ls);closePick();if(ls)scrollTo(0,0);}
+ document.body.classList.toggle('lsS',ls&&H<300);fitW=W;fitH=H;if(ls!==LSM){if(ls)window.scrollTo(0,0);LSM=ls;document.body.classList.toggle('ls',ls);document.documentElement.classList.toggle('ls',ls);closePick();if(ls){window.scrollTo(0,0);setTimeout(unscroll,60);setTimeout(unscroll,400);}}
  if(S&&LS)ui();}
-addEventListener('resize',fit);addEventListener('orientationchange',()=>{setTimeout(fit,120);setTimeout(fit,520);});if(window.visualViewport)visualViewport.addEventListener('resize',fit);
+addEventListener('resize',fit);addEventListener('orientationchange',()=>{[120,520,1100].forEach(t=>setTimeout(()=>{fit();unscroll();},t));});if(window.visualViewport){visualViewport.addEventListener('resize',fit);visualViewport.addEventListener('scroll',unscroll);}
+addEventListener('scroll',unscroll,{passive:true});document.addEventListener('focusout',()=>setTimeout(unscroll,80));try{history.scrollRestoration='manual';}catch(e){}
+setInterval(()=>{if(innerWidth!==fitW||visH()!==fitH)fit();unscroll();},350);
+/* témoin tactile : montre où l'écran situe le doigt (diagnostic des décalages sur téléphone) */
+document.addEventListener('pointerdown',e=>{if(!PREF.tw)return;let d=$('tw');if(!d){d=document.createElement('div');d.id='tw';document.body.appendChild(d);}d.style.left=(e.clientX+(LSM?0:window.pageXOffset))+'px';d.style.top=(e.clientY+(LSM?0:window.pageYOffset))+'px';d.classList.add('on');clearTimeout(d._t);d._t=setTimeout(()=>d.classList.remove('on'),450);},true);
 document.addEventListener('touchmove',e=>{if(LSM&&!e.target.closest('.box,#heroSel'))e.preventDefault();},{passive:false});
 document.addEventListener('gesturestart',e=>e.preventDefault());
 /* qui peut frapper : un adversaire à portée de son arme, dans l'axe */
