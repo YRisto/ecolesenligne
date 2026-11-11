@@ -9,7 +9,7 @@ window.BOT={mem:null,
  bfs(tx,ty,adj){const W=MW,H=MH,prev=new Int32Array(W*H).fill(-2),q=[[S.x,S.y]];prev[S.y*W+S.x]=-1;const goal=(x,y)=>adj?Math.abs(x-tx)+Math.abs(y-ty)===1:(x===tx&&y===ty);
   if(goal(S.x,S.y))return[];
   while(q.length){const[x,y]=q.shift();for(let k=0;k<4;k++){const nx=x+DX[k],ny=y+DY[k];if(nx<0||ny<0||nx>=W||ny>=H||prev[ny*W+nx]!==-2)continue;const c=cell(nx,ny);
-    if(!(WALK(c)||(c==='L'&&this.canOpen(nx,ny))))continue;if(npcAt(nx,ny))continue;prev[ny*W+nx]=y*W+x;
+    if(!(WALK(c)||(c==='L'&&this.canOpen(nx,ny))))continue;if(c==='g'&&LV.fx&&Object.values(LV.fx).some(f=>f.gate&&f.gate[0]===nx&&f.gate[1]===ny))continue;if(npcAt(nx,ny))continue;prev[ny*W+nx]=y*W+x;
     if(goal(nx,ny)){const p=[];let i=ny*W+nx;while(prev[i]!==-1){p.unshift([i%W,(i/W)|0]);i=prev[i];}return p;}q.push([nx,ny]);}}return null;},
  dirTo(x,y){for(let k=0;k<4;k++)if(S.x+DX[k]===x&&S.y+DY[k]===y)return k;return -1;},
  face(k){const d=(k-S.d+4)%4;return d===0?null:{k:'turn',s:d===3?-1:1};},
