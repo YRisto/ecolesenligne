@@ -224,9 +224,9 @@ Object.assign(ITEMS,{
 ITEMS.herbes.d="Herbes médicinales du monastère. Amères, donc efficaces : elles chassent aussi le poison.";ITEMS.herbes.cure=1;
 const PLATE={t:.6,p:.9,c:1.3,f:.9},CHAIN={t:.8,p:1.1,c:1,f:1},SOFT={t:1,p:1,c:1,f:1.25};
 const MON={
- rat:{n:"le rat",hp:8,m:1,lv:2,esq:25,def:0,res:SOFT,ty:'p',spd:900,mv:600,mode:'w',cap:['poison',22],sc:.36,gold:[0,0],ko:"Le rat bat en retraite, vexé."},
- garde:{n:"le garde",hp:22,m:3,lv:4,esq:18,def:4,res:CHAIN,ty:'t',spd:1300,mv:800,sc:.82,gold:[2,6],ko:"Le garde s'effondre. Il aura mal au crâne et une anecdote."},
- sergent:{n:"le sergent Brisemotte",hp:50,m:6,lv:8,esq:20,def:7,res:PLATE,ty:'c',spd:1500,mv:900,sc:.88,gold:[15,15],drop:'cle_fer',boss:1,cap:['etourdi',15],learn:'cri',rageT:"Le sergent rougit. C'est sa manière de réfléchir.",ko:"Le sergent Brisemotte s'effondre avec la dignité d'une armoire. Sa clé tinte sur les dalles."},
+ rat:{n:"le rat",hp:8,m:1,lv:2,esq:25,def:0,res:SOFT,ty:'p',spd:900,mv:600,mode:'w',cap:['poison',14],sc:.36,gold:[0,0],ko:"Le rat bat en retraite, vexé."},
+ garde:{n:"le garde",hp:20,m:3,lv:4,esq:18,def:4,res:CHAIN,ty:'t',spd:1300,mv:800,sc:.82,gold:[2,6],ko:"Le garde s'effondre. Il aura mal au crâne et une anecdote."},
+ sergent:{n:"le sergent Brisemotte",hp:46,m:6,lv:8,esq:20,def:7,res:PLATE,ty:'c',spd:1500,mv:900,sc:.88,gold:[15,15],drop:'cle_fer',boss:1,cap:['etourdi',15],learn:'cri',rageT:"Le sergent rougit. C'est sa manière de réfléchir.",ko:"Le sergent Brisemotte s'effondre avec la dignité d'une armoire. Sa clé tinte sur les dalles."},
  pillard:{n:"le pillard",hp:30,m:5,lv:5,esq:24,def:3,res:SOFT,ty:'t',spd:1250,mv:750,coward:1,cap:['vol',14],sc:.82,gold:[3,9],ko:"Le pillard s'écroule et renonce à la carrière."},
  arbal:{n:"l'archer",hp:20,m:5,lv:6,esq:22,def:2,res:SOFT,ty:'p',spd:2300,mv:800,coward:1,rng:4,sc:.8,gold:[2,8],ko:"L'archer tombe. Il visait mieux de loin."},
  lancier:{n:"le spadassin",hp:28,m:5,lv:6,esq:22,def:5,res:CHAIN,ty:'t',spd:1350,mv:850,reach:1,cap:['desarme',12],sc:.84,gold:[3,8],ko:"Le spadassin lâche son espadon. Il était trop long pour ses idées."},
@@ -652,7 +652,7 @@ function mkChar(id){const c=CH[id];return{id,hp:c.hp,hpM:c.hp,sf:c.sf,sfM:c.sf,f
  sk:{armes:{l:c.sk[0],x:0},adresse:{l:c.sk[1],x:0},savoir:{l:c.sk[2],x:0}},eq:{main:c.eq.main||null,corps:c.eq.corps||null,appoint:null},cd:0,cdD:1};}
 function initLevel(id){const L=LEVELS[id],h=DIFF[S.diff].hp;return{g:L.map.slice(),mons:L.mons.map(m=>{const v=Math.max(1,Math.round(MON[m[0]].hp*h*(MON[m[0]].boss?1:.75+Math.random()*.5)));return{t:m[0],x:m[1],y:m[2],hp:v,hpM:v,next:0,d:rnd(0,3)};}),
  items:L.items.map(a=>({id:a[0],x:a[1],y:a[2],q:a[3]||0})),seen:{},fired:{},gone:{}};}
-function newGame(diff){S={lv:'',x:0,y:0,d:0,gold:6,bag:[],hand:null,party:[mkChar('aldric'),mkChar('pepin')],L:{},flags:{},T:0,sfT:0,hon:0,diff:diff,off:0,strats:['soins'],oil:100};PROJ=[];logs=[];SC.prologue();}
+function newGame(diff){LS=null;LV=null;resting=false;S={lv:'',x:0,y:0,d:0,gold:6,bag:[],hand:null,party:[mkChar('aldric'),mkChar('pepin')],L:{},flags:{},T:0,sfT:0,hon:0,diff:diff,off:0,strats:['soins'],oil:100};PROJ=[];logs=[];SC.prologue();}
 function enterLevel(id){S.lv=id;if(!S.L[id])S.L[id]=initLevel(id);const st=LEVELS[id].start;S.x=st[0];S.y=st[1];S.d=st[2];bind();save('auto');banner();fire('intro_'+id);}
 function bind(){LV=LEVELS[S.lv];LS=S.L[S.lv];MH=LS.g.length;MW=LS.g[0].length;anim=null;queued=null;computeDF();markSeen();ui();}
 function save(slot){try{localStorage.setItem('gd3_'+slot,JSON.stringify({S,meta:{lv:LEVELS[S.lv].name,n:S.party.length,t:Date.now(),d:S.diff}}));return true;}catch(e){return false;}}
@@ -844,11 +844,12 @@ function gameOver(){resting=false;say([[null,S.lv==='geoles'?"Toute la troupe es
 let resting=false,restAcc=0;
 function rest(){if(paused())return;if(resting){stopRest("Vous vous relevez.");return;}
  if(!S.party.some(c=>c.hp<c.hpM||c.sf<c.sfM)){log("Personne n'a besoin de repos. Pépin proteste par principe.");return;}
- save('auto');resting=true;restAcc=0;sfx('heal');log("La troupe s'allonge. Le temps file, et l'on dort d'une oreille.");}
+ if(!S.party.some(c=>!(c.poison>S.T)&&(c.hp<c.hpM||c.sf<c.sfM))){log("Le poison empêche de récupérer. Il faut des simples, ou des premiers soins appuyés.");return;}
+ if(!LS.mons.some(m=>m.hp>0&&!m.gone&&m.aw&&df[m.y*MW+m.x]<10))save('auto');resting=true;restAcc=0;sfx('heal');log("La troupe s'allonge. Le temps file, et l'on dort d'une oreille.");}
 function stopRest(msg){if(!resting)return;resting=false;log(msg);}
 function restTick(dt){restAcc+=dt;while(restAcc>=100){restAcc-=100;let more=false;for(const c of S.party){if(c.poison>S.T)continue;
    if(c.hp<c.hpM){c.hp=Math.min(c.hpM,c.hp+Math.max(1,Math.round(c.hpM*.012)));more=true;}if(c.sf<c.sfM){c.sf=Math.min(c.sfM,c.sf+Math.max(1,Math.round(c.sfM*.012)));more=true;}}
-  if(!more){stopRest(hasChar('odon')?"La troupe est reposée. Odon a refait les pansements et la morale.":hasChar('brune')?"La troupe est reposée. Pépin ronflait le premier, par dévouement. Brune l'a réveillé, par principe.":"La troupe est reposée. Pépin ronflait le premier, par dévouement.");break;}}ui();}
+  if(!more){stopRest(S.party.some(c=>c.poison>S.T&&c.hp<c.hpM)?"La troupe est reposée, sauf ceux que le poison travaille encore.":hasChar('odon')?"La troupe est reposée. Odon a refait les pansements et la morale.":hasChar('brune')?"La troupe est reposée. Pépin ronflait le premier, par dévouement. Brune l'a réveillé, par principe.":"La troupe est reposée. Pépin ronflait le premier, par dévouement.");break;}}ui();}
 /* carnet de stratagèmes */
 function learn(id){if(!S.strats.includes(id)&&S.strats.length<7){S.strats.push(id);sfx('up');log(`<b>Stratagème noté au carnet : ${STRATS[id].n}.</b>`);}}
 function frontMons(){const[x,y]=front();return LS.mons.filter(m=>m.hp>0&&m.x===x&&m.y===y);}
