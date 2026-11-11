@@ -18,6 +18,7 @@ window.BOT={mem:null,
   for(const n of LV.npcs){if(LS.gone[n.id]||m.talk[S.lv+n.id])continue;const must=n.id==='brune'||n.id==='odon';if(st.speed&&!must)continue;if(st.noshop&&!must&&SHOPS[n.id])continue;T.push({t:'npc',x:n.x,y:n.y,id:'n'+n.id,adj:1,npc:n.id});}
   for(let y=0;y<MH;y++)for(let x=0;x<MW;x++){const c=cell(x,y);
    if(c==='V')T.push({t:'wall',x,y,id:'V'+x+','+y,adj:1});
+   if((c==='N'||c==='B')&&!(LS.nt&&LS.nt[x+','+y])&&!st.speed&&(c==='N'||st.explore))T.push({t:'wall',x,y,id:c+x+','+y,adj:1});
    if(c==='S'&&(st.explore||S.lv==='abbaye'))T.push({t:'wall',x,y,id:'S'+x+','+y,adj:1});
    if(c==='W'&&has('poudre')&&!st.speed)T.push({t:'wall',x,y,id:'W'+x+','+y,adj:1});}
   for(const mo of LS.mons){if(mo.hp<=0||mo.gone)continue;if(MON[mo.t].drop||MON[mo.t].yield||st.hunt)T.push({t:'mon',x:mo.x,y:mo.y,id:'m',adj:1,mon:mo});}
@@ -90,7 +91,7 @@ window.BOT={mem:null,
    for(const id of want){const b=box.querySelector(`[data-buy="${id}"]`);if(b&&!b.disabled&&!b.classList.contains('no')&&m.stat.buys<60){m.stat.buys++;return{k:'buy',id};}}}
   return{k:'close'};},
  check(){const v=this.mem.viol,bad=s=>{if(v.length<12&&!v.includes(s))v.push(s);};
-  if(!S||!LS)return;if(!pass(S.x,S.y))bad('joueur dans un mur '+S.lv+' '+S.x+','+S.y);if(!isFinite(S.T))bad('temps invalide');if(S.bag.length>BAGMAX)bad('sac > 48');
+  if(!S||!LS)return;if(!pass(S.x,S.y))bad('joueur dans un mur '+S.lv+' '+S.x+','+S.y);if(!isFinite(S.T))bad('temps invalide');if(S.bag.filter(id=>ITEMS[id]&&ITEMS[id].k!=='key').length>BAGMAX)bad('sac > 48');
   if(S.bag.some(id=>!ITEMS[id]))bad('objet inconnu dans le sac');if(S.hand&&!ITEMS[S.hand])bad('objet tenu inconnu');
   const seen={};for(const mo of LS.mons){if(mo.hp<=0||mo.gone)continue;const k=mo.x+','+mo.y;if(seen[k]>=2)bad('trois ennemis sur une case '+k);if(seen[k]&&MON[mo.t].boss)bad('chef partageant sa case '+k);seen[k]=(seen[k]||0)+1;if(!pass(mo.x,mo.y))bad('ennemi dans un mur '+mo.t+' '+k);if(mo.x===S.x&&mo.y===S.y)bad('ennemi sur la troupe');if(!isFinite(mo.hp))bad('vie ennemie invalide');}
   for(const c of S.party){if(!isFinite(c.hp)||c.hp<0||c.hp>c.hpM)bad('vie hors bornes '+c.id+' '+c.hp+'/'+c.hpM);if(c.sf<0||c.sf>c.sfM)bad('souffle hors bornes '+c.id+' '+c.sf+'/'+c.sfM);for(const k in c.eq)if(c.eq[k]&&!ITEMS[c.eq[k]])bad('équipement inconnu');}
