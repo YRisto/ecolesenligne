@@ -1,27 +1,34 @@
 /* Cerveau des bots de recette : à chaque appel, think() rend UNE action élémentaire. */
 (function(){
 const WALK=c=>c==='.'||c==='d'||c==='g'||c==='D';
-window.BOT={mem:null,
- init(P){this.mem={P,talk:{},dead:0,bad:{},stat:{rests:0,casts:0,items:0,dmg:0,kills:0,acts:0,minHp:1,buys:0},lastHp:null,goal:null,lv:null,t0:0,viol:[]};
-  const self=this,go=window.gameOver;if(!go.__w){window.gameOver=function(){self.mem.dead++;return go.apply(this,arguments);};window.gameOver.__w=1;}
+window.BOT={mem:null,ORD:['geoles','egouts','egouts2','village','mine','mine2','abbaye','crypte','foret','ruines','marais','faubourgs','cour','palais2','palais3','camp','galeries','bataille'],
+ init(P){this.mem={P,talk:{},dead:0,bad:{},stat:{rests:0,casts:0,items:0,dmg:0,kills:0,acts:0,minHp:1,buys:0},lastHp:null,goal:null,lv:null,t0:0,viol:[],exh:{}};
+  const self=this,go=window.gameOver;if(!go.__w){window.gameOver=function(){self.mem.dead++;self.mem.bad={};self.mem.talk={};self.mem.exh={};return go.apply(this,arguments);};window.gameOver.__w=1;}
   const cs=window.cast;if(!cs.__w){window.cast=function(i,id,lv){const c=S.party[i],b=c?c.sf:0;const r=cs.apply(this,arguments);if(c&&c.sf<b)self.mem.stat.casts++;return r;};window.cast.__w=1;}},
- canOpen(x,y){const lk=LV.locks[x+','+y];return !!lk&&(has(lk.key)||lk.diff<=5);},
+ canOpen(x,y){const lk=LV.locks[x+','+y];return !!lk&&(lk.keys?lk.keys.every(k=>has(k)):(has(lk.key)||lk.diff<=5));},
  bfs(tx,ty,adj){const W=MW,H=MH,prev=new Int32Array(W*H).fill(-2),q=[[S.x,S.y]];prev[S.y*W+S.x]=-1;const goal=(x,y)=>adj?Math.abs(x-tx)+Math.abs(y-ty)===1:(x===tx&&y===ty);
   if(goal(S.x,S.y))return[];
   while(q.length){const[x,y]=q.shift();for(let k=0;k<4;k++){const nx=x+DX[k],ny=y+DY[k];if(nx<0||ny<0||nx>=W||ny>=H||prev[ny*W+nx]!==-2)continue;const c=cell(nx,ny);
-    if(!(WALK(c)||(c==='L'&&this.canOpen(nx,ny))))continue;if(c==='g'&&LV.fx&&Object.values(LV.fx).some(f=>f.gate&&f.gate[0]===nx&&f.gate[1]===ny))continue;if(npcAt(nx,ny))continue;prev[ny*W+nx]=y*W+x;
+    if(!(WALK(c)||(c==='L'&&this.canOpen(nx,ny))))continue;if(c==='g'&&LV.fx&&Object.values(LV.fx).some(f=>f.gate&&f.gate[0]===nx&&f.gate[1]===ny))continue;if(npcAt(nx,ny)||propAt(nx,ny))continue;prev[ny*W+nx]=y*W+x;
     if(goal(nx,ny)){const p=[];let i=ny*W+nx;while(prev[i]!==-1){p.unshift([i%W,(i/W)|0]);i=prev[i];}return p;}q.push([nx,ny]);}}return null;},
  dirTo(x,y){for(let k=0;k<4;k++)if(S.x+DX[k]===x&&S.y+DY[k]===y)return k;return -1;},
  face(k){const d=(k-S.d+4)%4;return d===0?null:{k:'turn',s:d===3?-1:1};},
  targets(){const m=this.mem,st=m.P.style,T=[];
-  for(const it of LS.items){if(it.dropped)continue;const key=it.id!=='or'&&(ITEMS[it.id].k==='key'||ITEMS[it.id].learn);if(st.speed&&!key)continue;T.push({t:'item',x:it.x,y:it.y,id:'i'+it.id+it.x+','+it.y});}
-  for(const n of LV.npcs){if(LS.gone[n.id]||m.talk[S.lv+n.id])continue;const must=n.id==='brune'||n.id==='odon';if(st.speed&&!must)continue;if(st.noshop&&!must&&SHOPS[n.id])continue;T.push({t:'npc',x:n.x,y:n.y,id:'n'+n.id,adj:1,npc:n.id});}
+  for(const it of LS.items){if(it.dropped)continue;const key=it.id!=='or'&&(ITEMS[it.id].k==='key'||ITEMS[it.id].learn||it.id==='pioche');if(st.speed&&!key)continue;T.push({t:'item',x:it.x,y:it.y,id:'i'+it.id+it.x+','+it.y});}
+  for(const n of LV.npcs){if(LS.gone[n.id]||m.talk[S.lv+n.id])continue;const must=n.must||n.id==='brune'||n.id==='odon';if(st.speed&&!must)continue;if(st.noshop&&!must&&SHOPS[n.id])continue;T.push({t:'npc',x:n.x,y:n.y,id:'n'+n.id,adj:1,npc:n.id});}
   for(let y=0;y<MH;y++)for(let x=0;x<MW;x++){const c=cell(x,y);
    if(c==='V')T.push({t:'wall',x,y,id:'V'+x+','+y,adj:1});
+   if(c==='Q'){const i=(LV.seq||[]).findIndex(s=>s.keys.includes(x+','+y));if(i>=0){const p=(LS.sq&&LS.sq[i])||0;if(p<LV.seq[i].keys.length&&LV.seq[i].keys[p]===x+','+y)T.push({t:'wall',x,y,id:'Q'+x+','+y+'_'+p+'_'+(m.seqTry=(m.seqTry||0)),adj:1});}}
+   if(c==='M'&&!st.noshop&&!st.speed&&S.gold>=25&&!m.talk[S.lv+'M'+x+','+y])T.push({t:'shop',x,y,id:'M'+x+','+y,adj:1});
+   if(c==='F'&&(S.party.some(p=>p.hp>0&&wears(p,'pioche'))||has('pioche')))T.push({t:'wall',x,y,id:'F'+x+','+y,adj:1});
    if((c==='N'||c==='B')&&!(LS.nt&&LS.nt[x+','+y])&&!st.speed&&(c==='N'||st.explore))T.push({t:'wall',x,y,id:c+x+','+y,adj:1});
    if(c==='S'&&(st.explore||S.lv==='abbaye'))T.push({t:'wall',x,y,id:'S'+x+','+y,adj:1});
    if(c==='W'&&has('poudre')&&!st.speed)T.push({t:'wall',x,y,id:'W'+x+','+y,adj:1});}
-  for(const mo of LS.mons){if(mo.hp<=0||mo.gone)continue;if(MON[mo.t].drop||MON[mo.t].yield||st.hunt)T.push({t:'mon',x:mo.x,y:mo.y,id:'m',adj:1,mon:mo});}
+  for(const p of LV.props||[]){const u=LS.pr&&LS.pr[p.id];
+   if(p.k==='chest'){if(!u&&!(p.key&&!has(p.key)))T.push({t:'wall',x:p.x,y:p.y,id:'P'+p.id,adj:1});}
+   else if(p.sc){if(!u)T.push({t:'wall',x:p.x,y:p.y,id:'P'+p.id,adj:1});}
+   else if(p.k==='fountain'){if(!(u&&S.T<u)&&S.party.some(c=>c.hp>0&&(c.hp<c.hpM*.55||c.sf<c.sfM*.35)))T.push({t:'wall',x:p.x,y:p.y,id:'P'+p.id+(S.T/90000|0),adj:1});}}
+  for(const mo of LS.mons){if(mo.hp<=0||mo.gone)continue;if(MON[mo.t].drop||MON[mo.t].yield||mo.loot||st.hunt)T.push({t:'mon',x:mo.x,y:mo.y,id:'m',adj:1,mon:mo});}
   return T;},
  exitCell(){for(let y=0;y<MH;y++)for(let x=0;x<MW;x++)if(cell(x,y)==='X')return{t:'exit',x,y,id:'X',adj:1};return null;},
  heal(){const st=this.mem.P.style,safe=!LS.mons.some(mo=>mo.hp>0&&!mo.gone&&mo.aw&&df[mo.y*MW+mo.x]<7);
@@ -61,16 +68,22 @@ window.BOT={mem:null,
   const f=this.fight();if(f&&f.k!=='wait')return f;
   const h=this.heal();if(h)return h;if(f)return f;
   const e=this.equip();if(e)return e;
+  if(S.bag.length>=BAGMAX-2){const KEEPB=['pioche','onguent','herbes','huile','potfeu'];const j=S.bag.filter(id=>ITEMS[id].k!=='key'&&!KEEPB.includes(id)).sort((x,y)=>(ITEMS[x].p||0)-(ITEMS[y].p||0))[0]||S.bag.find(id=>ITEMS[id].k!=='key');if(j)return{k:'drop',id:j};}
   // menace éveillée à portée : on va la chercher
   let g=null;const aw=LS.mons.filter(mo=>mo.hp>0&&!mo.gone&&mo.aw&&df[mo.y*MW+mo.x]<9).sort((a,b)=>df[a.y*MW+a.x]-df[b.y*MW+b.x])[0];
   if(aw)g={t:'mon',x:aw.x,y:aw.y,id:'m',adj:1,mon:aw};
   if(!g){let best=null,bl=1e9;for(const t of this.targets()){if(m.bad[S.lv+t.id]>3)continue;const p=this.bfs(t.x,t.y,t.adj);if(p&&p.length<bl){bl=p.length;best=t;}}g=best;}
+  const st=m.P.style;let fw=[],bw=[];if(!g){const ORD=BOT.ORD,ci=ORD.indexOf(S.lv);for(let y=0;y<MH;y++)for(let x=0;x<MW;x++){const c=cell(x,y),l=(c==='<'||c==='>')&&LV.links&&LV.links[x+','+y];if(!l||!this.bfs(x,y,1))continue;const di=ORD.indexOf(l.lv);if(di>ci){if(!m.exh[l.lv]&&!(st.speed&&l.lv==='ruines'))fw.push({x,y});}else bw.push({x,y});}}
+  const lk=a=>({t:'exit',x:a.x,y:a.y,id:'K'+a.x+','+a.y,adj:1});
+  if(!g&&fw.length&&(st.explore||st.hunt))g=lk(fw[0]);
   if(!g){const x=this.exitCell();if(x&&this.bfs(x.x,x.y,1))g=x;}
+  if(!g&&fw.length)g=lk(fw[0]);
+  if(!g&&bw.length){m.exh[S.lv]=1;g=lk(bw[0]);}
   if(!g&&LV.waves&&((LS.wave||0)<LV.waves.length||LS.mons.some(mo=>mo.hp>0&&!mo.gone)))return{k:'wait'};
   if(!g){m.stuck=(m.stuck||0)+1;return m.stuck>40?{k:'softlock'}:{k:'wait'};}m.stuck=0;
   const p=this.bfs(g.x,g.y,g.adj);if(!p){m.bad[S.lv+g.id]=(m.bad[S.lv+g.id]||0)+1;return{k:'wait'};}
   if(!p.length){if(g.t==='item'){m.bad[S.lv+g.id]=(m.bad[S.lv+g.id]||0)+1;return{k:'interact'};}const k=this.dirTo(g.x,g.y),fc=this.face(k);if(fc)return fc;
-   if(g.t==='npc')m.talk[S.lv+g.npc]=1;if(g.t==='mon')return{k:'wait'};m.bad[S.lv+g.id]=(m.bad[S.lv+g.id]||0)+(g.t==='exit'?0:1);return{k:'interact'};}
+   if(g.t==='npc')m.talk[S.lv+g.npc]=1;if(g.t==='shop')m.talk[S.lv+g.id]=1;if(g.t==='mon')return{k:'wait'};m.bad[S.lv+g.id]=(m.bad[S.lv+g.id]||0)+(g.t==='exit'?0:1);return{k:'interact'};}
   const[nx,ny]=p[0],k=this.dirTo(nx,ny),fc=this.face(k);if(fc)return fc;const c=cell(nx,ny);
   if(c==='D'||c==='L')return{k:'interact'};if(monAt(nx,ny))return{k:'wait'};return{k:'move'};},
  dlg(){const bs=[...$('dlgBtns').querySelectorAll('button')],P=this.mem.P;if(bs.length<2)return{k:'dlg',n:-1};
@@ -106,6 +119,7 @@ window.BOT={mem:null,
    case'use':case'equip':{const i=S.bag.indexOf(a.id);if(i<0)break;if(S.hand)stow();S.hand=S.bag.splice(i,1)[0];tapPt(a.i);if(S.hand)stow();if(a.k==='use')m.stat.items++;this.adv(50);break;}
    case'dlg':{twDone();const bs=[...$('dlgBtns').querySelectorAll('button')];if(a.n<0)nextLine();else bs[a.n].click();break;}
    case'hero':chooseHero(a.id);break;
+   case'drop':{const i=S.bag.indexOf(a.id);if(i<0)break;if(S.hand)stow();S.hand=S.bag.splice(i,1)[0];dropHand();const it=LS.items[LS.items.length-1];if(it)it.dropped=1;this.adv(50);break;}
    case'buy':$('modalBox').querySelector(`[data-buy="${a.id}"]`).click();break;case'close':$('modal').hidden=true;ui();break;}},
  run(P,levels){const out={name:P.name,levels:[],errors:[]};try{
    $('title').hidden=true;newGame(P.diff);this.init(P);const m=this.mem;let cur=null,L=null,guard=0;
