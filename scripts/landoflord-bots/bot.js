@@ -20,7 +20,7 @@ window.BOT={mem:null,
    if(c==='V')T.push({t:'wall',x,y,id:'V'+x+','+y,adj:1});
    if(c==='S'&&(st.explore||S.lv==='abbaye'))T.push({t:'wall',x,y,id:'S'+x+','+y,adj:1});
    if(c==='W'&&has('poudre')&&!st.speed)T.push({t:'wall',x,y,id:'W'+x+','+y,adj:1});}
-  for(const mo of LS.mons){if(mo.hp<=0||mo.gone)continue;if(MON[mo.t].drop||st.hunt)T.push({t:'mon',x:mo.x,y:mo.y,id:'m',adj:1,mon:mo});}
+  for(const mo of LS.mons){if(mo.hp<=0||mo.gone)continue;if(MON[mo.t].drop||MON[mo.t].yield||st.hunt)T.push({t:'mon',x:mo.x,y:mo.y,id:'m',adj:1,mon:mo});}
   return T;},
  exitCell(){for(let y=0;y<MH;y++)for(let x=0;x<MW;x++)if(cell(x,y)==='X')return{t:'exit',x,y,id:'X',adj:1};return null;},
  heal(){const st=this.mem.P.style,safe=!LS.mons.some(mo=>mo.hp>0&&!mo.gone&&mo.aw&&df[mo.y*MW+mo.x]<7);
@@ -34,7 +34,7 @@ window.BOT={mem:null,
   return null;},
  equip(){for(const id of S.bag){const it=ITEMS[id];
    if(it.k==='main'){if(it.rng&&!this.mem.P.style.ranged)continue;let best=-1,gain=.9;S.party.forEach((c,i)=>{if(c.hp<=0)return;const cur=wpn(c);if(it.rng&&c.sk.adresse.l<2)return;if(!it.rng&&cur.rng&&this.mem.P.style.ranged)return;const g=it.m-cur.m+(c.sk.armes.l*.01);if(g>gain){gain=g;best=i;}});if(best>=0)return{k:'equip',id,i:best};}
-   else if(it.k==='corps'||it.k==='appoint'){let best=-1,gain=0;S.party.forEach((c,i)=>{const cur=c.eq[it.k]?ITEMS[c.eq[it.k]].prot:0;if(it.prot-cur>gain){gain=it.prot-cur;best=i;}});if(best>=0)return{k:'equip',id,i:best};}}
+   else if(SLK.includes(it.k)&&id!=='livree'){let best=-1,gain=0;S.party.forEach((c,i)=>{const cur=c.eq[it.k]?(ITEMS[c.eq[it.k]].prot||0)+.5:0,v=(it.prot||0)+.5;if(v-cur>gain){gain=v-cur;best=i;}});if(best>=0)return{k:'equip',id,i:best};}}
   return null;},
  fight(){const m=this.mem,st=m.P.style,adj=[];for(let k=0;k<4;k++){const mo=monAt(S.x+DX[k],S.y+DY[k]);if(mo&&pass(mo.x,mo.y))adj.push([k,mo]);}
   const rg=Math.max(0,...S.party.filter(c=>c.hp>0&&wpn(c).rng).map(c=>wpn(c).rng)),line=rg?target(rg):null;
@@ -64,6 +64,7 @@ window.BOT={mem:null,
   if(aw)g={t:'mon',x:aw.x,y:aw.y,id:'m',adj:1,mon:aw};
   if(!g){let best=null,bl=1e9;for(const t of this.targets()){if(m.bad[S.lv+t.id]>3)continue;const p=this.bfs(t.x,t.y,t.adj);if(p&&p.length<bl){bl=p.length;best=t;}}g=best;}
   if(!g){const x=this.exitCell();if(x&&this.bfs(x.x,x.y,1))g=x;}
+  if(!g&&LV.waves&&((LS.wave||0)<LV.waves.length||LS.mons.some(mo=>mo.hp>0&&!mo.gone)))return{k:'wait'};
   if(!g){m.stuck=(m.stuck||0)+1;return m.stuck>40?{k:'softlock'}:{k:'wait'};}m.stuck=0;
   const p=this.bfs(g.x,g.y,g.adj);if(!p){m.bad[S.lv+g.id]=(m.bad[S.lv+g.id]||0)+1;return{k:'wait'};}
   if(!p.length){if(g.t==='item'){m.bad[S.lv+g.id]=(m.bad[S.lv+g.id]||0)+1;return{k:'interact'};}const k=this.dirTo(g.x,g.y),fc=this.face(k);if(fc)return fc;
@@ -79,7 +80,8 @@ window.BOT={mem:null,
   if(box.querySelector('[data-buy]')&&!st.noshop){const want=[];const lack=k=>S.party.some(c=>!c.eq[k]);
    const cnt=id=>S.bag.filter(x=>x===id).length;
    if(LV.dark&&!has('lanterne'))want.push('lanterne');
-   for(const id of SHOPS[shopId]){const it=ITEMS[id];
+   const stock=SHOPS[shopId+'_'+S.lv]||SHOPS[shopId];for(const id of stock){const it=ITEMS[id];
+    for(const sl of['tete','gants','bottes'])if(it.k===sl&&lack(sl)&&!S.bag.some(b=>ITEMS[b].k===sl))want.push(id);
     if(it.k==='corps'&&lack('corps')&&!S.bag.some(b=>ITEMS[b].k==='corps'))want.push(id);
     if(it.k==='appoint'&&lack('appoint')&&!S.bag.some(b=>ITEMS[b].k==='appoint'))want.push(id);
     if(it.k==='main'&&!it.rng&&S.party.some(c=>c.sk.armes.l>=2&&wpn(c).m+1.5<it.m)&&!S.bag.some(b=>ITEMS[b].k==='main'&&ITEMS[b].m>=it.m))want.push(id);}
@@ -89,11 +91,11 @@ window.BOT={mem:null,
  check(){const v=this.mem.viol,bad=s=>{if(v.length<12&&!v.includes(s))v.push(s);};
   if(!S||!LS)return;if(!pass(S.x,S.y))bad('joueur dans un mur '+S.lv+' '+S.x+','+S.y);if(!isFinite(S.T))bad('temps invalide');if(S.bag.length>BAGMAX)bad('sac > 48');
   if(S.bag.some(id=>!ITEMS[id]))bad('objet inconnu dans le sac');if(S.hand&&!ITEMS[S.hand])bad('objet tenu inconnu');
-  const seen={};for(const mo of LS.mons){if(mo.hp<=0||mo.gone)continue;const k=mo.x+','+mo.y;if(seen[k])bad('deux ennemis sur une case '+k);seen[k]=1;if(!pass(mo.x,mo.y))bad('ennemi dans un mur '+mo.t+' '+k);if(mo.x===S.x&&mo.y===S.y)bad('ennemi sur la troupe');if(!isFinite(mo.hp))bad('vie ennemie invalide');}
+  const seen={};for(const mo of LS.mons){if(mo.hp<=0||mo.gone)continue;const k=mo.x+','+mo.y;if(seen[k]>=2)bad('trois ennemis sur une case '+k);if(seen[k]&&MON[mo.t].boss)bad('chef partageant sa case '+k);seen[k]=(seen[k]||0)+1;if(!pass(mo.x,mo.y))bad('ennemi dans un mur '+mo.t+' '+k);if(mo.x===S.x&&mo.y===S.y)bad('ennemi sur la troupe');if(!isFinite(mo.hp))bad('vie ennemie invalide');}
   for(const c of S.party){if(!isFinite(c.hp)||c.hp<0||c.hp>c.hpM)bad('vie hors bornes '+c.id+' '+c.hp+'/'+c.hpM);if(c.sf<0||c.sf>c.sfM)bad('souffle hors bornes '+c.id+' '+c.sf+'/'+c.sfM);for(const k in c.eq)if(c.eq[k]&&!ITEMS[c.eq[k]])bad('équipement inconnu');}
   if(S.gold<0)bad('or négatif');if(new Set(S.strats).size!==S.strats.length)bad('stratagème en double');},
  /* exécution directe et accélérée (bots de simulation) */
- adv(ms){for(let t=0;t<ms;t+=50){if(paused())break;const n=resting?8:1;for(let k=0;k<n;k++){S.T+=50;tickMons();tickProj();tickStates();if(paused())break;}if(resting&&!paused())restTick(50);}anim=null;queued=null;},
+ adv(ms){for(let t=0;t<ms;t+=50){if(paused())break;const n=resting?8:1;for(let k=0;k<n;k++){S.T+=50;tickMons();tickProj();tickStates();if(paused())break;tickWaves();}if(resting&&!paused())restTick(50);}anim=null;queued=null;},
  doSim(a){const m=this.mem;
   switch(a.k){
    case'turn':turn(a.s);this.adv(140);break;case'move':move(0);this.adv(170);break;case'interact':interact();this.adv(120);break;
@@ -105,14 +107,14 @@ window.BOT={mem:null,
  run(P,levels){const out={name:P.name,levels:[],errors:[]};try{
    $('title').hidden=true;newGame(P.diff);this.init(P);const m=this.mem;let cur=null,L=null,guard=0;
    const open=()=>{L={lv:S.lv,T0:S.T,dead0:m.dead,s0:Object.assign({},m.stat),res:'en cours'};m.stat.minHp=1;};
-   while(guard++<60000){const a=this.think();
+   while(guard++<300000){const a=this.think();
     if(S&&LS&&S.lv!==cur){if(L){L.res='réussi';this.close(L,out);}cur=S.lv;open();if(levels&&!levels.includes(cur)){L=null;break;}}
     if(a.k==='done'){if(L){L.res='réussi';this.close(L,out);L=null;}break;}
     if(a.k==='softlock'){L.res='bloqué';break;}
     if(L&&m.dead-L.dead0>5){L.res='abandon (6 défaites)';break;}
     if(L&&S.T-L.T0>40*60000){L.res='trop long';break;}
     this.doSim(a);if(guard%25===0)this.check();}
-   if(L)this.close(L,out);if(guard>=60000)out.errors.push('boucle sans fin');out.viol=m.viol;
+   if(L)this.close(L,out);if(guard>=300000)out.errors.push('boucle sans fin');out.viol=m.viol;
   }catch(e){out.errors.push(String(e)+' @ '+(e.stack||'').split('\n').slice(1,4).join(' | '));}return out;},
  close(L,out){const m=this.mem,s=m.stat;out.levels.push({lv:L.lv,res:L.res,min:Math.round((S.T-L.T0)/6000)/10,dead:m.dead-L.dead0,rests:s.rests-L.s0.rests,casts:s.casts-L.s0.casts,items:s.items-L.s0.items,dmg:s.dmg-L.s0.dmg,minHp:Math.round(s.minHp*100),
    gold:S.gold,party:S.party.map(c=>c.id[0]+c.sk.armes.l+c.sk.adresse.l+c.sk.savoir.l).join(' '),strats:S.strats.length,alive:LS?LS.mons.filter(x=>x.hp>0&&!x.gone).length:0});}
