@@ -1,0 +1,3758 @@
+[
+{
+"k": "a8acccd3",
+"who": "renaud",
+"v": 28,
+"t": "Sur les deux ailes, les cavaliers de Renaud culbutent les piquiers avant qu'ils n'arrivent jusqu'à vous."
+},
+{
+"k": "6980d8d8",
+"who": "ysolde",
+"v": 25,
+"t": "La garde royale s'arrête au milieu du gué, lit l'ordre que Dame Ysolde lui a fait porter, et fait demi-tour en bon ordre."
+},
+{
+"k": "787db74e",
+"who": "vouivre",
+"v": 2,
+"t": "Les veneurs à gages ne sont pas venus. La Vouivre leur a expliqué, à sa manière, de quel côté était le marais."
+},
+{
+"k": "7ed99d85",
+"who": "aldric",
+"v": 18,
+"t": "Pas sans Odon. Je ne suis pas venu jusqu'ici pour la promenade."
+},
+{
+"k": "17f1aa4b",
+"who": "aldric",
+"v": 18,
+"t": "Pas sans Brune. Elle est quelque part dans ces galeries, et sans elle personne ne creusera sous l'ennemi."
+},
+{
+"k": "74470d4f",
+"who": "aldric",
+"v": 18,
+"t": "Pas encore. Il manque quelqu'un."
+},
+{
+"k": "7898e1ae",
+"who": "narr",
+"v": 31,
+"t": "La nuit passe sans alerte. Au matin, toute la troupe est sur pied, reposée, et presque de bonne humeur."
+},
+{
+"k": "b08d68ba",
+"who": "narr",
+"v": 31,
+"t": "Toute la troupe est à terre. On vous ramène en cellule. Le sergent, bon prince, vous borde."
+},
+{
+"k": "92a08b08",
+"who": "narr",
+"v": 31,
+"t": "Toute la troupe est à terre. La chronique, par égard, saute quelques pages."
+},
+{
+"k": "ce615b75",
+"who": "narr",
+"v": 31,
+"t": "Une chronique d'Austrevie, telle que la racontent ceux qui en sont revenus."
+},
+{
+"k": "2b5eafe5",
+"who": "narr",
+"v": 31,
+"t": "Royaume d'Austrevie, an 1247. Depuis neuf ans, la reine Aliénor fait la guerre à l'Empire de Karst. Depuis neuf ans, on lui explique que la victoire est proche."
+},
+{
+"k": "901c012b",
+"who": "narr",
+"v": 31,
+"t": "Un cavalier crève son cheval sur la route de Castelroc. Il porte une nouvelle que personne n'a voulu porter à sa place."
+},
+{
+"k": "b7bf0d55",
+"who": "reine",
+"v": 26,
+"t": "Fierbois. Et mon général ? Celui qui gagne ?"
+},
+{
+"k": "39c15344",
+"who": "chancelier",
+"v": 24,
+"t": "Une mesure de prudence, Majesté. Des lettres circulaient. Elles circulent encore mieux depuis ce matin : je vous les apporterai."
+},
+{
+"k": "d7ba5f9a",
+"who": "reine",
+"v": 26,
+"t": "Vous avez une heure, Malvoisin. Le royaume recule de quarante lieues, et je veux savoir à qui je le dois."
+},
+{
+"k": "78870100",
+"who": "narr",
+"v": 31,
+"t": "Le même soir, dans le cabinet du chancelier. Un petit homme à lunettes pose trois lettres sur le pupitre. L'encre en est sèche depuis peu."
+},
+{
+"k": "0b816802",
+"who": "chancelier",
+"v": 24,
+"t": "Tu as un talent rare, maître Josse. Rare, et qu'il serait imprudent de laisser circuler."
+},
+{
+"k": "d0e94f70",
+"who": "narr",
+"v": 31,
+"t": "On ne revit pas maître Josse. Le chancelier relut les trois lettres, les trouva convaincantes, et s'accorda un sourire : le premier depuis la défaite, et le seul du royaume."
+},
+{
+"k": "74158540",
+"who": "chancelier",
+"v": 24,
+"t": "Un général sans cousins, sans fortune, et désormais sans alibi. Il y a des soirs où l'on aime son métier."
+},
+{
+"k": "8995dfa1",
+"who": "narr",
+"v": 31,
+"t": "La veille de la bataille, sous la tente du général. Le plan était prêt, l'ennemi mal placé, les sapeurs avaient travaillé toute la semaine sous son camp. Puis douze gardes sont entrés."
+},
+{
+"k": "58f683f7",
+"who": "capitaine",
+"v": 20,
+"t": "Mon général. Par ordre de la reine et sous le sceau du chancelier, je vous arrête pour intelligence avec l'ennemi. Je suis navré. Ils m'ont dit de le dire."
+},
+{
+"k": "ef9d2bb6",
+"who": "narr",
+"v": 31,
+"t": "Vous aviez répondu :"
+},
+{
+"k": "4bdc8442",
+"who": "capitaine",
+"v": 20,
+"t": "C'est noté, mon général. Le rapport dira que vous avez été exemplaire. Le rapport ne servira à rien."
+},
+{
+"k": "2408d91e",
+"who": "capitaine",
+"v": 20,
+"t": "J'ai relu l'ordre, mon général. Il n'y a pas de case pour ça."
+},
+{
+"k": "46f09976",
+"who": "narr",
+"v": 31,
+"t": "Ils étaient douze. Vous êtes général, c'est-à-dire que vous savez compter. Vous avez rendu votre épée, en la tenant du mauvais côté le plus longtemps possible."
+},
+{
+"k": "cc32e35d",
+"who": "narr",
+"v": 31,
+"t": "Castelroc, salle du trône. Le chancelier produit ses trois lettres. La cour retient son souffle, par politesse."
+},
+{
+"k": "d073e3dd",
+"who": "chancelier",
+"v": 24,
+"t": "Les preuves sont accablantes, Majesté. Je les ai réunies moi-même, afin qu'elles le soient."
+},
+{
+"k": "b6c9ad47",
+"who": "reine",
+"v": 26,
+"t": "Qu'on fasse entrer mon général. Il a servi neuf ans : je lui accorde une phrase. C'est une de plus que n'en a eu mon dernier ministre."
+},
+{
+"k": "e015f213",
+"who": "reine",
+"v": 26,
+"t": "Il suffit. Aux geôles, le temps d'y voir clair. Et qu'on le nourrisse : je déteste perdre un témoin avant d'avoir compris de quoi."
+},
+{
+"k": "5ed082ea",
+"who": "narr",
+"v": 31,
+"t": "La reine a dit « le temps d'y voir clair ». C'était il y a quarante jours."
+},
+{
+"k": "bc491d6a",
+"who": "narr",
+"v": 31,
+"t": "Geôles royales de Castelroc, troisième sous-sol. Une clé tourne dans la serrure. C'est l'heure de la soupe."
+},
+{
+"k": "1228ef70",
+"who": "pepin",
+"v": 13,
+"t": "Votre soupe, mon général. Elle est froide, mais je vous rassure : elle l'était déjà chaude."
+},
+{
+"k": "79604776",
+"who": "aldric",
+"v": 18,
+"t": "Pépin. Tu as laissé la porte ouverte derrière toi."
+},
+{
+"k": "adb04e61",
+"who": "pepin",
+"v": 13,
+"t": "Ah. C'est que j'ai pris le trousseau du sergent au lieu du mien. Celui qui ouvre tout. Celui qu'il recompte chaque soir."
+},
+{
+"k": "b16830ce",
+"who": "aldric",
+"v": 18,
+"t": "Alors tu as le choix : l'expliquer au sergent, ou venir avec moi."
+},
+{
+"k": "3593ab42",
+"who": "pepin",
+"v": 13,
+"t": "Je veux qu'il soit noté quelque part que je vous ai fait évader par erreur. Le trousseau ? Je l'ai lâché de saisissement, il est tombé dans la grille. Ne me regardez pas ainsi, le sergent a le même regard."
+},
+{
+"k": "53ffb3e8",
+"who": "narr",
+"v": 31,
+"t": "Pépin rejoint votre troupe. Il apporte une louche, six écus et un avis sur tout."
+},
+{
+"k": "da54c1e8",
+"who": "pepin",
+"v": 13,
+"t": "À gauche les cellules, à droite l'armurerie, en bas le sergent. Je propose une quatrième direction, dès qu'on en trouve une."
+},
+{
+"k": "298b000a",
+"who": "aldric",
+"v": 18,
+"t": "Il me faut une arme."
+},
+{
+"k": "2df3a3d4",
+"who": "pepin",
+"v": 13,
+"t": "Il y a un tabouret cassé plus loin. Je sais, je sais. Vous avez commandé dix mille hommes."
+},
+{
+"k": "fa533105",
+"who": "pepin",
+"v": 13,
+"t": "En attendant, un truc de geôlier : une poignée de cendre dans les yeux. Ça ne figure dans aucun traité, mais ça marche sur tous ceux qui en ont lu."
+},
+{
+"k": "741eff07",
+"who": "pepin",
+"v": 13,
+"t": "Vous sentez ? La cantine. La Mère Goupil vend de tout à tout le monde. C'est la seule personne honnête de Castelroc : elle vole chacun pareil."
+},
+{
+"k": "617d6426",
+"who": "sergent",
+"v": 7,
+"t": "Morvane ! Et Pépin. Pépin, tu me déçois. Et pourtant je n'attendais rien."
+},
+{
+"k": "bdde529a",
+"who": "aldric",
+"v": 18,
+"t": "Sergent Brisemotte."
+},
+{
+"k": "ec5f97cf",
+"who": "sergent",
+"v": 7,
+"t": "Enfin quelqu'un qui parle ma langue."
+},
+{
+"k": "2b3d31b5",
+"who": "pepin",
+"v": 13,
+"t": "Sergent, ceci est une inspection surprise des évasions. Vous êtes noté."
+},
+{
+"k": "c5a3ac21",
+"who": "sergent",
+"v": 7,
+"t": "…Noté sur combien ?"
+},
+{
+"k": "2a8f9419",
+"who": "narr",
+"v": 31,
+"t": "Le sergent réfléchit. Cela lui prend quelques secondes, que vous pouvez employer."
+},
+{
+"k": "d004b3cc",
+"who": "pepin",
+"v": 13,
+"t": "Sergent, ceci est une inspection surprise des évasions."
+},
+{
+"k": "9b4bee79",
+"who": "sergent",
+"v": 7,
+"t": "Tu mens comme tu fais la soupe, Pépin."
+},
+{
+"k": "168d7c14",
+"who": "narr",
+"v": 31,
+"t": "Le sergent compte, recompte, pose sa clé par terre et se découvre une passion pour la maçonnerie."
+},
+{
+"k": "99b228d4",
+"who": "pepin",
+"v": 13,
+"t": "Trente écus ! Moi, il me devait trois mois de solde."
+},
+{
+"k": "fcc1ac1e",
+"who": "narr",
+"v": 31,
+"t": "Derrière la porte, un escalier, puis l'air froid de la nuit. Castelroc dort. Personne n'a encore recompté les prisonniers."
+},
+{
+"k": "bf0483c4",
+"who": "aldric",
+"v": 18,
+"t": "On m'a volé une bataille. Je vais la reprendre, et il me faut mes lieutenants. Brune la Sapeuse d'abord : elle dirige une mine d'argent à Val-Griset."
+},
+{
+"k": "c1be5baa",
+"who": "pepin",
+"v": 13,
+"t": "C'est loin ?"
+},
+{
+"k": "3f5a152f",
+"who": "aldric",
+"v": 18,
+"t": "Trois jours de marche."
+},
+{
+"k": "90a28bb2",
+"who": "pepin",
+"v": 13,
+"t": "En prison, au moins, on était assis."
+},
+{
+"k": "84dfbd10",
+"who": "narr",
+"v": 31,
+"t": "Trois jours plus tard. La mine de Val-Griset devrait résonner de coups de pioche. On n'y entend que des rires gras : depuis la défaite, des pillards s'y sont installés."
+},
+{
+"k": "ef660850",
+"who": "pepin",
+"v": 13,
+"t": "Une mine occupée par des bandits. Évidemment. Vous ne pouviez pas avoir une lieutenante bergère."
+},
+{
+"k": "2376f35a",
+"who": "aldric",
+"v": 18,
+"t": "Brune a miné les remparts de Sarrelouve en une nuit. Si elle est encore ici, c'est qu'elle l'a décidé."
+},
+{
+"k": "37c202db",
+"who": "pepin",
+"v": 13,
+"t": "Je marche derrière. Non par prudence : pour surveiller nos arrières. C'est un poste de confiance."
+},
+{
+"k": "bae87dda",
+"who": "borgne",
+"v": 17,
+"t": "Tiens donc, le général sans armée ! Je vous avais à l'œil. C'est une façon de parler, ne riez pas."
+},
+{
+"k": "3abea8e4",
+"who": "brune",
+"v": 4,
+"t": "Il a bu ma réserve de trois ans. Laissez-m'en un morceau."
+},
+{
+"k": "a2fcbb74",
+"who": "narr",
+"v": 31,
+"t": "La mine de Val-Griset est libre, et Brune a retrouvé sa pioche de campagne. Reste à trouver celui qui recoud ce que les autres découpent."
+},
+{
+"k": "320fae1f",
+"who": "narr",
+"v": 31,
+"t": "Saint-Aubert-des-Brumes. Frère Odon, chirurgien des armées, s'y est retiré pour ne plus voir de blessés. Depuis une semaine, le monastère loge quarante reîtres du chancelier. Odon revoit des blessés."
+},
+{
+"k": "047b8732",
+"who": "pepin",
+"v": 13,
+"t": "Un monastère. Enfin un endroit où personne ne voudra nous tuer."
+},
+{
+"k": "c7df6115",
+"who": "brune",
+"v": 4,
+"t": "Les sentinelles sur le mur, tu les prends pour des novices ?"
+},
+{
+"k": "881e1309",
+"who": "pepin",
+"v": 13,
+"t": "Je retire."
+},
+{
+"k": "8d3b83ca",
+"who": "pepin",
+"v": 13,
+"t": "Ils ont mis des spadassins dans un cloître. Il n'y a plus de respect pour le recueillement."
+},
+{
+"k": "c834f3ed",
+"who": "narr",
+"v": 31,
+"t": "Une dalle s'enfonce sous votre botte. Quelque part, une clochette tinte. Naturellement."
+},
+{
+"k": "07bddee3",
+"who": "pepin",
+"v": 13,
+"t": "Ce n'était pas moi. Enfin si, mais je marchais où vous m'avez dit."
+},
+{
+"k": "c8472ac4",
+"who": "hagen",
+"v": 19,
+"t": "Capitaine Hagen, au service du chancelier. Tarif de jour. Rendez-vous, général : mon contrat dit « mort ou vif », et l'on me paie pareil. Ne compliquez pas mon arithmétique."
+},
+{
+"k": "33c2ab6e",
+"who": "aldric",
+"v": 18,
+"t": "Capitaine."
+},
+{
+"k": "adfa3fb0",
+"who": "hagen",
+"v": 19,
+"t": "J'aime les clients décidés."
+},
+{
+"k": "256152ff",
+"who": "hagen",
+"v": 19,
+"t": "Un mercenaire qui change d'avis reste un homme honnête : il prévient. La clé est par terre. Mes hommes, eux, n'ont pas été consultés."
+},
+{
+"k": "c61ab670",
+"who": "narr",
+"v": 31,
+"t": "Forêt de Brocevaux. Des chênes plus vieux que le royaume, des sentiers qui changent d'avis, et quelque part là-dedans les trois cents cavaliers du capitaine Renaud."
+},
+{
+"k": "1f4fdc6d",
+"who": "aldric",
+"v": 18,
+"t": "Renaud a servi sous mes ordres pendant six ans. Le meilleur cavalier du royaume."
+},
+{
+"k": "e1815e35",
+"who": "pepin",
+"v": 13,
+"t": "Et il fait quoi, dans les bois, le meilleur cavalier du royaume ?"
+},
+{
+"k": "73b7d13a",
+"who": "brune",
+"v": 4,
+"t": "Il rançonne les voyageurs. La solde n'arrive plus depuis la défaite : il s'est mis à son compte."
+},
+{
+"k": "062a8776",
+"who": "odon",
+"v": 15,
+"t": "Un péage, en somme. Avec des loups."
+},
+{
+"k": "218edc2c",
+"who": "pepin",
+"v": 13,
+"t": "Il y a des yeux dans les fourrés. Dites-moi que ce sont des lapins."
+},
+{
+"k": "d2ff7a4a",
+"who": "odon",
+"v": 15,
+"t": "Ce sont des lapins de quarante livres, qui chassent en meute."
+},
+{
+"k": "ca8abf34",
+"who": "narr",
+"v": 31,
+"t": "Une dalle de pierre, au milieu du sentier, usée par autre chose que la pluie. Non loin, une grille ferme une cache creusée sous les racines."
+},
+{
+"k": "994be44b",
+"who": "brune",
+"v": 4,
+"t": "Un contrepoids. Ça tient ouvert tant qu'on pèse dessus. Un sac ferait l'affaire. Ou Pépin."
+},
+{
+"k": "dd24bb04",
+"who": "pepin",
+"v": 13,
+"t": "Je préfère le sac."
+},
+{
+"k": "dfe9e5af",
+"who": "renaud",
+"v": 28,
+"t": "Halte. Péage de Brocevaux : dix écus par tête, vingt par cheval, cinquante par général déchu. Tiens. Je n'avais jamais encaissé ce tarif-là."
+},
+{
+"k": "c455bee6",
+"who": "aldric",
+"v": 18,
+"t": "Renaud. J'ai une bataille à livrer, et pas de cavalerie."
+},
+{
+"k": "dbb5a5d6",
+"who": "renaud",
+"v": 28,
+"t": "Et moi j'ai trois cents hommes à nourrir et une reine qui ne paie plus. Vous m'offrez quoi, mon général ? De la gloire ? J'en ai encore de la dernière fois, elle ne se mange pas."
+},
+{
+"k": "7ecb3b57",
+"who": "aldric",
+"v": 18,
+"t": "Renaud…"
+},
+{
+"k": "c370e675",
+"who": "renaud",
+"v": 28,
+"t": "Enfin une proposition honnête. En garde, mon général : je ne retiendrai pas mes coups, vous m'avez appris à ne pas le faire."
+},
+{
+"k": "513766d0",
+"who": "narr",
+"v": 31,
+"t": "Renaud siffle. Dans les fourrés, cinquante arcs se détendent. Ses cavaliers tiendront les ailes au Gué-aux-Corbeaux. Il vous lance la clé du péage."
+},
+{
+"k": "2de0e871",
+"who": "pepin",
+"v": 13,
+"t": "Il ne rejoint pas la troupe ?"
+},
+{
+"k": "c5c0d442",
+"who": "renaud",
+"v": 28,
+"t": "Je commande trois cents chevaux, petit. Je ne tiens pas dans un sac à dos."
+},
+{
+"k": "4548fbda",
+"who": "renaud",
+"v": 28,
+"t": "Assez ! Assez. Six ans que j'attendais de savoir si vous aviez vieilli. La réponse est non, et j'ai mal partout."
+},
+{
+"k": "dba69809",
+"who": "narr",
+"v": 31,
+"t": "Castelroc, par les cuisines. Le palais prépare la guerre comme il prépare un banquet : beaucoup d'allées et venues, et personne qui sache pour qui."
+},
+{
+"k": "7207fa4f",
+"who": "brune",
+"v": 4,
+"t": "Quatre livrées, dans le panier à linge. Si on les passe toutes, la garde royale nous prendra pour des gens de service."
+},
+{
+"k": "92c25d24",
+"who": "pepin",
+"v": 13,
+"t": "Moi, on me prend déjà pour un homme de service."
+},
+{
+"k": "8efb70c3",
+"who": "odon",
+"v": 15,
+"t": "Les reîtres du chancelier, eux, ne regardent pas les livrées. Ils regardent les visages. Et la garde ne restera pas aveugle si on la frappe."
+},
+{
+"k": "a6fa65d0",
+"who": "aldric",
+"v": 18,
+"t": "Dame Ysolde tient le secrétariat de la reine. Si quelqu'un peut lui faire lire autre chose que les rapports de Malvoisin, c'est elle."
+},
+{
+"k": "b874a83e",
+"who": "pepin",
+"v": 13,
+"t": "On passe devant la salle du trône. Vous voulez que je demande une audience ? J'ai l'uniforme."
+},
+{
+"k": "e6a842cd",
+"who": "narr",
+"v": 31,
+"t": "Une dalle du couloir sonne plus creux que ses voisines. Derrière le mur, une herse. Les architectes de Castelroc avaient de l'humour, ou des ennemis."
+},
+{
+"k": "1502216c",
+"who": "chancelier",
+"v": 24,
+"t": "Le général ! Dans ma chancellerie. Vous avez une constance qui fait peine. Gontran : je vous présente votre après-midi."
+},
+{
+"k": "a38dd075",
+"who": "narr",
+"v": 31,
+"t": "Messire Gontran, champion du chancelier, sept pieds de haut, n'a jamais perdu un duel judiciaire. Il n'a jamais compris non plus ce qu'on y jugeait."
+},
+{
+"k": "35d379d9",
+"who": "pepin",
+"v": 13,
+"t": "Il a une porte dans le dos ou c'est son dos ?"
+},
+{
+"k": "8c4f39ca",
+"who": "narr",
+"v": 31,
+"t": "Le Gué-aux-Corbeaux, à l'aube. Derrière vous, ce qui reste de l'armée d'Austrevie : quatre mille hommes qui ne savent pas encore s'ils ont un général."
+},
+{
+"k": "cdd50cd2",
+"who": "aldric",
+"v": 18,
+"t": "Brune. Tes galeries sous leur camp, celles du mois dernier ?"
+},
+{
+"k": "63224f13",
+"who": "brune",
+"v": 4,
+"t": "Toujours là, et les mèches brûlent depuis cette nuit. Leur réserve de poudre saute à la troisième vague."
+},
+{
+"k": "796ca6d8",
+"who": "odon",
+"v": 15,
+"t": "Vous aviez prévu trois vagues ?"
+},
+{
+"k": "1a0bd699",
+"who": "aldric",
+"v": 18,
+"t": "J'avais prévu celle-ci il y a quarante-six jours. Tenez le gué. Le reste viendra à nous."
+},
+{
+"k": "73e135c7",
+"who": "pepin",
+"v": 13,
+"t": "C'est bien ce qui m'inquiète."
+},
+{
+"k": "b025467c",
+"who": "narr",
+"v": 31,
+"t": "Von Stahl met un genou en terre et tend son épée, garde en avant. Derrière lui, la réserve de poudre de Karst choisit ce moment pour donner raison à Brune."
+},
+{
+"k": "1ec85ef8",
+"who": "brune",
+"v": 4,
+"t": "Troisième vague. J'avais dit la troisième."
+},
+{
+"k": "fa9d7a57",
+"who": "narr",
+"v": 31,
+"t": "Les cavaliers de Renaud ramènent les fuyards par troupeaux entiers. Renaud prélève un péage. On ne se refait pas."
+},
+{
+"k": "3ab7eaa9",
+"who": "narr",
+"v": 31,
+"t": "L'armée de Karst repasse le gué en désordre. Faute de cavalerie, on la laisse courir : elle court très bien."
+},
+{
+"k": "4405e948",
+"who": "narr",
+"v": 31,
+"t": "On retrouve Malvoisin dans un chariot de bagages, sous une bâche. Vous lui rendez sa matrice de bronze devant la reine. Il la reconnaît, ce qui est une erreur, et la dernière."
+},
+{
+"k": "c7156418",
+"who": "narr",
+"v": 31,
+"t": "On retrouve Malvoisin dans un chariot de bagages, sous une bâche. Sans la matrice du sceau, il plaide trois heures. Puis les lettres de Karst, trouvées sur lui, plaident mieux."
+},
+{
+"k": "45389b94",
+"who": "reine",
+"v": 26,
+"t": "Dame Ysolde m'a tout fait lire, général. Y compris ce que je ne voulais pas. Je vous dois une armée, un royaume et quarante-six jours."
+},
+{
+"k": "b1a32279",
+"who": "reine",
+"v": 26,
+"t": "Général. On me dit que vous avez gagné ma guerre sans mon autorisation. Je vous dois une armée, un royaume et quarante-six jours."
+},
+{
+"k": "88b89140",
+"who": "aldric",
+"v": 18,
+"t": "Vous ne me devez rien, Majesté. Payez les hommes de Renaud, rendez son clocher à Saint-Aubert, et ne nommez plus de duc à la tête de quoi que ce soit."
+},
+{
+"k": "9f7bf147",
+"who": "reine",
+"v": 26,
+"t": "Vous refusez la chancellerie."
+},
+{
+"k": "7cee50bb",
+"who": "aldric",
+"v": 18,
+"t": "Je l'ai visitée, Majesté. On y dort mal."
+},
+{
+"k": "aa06549d",
+"who": "narr",
+"v": 31,
+"t": "Aldric de Morvane reprit son commandement et rien d'autre. On dit qu'il fut le seul homme du royaume à qui la reine demanda son avis sans le redouter. La chronique le nomme : le Général retrouvé."
+},
+{
+"k": "4dbe0275",
+"who": "aldric",
+"v": 18,
+"t": "La chancellerie est vacante, Majesté. J'en connais les caves, les serrures, et le prix de chacun de ceux qui y travaillent."
+},
+{
+"k": "ec996706",
+"who": "reine",
+"v": 26,
+"t": "Vous me faites presque regretter l'autre."
+},
+{
+"k": "b973dd68",
+"who": "aldric",
+"v": 18,
+"t": "L'autre perdait vos batailles, Majesté. Moi, je vous coûterai seulement cher."
+},
+{
+"k": "9a8c13b4",
+"who": "narr",
+"v": 31,
+"t": "Aldric de Morvane fut chancelier d'Austrevie pendant vingt ans. Le royaume ne perdit plus une guerre, ni un écu sans reçu. La chronique le nomme, à voix basse : le Général comptable."
+},
+{
+"k": "f023d007",
+"who": "aldric",
+"v": 18,
+"t": "Rendez-moi mon épée, Majesté, et une armée payée à l'heure. Le reste, nous en reparlerons quand la frontière sera où elle doit être."
+},
+{
+"k": "1d80d9cc",
+"who": "reine",
+"v": 26,
+"t": "C'est une réponse de soldat."
+},
+{
+"k": "eac6b58f",
+"who": "aldric",
+"v": 18,
+"t": "J'en avais une de courtisan, Majesté. Je l'ai perdue en prison."
+},
+{
+"k": "eb435254",
+"who": "narr",
+"v": 31,
+"t": "Aldric de Morvane reprit la guerre et la finit en deux campagnes. On ne lui éleva pas de statue : il avait demandé qu'on paie plutôt les soldes."
+},
+{
+"k": "f4441cfc",
+"who": "reine",
+"v": 26,
+"t": "Et mon pli vous est parvenu. Quarante-six jours de retard. Je ferai un mot au service des messageries."
+},
+{
+"k": "43cc129b",
+"who": "narr",
+"v": 31,
+"t": "La Vouivre et ses quatre cents « survivants » furent réintégrés, avec l'arriéré de solde et une amnistie qu'elle rédigea elle-même."
+},
+{
+"k": "20f0d707",
+"who": "narr",
+"v": 31,
+"t": "Maître Grolard fut nommé fermier général des égouts, avec un sceau. Il le porte au cou. On ne lui a jamais dit à quoi il servait avant."
+},
+{
+"k": "6b3531b4",
+"who": "pepin",
+"v": 13,
+"t": "Et moi ?"
+},
+{
+"k": "6c1153cb",
+"who": "reine",
+"v": 26,
+"t": "Qui est-ce ?"
+},
+{
+"k": "abebbf6b",
+"who": "aldric",
+"v": 18,
+"t": "Mon geôlier, Majesté. Il m'a libéré par erreur, suivi par peur et sauvé par habitude."
+},
+{
+"k": "39ae2f3b",
+"who": "reine",
+"v": 26,
+"t": "Qu'on le nomme gouverneur des geôles."
+},
+{
+"k": "386b70c4",
+"who": "pepin",
+"v": 13,
+"t": "… Je voudrais signaler à Sa Majesté que le poste comporte un sergent."
+},
+{
+"k": "6c782580",
+"who": "narr",
+"v": 31,
+"t": "FIN. Merci d'avoir joué. La chronique reste ouverte : vos sauvegardes aussi."
+},
+{
+"k": "ba282ce3",
+"who": "narr",
+"v": 31,
+"t": "La porte de fer ne donne pas sur la liberté. Elle donne sur l'escalier des égouts, ce qui, à Castelroc, est ce qui y ressemble le plus."
+},
+{
+"k": "602904cf",
+"who": "pepin",
+"v": 13,
+"t": "Je connais. On y jette tout ce dont le château ne veut plus. Nous sommes donc au bon endroit."
+},
+{
+"k": "27279e0e",
+"who": "aldric",
+"v": 18,
+"t": "Ils débouchent où ?"
+},
+{
+"k": "828487a5",
+"who": "pepin",
+"v": 13,
+"t": "À la rivière. Enfin, à ce qu'il en reste une fois que le château est passé dedans."
+},
+{
+"k": "42e5406b",
+"who": "pepin",
+"v": 13,
+"t": "Ça bouge dans l'eau. Dites-moi que c'est l'eau."
+},
+{
+"k": "fd8bbf0a",
+"who": "narr",
+"v": 31,
+"t": "Une dalle descellée, au milieu du conduit, et plus loin une grille qui barre un réduit. Les égoutiers de Castelroc avaient des secrets, et un sens pratique : un poids sur la dalle, la grille remonte."
+},
+{
+"k": "5d65d590",
+"who": "grolard",
+"v": 35,
+"t": "Halte ! Octroi des égouts. Tout ce qui sort du château paie : les rats une couenne, les contrebandiers un tiers, et les évadés tout ce qu'ils ont sur eux."
+},
+{
+"k": "3ab872ec",
+"who": "aldric",
+"v": 18,
+"t": "Maître Grolard, je présume."
+},
+{
+"k": "d254fb74",
+"who": "grolard",
+"v": 35,
+"t": "Un plaisantin. J'en ai un plein conduit, ils flottent très bien."
+},
+{
+"k": "24679046",
+"who": "narr",
+"v": 31,
+"t": "Le marais de la Morte-Eau. Une lieue d'eau noire, de saules et de brume entre la forêt et Castelroc. Les cartes du royaume y écrivent « marais » en tout petit, par prudence."
+},
+{
+"k": "95a59ce3",
+"who": "odon",
+"v": 15,
+"t": "Fièvres, sangsues, vase. Je connais des champs de bataille plus sains."
+},
+{
+"k": "3ecd0681",
+"who": "brune",
+"v": 4,
+"t": "Et des déserteurs. Tous ceux qui ont lâché pied au Gué se sont cachés ici. Une femme les tient : on l'appelle la Vouivre."
+},
+{
+"k": "0dd1b2e3",
+"who": "pepin",
+"v": 13,
+"t": "Pourquoi la Vouivre ?"
+},
+{
+"k": "8ec21a9d",
+"who": "brune",
+"v": 4,
+"t": "Demande-lui. De loin."
+},
+{
+"k": "be9de56d",
+"who": "pepin",
+"v": 13,
+"t": "J'ai de l'eau dans les bottes. Je crois que quelque chose y habite déjà."
+},
+{
+"k": "6ba78f6b",
+"who": "narr",
+"v": 31,
+"t": "Entre deux saules, une dalle affleure, trop carrée pour être honnête. Non loin, une grille ferme une cache de braconnier."
+},
+{
+"k": "36b40cc4",
+"who": "vouivre",
+"v": 2,
+"t": "Le général sans armée, dans mon marais. Mes hommes ont fui votre défaite, général. Ils n'ont aucune envie de la revoir passer."
+},
+{
+"k": "42aecb4b",
+"who": "aldric",
+"v": 18,
+"t": "Ce n'était pas ma défaite. C'était celle du duc de Fierbois. Moi, j'étais en prison."
+},
+{
+"k": "f063f98b",
+"who": "vouivre",
+"v": 2,
+"t": "C'est ce qu'ils disent tous. Vous, au moins, vous avez l'alibi. Que voulez-vous ?"
+},
+{
+"k": "dd838523",
+"who": "aldric",
+"v": 18,
+"t": "Le bac."
+},
+{
+"k": "93e9e18b",
+"who": "vouivre",
+"v": 2,
+"t": "Alors venez le prendre. On m'appelle la Vouivre parce que je mords la première."
+},
+{
+"k": "61bef8eb",
+"who": "vouivre",
+"v": 2,
+"t": "Renaud. Ce grand rieur marche avec vous ? … Alors c'est que vous pouvez gagner. Mes hommes ont honte, général, c'est une chose qu'on peut employer. La clé du bac. Les veneurs à gages du chancelier passent par mon marais : ils n'iront pas plus loin."
+},
+{
+"k": "c8cfb814",
+"who": "vouivre",
+"v": 2,
+"t": "Cent écus. C'est le prix d'un homme, ici. Vous êtes quatre : je vous fais un tarif de groupe. Passez."
+},
+{
+"k": "a4afbe64",
+"who": "narr",
+"v": 31,
+"t": "Le camp de Karst, la nuit. Trois mille tentes alignées au cordeau, des feux réglementaires, des sentinelles relevées à l'heure. L'Empire fait la guerre comme il tient ses comptes."
+},
+{
+"k": "bdbac898",
+"who": "brune",
+"v": 4,
+"t": "La poudrière est au centre. Mes galeries passent juste dessous. Il me faut la clé, un quart d'heure et pas de témoins."
+},
+{
+"k": "5ad9879b",
+"who": "odon",
+"v": 15,
+"t": "Il y a trois mille témoins."
+},
+{
+"k": "a85aa6c6",
+"who": "aldric",
+"v": 18,
+"t": "Qui dorment. Nous ne réveillerons que ceux qui se trouvent sur notre chemin."
+},
+{
+"k": "9cdbdc71",
+"who": "pepin",
+"v": 13,
+"t": "Ce sont toujours les plus grands."
+},
+{
+"k": "fd0cab4c",
+"who": "pepin",
+"v": 13,
+"t": "Ils ont des chiens. Personne ne m'avait dit qu'ils avaient des chiens."
+},
+{
+"k": "30ca15d9",
+"who": "narr",
+"v": 31,
+"t": "Devant une tente à fanion, une dalle de bois sonne creux sous la botte. À côté, une grille ferme la réserve d'un officier. L'intendance de Karst pense à tout, y compris à ce que l'on pense d'elle."
+},
+{
+"k": "530ce526",
+"who": "prevot",
+"v": 29,
+"t": "Halte. Mot de passe."
+},
+{
+"k": "6ebffdb6",
+"who": "pepin",
+"v": 13,
+"t": "Soupe ?"
+},
+{
+"k": "256bcafc",
+"who": "prevot",
+"v": 29,
+"t": "Ce n'est pas le mot de passe."
+},
+{
+"k": "3c1ce27a",
+"who": "pepin",
+"v": 13,
+"t": "C'était pourtant le seul que je connaissais."
+},
+{
+"k": "fcebc195",
+"who": "prevot",
+"v": 29,
+"t": "Le général de Morvane. Dans mon camp, la veille de la bataille. Le maréchal sera ravi : il vous croyait pendu, il aura le plaisir de corriger."
+},
+{
+"k": "e5efe1c7",
+"who": "narr",
+"v": 31,
+"t": "L'escalier débouche sur le grand collecteur : une voûte haute comme une nef, un courant paresseux, et une odeur qui a de la personnalité."
+},
+{
+"k": "12e80ab3",
+"who": "pepin",
+"v": 13,
+"t": "C'est ici que tout arrive. Le château, la ville, les faubourgs. C'est un peu la capitale, vue d'en dessous."
+},
+{
+"k": "2af93b82",
+"who": "aldric",
+"v": 18,
+"t": "Et la rivière ?"
+},
+{
+"k": "9ca73206",
+"who": "pepin",
+"v": 13,
+"t": "Au bout. Derrière Maître Grolard, qui fait payer la sortie. Il paraît qu'il fait aussi payer l'entrée, mais personne n'est jamais revenu se plaindre."
+},
+{
+"k": "e01372bb",
+"who": "pepin",
+"v": 13,
+"t": "Il y a des marques sur les murs. Ou alors ce sont des gens qui ont essayé de sortir."
+},
+{
+"k": "4c6b9662",
+"who": "narr",
+"v": 31,
+"t": "Val-Griset. Trente maisons, une auberge, une forge, et une mine d'argent qui a nourri trois générations. La quatrième attend, les bras croisés, que quelqu'un déloge les pillards."
+},
+{
+"k": "fc08d81f",
+"who": "pepin",
+"v": 13,
+"t": "Des gens. Des vrais, qui ne portent ni clés ni hallebardes. J'avais oublié à quoi ça ressemblait."
+},
+{
+"k": "6ac8f289",
+"who": "aldric",
+"v": 18,
+"t": "Brune est là-dessous, si elle vit encore. Il nous faut la clé du carreau, de l'huile, et tout ce que ce village voudra bien vendre à deux évadés."
+},
+{
+"k": "42dcbb25",
+"who": "pepin",
+"v": 13,
+"t": "L'auberge s'appelle « Au Mineur Sobre ». C'est de l'humour, ou c'est une faillite."
+},
+{
+"k": "0ae40b1d",
+"who": "narr",
+"v": 31,
+"t": "La grange aux dîmes. Quatre pillards y jouent aux dés la clé de la mine, que le bailli leur a laissée en partant. Ils ont posé les dés. Ils ont pris autre chose."
+},
+{
+"k": "849ae5f0",
+"who": "narr",
+"v": 31,
+"t": "Le puits sud descend plus bas que les plans. Ici l'argent se cherchait à la lueur des lampes, et les étais datent d'un temps où l'on croyait encore au bois."
+},
+{
+"k": "1025b671",
+"who": "brune",
+"v": 4,
+"t": "Le vieux treuil est au bout. C'est par là qu'on remontait le minerai : on remontera bien un général."
+},
+{
+"k": "c4c4126d",
+"who": "pepin",
+"v": 13,
+"t": "Et s'il ne marche plus ?"
+},
+{
+"k": "f7949329",
+"who": "brune",
+"v": 4,
+"t": "Alors on creusera. Vers le haut. C'est plus long, mais on voit venir."
+},
+{
+"k": "9e31e411",
+"who": "pepin",
+"v": 13,
+"t": "Il y avait une pioche, à l'entrée. Je dis ça parce que le plafond, lui, n'a pas l'air d'en avoir besoin pour descendre."
+},
+{
+"k": "38336672",
+"who": "pepin",
+"v": 13,
+"t": "« Ne pas tousser. » Je ne tousse pas. Je n'ose même plus respirer."
+},
+{
+"k": "07486089",
+"who": "narr",
+"v": 31,
+"t": "Sous le chœur de Saint-Aubert, la crypte. Six siècles d'abbés, de frères et de mécanismes. Les reîtres de Hagen y sont descendus chercher le trésor ; certains cherchent encore la sortie."
+},
+{
+"k": "c463a59a",
+"who": "odon",
+"v": 15,
+"t": "La poterne de la montagne est au bout. Je l'ai prise une fois, en 1239, pour éviter un sermon."
+},
+{
+"k": "1c8491a9",
+"who": "pepin",
+"v": 13,
+"t": "Et les pièges ?"
+},
+{
+"k": "cdcba8ad",
+"who": "odon",
+"v": 15,
+"t": "Ce ne sont pas des pièges. Ce sont des dévotions. On les accomplit dans l'ordre, ou l'on recommence."
+},
+{
+"k": "d791908a",
+"who": "pepin",
+"v": 13,
+"t": "Ils ont tous une épitaphe. Moi, on écrira quoi ?"
+},
+{
+"k": "d23d4b35",
+"who": "odon",
+"v": 15,
+"t": "« Il a suivi. »"
+},
+{
+"k": "421c4ee1",
+"who": "narr",
+"v": 31,
+"t": "Une tour de guet, à demi mangée par le lierre. La garnison l'a quittée à la dernière paie ; les brigands de Brocevaux l'ont reprise, avec un sens de l'accueil très personnel."
+},
+{
+"k": "b793f170",
+"who": "pepin",
+"v": 13,
+"t": "Quelqu'un crie, là-dessous. Poliment, mais il crie."
+},
+{
+"k": "d9ba0806",
+"who": "narr",
+"v": 31,
+"t": "Les faubourgs de Castelroc, au pied du rempart. On y vend de tout, on y répète tout, et l'on y affiche chaque matin un nouveau portrait du général félon."
+},
+{
+"k": "beb7ea6a",
+"who": "pepin",
+"v": 13,
+"t": "Il y a une affiche pour moi aussi. « Petit, roux. » Je ne suis pas petit."
+},
+{
+"k": "90d5917d",
+"who": "odon",
+"v": 15,
+"t": "Vous êtes recherché, Pépin. C'est une forme de reconnaissance."
+},
+{
+"k": "2ab3ed80",
+"who": "aldric",
+"v": 18,
+"t": "Les cuisines du palais donnent sur la ruelle des fournisseurs. Il nous faut la clé de la porte de service, et de quoi passer pour des domestiques."
+},
+{
+"k": "47e15a83",
+"who": "odon",
+"v": 15,
+"t": "Le guet. Ceux-là ne regardent que les uniformes : en livrée, nous sommes des meubles."
+},
+{
+"k": "11a1ba6c",
+"who": "narr",
+"v": 31,
+"t": "L'étage noble. Des tapis qui boivent le bruit des pas, des portraits qui vous suivent des yeux, et une garde qui ne regarde que les galons."
+},
+{
+"k": "0515a652",
+"who": "odon",
+"v": 15,
+"t": "Le secrétariat de la reine est par ici. Toutes les lettres du royaume y passent : c'est là qu'on les lit, ou qu'on décide de ne pas les lire."
+},
+{
+"k": "13a52b86",
+"who": "pepin",
+"v": 13,
+"t": "Et si l'on croise la reine ?"
+},
+{
+"k": "fa865701",
+"who": "aldric",
+"v": 18,
+"t": "On salue, Pépin. Très bas. Cela cache le visage."
+},
+{
+"k": "a9bde120",
+"who": "narr",
+"v": 31,
+"t": "La chancellerie. Ici, on ne fait pas la guerre : on la rédige. Des copistes, des registres, des reîtres payés à la ligne, et au fond, derrière trois portes, l'homme qui a écrit vos aveux."
+},
+{
+"k": "602be5cd",
+"who": "aldric",
+"v": 18,
+"t": "Il a fait graver un second sceau. S'il est quelque part, il est ici."
+},
+{
+"k": "bceaa819",
+"who": "pepin",
+"v": 13,
+"t": "« Colonne : récrite. » Ils ont une colonne pour ça. C'est presque honnête."
+},
+{
+"k": "52d29256",
+"who": "narr",
+"v": 31,
+"t": "Les galeries de sape. Un mois de travail, creusé à la cuillère sous le camp ennemi. Le boisage craque, la terre suinte, et quelque part au-dessus, trois mille hommes dorment sur leur poudre."
+},
+{
+"k": "3acd19af",
+"who": "pepin",
+"v": 13,
+"t": "C'est très bien pensé. C'est terrifiant, mais c'est très bien pensé."
+},
+{
+"k": "99811647",
+"who": "pepin",
+"v": 13,
+"t": "Il y a des gens, là-dedans. Je croyais que c'étaient NOS galeries."
+},
+{
+"k": "ee7d12dd",
+"who": "aubergiste",
+"v": 14,
+"t": "Ma grange est vide, et je dors mieux. S'il en restait un de vivant, vous lui avez dit, pour les onze chopes ?"
+},
+{
+"k": "4ae2e247",
+"who": "aubergiste",
+"v": 14,
+"t": "La grange est derrière l'étable. Frappez fort : ils ont le sommeil lourd et la main leste."
+},
+{
+"k": "386f747d",
+"who": "aubergiste",
+"v": 14,
+"t": "Vous, vous sortez de quelque part d'où l'on ne sort pas. Cela se voit aux poignets. Rassurez-vous : ici, on ne dénonce que les mauvais payeurs."
+},
+{
+"k": "21aba131",
+"who": "aldric",
+"v": 18,
+"t": "Nous cherchons à descendre dans la mine."
+},
+{
+"k": "6b4c4e90",
+"who": "aubergiste",
+"v": 14,
+"t": "Tout le monde veut y descendre, personne n'en remonte l'argent. Le Borgne tient le fond avec ses pillards. Quatre des siens cuvent dans la grange aux dîmes : ils ont la clé du carreau, que ce lâche de bailli leur a remise avec ses compliments."
+},
+{
+"k": "a11e80fd",
+"who": "aldric",
+"v": 18,
+"t": "Dame Alix…"
+},
+{
+"k": "409678af",
+"who": "aubergiste",
+"v": 14,
+"t": "Voilà une phrase que j'attendais depuis la Saint-Michel. Tenez. Et s'il en reste un de vivant, dites-lui qu'il me doit onze chopes."
+},
+{
+"k": "410f01cd",
+"who": "aubergiste",
+"v": 14,
+"t": "Pour vider ma grange ? C'est moi qui devrais payer. Prenez-la, avant que je réfléchisse."
+},
+{
+"k": "b05ec657",
+"who": "taupe",
+"v": 8,
+"t": "Le treuil est au bout, derrière le contremaître. Il cogne fort, mais il s'essouffle : faites-le courir."
+},
+{
+"k": "f9c77c20",
+"who": "taupe",
+"v": 8,
+"t": "Halte ! Encore un pas et je fais tout sauter… Maîtresse Brune ?"
+},
+{
+"k": "ae58b9ab",
+"who": "brune",
+"v": 4,
+"t": "La Taupe. Je te croyais remontée avec les autres."
+},
+{
+"k": "574726f5",
+"who": "taupe",
+"v": 8,
+"t": "Halte ! Encore un pas et je fais tout sauter… Vous n'êtes pas des leurs. Vous êtes trop propres. Enfin, moins sales."
+},
+{
+"k": "c4628c84",
+"who": "taupe",
+"v": 8,
+"t": "Quelqu'un devait garder le treuil. J'ai cadenassé la cage : sans cela, ils auraient remonté tout le filon en une semaine. Tenez, la clé. Le contremaître du Borgne campe devant ; il n'a jamais compris pourquoi ça ne s'ouvrait pas."
+},
+{
+"k": "e1500383",
+"who": "pepin",
+"v": 13,
+"t": "Elle ne vient pas avec nous ?"
+},
+{
+"k": "946edff6",
+"who": "taupe",
+"v": 8,
+"t": "Je suis mineuse, petit. Là-haut, il y a du ciel. Ça me donne le vertige."
+},
+{
+"k": "3a2acc58",
+"who": "messager",
+"v": 27,
+"t": "Enfin ! Je vous cherche depuis quarante-six jours, mon général. Quarante-trois, si l'on retire ceux que j'ai passés dans ce trou."
+},
+{
+"k": "6e2ceeed",
+"who": "aldric",
+"v": 18,
+"t": "Vous me cherchiez ?"
+},
+{
+"k": "4de55664",
+"who": "messager",
+"v": 27,
+"t": "Messager de la reine. Le soir du désastre, Sa Majesté m'a remis un pli pour vous : « Qu'on m'amène Morvane. Je veux l'entendre avant de le croire coupable. » Le chancelier m'a donné une escorte. L'escorte m'a vendu aux brigands."
+},
+{
+"k": "ad2f7541",
+"who": "aldric",
+"v": 18,
+"t": "Ce pli…"
+},
+{
+"k": "d05033f1",
+"who": "messager",
+"v": 27,
+"t": "Le voici. Il a pris l'eau, le rat et l'ennui, mais le sceau est intact. C'est le vrai, celui-là."
+},
+{
+"k": "5e4ea748",
+"who": "messager",
+"v": 27,
+"t": "À pied, par le marais ? … Soit. On m'a déjà fait pire. Prenez tout de même le pli : si je me fais reprendre, il vaut mieux qu'il soit sur vous."
+},
+{
+"k": "29b3ad63",
+"who": "narr",
+"v": 31,
+"t": "Le messager vous remet le pli de la reine, et sa bourse de route, que les brigands n'avaient pas trouvée. Il ne dit pas où il la cachait. On ne demande pas."
+},
+{
+"k": "19907181",
+"who": "brunehaut",
+"v": 21,
+"t": "Je ne vous ai pas vus. Ne me faites pas vous revoir."
+},
+{
+"k": "11f669fa",
+"who": "brunehaut",
+"v": 21,
+"t": "Les plateaux. Bien sûr. Circulez."
+},
+{
+"k": "55cc8b42",
+"who": "brunehaut",
+"v": 21,
+"t": "Halte. Capitaine Brunehaut, garde de la reine. Cette livrée est à la taille d'un page, et vous avez la carrure d'un siège. Qui vous envoie ?"
+},
+{
+"k": "b6b17e40",
+"who": "brunehaut",
+"v": 21,
+"t": "Ysolde. Alors c'est qu'elle a lu quelque chose qui lui a déplu. Passez. Mes gardes ne vous verront pas ; ceux du chancelier, je ne les commande pas, je les supporte."
+},
+{
+"k": "d59dcb75",
+"who": "brunehaut",
+"v": 21,
+"t": "… Je vous ai vu tenir le pont de Sarre avec deux cents hommes. Je n'ai pas vu les lettres ; j'ai vu le pont. Je ne vous ai pas vu ce soir, général. C'est tout ce que je peux faire, et c'est déjà une faute."
+},
+{
+"k": "6628b14e",
+"who": "brunehaut",
+"v": 21,
+"t": "Les plateaux. À quatre, armés, au premier étage. Filez, avant que je ne décide d'y croire encore moins."
+},
+{
+"k": "fc06306c",
+"who": "rodeur",
+"v": 10,
+"t": "Doucement, doucement. Maître Fouine, rat-de-cave. Je ramasse ce que le château laisse tomber, et je le revends à ceux qui tombent après."
+},
+{
+"k": "9b12b3eb",
+"who": "aldric",
+"v": 18,
+"t": "Vous vivez là-dedans."
+},
+{
+"k": "6cfb1de2",
+"who": "rodeur",
+"v": 10,
+"t": "On s'y fait. Un conseil, gratuit, c'est le seul : regardez les murs. Les égoutiers y ont creusé des niches, et il y a des pierres qui s'enfoncent quand on appuie dessus. Tout ce qui brille n'est pas par terre."
+},
+{
+"k": "2cbe7b27",
+"who": "rodeur",
+"v": 10,
+"t": "Et méfiez-vous de Grolard, à la grille de la rivière. Il tape lentement, mais il tape une fois."
+},
+{
+"k": "a7fdc958",
+"who": "passeur",
+"v": 5,
+"t": "Le bac est au bout de la digue, derrière la Vouivre. Derrière, j'ai dit. Pas devant."
+},
+{
+"k": "ad040656",
+"who": "passeur",
+"v": 5,
+"t": "Vous cherchez le bac. Tout le monde cherche le bac. Je suis le passeur, et je ne passe plus personne : la Vouivre a pris la clé, la chaîne et mes rames."
+},
+{
+"k": "7e46b33d",
+"who": "aldric",
+"v": 18,
+"t": "Qui est-elle ?"
+},
+{
+"k": "6b11eb60",
+"who": "passeur",
+"v": 5,
+"t": "Sergente aux arbalétriers, avant le Gué. Quand le duc a fait sonner la charge dans la rivière, elle a dit non, et quatre cents hommes ont dit non derrière elle. Depuis, ils sont déserteurs. Elle, elle dit « survivants »."
+},
+{
+"k": "23b92f03",
+"who": "passeur",
+"v": 5,
+"t": "Tenez, des simples : ses braconniers trempent leurs flèches dans quelque chose. Et si le capitaine Renaud est de vos amis, dites-le-lui. Elle a servi sous lui."
+},
+{
+"k": "499b036f",
+"who": "espionne",
+"v": 6,
+"t": "Filez. Si l'on me voit causer deux fois au même évadé, on me retire la louche."
+},
+{
+"k": "1cd4d577",
+"who": "espionne",
+"v": 6,
+"t": "Pas un geste. Margot, cantinière de Karst. Et, les jours pairs, les yeux de Dame Ysolde. Vous êtes en retard, général : je vous attendais avec la soupe."
+},
+{
+"k": "6c365caf",
+"who": "pepin",
+"v": 13,
+"t": "Il y a de la soupe ?"
+},
+{
+"k": "472c53fb",
+"who": "espionne",
+"v": 6,
+"t": "Il y a mieux. Deux pots à feu de l'arsenal, qu'on ne comptera pas avant demain. Et ceci : le prévôt dort devant la poudrière, la clé à la ceinture. Il se bat avec un écu. Quand il le jette, écartez-vous."
+},
+{
+"k": "908bdc99",
+"who": "aldric",
+"v": 18,
+"t": "Pourquoi nous aider ?"
+},
+{
+"k": "b8064ff9",
+"who": "espionne",
+"v": 6,
+"t": "Parce que Karst paie mal, général, et que la reine paiera peut-être. C'est la différence entre une certitude et un espoir."
+},
+{
+"k": "90703720",
+"who": "ermite",
+"v": 33,
+"t": "La dalle, près de la grille : elle ne laisse pas beaucoup de temps. Et regardez où vous posez les pieds, les veneurs creusent des fosses."
+},
+{
+"k": "43ade908",
+"who": "ermite",
+"v": 33,
+"t": "Doucement. Vous marchez comme une armée. Les loups vous entendent depuis la lisière, et les veneurs de Renaud depuis plus loin encore."
+},
+{
+"k": "4323783d",
+"who": "aldric",
+"v": 18,
+"t": "Vous vivez ici ?"
+},
+{
+"k": "d4b79cee",
+"who": "ermite",
+"v": 33,
+"t": "J'étais grand veneur de la reine. Un jour j'ai dit que le cerf avait gagné. On ne dit pas cela à une reine. Tenez : des simples contre les flèches barbelées, elles sont enduites de quelque chose de sale."
+},
+{
+"k": "bffcadb2",
+"who": "ermite",
+"v": 33,
+"t": "Deux conseils. Renaud respecte deux choses : un homme qui le bat, et un homme dont la parole vaut de l'or. Et sous les racines du vieux chêne, il y a une cache à grille : une dalle, pas loin, la fait remonter. Pas longtemps. Courez."
+},
+{
+"k": "f3d9468e",
+"who": "ysolde",
+"v": 25,
+"t": "L'ordre est parti, général. La garde royale ne marchera pas contre vous. Ne me faites pas regretter ma plus belle écriture."
+},
+{
+"k": "708e2dde",
+"who": "ysolde",
+"v": 25,
+"t": "Nous nous sommes tout dit, général. Bonne chance : c'est gratuit."
+},
+{
+"k": "ea860221",
+"who": "narr",
+"v": 31,
+"t": "Elle détache de sa ceinture la clé de la galerie des portraits. « C'est par là que passent les lettres, général. Et les gens qu'on ne doit pas voir. »"
+},
+{
+"k": "24787e41",
+"who": "ysolde",
+"v": 25,
+"t": "Alors écoutez. La reine ne lit que ce que je pose sur sa table. Demain, elle lira ceci, et un ordre partira pour la garde royale : elle ne suivra pas le chancelier. Pour le reste, il vous faut une preuve. Malvoisin a fait graver un second sceau ; il ne s'en sépare pas."
+},
+{
+"k": "6c69fc74",
+"who": "ysolde",
+"v": 25,
+"t": "Je vois. Vous voulez gagner, pas convaincre. Prenez ceci à l'armurerie de ma part, et ne comptez pas sur moi au-delà : je sers la reine, pas les vainqueurs."
+},
+{
+"k": "e91a04d8",
+"who": "narr",
+"v": 31,
+"t": "Dame Ysolde vous remet un heaume aux armes royales. Elle ne vous remet pas sa confiance."
+},
+{
+"k": "41fefc75",
+"who": "ysolde",
+"v": 25,
+"t": "Un instant. Cette livrée a été taillée pour un homme qui porte des plateaux. Vous, vous portez autre chose. Qui êtes-vous ?"
+},
+{
+"k": "6aa77b65",
+"who": "aldric",
+"v": 18,
+"t": "Madame…"
+},
+{
+"k": "0d532f4a",
+"who": "ysolde",
+"v": 25,
+"t": "Je contresigne quarante pièces par jour, général. Celle-là, je m'en souviens : l'encre du chancelier n'était pas sèche que la sentence était déjà recopiée."
+},
+{
+"k": "48c917e3",
+"who": "aldric",
+"v": 18,
+"t": "Alors vous savez."
+},
+{
+"k": "ade2d171",
+"who": "ysolde",
+"v": 25,
+"t": "Anselme. Pauvre homme. Tenez, quarante écus de la cassette : c'est ce que la cour lui devait, portez-les-lui si vous repassez par les geôles. Ou gardez-les, je ne vérifierai pas."
+},
+{
+"k": "2114ff0a",
+"who": "ysolde",
+"v": 25,
+"t": "Vous mentez avec application, mais vous vous tenez comme un homme qui a commandé dix mille soldats. Général de Morvane, je présume. Je vous croyais plus franc ; la prison vous aura instruit."
+},
+{
+"k": "fc0d1632",
+"who": "aldric",
+"v": 18,
+"t": "Elle instruit."
+},
+{
+"k": "f8e1c9aa",
+"who": "ysolde",
+"v": 25,
+"t": "C'est la première phrase sensée que j'entends ici depuis quarante-six jours. Général de Morvane, donc."
+},
+{
+"k": "25aac1dc",
+"who": "aldric",
+"v": 18,
+"t": "Lui-même."
+},
+{
+"k": "e573f667",
+"who": "chancelier",
+"v": 24,
+"t": "Je ne reçois que sur rendez-vous. Voyez avec Messire Gontran, il tient mon agenda. Et mon couloir."
+},
+{
+"k": "d07c01bc",
+"who": "chancelier",
+"v": 24,
+"t": "Gontran était un investissement. Vous êtes ruineux, général. Combien ? J'ai la caisse de l'État à portée de main, ce qui tombe bien : c'est la mienne."
+},
+{
+"k": "18c9dfce",
+"who": "aldric",
+"v": 18,
+"t": "Malvoisin."
+},
+{
+"k": "28aa8f73",
+"who": "chancelier",
+"v": 24,
+"t": "Vous n'avez donc rien appris. On ne gagne pas avec des preuves, général : on gagne avec des gens qui décident ce qui est prouvé."
+},
+{
+"k": "d7377420",
+"who": "chancelier",
+"v": 24,
+"t": "Ah ! Nous allons nous entendre. Cent vingt écus d'acompte. Vous voyez qu'on peut discuter entre personnes raisonnables."
+},
+{
+"k": "f916c132",
+"who": "narr",
+"v": 31,
+"t": "Il renverse le chandelier, ouvre un panneau de la boiserie et disparaît avec une agilité qu'on ne lui connaissait pas. Sur le bureau, dans la cire encore tiède, il a oublié un morceau de bronze gravé."
+},
+{
+"k": "c8558acb",
+"who": "goupil",
+"v": 32,
+"t": "Tête basse, l'air occupé. Et ne goûtez à rien : c'est un conseil de cuisinière, pas de complice."
+},
+{
+"k": "c2d46c24",
+"who": "goupil",
+"v": 32,
+"t": "Mon petit geôlier ! Et le général, avec toute une suite. Vous avez grossi la troupe : il faudra grossir la soupe."
+},
+{
+"k": "5bc0ad69",
+"who": "pepin",
+"v": 13,
+"t": "Mère Goupil ? Vous n'êtes plus aux geôles ?"
+},
+{
+"k": "1de7e037",
+"who": "goupil",
+"v": 32,
+"t": "On m'a montée aux cuisines du palais, par mérite. Le mérite, c'est que l'ancien cuisinier a goûté un plat destiné au chancelier."
+},
+{
+"k": "8080f3b2",
+"who": "aldric",
+"v": 18,
+"t": "Il nous faut entrer par la porte de service."
+},
+{
+"k": "0bc1c1f8",
+"who": "goupil",
+"v": 32,
+"t": "J'ai la clé des fournisseurs. Je la vends dix écus à tout le monde ; à vous, je la donne, parce que vous êtes les seuls clients qui m'aient jamais dit merci. Entrez en livrée, tête basse, l'air occupé : au palais, personne n'arrête un homme qui a l'air occupé."
+},
+{
+"k": "d09473e9",
+"who": "goupil",
+"v": 32,
+"t": "Mère Goupil, cantinière. Je vends aux gardes, aux prisonniers et aux évadés, sans distinction. La soupe n'a pas d'opinion."
+},
+{
+"k": "6a3fe7c3",
+"who": "pepin",
+"v": 13,
+"t": "Elle ne nous dénoncera pas ?"
+},
+{
+"k": "122f82ff",
+"who": "goupil",
+"v": 32,
+"t": "Dénoncer un client ? J'ai des principes, mon petit. Ils sont affichés, avec les prix."
+},
+{
+"k": "459314f7",
+"who": "anselme",
+"v": 34,
+"t": "Enfin de la visite. Maître Anselme, astrologue de la cour. Ancien astrologue."
+},
+{
+"k": "cb2b3211",
+"who": "aldric",
+"v": 18,
+"t": "Qu'aviez-vous prédit ?"
+},
+{
+"k": "beb18529",
+"who": "anselme",
+"v": 34,
+"t": "Une année calme et prospère. On m'a arrêté le lendemain de la défaite. Notez que, me concernant, l'année est effectivement très calme."
+},
+{
+"k": "65c7b52e",
+"who": "aldric",
+"v": 18,
+"t": "Maître Anselme…"
+},
+{
+"k": "efb182c5",
+"who": "anselme",
+"v": 34,
+"t": "Dehors, on me demanderait des prédictions. Ici, on me laisse en paix. Mais l'offre vous honore : prenez cet onguent, il me rappelle trop l'infirmerie."
+},
+{
+"k": "48ef7b87",
+"who": "anselme",
+"v": 34,
+"t": "Qu'il m'a commandé un horoscope de la reine, puis un second, plus sombre, quand le premier lui a déplu. Un homme qui corrige les astres corrige aussi les lettres. Tenez, un onguent : vous en aurez l'usage avant moi."
+},
+{
+"k": "8432f2eb",
+"who": "anselme",
+"v": 34,
+"t": "Un conseil qui ne doit rien aux étoiles : le sergent porte la clé de la sortie, il frappe fort mais lentement. Et dans le couloir de l'est, juste sous la cantine, une pierre sonne creux."
+},
+{
+"k": "b1edce31",
+"who": "anselme",
+"v": 34,
+"t": "Les astres vous souhaitent bonne chance. Moi aussi, c'est plus sûr."
+},
+{
+"k": "da38c047",
+"who": "fulbert",
+"v": 9,
+"t": "Maître Fulbert, colporteur. Je suivais l'armée ; à présent je suis les pillards. Le commerce est une forme de fidélité."
+},
+{
+"k": "2c26f245",
+"who": "aldric",
+"v": 18,
+"t": "Vous vendez aux brigands."
+},
+{
+"k": "e3535e28",
+"who": "fulbert",
+"v": 9,
+"t": "Et à ceux qui viennent les déloger. Je suis, si l'on veut, des deux côtés de la solution."
+},
+{
+"k": "193281f5",
+"who": "brune",
+"v": 4,
+"t": "Général ? On vous disait pendu. Ou traître. Ou les deux, dans l'ordre qui vous arrange."
+},
+{
+"k": "7a9549f4",
+"who": "aldric",
+"v": 18,
+"t": "Ni l'un ni l'autre, Brune. J'ai une bataille à livrer et personne pour creuser sous l'ennemi."
+},
+{
+"k": "2e8e30a2",
+"who": "brune",
+"v": 4,
+"t": "Et moi j'ai une mine pleine de pillards et un chef borgne qui vide ma réserve. Débarrassez-m'en et je vous suis. Non, tenez, je vous suis tout de suite : sans moi vous allez encore passer par la porte."
+},
+{
+"k": "51a1ac06",
+"who": "pepin",
+"v": 13,
+"t": "Elle est toujours comme ça ?"
+},
+{
+"k": "a823f0c0",
+"who": "aldric",
+"v": 18,
+"t": "Non. D'habitude elle est de mauvaise humeur."
+},
+{
+"k": "6a0938a8",
+"who": "brune",
+"v": 4,
+"t": "Notez ma recette au carnet : le feu grégeois. Avec une fiole d'huile, il traverse un rang entier. La réserve du sud garde un tonnelet de poudre. Et le mur fissuré près de l'entrée, c'est moi : j'y ai muré la paie des mineurs. Le Borgne tient la clé du puits de sortie."
+},
+{
+"k": "fb8879f0",
+"who": "narr",
+"v": 31,
+"t": "Brune la Sapeuse rejoint votre troupe, avec sa pioche et ses opinions."
+},
+{
+"k": "aaa40eb9",
+"who": "barnabe",
+"v": 12,
+"t": "Frère Barnabé, cellérier. Ces messieurs les reîtres ont réquisitionné le réfectoire, le dortoir et la patience du père abbé."
+},
+{
+"k": "bd86ed3b",
+"who": "aldric",
+"v": 18,
+"t": "Nous cherchons Frère Odon."
+},
+{
+"k": "3fa595b5",
+"who": "barnabe",
+"v": 12,
+"t": "Il s'est muré à l'infirmerie. Muré, mon fils, au sens des maçons : cherchez la pierre descellée au fond du cellier. Quant à la chapelle, où loge leur capitaine, la herse se commande du dortoir."
+},
+{
+"k": "504ff8c0",
+"who": "barnabe",
+"v": 12,
+"t": "Nous autres moines aimons les mécanismes. C'est le seul vice que la règle ait oublié d'interdire."
+},
+{
+"k": "13d945dd",
+"who": "odon",
+"v": 15,
+"t": "Ne bougez plus. Vous, le grand : épaule démise en quarante et un, mal remise, pas par moi. Vous, le petit : rien, hélas."
+},
+{
+"k": "857f625c",
+"who": "aldric",
+"v": 18,
+"t": "Odon. J'ai besoin de mon chirurgien."
+},
+{
+"k": "826c74e9",
+"who": "odon",
+"v": 15,
+"t": "Et moi j'avais besoin de silence. J'ai recousu deux mille hommes pour qu'on les renvoie se faire découdre. On s'en lasse."
+},
+{
+"k": "7ee8504a",
+"who": "aldric",
+"v": 18,
+"t": "Odon…"
+},
+{
+"k": "04618f55",
+"who": "odon",
+"v": 15,
+"t": "Ils disent tous cela. Vous, au moins, vous le dites mal : c'est bon signe."
+},
+{
+"k": "f5f70d7c",
+"who": "odon",
+"v": 15,
+"t": "Argument déplaisant, donc recevable."
+},
+{
+"k": "cae2a470",
+"who": "pepin",
+"v": 13,
+"t": "Ah bon ?"
+},
+{
+"k": "9276b700",
+"who": "odon",
+"v": 15,
+"t": "Montrez. … C'est l'orgueil. Incurable, mais on vit très vieux avec."
+},
+{
+"k": "fa34c2c0",
+"who": "odon",
+"v": 15,
+"t": "Soit. Mais on fera à ma manière : personne ne meurt sans mon autorisation."
+},
+{
+"k": "b2b348be",
+"who": "narr",
+"v": 31,
+"t": "Frère Odon rejoint votre troupe. Il apporte sa thériaque, qui guérit de tout, et ses remarques, dont on ne guérit pas."
+},
+{
+"k": "346fb496",
+"who": "narr",
+"v": 31,
+"t": "La grille s'ouvre sur la rivière, puis sur la campagne. À trois jours de marche vers le nord, il y a Val-Griset : un village, une mine d'argent, et la seule personne du royaume capable de faire tomber un rempart sans le toucher."
+},
+{
+"k": "95dc10b1",
+"who": "pepin",
+"v": 13,
+"t": "De l'air. Je ne pensais pas qu'on pouvait regretter une odeur, et pourtant je sens que celle-là va me manquer. Non. Finalement non."
+},
+{
+"k": "cfbb57f7",
+"who": "narr",
+"v": 31,
+"t": "La grille du carreau grince sur ses gonds. Derrière, la galerie d'entrée s'enfonce dans la montagne, avec cette patience des trous qui ont tout leur temps."
+},
+{
+"k": "1440aeb8",
+"who": "pepin",
+"v": 13,
+"t": "Une mine. Après les geôles et les égouts. Je note une tendance, mon général : nous descendons."
+},
+{
+"k": "4344dfe6",
+"who": "aldric",
+"v": 18,
+"t": "C'est provisoire, Pépin."
+},
+{
+"k": "305ec062",
+"who": "pepin",
+"v": 13,
+"t": "C'est ce qu'on m'avait dit pour le poste de geôlier."
+},
+{
+"k": "ba0973fe",
+"who": "narr",
+"v": 31,
+"t": "Le treuil grince, hésite, puis vous arrache à la nuit. En haut, il y a du vent, des sapins, et au loin les cloches de Saint-Aubert-des-Brumes, qui sonnent n'importe comment."
+},
+{
+"k": "af9c1d23",
+"who": "aldric",
+"v": 18,
+"t": "Des cloches qui sonnent faux. Odon est là-haut, et il n'a jamais supporté cela. S'il laisse faire, c'est qu'on l'en empêche."
+},
+{
+"k": "8b568ef8",
+"who": "narr",
+"v": 31,
+"t": "La poterne de la crypte donne sur la montagne. Derrière vous, les cloches de Saint-Aubert sonnent, juste cette fois : les moines ont repris leur clocher."
+},
+{
+"k": "6cde32c8",
+"who": "odon",
+"v": 15,
+"t": "Récapitulons. Un général condamné, une sapeuse irascible, un moine fatigué et un geôlier."
+},
+{
+"k": "d786d7f7",
+"who": "pepin",
+"v": 13,
+"t": "Ancien geôlier."
+},
+{
+"k": "81eaa50f",
+"who": "aldric",
+"v": 18,
+"t": "Il manque Renaud, qui tient les bois de Brocevaux avec ses cavaliers, et Dame Ysolde, à la cour. Ensuite, nous aurons une armée."
+},
+{
+"k": "5d4df11a",
+"who": "pepin",
+"v": 13,
+"t": "Et au bout, il y a une bataille. Je me disais aussi qu'il manquait quelque chose."
+},
+{
+"k": "7a4656bb",
+"who": "narr",
+"v": 31,
+"t": "La barrière de rondins pivote. Au-delà, la route royale file vers Castelroc, entre deux rangs de peupliers que personne n'a encore songé à imposer."
+},
+{
+"k": "4d1845c9",
+"who": "pepin",
+"v": 13,
+"t": "On retourne au château. D'où l'on s'est évadés. Je voudrais être sûr d'avoir bien compris le plan."
+},
+{
+"k": "4d87f3dc",
+"who": "aldric",
+"v": 18,
+"t": "On n'y retourne pas, Pépin. On y entre. C'est tout différent : cette fois, c'est nous qui choisissons la porte."
+},
+{
+"k": "41f616f0",
+"who": "narr",
+"v": 31,
+"t": "Encore faut-il y arriver. La chaussée est gardée par les gens du chancelier ; reste le marais de la Morte-Eau, que personne ne garde, pour d'excellentes raisons."
+},
+{
+"k": "02fc54b0",
+"who": "narr",
+"v": 31,
+"t": "Le bac glisse sur l'eau noire. Sur l'autre rive, par-dessus les saules, les tours de Castelroc, et à leur pied les toits serrés des faubourgs."
+},
+{
+"k": "356a0d67",
+"who": "pepin",
+"v": 13,
+"t": "On revient par où on est partis. Je voudrais qu'il soit noté que j'avais proposé de ne pas partir."
+},
+{
+"k": "2d36f821",
+"who": "narr",
+"v": 31,
+"t": "La clé des fournisseurs tourne sans bruit : Mère Goupil graisse ses serrures comme ses poêles. Derrière la porte, une odeur de bouillon, et tout le palais au-dessus."
+},
+{
+"k": "98343a75",
+"who": "narr",
+"v": 31,
+"t": "La porte dérobée de la chancellerie donne sur les écuries, et les écuries sur la route du nord. Malvoisin l'a prise une heure avant vous, avec la caisse et une escorte."
+},
+{
+"k": "0321d06d",
+"who": "narr",
+"v": 31,
+"t": "Vous emportez la matrice du faux sceau. C'est peu de chose, un morceau de bronze ; c'est assez pour défaire un chancelier."
+},
+{
+"k": "cf755b37",
+"who": "narr",
+"v": 31,
+"t": "Vous n'avez pas la preuve. Il vous reste la méthode ancienne : avoir raison les armes à la main."
+},
+{
+"k": "444b4e90",
+"who": "narr",
+"v": 31,
+"t": "Trois jours plus tard, à une lieue du Gué-aux-Corbeaux. L'armée de Karst campe sur l'autre rive, le chancelier dans ses bagages. Les galeries de sape creusées avant votre arrestation passent toujours sous la poudrière ennemie."
+},
+{
+"k": "7dd16475",
+"who": "odon",
+"v": 15,
+"t": "Entrer de nuit dans le camp de l'ennemi. Je recommande de ne pas mourir : c'est mon avis de médecin, et j'y tiens."
+},
+{
+"k": "894103f7",
+"who": "narr",
+"v": 31,
+"t": "La poudrière de Karst. Deux cents barils, alignés comme à la parade. Sous le troisième rang, une trappe que vos sapeurs ont posée le mois dernier, et que personne n'a remarquée depuis."
+},
+{
+"k": "2e14f5a7",
+"who": "pepin",
+"v": 13,
+"t": "Et on ressort par où ?"
+},
+{
+"k": "25a43069",
+"who": "narr",
+"v": 31,
+"t": "Le rameau débouche dans un fossé, à deux cents pas du camp. Derrière vous, sous la terre, trois petites flammes cheminent sans se presser."
+},
+{
+"k": "2bf50c8d",
+"who": "pepin",
+"v": 13,
+"t": "Et nous, à la troisième vague, on sera où ?"
+},
+{
+"k": "baedac81",
+"who": "aldric",
+"v": 18,
+"t": "Au gué, Pépin. Devant."
+},
+{
+"k": "72256139",
+"who": "renaud",
+"v": 28,
+"t": "On m'avait dit que vous aviez rendu votre épée sans discuter, la veille du Gué. J'ai pensé : il est fini. Puis : il est le seul à qui cela a coûté quelque chose. Soit. Votre parole me suffit, elle a toujours été plus solide que la solde."
+},
+{
+"k": "1c0dd16a",
+"who": "renaud",
+"v": 28,
+"t": "Voilà qui est parler. Notez que je vous aurais suivi pour soixante."
+},
+{
+"k": "1dddc35c",
+"who": "renaud",
+"v": 28,
+"t": "Un homme qui cogne encore comme ça n'a pas vendu de plan à l'ennemi : il n'en aurait pas eu besoin. Brocevaux est à vous, mon général. Les chevaux aussi."
+},
+{
+"k": "40361257",
+"who": "grolard",
+"v": 35,
+"t": "Vingt-cinq. Pour ce prix-là, je n'ai même pas vu mes propres pieds depuis dix ans. La clé est là. Bon vent, si l'on peut dire."
+},
+{
+"k": "19d08436",
+"who": "grolard",
+"v": 35,
+"t": "Fermier général. Avec un sceau ? … Vous avez une tête à tenir parole, ce qui se perd. Prenez la clé. Et n'oubliez pas le sceau."
+},
+{
+"k": "c9d9f108",
+"who": "narr",
+"v": 31,
+"t": "On raconte déjà, dans les auberges, qu'un général déchu rend leur honneur à ceux qu'il croise."
+},
+{
+"k": "3e850b09",
+"who": "narr",
+"v": 31,
+"t": "On raconte déjà, dans les auberges, qu'un général déchu achète ce qu'il ne peut pas enfoncer. Ce n'est pas faux, et cela marche."
+},
+{
+"k": "ae252f88",
+"who": "narr",
+"v": 31,
+"t": "On commence à raconter, dans les auberges, qu'un général déchu rassemble ses fidèles."
+},
+{
+"k": "3a0c8d55",
+"who": "messager",
+"v": 27,
+"t": "Majesté. Le Gué-aux-Corbeaux est perdu. Sept mille hommes, le pont, les bagages. Le duc de Fierbois a tenu à commander lui-même. Il a tenu une heure."
+},
+{
+"k": "46153b0d",
+"who": "messager",
+"v": 27,
+"t": "Arrêté la veille, Majesté. Par votre ordre, sous le sceau du chancelier."
+},
+{
+"k": "144b1eb9",
+"who": "Le faussaire",
+"v": 29,
+"t": "L'écriture du général, monseigneur, à s'y méprendre. J'ai même reproduit ses fautes. Il en fait peu ; j'en ai ajouté, pour le naturel."
+},
+{
+"k": "36974fe3",
+"who": "brune",
+"v": 4,
+"t": "Cela sent le piège à trois lieues. Regardez où vous mettez les pieds, et surtout où les autres ne les ont pas mis."
+},
+{
+"k": "7773cec1",
+"who": "odon",
+"v": 15,
+"t": "Cela sent le piège à trois lieues. Regardez où vous mettez les pieds, et surtout où les autres ne les ont pas mis."
+},
+{
+"k": "059b7478",
+"who": "brune",
+"v": 4,
+"t": "La tailleuse vend des livrées du palais. « Pour les domestiques qui ont usé la leur. » Je ne poserai pas de questions."
+},
+{
+"k": "0ec2e2ca",
+"who": "odon",
+"v": 15,
+"t": "La tailleuse vend des livrées du palais. « Pour les domestiques qui ont usé la leur. » Je ne poserai pas de questions."
+},
+{
+"k": "e9ea4a4c",
+"who": "brune",
+"v": 4,
+"t": "Il y a une cloche d'alarme dans la salle des gardes. Si l'un d'eux la sonne avant que nous y soyons, tout l'étage nous tombe dessus."
+},
+{
+"k": "1c8303a2",
+"who": "odon",
+"v": 15,
+"t": "Il y a une cloche d'alarme dans la salle des gardes. Si l'un d'eux la sonne avant que nous y soyons, tout l'étage nous tombe dessus."
+},
+{
+"k": "3aab9efa",
+"who": "brune",
+"v": 4,
+"t": "Cela sent l'encre et le coup fourré."
+},
+{
+"k": "ac3d9c70",
+"who": "odon",
+"v": 15,
+"t": "Cela sent l'encre et le coup fourré."
+},
+{
+"k": "dd54acbf",
+"who": "brune",
+"v": 4,
+"t": "Trois mèches lentes, une par chambre. Quand la troisième brûle, la sortie du rameau s'ouvre : tout est lié au même contrepoids, pour que personne ne parte avant d'avoir fini."
+},
+{
+"k": "b7697c62",
+"who": "aldric",
+"v": 18,
+"t": "Trois mèches lentes, une par chambre. Quand la troisième brûle, la sortie du rameau s'ouvre : tout est lié au même contrepoids, pour que personne ne parte avant d'avoir fini."
+},
+{
+"k": "e67c22dc",
+"who": "brune",
+"v": 4,
+"t": "Des contre-mineurs de Karst. Ils nous cherchent depuis un mois. Ils creusent très mal."
+},
+{
+"k": "f01c9191",
+"who": "aldric",
+"v": 18,
+"t": "Des contre-mineurs de Karst. Ils nous cherchent depuis un mois. Ils creusent très mal."
+},
+{
+"k": "ff1ff4e9",
+"who": "brune",
+"v": 4,
+"t": "Ou qu'il est devenu sourd. À force de vous écouter."
+},
+{
+"k": "e31daca1",
+"who": "pepin",
+"v": 13,
+"t": "Ou qu'il est devenu sourd. À force de vous écouter."
+},
+{
+"k": "be4eb771",
+"who": "brune",
+"v": 4,
+"t": "Les cuisines. Personne ne regarde jamais qui entre par les cuisines."
+},
+{
+"k": "4738ad97",
+"who": "odon",
+"v": 15,
+"t": "Les cuisines. Personne ne regarde jamais qui entre par les cuisines."
+},
+{
+"k": "3df7a64c",
+"who": "brune",
+"v": 4,
+"t": "Trois chambres de mine, trois mèches. Il faut les allumer toutes : une seule, cela ferait du bruit ; trois, cela fait une victoire."
+},
+{
+"k": "00535973",
+"who": "aldric",
+"v": 18,
+"t": "Trois chambres de mine, trois mèches. Il faut les allumer toutes : une seule, cela ferait du bruit ; trois, cela fait une victoire."
+},
+{
+"k": "1c9757c5",
+"who": "brune",
+"v": 4,
+"t": "Par l'autre bout. En principe."
+},
+{
+"k": "d0f62ff0",
+"who": "aldric",
+"v": 18,
+"t": "Par l'autre bout. En principe."
+},
+{
+"k": "30ae938e",
+"who": "brune",
+"v": 4,
+"t": "Trois heures de mèche lente. Cela sautera à la troisième vague, à peu près. Ne me demandez pas plus précis : c'est de l'artisanat."
+},
+{
+"k": "7b9a178b",
+"who": "aldric",
+"v": 18,
+"t": "Trois heures de mèche lente. Cela sautera à la troisième vague, à peu près. Ne me demandez pas plus précis : c'est de l'artisanat."
+},
+{
+"k": "d9f1d3b7",
+"who": "aldric",
+"v": 18,
+"t": "Mes trois victoires parlent pour moi, Majesté. Ce sont les seules, à cette cour, à n'avoir rien demandé en échange."
+},
+{
+"k": "73f22f1a",
+"who": "aldric",
+"v": 18,
+"t": "J'ai chargé en tête à chaque bataille, Majesté. Si j'avais voulu vous trahir, je serais resté derrière, avec vos ducs."
+},
+{
+"k": "1ca2d1fc",
+"who": "aldric",
+"v": 18,
+"t": "Ces lettres sont fausses, Majesté, et mal imitées : je n'ai jamais écrit une ligne sans faute d'accord."
+},
+{
+"k": "a96766f0",
+"who": "aldric",
+"v": 18,
+"t": "Faites voir le sceau, Majesté : cette cire n'a pas huit jours, et la lettre en avoue quarante."
+},
+{
+"k": "abe7d676",
+"who": "chancelier",
+"v": 24,
+"t": "Elles parlent, en effet. Mais elles ne sont pas citées à comparaître."
+},
+{
+"k": "607406c1",
+"who": "chancelier",
+"v": 24,
+"t": "L'accusé insulte la noblesse en pleine audience. Qu'on l'ajoute à l'acte."
+},
+{
+"k": "acb924f4",
+"who": "chancelier",
+"v": 24,
+"t": "L'accusé se défend en invoquant sa propre ignorance. C'est habile, et pour une fois vraisemblable."
+},
+{
+"k": "4c8ae65b",
+"who": "chancelier",
+"v": 24,
+"t": "Le général se pique de chimie. Nous l'ignorions. La cire aussi, manifestement."
+},
+{
+"k": "05db0c2b",
+"who": "narr",
+"v": 31,
+"t": "Une chambre, un bouillon, et personne pour demander d'où vous venez."
+},
+{
+"k": "d72457f2",
+"who": "forgeronne",
+"v": 11,
+"t": "Tout ce qui coupe est à gauche. Tout ce qui protège est à droite. Tout ce qui discute est dehors."
+},
+{
+"k": "fc6c131f",
+"who": "forgeronne",
+"v": 11,
+"t": "Je forge pour les mineurs. Les mineurs sont partis. Il me reste les héros : c'est moins régulier."
+},
+{
+"k": "4a5c9602",
+"who": "forgeronne",
+"v": 11,
+"t": "Trempé par moi. Si ça casse, c'est que vous avez mal tapé."
+},
+{
+"k": "1d287e89",
+"who": "forgeronne",
+"v": 11,
+"t": "Bon fer. Ne le prêtez pas."
+},
+{
+"k": "f2eb90f2",
+"who": "forgeronne",
+"v": 11,
+"t": "Vous verrez : on s'y attache. Surtout l'adversaire."
+},
+{
+"k": "7cd1f340",
+"who": "forgeronne",
+"v": 11,
+"t": "Je reprends au poids. Votre gloire ne pèse rien."
+},
+{
+"k": "aaec6eb1",
+"who": "forgeronne",
+"v": 11,
+"t": "Ça se reforge. Tout se reforge, sauf les idiots."
+},
+{
+"k": "0d4168d2",
+"who": "forgeronne",
+"v": 11,
+"t": "Le fer, ça se paie en argent. Ironique, pour un village de mineurs."
+},
+{
+"k": "379ced8c",
+"who": "forgeronne",
+"v": 11,
+"t": "Revenez avec des écus, ou avec une enclume."
+},
+{
+"k": "b0f62c9a",
+"who": "herboriste",
+"v": 23,
+"t": "Des simples pour les plaies, de l'huile pour la lampe, du vin pour le reste."
+},
+{
+"k": "60f32de8",
+"who": "herboriste",
+"v": 23,
+"t": "Tout est cueilli à la main. La mienne, hélas : les autres ont fui."
+},
+{
+"k": "3d976dae",
+"who": "herboriste",
+"v": 23,
+"t": "Trois fois par jour, ou une seule si c'est grave."
+},
+{
+"k": "1f6b12c4",
+"who": "herboriste",
+"v": 23,
+"t": "Ça ne guérit pas de la bêtise, mais ça referme ce qu'elle ouvre."
+},
+{
+"k": "cfa52359",
+"who": "herboriste",
+"v": 23,
+"t": "Amer ? C'est que ça marche."
+},
+{
+"k": "dd9aef14",
+"who": "herboriste",
+"v": 23,
+"t": "Je prends. Tout finit en tisane."
+},
+{
+"k": "a5ad8709",
+"who": "herboriste",
+"v": 23,
+"t": "La moitié, et un conseil gratuit : buvez moins."
+},
+{
+"k": "01fd456c",
+"who": "herboriste",
+"v": 23,
+"t": "La santé n'a pas de prix. Mes herbes, si."
+},
+{
+"k": "d0996682",
+"who": "herboriste",
+"v": 23,
+"t": "Je soigne à crédit les gens qui ont l'air de revenir. Vous…"
+},
+{
+"k": "b932bf40",
+"who": "tailleuse",
+"v": 30,
+"t": "Livrées du palais, coupe réglementaire. Pour les domestiques qui ont usé la leur, bien entendu."
+},
+{
+"k": "3a9c22fd",
+"who": "tailleuse",
+"v": 30,
+"t": "Je prends les mesures à l'œil. Vous, c'est une taille de général. Je n'ai rien dit."
+},
+{
+"k": "1d64ba39",
+"who": "tailleuse",
+"v": 30,
+"t": "Elle tombe bien. Tenez-vous voûté, vous aurez l'air d'être de la maison."
+},
+{
+"k": "04800960",
+"who": "tailleuse",
+"v": 30,
+"t": "Cousu double. Les fuites, ça use les coutures."
+},
+{
+"k": "30f6001e",
+"who": "tailleuse",
+"v": 30,
+"t": "Vous voilà invisible, ou presque : c'est le principe de l'uniforme."
+},
+{
+"k": "7dd89889",
+"who": "tailleuse",
+"v": 30,
+"t": "Je reprends, je retourne, je revends. Le tissu a plusieurs vies."
+},
+{
+"k": "e7bf09fe",
+"who": "tailleuse",
+"v": 30,
+"t": "Moitié prix. La doublure a vécu."
+},
+{
+"k": "5d0b4497",
+"who": "tailleuse",
+"v": 30,
+"t": "L'élégance est un luxe. La discrétion aussi, apparemment."
+},
+{
+"k": "67e8df29",
+"who": "tailleuse",
+"v": 30,
+"t": "Revenez quand vous aurez de quoi vous cacher."
+},
+{
+"k": "ffb2728f",
+"who": "aubergiste",
+"v": 14,
+"t": "On mange, on dort, on paie. Dans l'ordre qu'on veut, sauf le dernier."
+},
+{
+"k": "e1022fdd",
+"who": "aubergiste",
+"v": 14,
+"t": "Servi."
+},
+{
+"k": "6e04a0c1",
+"who": "aubergiste",
+"v": 14,
+"t": "Je prends."
+},
+{
+"k": "0d945598",
+"who": "aubergiste",
+"v": 14,
+"t": "Pas d'écus, pas de soupe."
+},
+{
+"k": "63f62bc7",
+"who": "rodeur",
+"v": 10,
+"t": "Tout vient d'en haut, messire. Le château jette beaucoup. Moi, je trie."
+},
+{
+"k": "d2ff8ae9",
+"who": "rodeur",
+"v": 10,
+"t": "Marchandise garantie tombée du ciel. Enfin, du conduit."
+},
+{
+"k": "b6082da3",
+"who": "rodeur",
+"v": 10,
+"t": "Rincé deux fois. Presque."
+},
+{
+"k": "c780e6b3",
+"who": "rodeur",
+"v": 10,
+"t": "Vous avez l'œil. Lui aussi en avait un, celui qui l'a perdu."
+},
+{
+"k": "bb1e642c",
+"who": "rodeur",
+"v": 10,
+"t": "C'est de la qualité : ça a flotté."
+},
+{
+"k": "f46b758a",
+"who": "rodeur",
+"v": 10,
+"t": "Je prends. En bas, tout finit par servir."
+},
+{
+"k": "570b57dd",
+"who": "rodeur",
+"v": 10,
+"t": "Moitié prix. L'odeur est offerte."
+},
+{
+"k": "450fb64a",
+"who": "rodeur",
+"v": 10,
+"t": "Pas d'écus, pas de marché. Même ici, on a des usages."
+},
+{
+"k": "89b31d30",
+"who": "rodeur",
+"v": 10,
+"t": "Revenez quand vous aurez fouillé les niches."
+},
+{
+"k": "a9d194b9",
+"who": "goupil",
+"v": 32,
+"t": "Regardez sans toucher. Enfin si, touchez, mais payez."
+},
+{
+"k": "3f6d3e06",
+"who": "goupil",
+"v": 32,
+"t": "La maison ne fait pas crédit. La maison a connu des généraux."
+},
+{
+"k": "e58571a5",
+"who": "goupil",
+"v": 32,
+"t": "Bon choix. C'est le seul que j'avais."
+},
+{
+"k": "ccd58289",
+"who": "goupil",
+"v": 32,
+"t": "Ça vous durera toute la vie, selon l'usage que vous en ferez."
+},
+{
+"k": "c0bccf7f",
+"who": "goupil",
+"v": 32,
+"t": "Payé comptant : vous irez loin, ou du moins vous partirez équipé."
+},
+{
+"k": "c6a7a0a5",
+"who": "goupil",
+"v": 32,
+"t": "Je vous en donne la moitié, et c'est parce que vous avez une bonne tête."
+},
+{
+"k": "70ac0414",
+"who": "goupil",
+"v": 32,
+"t": "D'occasion, donc. Je dirai qu'il a appartenu à un héros."
+},
+{
+"k": "44eb6fd5",
+"who": "goupil",
+"v": 32,
+"t": "Revenez avec des écus, mon petit. Les principes sont affichés."
+},
+{
+"k": "a421a333",
+"who": "goupil",
+"v": 32,
+"t": "À ce prix-là, je vous vends le droit de regarder."
+},
+{
+"k": "3aa8506d",
+"who": "fulbert",
+"v": 9,
+"t": "Tout est garanti, messire. Je ne précise pas contre quoi."
+},
+{
+"k": "daa3b8ae",
+"who": "fulbert",
+"v": 9,
+"t": "J'ai de tout, et pour tous les camps. Aujourd'hui, c'est le vôtre."
+},
+{
+"k": "8f0fbc52",
+"who": "fulbert",
+"v": 9,
+"t": "Excellent achat. Le précédent propriétaire n'en a plus l'usage."
+},
+{
+"k": "eeec404a",
+"who": "fulbert",
+"v": 9,
+"t": "Vous ne le regretterez pas. Je serai loin."
+},
+{
+"k": "62b8185d",
+"who": "fulbert",
+"v": 9,
+"t": "Adjugé. Je vous l'emballe dans un prospectus."
+},
+{
+"k": "817ad478",
+"who": "fulbert",
+"v": 9,
+"t": "Je reprends, je reprends. À la moitié, c'est de l'amitié."
+},
+{
+"k": "bb69b1d8",
+"who": "fulbert",
+"v": 9,
+"t": "Je connais justement un pillard qui en cherche un."
+},
+{
+"k": "7b26c092",
+"who": "fulbert",
+"v": 9,
+"t": "Votre bourse sonne creux, messire. Comme les promesses de la cour."
+},
+{
+"k": "fbdf6e8a",
+"who": "fulbert",
+"v": 9,
+"t": "Je fais crédit aux vainqueurs. Revenez après."
+},
+{
+"k": "d9fe5079",
+"who": "barnabe",
+"v": 12,
+"t": "Le produit de la vente va aux pauvres. C'est-à-dire, ces temps-ci, à nous."
+},
+{
+"k": "da166289",
+"who": "barnabe",
+"v": 12,
+"t": "Prenez, mon fils. Le prix est une forme de pénitence."
+},
+{
+"k": "ed9e8e4a",
+"who": "barnabe",
+"v": 12,
+"t": "Dieu vous le rende. Moi, je ne rends pas la monnaie."
+},
+{
+"k": "70b48d0e",
+"who": "barnabe",
+"v": 12,
+"t": "Béni soit l'acheteur. Bénie soit la marge."
+},
+{
+"k": "0779cd22",
+"who": "barnabe",
+"v": 12,
+"t": "Usez-en avec modération. Je dis cela pour la forme."
+},
+{
+"k": "66edadf6",
+"who": "barnabe",
+"v": 12,
+"t": "Nous acceptons les dons. Les vôtres seront rétribués à moitié."
+},
+{
+"k": "3adcb497",
+"who": "barnabe",
+"v": 12,
+"t": "Le monastère en fera bon usage, ou bon commerce."
+},
+{
+"k": "66d6a5de",
+"who": "barnabe",
+"v": 12,
+"t": "La charité a ses limites, mon fils. Elles sont inscrites au registre."
+},
+{
+"k": "5ca4becd",
+"who": "barnabe",
+"v": 12,
+"t": "Priez pour vos finances. Je prierai pour les miennes."
+},
+{
+"k": "ab56ff9b",
+"who": "forgeronne",
+"v": 11,
+"t": "Les gens du Borgne ne portent que du cuir. Ce qui tranche les traverse ; ce qui cogne les fatigue à peine."
+},
+{
+"k": "0822626a",
+"who": "forgeronne",
+"v": 11,
+"t": "Une armure de plates se moque des lames. Il faut cogner dessus, avec quelque chose de lourd et de mal élevé."
+},
+{
+"k": "8e767b94",
+"who": "forgeronne",
+"v": 11,
+"t": "Dans la mine, les parois rongées par l'eau cèdent à la pioche. J'en ai vendu trois. Aucune n'est revenue, les mineurs non plus."
+},
+{
+"k": "e3da8e89",
+"who": "forgeronne",
+"v": 11,
+"t": "On m'a commandé douze fers de lance pour « un seigneur de passage ». Payés en monnaie de Karst. Je n'ai pas posé de question : j'ai doublé le prix."
+},
+{
+"k": "238ae2ee",
+"who": "herboriste",
+"v": 23,
+"t": "Le poison des rats ne tue pas : il empêche de guérir. Mes simples le chassent ; le repos, non."
+},
+{
+"k": "e8636b22",
+"who": "herboriste",
+"v": 23,
+"t": "Les niches dans les murs, messire. Les anciens y cachaient ce qu'ils ne voulaient pas boire tout de suite."
+},
+{
+"k": "e79078f5",
+"who": "herboriste",
+"v": 23,
+"t": "Une lanterne sans huile éclaire à deux pas. Dans la mine, deux pas, c'est la distance d'une trappe."
+},
+{
+"k": "4e1753b5",
+"who": "herboriste",
+"v": 23,
+"t": "Le frère Odon venait m'acheter de la sauge. Il la payait en sermons. Je préférais quand il était pressé."
+},
+{
+"k": "98e6bb24",
+"who": "tailleuse",
+"v": 30,
+"t": "Si toute la troupe porte la livrée, la garde royale ne voit que des domestiques. La garde ne regarde jamais les domestiques."
+},
+{
+"k": "97df6a1d",
+"who": "tailleuse",
+"v": 30,
+"t": "Le chancelier fait retoucher ses manches chaque mois. Il y cache des lettres. Je le sais : je fais les poches."
+},
+{
+"k": "ff21a520",
+"who": "tailleuse",
+"v": 30,
+"t": "À l'étage noble, les médaillons des murs s'enfoncent dans un ordre. L'ordre est celui des rois. Personne ne le sait plus, sauf les tapisseries."
+},
+{
+"k": "12cc6d9f",
+"who": "tailleuse",
+"v": 30,
+"t": "Messire Gontran porte une armure que j'ai doublée moi-même. Elle ne craint que les coups qui ne tranchent pas."
+},
+{
+"k": "c20505ab",
+"who": "aubergiste",
+"v": 14,
+"t": "On dit que la reine relit chaque soir trois lettres, et qu'elle les trouve un peu trop bien écrites."
+},
+{
+"k": "1fc45b45",
+"who": "aubergiste",
+"v": 14,
+"t": "Un colporteur est passé, un nommé Fulbert. Il vend aux deux camps, au même prix : c'est sa manière d'être honnête."
+},
+{
+"k": "f51f11dc",
+"who": "aubergiste",
+"v": 14,
+"t": "Les loups de Brocevaux chassent en meute. Qui en frappe un les entend tous arriver."
+},
+{
+"k": "d33d7d4a",
+"who": "aubergiste",
+"v": 14,
+"t": "Ne dormez pas dehors quand on vous cherche. Ici, personne ne compte les lits ; dehors, tout le monde compte les têtes."
+},
+{
+"k": "4e7150ff",
+"who": "goupil",
+"v": 32,
+"t": "Le sergent recompte ses clés chaque soir. Il a les clés, mon petit, mais c'est moi qui ai la soupe."
+},
+{
+"k": "cd91ed32",
+"who": "goupil",
+"v": 32,
+"t": "Les gardes crient avant de frapper. Qui en cogne un en voit venir trois : choisissez vos couloirs."
+},
+{
+"k": "8543b926",
+"who": "goupil",
+"v": 32,
+"t": "Il y a des pierres qui tournent, dans ces geôles. Les maçons étaient payés à la tâche, et mal."
+},
+{
+"k": "8fc278f3",
+"who": "goupil",
+"v": 32,
+"t": "Une fronde ne casse rien, mais elle frappe de loin. De loin, c'est un bon endroit pour être."
+},
+{
+"k": "2702cfea",
+"who": "fulbert",
+"v": 9,
+"t": "Je vends aux deux camps, messire. Karst paie mieux ; vous, vous discutez mieux. Ça s'équilibre."
+},
+{
+"k": "16347f37",
+"who": "fulbert",
+"v": 9,
+"t": "Les sentinelles de Karst ont une corne. Faites-les taire avant qu'elles soufflent, ou préparez-vous à recevoir."
+},
+{
+"k": "4678dc49",
+"who": "fulbert",
+"v": 9,
+"t": "Un pot à feu lancé dans une case pleine règle bien des désaccords. Je dis ça, j'en ai six."
+},
+{
+"k": "90db12bf",
+"who": "fulbert",
+"v": 9,
+"t": "Les dalles qui cliquettent ferment des herses à la minute. Courez d'abord, admirez ensuite."
+},
+{
+"k": "38754bf8",
+"who": "barnabe",
+"v": 12,
+"t": "Sous l'abbaye, les cloches de la crypte se sonnent dans l'ordre des offices. Matines d'abord, mon fils. Toujours matines."
+},
+{
+"k": "b6fd4099",
+"who": "barnabe",
+"v": 12,
+"t": "Les reîtres de Hagen sont payés au mois. Nous sommes le vingt-huit : ils se battent encore, mais ils calculent."
+},
+{
+"k": "0efe0f0a",
+"who": "barnabe",
+"v": 12,
+"t": "Les pilleurs de tombes fuient le feu. Dieu me pardonne de le savoir d'expérience."
+},
+{
+"k": "0f385ca9",
+"who": "barnabe",
+"v": 12,
+"t": "Le frère Odon recousait les soldats des deux armées. L'évêque a trouvé cela excessif. Les soldats, non."
+},
+{
+"k": "8fff67d7",
+"who": "rodeur",
+"v": 10,
+"t": "Les ragondins attaquent depuis l'eau. Marchez au sec, messire, ou marchez vite."
+},
+{
+"k": "a1d80bf6",
+"who": "rodeur",
+"v": 10,
+"t": "Maître Grolard tient le collecteur. Il aime les promesses : il les fait encadrer."
+},
+{
+"k": "23ce19b6",
+"who": "rodeur",
+"v": 10,
+"t": "Il y a des grilles qu'une vanne ouvre, trois couloirs plus loin. Le château n'a jamais su ranger ses leviers."
+},
+{
+"k": "f185eeb1",
+"who": "rodeur",
+"v": 10,
+"t": "Ce qui tombe du palais finit ici. J'ai trouvé une couronne, une fois. Fausse. Comme beaucoup de choses là-haut."
+},
+{
+"k": "12b2404d",
+"who": "herboriste",
+"v": 23,
+"t": "Du fer ? Je soigne ce que ça fait, je ne le vends pas. Enfin… à ce prix-là, si."
+},
+{
+"k": "64c124f4",
+"who": "tailleuse",
+"v": 30,
+"t": "Je ne tiens pas l'article. Je le prends pour le poids du métal, par politesse."
+},
+{
+"k": "1eedeb6c",
+"who": "aubergiste",
+"v": 14,
+"t": "Ici on sert à boire. Mais j'ai un cousin ferrailleur : je vous en donne ce qu'il m'en donnera."
+},
+{
+"k": "fe769a2d",
+"who": "forgeronne",
+"v": 11,
+"t": "Vous marchandez comme un intendant. Soit : je rabats, mais ne le dites à personne."
+},
+{
+"k": "cfb14073",
+"who": "forgeronne",
+"v": 11,
+"t": "Bon. Pour vous, et parce que la journée est mauvaise, je fais un prix."
+},
+{
+"k": "219f23d7",
+"who": "forgeronne",
+"v": 11,
+"t": "À ce jeu-là, messire, j'ai trente ans d'avance. Les prix viennent de monter."
+},
+{
+"k": "61f72ad7",
+"who": "forgeronne",
+"v": 11,
+"t": "On m'a déjà fait le coup de la bourse plate. Vous paierez la leçon avec le reste."
+},
+{
+"k": "2b97c0f3",
+"who": "forgeronne",
+"v": 11,
+"t": "Bien, bien ! Rengainez. Je baisse mes prix, et vous baissez le ton."
+},
+{
+"k": "04d7d285",
+"who": "forgeronne",
+"v": 11,
+"t": "Inutile de froncer ce sourcil-là. Prenez, payez peu, et sortez."
+},
+{
+"k": "edc12b34",
+"who": "forgeronne",
+"v": 11,
+"t": "Je vends. Je ne cause plus."
+},
+{
+"k": "e2b2d1d3",
+"who": "forgeronne",
+"v": 11,
+"t": "Vous avez eu votre rabais. La conversation n'était pas comprise."
+},
+{
+"k": "ae4e2a68",
+"who": "forgeronne",
+"v": 11,
+"t": "Soupesez, c'est permis."
+},
+{
+"k": "6f8779ed",
+"who": "forgeronne",
+"v": 11,
+"t": "Regardez de près, c'est du solide."
+},
+{
+"k": "ffff80b7",
+"who": "herboriste",
+"v": 23,
+"t": "Vous marchandez comme un intendant. Soit : je rabats, mais ne le dites à personne."
+},
+{
+"k": "aff43ccd",
+"who": "herboriste",
+"v": 23,
+"t": "Bon. Pour vous, et parce que la journée est mauvaise, je fais un prix."
+},
+{
+"k": "1b37b019",
+"who": "herboriste",
+"v": 23,
+"t": "À ce jeu-là, messire, j'ai trente ans d'avance. Les prix viennent de monter."
+},
+{
+"k": "6c93e879",
+"who": "herboriste",
+"v": 23,
+"t": "On m'a déjà fait le coup de la bourse plate. Vous paierez la leçon avec le reste."
+},
+{
+"k": "eba9d711",
+"who": "herboriste",
+"v": 23,
+"t": "Bien, bien ! Rengainez. Je baisse mes prix, et vous baissez le ton."
+},
+{
+"k": "7ed57e1b",
+"who": "herboriste",
+"v": 23,
+"t": "Inutile de froncer ce sourcil-là. Prenez, payez peu, et sortez."
+},
+{
+"k": "44d8e17e",
+"who": "herboriste",
+"v": 23,
+"t": "Je vends. Je ne cause plus."
+},
+{
+"k": "9959c875",
+"who": "herboriste",
+"v": 23,
+"t": "Vous avez eu votre rabais. La conversation n'était pas comprise."
+},
+{
+"k": "6dcb1096",
+"who": "herboriste",
+"v": 23,
+"t": "Soupesez, c'est permis."
+},
+{
+"k": "9b5e9c3f",
+"who": "herboriste",
+"v": 23,
+"t": "Regardez de près, c'est du solide."
+},
+{
+"k": "8cdbc2f2",
+"who": "tailleuse",
+"v": 30,
+"t": "Vous marchandez comme un intendant. Soit : je rabats, mais ne le dites à personne."
+},
+{
+"k": "65cd12bc",
+"who": "tailleuse",
+"v": 30,
+"t": "Bon. Pour vous, et parce que la journée est mauvaise, je fais un prix."
+},
+{
+"k": "aa74c0f4",
+"who": "tailleuse",
+"v": 30,
+"t": "À ce jeu-là, messire, j'ai trente ans d'avance. Les prix viennent de monter."
+},
+{
+"k": "aeaee40a",
+"who": "tailleuse",
+"v": 30,
+"t": "On m'a déjà fait le coup de la bourse plate. Vous paierez la leçon avec le reste."
+},
+{
+"k": "d0a7d792",
+"who": "tailleuse",
+"v": 30,
+"t": "Bien, bien ! Rengainez. Je baisse mes prix, et vous baissez le ton."
+},
+{
+"k": "6826b43c",
+"who": "tailleuse",
+"v": 30,
+"t": "Inutile de froncer ce sourcil-là. Prenez, payez peu, et sortez."
+},
+{
+"k": "fcbadca1",
+"who": "tailleuse",
+"v": 30,
+"t": "Je vends. Je ne cause plus."
+},
+{
+"k": "bc89b584",
+"who": "tailleuse",
+"v": 30,
+"t": "Vous avez eu votre rabais. La conversation n'était pas comprise."
+},
+{
+"k": "c212c32d",
+"who": "tailleuse",
+"v": 30,
+"t": "Soupesez, c'est permis."
+},
+{
+"k": "2f83f2a6",
+"who": "tailleuse",
+"v": 30,
+"t": "Regardez de près, c'est du solide."
+},
+{
+"k": "576989f5",
+"who": "aubergiste",
+"v": 14,
+"t": "Vous marchandez comme un intendant. Soit : je rabats, mais ne le dites à personne."
+},
+{
+"k": "fb537f3b",
+"who": "aubergiste",
+"v": 14,
+"t": "Bon. Pour vous, et parce que la journée est mauvaise, je fais un prix."
+},
+{
+"k": "afd2d9bf",
+"who": "aubergiste",
+"v": 14,
+"t": "À ce jeu-là, messire, j'ai trente ans d'avance. Les prix viennent de monter."
+},
+{
+"k": "0ecb443f",
+"who": "aubergiste",
+"v": 14,
+"t": "On m'a déjà fait le coup de la bourse plate. Vous paierez la leçon avec le reste."
+},
+{
+"k": "36ddfa9b",
+"who": "aubergiste",
+"v": 14,
+"t": "Bien, bien ! Rengainez. Je baisse mes prix, et vous baissez le ton."
+},
+{
+"k": "95c6b04d",
+"who": "aubergiste",
+"v": 14,
+"t": "Inutile de froncer ce sourcil-là. Prenez, payez peu, et sortez."
+},
+{
+"k": "38b4bd3c",
+"who": "aubergiste",
+"v": 14,
+"t": "Je vends. Je ne cause plus."
+},
+{
+"k": "1ff8af3b",
+"who": "aubergiste",
+"v": 14,
+"t": "Vous avez eu votre rabais. La conversation n'était pas comprise."
+},
+{
+"k": "aa7097c0",
+"who": "aubergiste",
+"v": 14,
+"t": "Soupesez, c'est permis."
+},
+{
+"k": "07151605",
+"who": "aubergiste",
+"v": 14,
+"t": "Regardez de près, c'est du solide."
+},
+{
+"k": "07e59de5",
+"who": "rodeur",
+"v": 10,
+"t": "Vous marchandez comme un intendant. Soit : je rabats, mais ne le dites à personne."
+},
+{
+"k": "e5d10ccb",
+"who": "rodeur",
+"v": 10,
+"t": "Bon. Pour vous, et parce que la journée est mauvaise, je fais un prix."
+},
+{
+"k": "7a6362cf",
+"who": "rodeur",
+"v": 10,
+"t": "À ce jeu-là, messire, j'ai trente ans d'avance. Les prix viennent de monter."
+},
+{
+"k": "0f9c8ecf",
+"who": "rodeur",
+"v": 10,
+"t": "On m'a déjà fait le coup de la bourse plate. Vous paierez la leçon avec le reste."
+},
+{
+"k": "674c842b",
+"who": "rodeur",
+"v": 10,
+"t": "Bien, bien ! Rengainez. Je baisse mes prix, et vous baissez le ton."
+},
+{
+"k": "10b71b9d",
+"who": "rodeur",
+"v": 10,
+"t": "Inutile de froncer ce sourcil-là. Prenez, payez peu, et sortez."
+},
+{
+"k": "577fb8ec",
+"who": "rodeur",
+"v": 10,
+"t": "Je vends. Je ne cause plus."
+},
+{
+"k": "2a29efeb",
+"who": "rodeur",
+"v": 10,
+"t": "Vous avez eu votre rabais. La conversation n'était pas comprise."
+},
+{
+"k": "8973f210",
+"who": "rodeur",
+"v": 10,
+"t": "Soupesez, c'est permis."
+},
+{
+"k": "7f3fd675",
+"who": "rodeur",
+"v": 10,
+"t": "Regardez de près, c'est du solide."
+},
+{
+"k": "5d077452",
+"who": "goupil",
+"v": 32,
+"t": "Vous marchandez comme un intendant. Soit : je rabats, mais ne le dites à personne."
+},
+{
+"k": "b2ca5e9c",
+"who": "goupil",
+"v": 32,
+"t": "Bon. Pour vous, et parce que la journée est mauvaise, je fais un prix."
+},
+{
+"k": "55b13e54",
+"who": "goupil",
+"v": 32,
+"t": "À ce jeu-là, messire, j'ai trente ans d'avance. Les prix viennent de monter."
+},
+{
+"k": "745a6bea",
+"who": "goupil",
+"v": 32,
+"t": "On m'a déjà fait le coup de la bourse plate. Vous paierez la leçon avec le reste."
+},
+{
+"k": "2a710db2",
+"who": "goupil",
+"v": 32,
+"t": "Bien, bien ! Rengainez. Je baisse mes prix, et vous baissez le ton."
+},
+{
+"k": "6453159c",
+"who": "goupil",
+"v": 32,
+"t": "Inutile de froncer ce sourcil-là. Prenez, payez peu, et sortez."
+},
+{
+"k": "4f08d501",
+"who": "goupil",
+"v": 32,
+"t": "Je vends. Je ne cause plus."
+},
+{
+"k": "1e14abe4",
+"who": "goupil",
+"v": 32,
+"t": "Vous avez eu votre rabais. La conversation n'était pas comprise."
+},
+{
+"k": "a70b944d",
+"who": "goupil",
+"v": 32,
+"t": "Soupesez, c'est permis."
+},
+{
+"k": "2875dcc6",
+"who": "goupil",
+"v": 32,
+"t": "Regardez de près, c'est du solide."
+},
+{
+"k": "d926684e",
+"who": "fulbert",
+"v": 9,
+"t": "Vous marchandez comme un intendant. Soit : je rabats, mais ne le dites à personne."
+},
+{
+"k": "b3604cc0",
+"who": "fulbert",
+"v": 9,
+"t": "Bon. Pour vous, et parce que la journée est mauvaise, je fais un prix."
+},
+{
+"k": "4e2a7d50",
+"who": "fulbert",
+"v": 9,
+"t": "À ce jeu-là, messire, j'ai trente ans d'avance. Les prix viennent de monter."
+},
+{
+"k": "4220935e",
+"who": "fulbert",
+"v": 9,
+"t": "On m'a déjà fait le coup de la bourse plate. Vous paierez la leçon avec le reste."
+},
+{
+"k": "d397aa16",
+"who": "fulbert",
+"v": 9,
+"t": "Bien, bien ! Rengainez. Je baisse mes prix, et vous baissez le ton."
+},
+{
+"k": "5de381b0",
+"who": "fulbert",
+"v": 9,
+"t": "Inutile de froncer ce sourcil-là. Prenez, payez peu, et sortez."
+},
+{
+"k": "7475ca35",
+"who": "fulbert",
+"v": 9,
+"t": "Je vends. Je ne cause plus."
+},
+{
+"k": "256a54f0",
+"who": "fulbert",
+"v": 9,
+"t": "Vous avez eu votre rabais. La conversation n'était pas comprise."
+},
+{
+"k": "75cafba9",
+"who": "fulbert",
+"v": 9,
+"t": "Soupesez, c'est permis."
+},
+{
+"k": "2be500ea",
+"who": "fulbert",
+"v": 9,
+"t": "Regardez de près, c'est du solide."
+},
+{
+"k": "83a1f929",
+"who": "barnabe",
+"v": 12,
+"t": "Vous marchandez comme un intendant. Soit : je rabats, mais ne le dites à personne."
+},
+{
+"k": "511b29c7",
+"who": "barnabe",
+"v": 12,
+"t": "Bon. Pour vous, et parce que la journée est mauvaise, je fais un prix."
+},
+{
+"k": "1f5e78b3",
+"who": "barnabe",
+"v": 12,
+"t": "À ce jeu-là, messire, j'ai trente ans d'avance. Les prix viennent de monter."
+},
+{
+"k": "306dcdfb",
+"who": "barnabe",
+"v": 12,
+"t": "On m'a déjà fait le coup de la bourse plate. Vous paierez la leçon avec le reste."
+},
+{
+"k": "a9c43e67",
+"who": "barnabe",
+"v": 12,
+"t": "Bien, bien ! Rengainez. Je baisse mes prix, et vous baissez le ton."
+},
+{
+"k": "fb74d129",
+"who": "barnabe",
+"v": 12,
+"t": "Inutile de froncer ce sourcil-là. Prenez, payez peu, et sortez."
+},
+{
+"k": "edea3268",
+"who": "barnabe",
+"v": 12,
+"t": "Je vends. Je ne cause plus."
+},
+{
+"k": "0f710c3f",
+"who": "barnabe",
+"v": 12,
+"t": "Vous avez eu votre rabais. La conversation n'était pas comprise."
+},
+{
+"k": "a12aafa4",
+"who": "barnabe",
+"v": 12,
+"t": "Soupesez, c'est permis."
+},
+{
+"k": "adf11571",
+"who": "barnabe",
+"v": 12,
+"t": "Regardez de près, c'est du solide."
+},
+{
+"k": "5fe991f3",
+"who": "aubergiste",
+"v": 14,
+"t": "Une chambre pour quatre, la soupe, et je ne demande pas les noms. À huit écus, on n'a pas de nom."
+},
+{
+"k": "ac4dda0b",
+"who": "aubergiste",
+"v": 14,
+"t": "On dort. Vraiment. Sans rats, sans gardes, sans que personne ne compte personne. Pépin en pleurerait."
+},
+{
+"k": "5b665ff2",
+"who": "aubergiste",
+"v": 14,
+"t": "On dit que le Borgne voit mieux de son œil mort que de l'autre. On dit beaucoup de choses, pour ne pas dire qu'on a peur."
+},
+{
+"k": "472183a1",
+"who": "aubergiste",
+"v": 14,
+"t": "La Sapeuse est toujours là-dessous. Elle a muré la paie des mineurs quelque part : même le Borgne ne l'a pas trouvée."
+},
+{
+"k": "96b98668",
+"who": "aubergiste",
+"v": 14,
+"t": "Si vous descendez, prenez de l'huile. Le noir, là-dedans, ça ne pardonne pas, et ça ne prévient pas non plus."
+},
+{
+"k": "8e3d2d6c",
+"who": "aubergiste",
+"v": 14,
+"t": "L'auberge des Trois Écus. Elle en coûte quatorze : l'enseigne date d'avant la guerre."
+},
+{
+"k": "16dd42b3",
+"who": "aubergiste",
+"v": 14,
+"t": "Une vraie nuit, dans de vrais draps. Odon vérifie tout de même les paillasses, par déformation."
+},
+{
+"k": "423ee64c",
+"who": "aubergiste",
+"v": 14,
+"t": "On raconte que le chancelier fait recopier le courrier de la reine avant qu'elle le lise. On raconte aussi qu'il le corrige."
+},
+{
+"k": "0a2d09f8",
+"who": "aubergiste",
+"v": 14,
+"t": "La garde royale ne regarde que les livrées. Les reîtres du chancelier, eux, regardent les visages."
+},
+{
+"k": "61c806d3",
+"who": "aubergiste",
+"v": 14,
+"t": "Une armée de Karst campe au Gué-aux-Corbeaux. Ici, on fait comme si le Gué était très loin."
+},
+{
+"k": "7b0d6c95",
+"who": "forgeronne",
+"v": 11,
+"t": "Voilà. Elle coupe un cheveu en quatre. Pas le vôtre : je tiens à mes clients."
+},
+{
+"k": "5f80445b",
+"who": "fulbert",
+"v": 9,
+"t": "Passée à la meule, messire. Elle n'a jamais été si convaincante."
+},
+{
+"k": "eacdbf7f",
+"who": "forgeronne",
+"v": 11,
+"t": "Rivetée deux fois. Si on vous perce là, c'est qu'on visait ailleurs."
+},
+{
+"k": "000112dc",
+"who": "tailleuse",
+"v": 30,
+"t": "Doublée de toile forte. On ne voit rien, et c'est tout l'art."
+},
+{
+"k": "7948623b",
+"who": "barnabe",
+"v": 12,
+"t": "Tenez-vous tranquille. La charité pique un peu : c'est à cela qu'on la reconnaît."
+},
+{
+"k": "36c480f2",
+"who": "goupil",
+"v": 32,
+"t": "Voilà, mon petit. Ne saignez plus sur ma marchandise."
+},
+{
+"k": "40c08335",
+"who": "herboriste",
+"v": 23,
+"t": "Bandé serré. Si ça gratte, c'est que ça guérit ; si ça ne gratte plus, revenez."
+},
+{
+"k": "55754dab",
+"who": "herboriste",
+"v": 23,
+"t": "À ras bord. Ne la penchez pas, ou alors loin de moi."
+},
+{
+"k": "ffdd439e",
+"who": "fulbert",
+"v": 9,
+"t": "À ras bord. Ne la penchez pas, ou alors loin de moi."
+},
+{
+"k": "d8bb952d",
+"who": "rodeur",
+"v": 10,
+"t": "À ras bord. Ne la penchez pas, ou alors loin de moi."
+},
+{
+"k": "2bdd8ab9",
+"who": "barnabe",
+"v": 12,
+"t": "Allez en paix. Enfin, allez. La paix, on verra."
+},
+{
+"k": "94c99692",
+"who": "rodeur",
+"v": 10,
+"t": "Tracé de mémoire. Les taches, c'est l'humidité ; les croix, c'est là où il ne faut pas marcher."
+},
+{
+"k": "527e0b03",
+"who": "fulbert",
+"v": 9,
+"t": "Dressé par un géomètre de l'armée. Il n'en a plus l'usage : il s'est perdu."
+},
+{
+"k": "906b17cb",
+"who": "aubergiste",
+"v": 14,
+"t": "La nuit passe sans alerte. Au matin, toute la troupe est sur pied."
+},
+{
+"k": "25d44f09",
+"who": "aubergiste",
+"v": 14,
+"t": "De la soupe, du lard, du pain d'hier. Pépin en reprend. Pépin en reprend toujours."
+},
+{
+"k": "0d92b9c5",
+"who": "sergent",
+"v": 7,
+"t": "Rochebrune ! Et Pépin. Pépin, tu me déçois. Et pourtant je n'attendais rien."
+},
+{
+"k": "ebf0db3e",
+"who": "narr",
+"v": 31,
+"t": "Gauvain de Rochebrune reprit son commandement et rien d'autre. On dit qu'il fut le seul homme du royaume à qui la reine demanda son avis sans le redouter. La chronique le nomme : le Général retrouvé."
+},
+{
+"k": "ead7f479",
+"who": "narr",
+"v": 31,
+"t": "Gauvain de Rochebrune fut chancelier d'Austrevie pendant vingt ans. Le royaume ne perdit plus une guerre, ni un écu sans reçu. La chronique le nomme, à voix basse : le Général comptable."
+},
+{
+"k": "6ce5a395",
+"who": "narr",
+"v": 31,
+"t": "Gauvain de Rochebrune reprit la guerre et la finit en deux campagnes. On ne lui éleva pas de statue : il avait demandé qu'on paie plutôt les soldes."
+},
+{
+"k": "18396534",
+"who": "prevot",
+"v": 29,
+"t": "Le général de Rochebrune. Dans mon camp, la veille de la bataille. Le maréchal sera ravi : il vous croyait pendu, il aura le plaisir de corriger."
+},
+{
+"k": "521db1c3",
+"who": "messager",
+"v": 27,
+"t": "Messager de la reine. Le soir du désastre, Sa Majesté m'a remis un pli pour vous : « Qu'on m'amène Rochebrune. Je veux l'entendre avant de le croire coupable. » Le chancelier m'a donné une escorte. L'escorte m'a vendu aux brigands."
+},
+{
+"k": "78496855",
+"who": "ysolde",
+"v": 25,
+"t": "Vous mentez avec application, mais vous vous tenez comme un homme qui a commandé dix mille soldats. Général de Rochebrune, je présume. Je vous croyais plus franc ; la prison vous aura instruit."
+},
+{
+"k": "1970b415",
+"who": "ysolde",
+"v": 25,
+"t": "C'est la première phrase sensée que j'entends ici depuis quarante-six jours. Général de Rochebrune, donc."
+},
+{
+"k": "35ce9f4b",
+"who": "sergent",
+"v": 7,
+"t": "Vauclair ! Et Pépin. Pépin, tu me déçois. Et pourtant je n'attendais rien."
+},
+{
+"k": "ee976a42",
+"who": "narr",
+"v": 31,
+"t": "Thibaut de Vauclair reprit son commandement et rien d'autre. On dit qu'il fut le seul homme du royaume à qui la reine demanda son avis sans le redouter. La chronique le nomme : le Général retrouvé."
+},
+{
+"k": "ad82245d",
+"who": "narr",
+"v": 31,
+"t": "Thibaut de Vauclair fut chancelier d'Austrevie pendant vingt ans. Le royaume ne perdit plus une guerre, ni un écu sans reçu. La chronique le nomme, à voix basse : le Général comptable."
+},
+{
+"k": "855f9581",
+"who": "narr",
+"v": 31,
+"t": "Thibaut de Vauclair reprit la guerre et la finit en deux campagnes. On ne lui éleva pas de statue : il avait demandé qu'on paie plutôt les soldes."
+},
+{
+"k": "b886a6a6",
+"who": "prevot",
+"v": 29,
+"t": "Le général de Vauclair. Dans mon camp, la veille de la bataille. Le maréchal sera ravi : il vous croyait pendu, il aura le plaisir de corriger."
+},
+{
+"k": "a18bcc89",
+"who": "messager",
+"v": 27,
+"t": "Messager de la reine. Le soir du désastre, Sa Majesté m'a remis un pli pour vous : « Qu'on m'amène Vauclair. Je veux l'entendre avant de le croire coupable. » Le chancelier m'a donné une escorte. L'escorte m'a vendu aux brigands."
+},
+{
+"k": "2e62d543",
+"who": "ysolde",
+"v": 25,
+"t": "Vous mentez avec application, mais vous vous tenez comme un homme qui a commandé dix mille soldats. Général de Vauclair, je présume. Je vous croyais plus franc ; la prison vous aura instruit."
+},
+{
+"k": "4cfe2f77",
+"who": "ysolde",
+"v": 25,
+"t": "C'est la première phrase sensée que j'entends ici depuis quarante-six jours. Général de Vauclair, donc."
+},
+{
+"k": "34b12723",
+"who": "sergent",
+"v": 7,
+"t": "Sombreval ! Et Pépin. Pépin, tu me déçois. Et pourtant je n'attendais rien."
+},
+{
+"k": "7ea59d25",
+"who": "narr",
+"v": 31,
+"t": "Anselin de Sombreval reprit son commandement et rien d'autre. On dit qu'il fut le seul homme du royaume à qui la reine demanda son avis sans le redouter. La chronique le nomme : le Général retrouvé."
+},
+{
+"k": "4cfe70ac",
+"who": "narr",
+"v": 31,
+"t": "Anselin de Sombreval fut chancelier d'Austrevie pendant vingt ans. Le royaume ne perdit plus une guerre, ni un écu sans reçu. La chronique le nomme, à voix basse : le Général comptable."
+},
+{
+"k": "bbe3925c",
+"who": "narr",
+"v": 31,
+"t": "Anselin de Sombreval reprit la guerre et la finit en deux campagnes. On ne lui éleva pas de statue : il avait demandé qu'on paie plutôt les soldes."
+},
+{
+"k": "c8eafc1a",
+"who": "prevot",
+"v": 29,
+"t": "Le général de Sombreval. Dans mon camp, la veille de la bataille. Le maréchal sera ravi : il vous croyait pendu, il aura le plaisir de corriger."
+},
+{
+"k": "71024759",
+"who": "messager",
+"v": 27,
+"t": "Messager de la reine. Le soir du désastre, Sa Majesté m'a remis un pli pour vous : « Qu'on m'amène Sombreval. Je veux l'entendre avant de le croire coupable. » Le chancelier m'a donné une escorte. L'escorte m'a vendu aux brigands."
+},
+{
+"k": "b19890f3",
+"who": "ysolde",
+"v": 25,
+"t": "Vous mentez avec application, mais vous vous tenez comme un homme qui a commandé dix mille soldats. Général de Sombreval, je présume. Je vous croyais plus franc ; la prison vous aura instruit."
+},
+{
+"k": "11e4334d",
+"who": "ysolde",
+"v": 25,
+"t": "C'est la première phrase sensée que j'entends ici depuis quarante-six jours. Général de Sombreval, donc."
+}
+]
