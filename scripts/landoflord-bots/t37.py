@@ -21,7 +21,7 @@ with sync_playwright() as p:
     # fin naturelle
     pg.evaluate("([a])=>say([[a.who,a.t]])",[a]);pg.wait_for_timeout(int(a and 1000*pg.evaluate("voxDur"))+1500);print('fin naturelle:',pg.evaluate("[!!voxSrc,duckF,faceState(performance.now(),0).talking]"));pg.evaluate("twDone();nextLine()")
     # réglage non
-    pg.evaluate("PREF.vox=0");pg.evaluate("([a])=>say([[a.who,a.t]])",[a]);pg.wait_for_timeout(500);print('voix non:',pg.evaluate("[!!voxSrc,voxLine,faceState(performance.now(),0).talking]"));pg.evaluate("twDone();nextLine();PREF.vox=1")
-    pg.evaluate("optModal()");print('réglages:',[t for t in pg.locator('#modalBox button span').all_inner_texts() if 'oix' in t]);pg.click('[data-m="vv"]');print('volume ->',pg.evaluate("PREF.vv"));pg.click('[data-m="vox"]');print('voix ->',pg.evaluate("PREF.vox"),pg.locator('[data-m="vv"]').count());pg.evaluate("PREF.vox=1;savePref();closeModal()")
+    pg.evaluate("setVol('lv',0)");pg.evaluate("([a])=>say([[a.who,a.t]])",[a]);pg.wait_for_timeout(500);print('voix non:',pg.evaluate("[!!voxSrc,voxLine,faceState(performance.now(),0).talking]"));pg.evaluate("twDone();nextLine();setVol('lv',90)")
+    pg.evaluate("optModal()");print('réglages:',pg.locator('.vols label span').all_inner_texts());pg.evaluate("closeModal()")
     pg.evaluate("openShop('fulbert')");pg.wait_for_timeout(700);print('boutique:',pg.locator('.shop').count(),'voix du marchand:',pg.evaluate('[voxLine,!!voxSrc]'));pg.evaluate("closeModal()")
     print('fichiers demandés:',len(req),len(set(req)));print('ERR',errs);br.close()

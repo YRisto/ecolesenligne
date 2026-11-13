@@ -13,6 +13,13 @@ publie un jeu muet. Pour le remettre :
 
 (le script refuse de s'appliquer deux fois et s'arrête si une ancre a changé).
 
+Puis le mixage (trois curseurs Musique / Bruitages / Voix, musique sur le circuit Web Audio pour que le réglage agisse
+sur iPhone, fondu de la musique et de l'ambiance pendant les scènes parlées, voix coupées en biseau) :
+
+    python3 scripts/landoflord-voix/p22_site.py public/landoflord/index.html
+
+Dans cet ordre : p21 d'abord, p22 ensuite. Test : `scripts/landoflord-bots/t39.py`.
+
 ## Chaîne d'enregistrement
 
 1. `PAGE=public/landoflord/index.html python3 lignes.py` : relève toutes les répliques → `lignes.json`
