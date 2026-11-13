@@ -38,7 +38,7 @@ with sync_playwright() as p:
             continue
         if pg.evaluate("typeof S!=='undefined'&&S&&S.lv"):break
         pg.wait_for_timeout(200)
-    for name,lv,mode in [('s_battle','bataille','crowd'),('s_camp','camp','one'),('s_tent','camp','torch'),('s_cabinet','palais3','room')]:
+    for name,lv,mode in [('s_battle','bataille','crowd'),('s_camp','camp','one'),('s_tent','camp','torch'),('s_cabinet','palais3','room'),('s_cell','geoles','room'),('s_mine','mine','room'),('s_abbey','abbaye','room'),('s_village','village','room'),('s_forest','foret','room'),('s_marsh','marais','room'),('s_crypt','crypte','room'),('s_palace','cour','room')]:
         sc,d=pg.evaluate(JS,[lv,mode]);im=Image.open(io.BytesIO(base64.b64decode(d.split(',')[1]))).convert('RGB').crop((0,25,400,225));im.save(f'{out}/{name}.png');print(name,sc)
         for _ in range(6):
             if pg.evaluate("!document.getElementById('dlg').hidden"):pg.keyboard.press('Escape');pg.wait_for_timeout(100)

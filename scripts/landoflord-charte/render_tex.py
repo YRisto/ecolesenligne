@@ -5,6 +5,8 @@ from mathutils import Vector, Matrix, Euler
 
 name, out = sys.argv[1], sys.argv[2]
 kind, theme = name[0], name[2:]
+VAR = kind == 'u'   # u_* : seconde variante d'un mur
+if VAR: kind = 't'
 W = 2.9; PX = 128; MG = 16; SS = 3
 random.seed(hash(name) % 9999 if False else sum(ord(c) * (i + 3) for i, c in enumerate(name)))
 R = random.random
@@ -208,6 +210,10 @@ def t_town():
     for z in (.80, 1.82, 2.80): box(W / 2, -.065, z, W * 1.5, .15, .20, bh, .02)
     for sx in (1, -1):
         o = box(W / 2 + sx * .72, -.05, 1.31, .16, .12, 1.25, b, .02); o.rotation_euler = (0, sx * math.radians(48), 0)
+    if VAR:
+        for sx in (1, -1):
+            o = box(W / 2, -.05, 2.31, .14, .12, 2.6, b, .02); o.rotation_euler = (0, sx * math.radians(70), 0)
+        return
     # fenêtre à meneaux sous la sablière haute
     box(W / 2, -.055, 2.31, .86, .14, .78, b, .02); box(W / 2, -.10, 2.31, .66, .06, .58, mat((.03, .04, .06), rough=.2, grain=.1, bump=0))
     box(W / 2, -.12, 2.31, .05, .05, .58, b, .01); box(W / 2, -.12, 2.31, .66, .05, .05, b, .01)
@@ -795,7 +801,11 @@ def s_throne():
     for sx in (-1, 1): wb(sx * 6.2 - .2, sx * 6.2 + .2, -8, 6.2, 0, 6, mat((.22, .205, .185), grain=.4, gscale=3, bump=.8, spots=.5, spotcol=(.14, .13, .12)))
     lamp(0, 2, 5, 400, (1, .85, .65), 1.0)
 
-globals()[name]()
+globals()['t_' + theme if VAR else name]()
+if VAR and theme in ('stone', 'sewer', 'crypt', 'abbey', 'palace', 'mine'):   # variante : traces d'humidité et mousse au pied du mur
+    leaves(90 if theme in ('abbey', 'palace') else 220, (0, -.05, W, .45 if theme != 'sewer' else 1.2), [MOSS, (.05, .10, .05), (.09, .14, .07)], size=(.05, .13), ydepth=(-.14, -.09))
+    for i in range(5):
+        x = U(0, W); leaves(26, (x - .06, U(.8, 1.6), x + .06, W + .05), [(.045, .07, .05), (.06, .09, .055)], size=(.05, .11), ydepth=(-.135, -.10))
 if kind == 'h':   # le fond de l'échoppe est rapproché du comptoir : les objets se lisent mieux
     for o_ in list(col.objects):
         if o_.location.y > .5: o_.location.y -= 1.7

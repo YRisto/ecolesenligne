@@ -194,6 +194,7 @@ roots = [o for o in bpy.data.objects if o.parent is None and o.type in ('MESH', 
 piv = bpy.data.objects.new('PIV', None); sc.collection.objects.link(piv)
 for o in roots: o.parent = piv
 RZ = spec.get('rotz_frames', {})
+if spec.get('girth'): piv.scale = (spec['girth'], spec['girth'], 1)
 for i, f in enumerate(spec['frames']):
     piv.rotation_euler = (0, 0, math.radians(RZ.get(str(i), spec.get('rotz', 0))))
     sc.frame_set(int(f)); sc.render.filepath = os.path.join(out, 'f%02d.png' % i); bpy.ops.render.render(write_still=True)

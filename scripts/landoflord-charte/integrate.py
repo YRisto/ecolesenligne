@@ -2,7 +2,7 @@
 import re, sys, io, os, json, base64, subprocess, glob
 import numpy as np
 from PIL import Image
-SWV = 20
+SWV = 23
 sys.path.insert(0, '/home/claude/work/tools'); import charte
 REPO = '/home/claude/ecolesenligne'; REL = 'public/landoflord/index.html'
 WK = '/home/claude/work'
@@ -104,8 +104,9 @@ new_vga = ("/* Charte graphique : palette de référence (16 rampes de 16 tons, 
 s = s[:a0] + new_vga + s[a1:]
 # 3b. murs : l'image de la charte telle quelle (corniches, étais et feuillages sont dans le rendu)
 a0 = s.index("function wallBase(g,th,seed){"); a1 = s.index(" if(th==='forest'){g.fillStyle=lg(g,0,0,0,TS,'#16301a'", a0)
-s = s[:a0] + ("function wallBase(g,th,seed){const r=rng(seed);const im=IMGEL['t_'+th];\n"
- " if(im){g.imageSmoothingEnabled=false;const o=(seed%2)*TS/2;g.drawImage(im,o,0,TS-o,TS,0,0,TS-o,TS);if(o)g.drawImage(im,0,0,o,TS,TS-o,0,o,TS);return;}\n") + s[a1:]
+s = s[:a0] + ("function wallBase(g,th,seed,v){const r=rng(seed);const im=(v&&IMGEL['u_'+th])||IMGEL['t_'+th];\n"
+ " if(im){g.imageSmoothingEnabled=false;const o=v&&!IMGEL['u_'+th]?TS/2:0;g.drawImage(im,o,0,TS-o,TS,0,0,TS-o,TS);if(o)g.drawImage(im,0,0,o,TS,TS-o,0,o,TS);return;}\n") + s[a1:]
+s = rep1(s, "wall2:mk(TS,TS,g=>wallBase(g,th,s+50))", "wall2:mk(TS,TS,g=>wallBase(g,th,s+50,1))")
 # 3c. sols et plafonds : même densité que les murs (128 points par case au lieu de 64)
 a0 = s.index("for(const[k,o,th]of[['f_stone',FL,'stone']"); a1 = s.index('\n', a0)
 s = s[:a0] + ("for(const th in seeds)for(const[p,o]of[['f_',FL],['c_',CL]])if(IMGEL[p+th])o[th]=pix(mk(128,128,g=>{g.imageSmoothingEnabled=false;g.drawImage(IMGEL[p+th],0,0,128,128);}));\n"
@@ -151,6 +152,18 @@ s = rep1(s, "let FOGC='5,3,2';", "let FOGC='5,3,2',FOGA=[5,3,2];")
 s = rep1(s, "const row=y*VW,crow=(VH-1-y)*VW;", "const row=y*VW,crow=(VH-1-y)*VW,f0=FOGA[0]*(256-li)>>8,f1=FOGA[1]*(256-li)>>8,f2=FOGA[2]*(256-li)>>8,e0=FOGA[0]*(256-li2)>>8,e1=FOGA[1]*(256-li2)>>8,e2=FOGA[2]*(256-li2)>>8;")
 s = rep1(s, "fb[row+x]=0xff000000|((c&255)*li>>8)|(((c>>8&255)*li>>8)<<8)|(((c>>16&255)*li>>8)<<16);c=ct[i];", "fb[row+x]=0xff000000|(((c&255)*li>>8)+f0)|((((c>>8&255)*li>>8)+f1)<<8)|((((c>>16&255)*li>>8)+f2)<<16);c=ct[i];")
 s = rep1(s, "0xff000000|((c&255)*li2>>8)|(((c>>8&255)*li2>>8)<<8)|(((c>>16&255)*li2>>8)<<16);fx_+=sx;", "0xff000000|(((c&255)*li2>>8)+e0)|((((c>>8&255)*li2>>8)+e1)<<8)|((((c>>16&255)*li2>>8)+e2)<<16);fx_+=sx;")
+
+# 3g. animations longues (22 images : repos 4, marche 8, frappe 4, touché 2, mort 4) ; les planches à 14 images gardent l'ancien découpage
+s = rep1(s, "function monFrame(m,mt,now,ts){if(m.hp<=0)", "function monFrame(m,mt,now,ts){const L=((SHEETS.meta[mt.spr||m.t]||{}).n||0)>=22;if(m.hp<=0)")
+s = rep1(s, "return t<170?11:t<360?12:13;}", "return L?(t<110?18:t<230?19:t<370?20:21):(t<170?11:t<360?12:13);}")
+s = rep1(s, "return 10;if(m.atkT!=null&&S.T>=m.atkT&&S.T-m.atkT<400)return 6+Math.min", "return L?(S.T<m.flash?16:17):10;if(m.atkT!=null&&S.T>=m.atkT&&S.T-m.atkT<400)return (L?12:6)+Math.min")
+s = rep1(s, "return 2+((now/95|0)&3);return(ts/430+m.x|0)&1;}", "return L?4+((now/75|0)&7):2+((now/95|0)&3);return L?[0,1,2,3,2,1][(ts/300+m.x|0)%6]:(ts/430+m.x|0)&1;}")
+# 3h. crédits : les illustrations remplacées par des vues du jeu
+i_cr = s.index('const CREDITS='); j_cr = s.index('\n', i_cr); CR = json.loads(s[i_cr + len('const CREDITS='):j_cr].rstrip(';'))
+KEYS = ['castle', 'throne', 'cell', 'road', 'mine', 'abbey', 'end', 'village', 'forest', 'marsh', 'crypt', 'palace', 'gate']
+for n, k in enumerate(KEYS):
+    if os.path.exists(WK + '/scenes/s_%s.png' % k): CR[n] = [CR[n][0], 'Décors et personnages du jeu', 'vue composée', 'https://ecolesenligne.fr/landoflord']
+s = s[:i_cr] + 'const CREDITS=' + json.dumps(CR, ensure_ascii=False) + ';' + s[j_cr:]
 
 open(os.path.join(REPO, REL), 'w', encoding='utf8').write(s)
 sw = os.path.join(REPO, 'public/landoflord/sw.js'); t = open(sw).read()

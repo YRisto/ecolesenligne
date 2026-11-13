@@ -2,8 +2,8 @@
 import json
 W = lambda f, o: ['hero/%s.blend' % f, o]
 WF = lambda f, o: ['heroine/%s.blend' % f, o]
-MEL = [1, 3, 5, 7, 9, 11, 13, 14, 15, 16, 19, 21, 22, 24]      # repos 2, marche 4, frappe 4, touché, mort 3
-SHO = [1, 3, 5, 7, 9, 11, 29, 30, 31, 32, 19, 21, 22, 24]      # idem, tir à la place de la frappe
+MEL = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 19, 20, 21, 22, 23, 24]      # repos 2, marche 4, frappe 4, touché, mort 3
+SHO = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 29, 30, 31, 32, 19, 20, 21, 22, 23, 24]      # idem, tir à la place de la frappe
 NPC = [1, 2, 3, 4, 25]                                          # repos 4, geste
 PLATE_BARE = [W('plate_greaves', 'HumanMale'), W('plate_boots', 'HumanMale'), W('plate_gauntlets', 'HumanMale')]
 CHAIN_BARE = [W('chain_greaves', 'HumanMale'), W('chain_boots', 'HumanMale'), W('chain_gloves', 'HumanMale')]
@@ -51,7 +51,9 @@ FACES = {'aldric': dict(beard='hair_dark'), 'ermite': dict(beard='hair_grey', br
  'vouivre': dict(brow='hair_red', mouth='red'), 'ysolde': dict(brow='hair_blond', mouth='red'), 'reine': dict(brow='hair_blond', mouth='red'), 'brune': dict(brow='hair_brown')}
 for k, v in C.items():
     v = dict(v); v['name'] = k; v['face'] = dict(FACES.get(k, {})); v['face'].setdefault('skin', v.get('colors', {}).get('Skin', 'skin'))
-    if v.get('frames', MEL) is MEL: v['rotz_frames'] = {'0': 35, '1': 35}
+    if v.get('frames', MEL) is MEL: v['rotz_frames'] = {'0': 35, '1': 35, '2': 35, '3': 35}
+    g_ = {'grolard': 1.22, 'borgne': 1.1, 'sergent': 1.1, 'champion': 1.08, 'marechal': 1.06, 'ysolde': .94, 'reine': .95, 'barnabe': 1.15, 'goupil': .95, 'ermite': .92}.get(k)
+    if g_: v['girth'] = g_
     v.setdefault('frames', MEL); v.setdefault('scale_obj', SH); v.update(fw=288, fh=208, eye=1.45, span=2.8)
     json.dump(v, open('/home/claude/work/specs/c/%s.json' % k, 'w'))
 print(len(C))
