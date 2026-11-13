@@ -2,7 +2,7 @@
 import re, sys, io, os, json, base64, subprocess, glob
 import numpy as np
 from PIL import Image
-SWV = 23
+SWV = 24
 sys.path.insert(0, '/home/claude/work/tools'); import charte
 REPO = '/home/claude/ecolesenligne'; REL = 'public/landoflord/index.html'
 WK = '/home/claude/work'
@@ -164,6 +164,41 @@ KEYS = ['castle', 'throne', 'cell', 'road', 'mine', 'abbey', 'end', 'village', '
 for n, k in enumerate(KEYS):
     if os.path.exists(WK + '/scenes/s_%s.png' % k): CR[n] = [CR[n][0], 'Décors et personnages du jeu', 'vue composée', 'https://ecolesenligne.fr/landoflord']
 s = s[:i_cr] + 'const CREDITS=' + json.dumps(CR, ensure_ascii=False) + ';' + s[j_cr:]
+
+# ---------- 4. jeu ----------
+# 4a. résistances lisibles : la première fois qu'un type de coup marche mal ou bien sur un adversaire, la chronique le dit
+s = rep1(s, "hurt(m,roll2(dmgMax(might,w.ty||'c',mt.res,mt.def,h===2)),c,w.sk,h===2);return h;}",
+ "{const ty=w.ty||'c',rs=(mt.res||{})[ty]||1,fk='res_'+(mt.spr||m.t)+ty,TY={t:'Le tranchant',p:'La pointe',c:'Le choc',f:'Le feu'}[ty]||'Ce coup';"
+ "if((rs<=.8||rs>=1.2)&&!S.flags[fk]){S.flags[fk]=1;log(rs<1?`<i>${TY} glisse sur ${mt.n} : son armure s'en moque. Une autre arme ferait mieux.</i>`:`<i>${TY} fait merveille contre ${mt.n}. Insistez.</i>`);}}"
+ "hurt(m,roll2(dmgMax(might,w.ty||'c',mt.res,mt.def,h===2)),c,w.sk,h===2);return h;}")
+# 4b. bilan de fin de campagne
+s = rep1(s, "const JOURNAL=()=>{", "const BILAN=()=>{let k=0,lv=0;for(const id in S.L){lv++;for(const m of S.L[id].mons||[])if(m.hp<=0)k++;}const mn=Math.round((S.T||0)/60000),h=Math.floor(mn/60);"
+ "return `Bilan de campagne : ${k} adversaires mis hors de combat, ${lv} lieux traversés, ${h?h+' h ':''}${mn%60} min de marche et de bataille, ${S.gold} écus en caisse, ${S.strats.length} stratagèmes sur 7. Difficulté : ${DIFF[S.diff].n}.`;};\nconst JOURNAL=()=>{")
+s = rep1(s, "[null,\"FIN. Merci d'avoir joué.", "[null,BILAN()],[null,\"FIN. Merci d'avoir joué.")
+# 4c. les compagnons commentent chaque lieu, une fois, à l'arrivée
+LIEUX = {
+ 'geoles': {'pepin': ["Je connais ces couloirs par cœur, mon général. Surtout dans l'autre sens."]},
+ 'egouts': {'pepin': ["Je retire ce que j'ai dit sur la soupe des geôles. Elle avait au moins une couleur."]},
+ 'egouts2': {'pepin': ["Si on me demande, je dirai que nous sommes sortis par la grande porte."]},
+ 'village': {'pepin': ["Un village. Des gens qui ne nous connaissent pas. Profitons-en pour avoir bonne réputation."]},
+ 'mine': {'pepin': ["On étaye avec du bois, ici. Du bois, mon général. Contre une montagne."], 'brune': ["Ces étais sont posés par des gens payés à la toise. Ne vous appuyez sur rien."]},
+ 'mine2': {'brune': ["Plus on descend, mieux c'est taillé. Les anciens savaient creuser. Ils ne savaient pas remonter, voilà tout."], 'pepin': ["Je préviens : ma lanterne et moi, nous avons le même courage. Il baisse avec l'huile."]},
+ 'abbaye': {'pepin': ["Parlez bas. Chez les moines, même l'écho fait pénitence."], 'brune': ["De la belle pierre, posée d'aplomb. Ça me repose. Ça ne durera pas."]},
+ 'crypte': {'odon': ["Ne dérangez pas les défunts, mes enfants. Ils ont déjà les pilleurs."], 'pepin': ["Je marche au milieu. Statistiquement, c'est là qu'on meurt en dernier."]},
+ 'foret': {'odon': ["De l'air, des simples, des oiseaux. Je savais bien que le Seigneur avait fait autre chose que des caves."], 'brune': ["Rien à saper ici. Je me sens inutile et observée."]},
+ 'ruines': {'brune': ["Celui qui a monté ce mur avait bu. Celui qui l'a abattu aussi, mais lui visait juste."], 'odon': ["Tout ce qui tient debout ici tient par habitude. Ne lui donnez pas d'idées."]},
+ 'marais': {'pepin': ["J'ai de l'eau dans une botte. L'autre est jalouse et s'y emploie."], 'odon': ["Les fièvres viennent de ces eaux. Respirez par le nez, et le moins possible."]},
+ 'faubourgs': {'pepin': ["La ville ! Des toits, des auberges, des gens qui me doivent de l'argent."], 'brune': ["Ils ont bâti contre le rempart. En cas de siège, ils seront aux premières loges."]},
+ 'cour': {'pepin': ["Tenez-vous droit et ayez l'air de livrer quelque chose. Au palais, personne n'arrête un homme qui porte un paquet."], 'odon': ["Tant de dorures pour si peu de lumière."]},
+ 'palais2': {'brune': ["Des murs de trois pieds, creux. Ce palais est une noix. Je sais ouvrir les noix."], 'pepin': ["Les tapis étouffent les pas. Les nôtres comme les leurs, je le signale."]},
+ 'palais3': {'odon': ["La chancellerie. C'est ici qu'on soigne les royaumes, à la saignée."], 'pepin': ["Ne touchez à rien, mon général. Tout ce qui est écrit ici a déjà fait pendre quelqu'un."]},
+ 'camp': {'brune': ["Leurs tentes sont alignées au cordeau. Des gens ordonnés. Ça brûle très bien, l'ordre."], 'pepin': ["Si on nous interroge, je suis muet et vous êtes mon interprète."]},
+ 'galeries': {'brune': ["Enfin chez moi. Marchez où je marche, et taisez-vous quand j'écoute."], 'pepin': ["Nous sommes sous l'ennemi. Je préférais quand il était devant : on le voyait venir."]},
+ 'bataille': {'odon': ["Je serai derrière vous avec du fil et des aiguilles. Tâchez de m'en laisser."], 'pepin': ["Mon général, pour la postérité : j'étais contre."]},
+}
+s = rep1(s, "fadeIn();fire('intro_'+id);}", "fadeIn();fire('intro_'+id);lieuBark(id,0);}\nconst LIEUX=" + json.dumps(LIEUX, ensure_ascii=False) + ";\n"
+ "function lieuBark(id,n){const L=LIEUX[id];if(!L||S.flags['lb_'+id]||n>8)return;setTimeout(()=>{if(!S||S.lv!==id||S.flags['lb_'+id])return;if(!$('dlg').hidden||!$('modal').hidden||resting){lieuBark(id,n+1);return;}"
+ "const who=['brune','odon','pepin'].filter(w=>L[w]&&S.party.some(c=>c.id===w&&c.hp>0));if(!who.length)return;S.flags['lb_'+id]=1;const w=who[rnd(0,who.length-1)];log(`<i>${NAMES[w]} : « ${L[w][rnd(0,L[w].length-1)]} »</i>`);},n?5000:9000);}")
 
 open(os.path.join(REPO, REL), 'w', encoding='utf8').write(s)
 sw = os.path.join(REPO, 'public/landoflord/sw.js'); t = open(sw).read()
