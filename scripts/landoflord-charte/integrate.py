@@ -2,10 +2,11 @@
 import re, sys, io, os, json, base64, subprocess, glob
 import numpy as np
 from PIL import Image
+SWV = 19
 sys.path.insert(0, '/home/claude/work/tools'); import charte
 REPO = '/home/claude/ecolesenligne'; REL = 'public/landoflord/index.html'
 WK = '/home/claude/work'
-src = subprocess.run(['git', '-C', REPO, 'show', 'HEAD:' + REL], capture_output=True).stdout.decode('utf8')
+src = open(WK + '/old_voix.html', encoding='utf8').read()   # version d'avant la charte (cbf763c) + voix (b836477)
 L = src.split('\n')
 
 def uri(im):
@@ -36,6 +37,8 @@ def quant_bust(im, b):
     for i in range(Hd // eh + 1):
         if i * eh < Hd and Wd > 192 + mw: q((192 + mw, i * eh, min(Wd, 192 + mw + ew), min(Hd, (i + 1) * eh)), (ex, ey))
     return charte.quantize(out, dither=0)
+for f in sorted(glob.glob(WK + '/obj/*.png')):   # éléments de mur et meubles rendus en 3D
+    new[os.path.basename(f)[:-4]] = uri(Image.open(f))
 for k, u in old.items():
     if k[:2] == 's_' and os.path.exists(WK + '/scenes/%s.png' % k): new[k] = uri(charte.quantize(Image.open(WK + '/scenes/%s.png' % k).convert('RGBA'), dither=0))
     elif k[:2] == 's_': new[k] = uri(charte.quantize(load(u).convert('RGBA'), dither=12, sat=.95))
@@ -111,9 +114,42 @@ s = rep1(s, "const i=((fy_&63)<<6)|(fx_&63);let c=ft[i];if(FXM){const a=fx_>>6,b
 s = rep1(s, "function regrade(){", "function regrade(){return;")
 s = rep1(s, "/* Personnages animés : Flare (Clint Bellanger et contributeurs), CC-BY-SA 3.0, recomposés et retraités. */",
  "/* Personnages : modèles 3D de Flare (Clint Bellanger et contributeurs, CC-BY-SA 3.0), rendus de face à hauteur d'yeux avec la lumière et la palette de la charte. Décors modélisés et rendus avec la même lumière. */")
-s = rep1(s, "<p><b>Soldats animés</b> : tirés du jeu libre Flare (Clint Bellanger et contributeurs), licence CC-BY-SA 3.0, recomposés et retraités pour ce jeu. Ces images restent sous la même licence.</p>",
+if "<p><b>Soldats animés</b>" in s: s = rep1(s, "<p><b>Soldats animés</b> : tirés du jeu libre Flare (Clint Bellanger et contributeurs), licence CC-BY-SA 3.0, recomposés et retraités pour ce jeu. Ces images restent sous la même licence.</p>",
  "<p><b>Personnages</b> : modèles 3D du jeu libre Flare (Clint Bellanger et contributeurs), licence CC-BY-SA 3.0, rendus de face pour ce jeu avec la lumière et la palette de sa charte graphique. Ces images restent sous la même licence.</p><p><b>Décors</b> : murs, sols et plafonds modélisés et rendus pour ce jeu, avec la même lumière et la même palette de 256 couleurs que les personnages.</p>")
+
+# 3e. éléments de mur et meubles : les images rendues remplacent les dessins du moteur
+def pre(sig, body):
+    global s
+    s = rep1(s, sig, sig + body)
+OI = lambda k: "if(IMGEL['%s']){g.drawImage(IMGEL['%s'],0,0);return;}" % (k, k)
+OI2 = lambda cond, a, b: "{const _o=IMGEL[%s?'%s':'%s'];if(_o){g.drawImage(_o,0,0);return;}}" % (cond, a, b)
+pre("function pDoor(g,lock){", OI2('lock', 'o_lock', 'o_door'))
+pre("function pGate(g){", OI('o_gate'))
+pre("function pLever(g,down){", OI2('down', 'o_lever1', 'o_lever0'))
+pre("function pTorch(g,f){g.fillStyle=rg(g,64,44,46,'rgba(255,170,60,.38)','rgba(255,150,40,0)');g.fillRect(0,0,TS,TS);", OI2('f', 'o_torch1', 'o_torch0'))
+pre("function pNiche(g,full){", OI2('full', 'o_niche0', 'o_niche1'))
+pre("function pBtn(g,down){", OI2('down', 'o_btn1', 'o_btn0'))
+pre("function pShop(g,inn){", OI2('inn', 'o_inn', 'o_shop'))
+pre("function pSign(g){", OI('o_sign'))
+pre("function pLeaf(g,lock){", OI2('lock', 'o_leafL', 'o_leaf'))
+pre("function pGrille(g){", OI('o_grille'))
+pre("function pFlight(g,up,carpet){", "{const _o=IMGEL['o_flight'+(up?'U':'D')+(carpet?'c':'')];if(_o){g.drawImage(_o,0,0);return;}}")
+pre("function pStairs(g,up){", OI2('up', 'o_flightU', 'o_flightD'))
+pre("function pDeco(g,th){", "{const _k=th==='stone'?'o_deco_stone':th==='abbey'?'o_deco_abbey':'o_deco_lamp';if(IMGEL[_k]){if(_k==='o_deco_lamp'){g.fillStyle=rg(g,64,58,44,'rgba(255,190,90,.42)','rgba(255,170,60,0)');g.fillRect(0,0,TS,TS);}g.drawImage(IMGEL[_k],0,0);return;}}")
+s = rep1(s, "function addSpr(n,c){SPR[n]={i:vars(c)};}", "function addSpr(n,c,raw){SPR[n]={i:vars(c,raw)};}")
+s = rep1(s, "function vars(c){c=outlined(vga(c,10));", "function vars(c,raw){c=raw?c:outlined(vga(c,10));")
+s = rep1(s, "function buildProps(){const P=(n,fn)=>addSpr('p_'+n,paint(96,g=>{g.fillStyle='rgba(0,0,0,.35)';el(g,48,90,26,4);fn(g);}))",
+ "function buildProps(){const RI=k=>mk(96,96,g=>{g.imageSmoothingEnabled=false;g.drawImage(IMGEL[k],0,0);});for(const k of['sac','or'])if(IMGEL['p_'+k])addSpr(k,RI('p_'+k),1);"
+ "const P=(n,fn)=>IMGEL['p_'+n]?addSpr('p_'+n,RI('p_'+n),1):addSpr('p_'+n,paint(96,g=>{g.fillStyle='rgba(0,0,0,.35)';el(g,48,90,26,4);fn(g);}))")
+# 3f. lumière : ombrage par crans, brume teintée par lieu (murs, personnages, sols et plafonds)
+s = rep1(s, "lt=d=>Math.max(.045,1-d/LR);", "lt=d=>Math.max(.045,Math.round((1-d/LR)*16)/16);")
+s = rep1(s, "FOGC=LV.sky===1?'46,60,78':LV.sky===2?'62,70,66':LV.sky===3?'6,8,20':'5,3,2';", "FOGC=LV.sky===1?'46,60,78':LV.sky===2?'62,70,66':LV.sky===3?'6,8,20':({sewer:'8,18,10',crypt:'8,10,24',mine:'20,10,4',abbey:'14,9,5',palace:'12,11,11',panel:'14,8,3',stone:'9,8,10'})[LV.theme]||'5,3,2';FOGA=FOGC.split(',').map(Number);")
+s = rep1(s, "let FOGC='5,3,2';", "let FOGC='5,3,2',FOGA=[5,3,2];")
+s = rep1(s, "const row=y*VW,crow=(VH-1-y)*VW;", "const row=y*VW,crow=(VH-1-y)*VW,f0=FOGA[0]*(256-li)>>8,f1=FOGA[1]*(256-li)>>8,f2=FOGA[2]*(256-li)>>8,e0=FOGA[0]*(256-li2)>>8,e1=FOGA[1]*(256-li2)>>8,e2=FOGA[2]*(256-li2)>>8;")
+s = rep1(s, "fb[row+x]=0xff000000|((c&255)*li>>8)|(((c>>8&255)*li>>8)<<8)|(((c>>16&255)*li>>8)<<16);c=ct[i];", "fb[row+x]=0xff000000|(((c&255)*li>>8)+f0)|((((c>>8&255)*li>>8)+f1)<<8)|((((c>>16&255)*li>>8)+f2)<<16);c=ct[i];")
+s = rep1(s, "0xff000000|((c&255)*li2>>8)|(((c>>8&255)*li2>>8)<<8)|(((c>>16&255)*li2>>8)<<16);fx_+=sx;", "0xff000000|(((c&255)*li2>>8)+e0)|((((c>>8&255)*li2>>8)+e1)<<8)|((((c>>16&255)*li2>>8)+e2)<<16);fx_+=sx;")
+
 open(os.path.join(REPO, REL), 'w', encoding='utf8').write(s)
 sw = os.path.join(REPO, 'public/landoflord/sw.js'); t = open(sw).read()
-t2 = re.sub(r"general-dechu-v(\d+)'", lambda m: "general-dechu-v%d'" % (17 if int(m.group(1)) < 17 else int(m.group(1))), t, count=1); open(sw, 'w').write(t2)
+t2 = re.sub(r"general-dechu-v(\d+)'", lambda m: "general-dechu-v%d'" % SWV, t, count=1); open(sw, 'w').write(t2)
 print('index.html', len(s) // 1024, 'Ko ;', len(new), 'images de décor/illustration ;', len(out_img), 'planches')

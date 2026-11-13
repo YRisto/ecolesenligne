@@ -334,22 +334,326 @@ def f_ruin():
     for i in range(7):
         x, y, s = U(.2, W - .2), U(.2, W - .2), U(.22, .42); box(x, y, -.01, s, s * U(.6, .9), .07, mat(vary((.24, .20, .15), .2), grain=.4, gscale=16, bump=.6), .03, (0, 0, U(0, 3)))
 
+
+# =====================================================================
+# Éléments de mur (o_*) et meubles (p_*) : mêmes matières, même lumière.
+# Coordonnées « points » : grille 128 des murs (o_) ou 96 des meubles (p_), y vers le bas, comme dans le moteur.
+# =====================================================================
+IRON = (.07, .07, .078); IRON2 = (.13, .13, .14); BRASS = (.55, .36, .10); GOLD = (.80, .52, .14); STONE = (.20, .19, .17); STONE2 = (.27, .25, .22)
+m_iron = lambda: mat(IRON, rough=.5, metal=1, grain=.25, gscale=40, bump=.2)
+m_steel = lambda: mat((.40, .41, .44), rough=.4, metal=1, grain=.2, gscale=40, bump=.15)
+m_brass = lambda: mat(BRASS, rough=.4, metal=1, grain=.2, gscale=40, bump=.1)
+m_gold = lambda: mat(GOLD, rough=.32, metal=1, grain=.15, gscale=40, bump=.1)
+m_wood = lambda c=WOOD, st=(7, 7, .5): mat(vary(c, .12), grain=.5, gscale=10, stretch=st, bump=.6)
+m_stone = lambda c=STONE: mat(vary(c, .1), grain=.38, gscale=20, bump=.7, spots=.4, spotcol=(.11, .11, .10))
+m_cloth = lambda c: mat(c, rough=.9, grain=.18, gscale=30, bump=.15)
+m_dark = lambda: emit((.0045, .004, .0035), 1)
+if kind == 'o': G_ = 128.0; UN = W / 128.0
+elif kind == 'p':
+    PSCL = {'chest': .36, 'chest_o': .36, 'barrel': .5, 'crate': .44, 'sacks': .42, 'table': .48, 'bed': .4, 'altar': .58, 'rack': .72, 'shelf': .82, 'fountain': .6, 'bell': .82, 'stele': .5, 'statue': .86, 'brazier': .52, 'well': .52, 'cart': .56, 'keg': .44, 'sac': .5, 'or': .5}
+    SPANP = PSCL[theme] * W; G_ = 96.0; UN = SPANP / 96.0
+else: UN = 1
+def PXx(px): return px * UN if kind == 'o' else (px - 48) * UN
+def PZz(py): return (128 - py) * UN if kind == 'o' else (90 - py) * UN
+def bx(x0, y0, x1, y1, d0, d1, m, bevel=0, chisel=0, rot=(0, 0, 0)):
+    """Boîte donnée par son rectangle en points (x0,y0)-(x1,y1) et sa profondeur d0..d1 (points, vers le spectateur)."""
+    return box((PXx(x0) + PXx(x1)) / 2, -(d0 + d1) / 2 * UN, (PZz(y0) + PZz(y1)) / 2, abs(x1 - x0) * UN, abs(d1 - d0) * UN, abs(y1 - y0) * UN, m, bevel * UN, rot, chisel * UN)
+def cy(x, y0, y1, r, d, m, r2=None, seg=12):   # cylindre vertical
+    return cyl(PXx(x), -d * UN, PZz(y1), PZz(y0), r * UN, m, None if r2 is None else r2 * UN, seg) if PZz(y1) < PZz(y0) else cyl(PXx(x), -d * UN, PZz(y0), PZz(y1), r * UN, m, None if r2 is None else r2 * UN, seg)
+def cyh(x0, x1, y, r, d, m, seg=10):          # cylindre horizontal (le long de x)
+    me = bpy.data.meshes.new('c'); bm = bmesh.new(); bmesh.ops.create_cone(bm, cap_ends=True, segments=seg, radius1=r * UN, radius2=r * UN, depth=abs(x1 - x0) * UN); bm.to_mesh(me); bm.free()
+    for p in me.polygons: p.use_smooth = True
+    o = obj(me, m); o.rotation_euler = (0, math.radians(90), 0); o.location = ((PXx(x0) + PXx(x1)) / 2, -d * UN, PZz(y)); return o
+def cyd(x, y, r, d0, d1, m, seg=16, r2=None):  # cylindre vers le spectateur (disque, clou, moyeu)
+    me = bpy.data.meshes.new('c'); bm = bmesh.new(); bmesh.ops.create_cone(bm, cap_ends=True, segments=seg, radius1=r * UN, radius2=(r if r2 is None else r2) * UN, depth=abs(d1 - d0) * UN); bm.to_mesh(me); bm.free()
+    for p in me.polygons: p.use_smooth = True
+    o = obj(me, m); o.rotation_euler = (math.radians(90), 0, 0); o.location = (PXx(x), -(d0 + d1) / 2 * UN, PZz(y)); return o
+def ball(x, y, r, d, m, sc=(1, 1, 1)):
+    me = bpy.data.meshes.new('s'); bm = bmesh.new(); bmesh.ops.create_icosphere(bm, subdivisions=2, radius=r * UN); bmesh.ops.scale(bm, vec=sc, verts=bm.verts); bm.to_mesh(me); bm.free()
+    for p in me.polygons: p.use_smooth = True
+    o = obj(me, m); o.location = (PXx(x), -d * UN, PZz(y)); return o
+def ring(x, y, r, t, d, m, rot=(0, 0, 0)):
+    me = bpy.data.meshes.new('r'); bm = bmesh.new()
+    # tore : cercle de sections
+    n, k = 16, 6; vs = []
+    for i in range(n):
+        a = 2 * math.pi * i / n
+        for j in range(k):
+            b = 2 * math.pi * j / k; rr_ = (r + t * math.cos(b)) * UN
+            vs.append(bm.verts.new((rr_ * math.cos(a), t * math.sin(b) * UN, rr_ * math.sin(a))))
+    for i in range(n):
+        for j in range(k):
+            bm.faces.new((vs[i * k + j], vs[((i + 1) % n) * k + j], vs[((i + 1) % n) * k + (j + 1) % k], vs[i * k + (j + 1) % k]))
+    bm.to_mesh(me); bm.free()
+    for p in me.polygons: p.use_smooth = True
+    o = obj(me, m); o.location = (PXx(x), -d * UN, PZz(y)); o.rotation_euler = rot; return o
+def arch_frame(x0=16, x1=112, yt=10, spring=46, dark=True, m=None):
+    """Encadrement de pierre : deux piédroits et un arc de claveaux ; fond sombre derrière."""
+    cx = (x0 + x1) / 2; rx = (x1 - x0) / 2; ry = spring - yt
+    if dark: bx(x0, yt, x1, 128, .1, .4, m_dark())
+    for sx in (x0 - 9, x1 - 1):
+        for (a, b) in ((spring, 74), (74, 101), (101, 128)): bx(sx, a, sx + 10, b, 0, 7 + R() * 1.5, m or m_stone(), 1.6, 1.2)
+    n = 9
+    for i in range(n):
+        a = math.pi * (i + .5) / n; px = cx - (rx + 4) * math.cos(a); py = spring - (ry + 4) * math.sin(a)
+        o = bx(px - 8.6, py - 5.5, px + 8.6, py + 5.5, 0, 7 + R() * 1.5 + (2 if i == n // 2 else 0), m or m_stone(), 1.6, 1.2); o.rotation_euler = (0, a - math.pi / 2, 0)
+def arch_h(px, x0=16, x1=112, yt=10, spring=46):   # hauteur du haut de l'ouverture à l'abscisse px
+    cx = (x0 + x1) / 2; rx = (x1 - x0) / 2; t = max(-1, min(1, (px - cx) / rx)); return spring - (spring - yt) * math.sqrt(max(0, 1 - t * t))
+def planks(x0, x1, ytop, d=2.5, bands=(36, 94), top=None):
+    n = 6; w = (x1 - x0) / n
+    for i in range(n):
+        xa = x0 + i * w; yt_ = top(xa + w / 2) + 1 if top else ytop
+        bx(xa + .4, yt_, xa + w - .4, 128, d - 2.4, d, m_wood(), .5)
+    for y in bands:
+        bx(x0, y, x1, y + 9, d, d + 1.6, m_iron(), .5)
+        for x in range(int(x0) + 6, int(x1) - 2, 12): ball(x, y + 4.5, 1.7, d + 1.8, m_steel(), (1, .6, 1))
+def o_door(lock=False):
+    arch_frame(); planks(20, 108, 14, top=lambda x: arch_h(x, 20, 108, 15, 46))
+    if lock:
+        bx(53, 58, 75, 86, 4.1, 5.6, m_brass(), 1); cyd(64, 68, 3.2, 5.6, 5.9, m_dark()); bx(62.6, 69, 65.4, 79, 5.6, 5.9, m_dark())
+    else:
+        ring(92, 72, 6.5, 1.3, 5.6, m_steel()); cyd(92, 64, 3, 4.1, 6.4, m_iron())
+def o_lock(): o_door(True)
+def o_leaf(lock=False):
+    n = 8; w = 128 / n
+    for i in range(n): bx(i * w + .3, 0, (i + 1) * w - .3, 128, 0, 3, m_wood(), .5)
+    for y in (14, 60, 106):
+        bx(-2, y, 130, y + 9, 3, 4.6, m_iron(), .5)
+        for x in range(8, 128, 14): ball(x, y + 4.5, 1.8, 4.8, m_steel(), (1, .6, 1))
+    if lock:
+        bx(52, 70, 76, 100, 3.1, 5, m_brass(), 1); cyd(64, 81, 3.4, 5, 5.3, m_dark()); bx(62.5, 82, 65.5, 93, 5, 5.3, m_dark())
+    else:
+        ring(100, 86, 8, 1.5, 5, m_steel()); cyd(100, 76, 3.2, 3, 5.6, m_iron())
+def o_leafL(): o_leaf(True)
+def o_gate():
+    arch_frame()
+    for x in range(24, 108, 12): cy(x + 2.5, 14, 128, 2.4, 3, m_steel(), seg=8)
+    for y in (40, 78, 112): cyh(18, 110, y + 2.5, 2.2, 3.4, m_iron())
+def o_grille():
+    for x in range(6, 128, 17):
+        cy(x + 3, 0, 122, 2.8, 3, m_steel(), seg=8); cy(x + 3, 122, 128, 2.8, 3, m_steel(), r2=.2, seg=8)
+    for y in (10, 50, 90): cyh(-2, 130, y + 3, 2.6, 3.6, m_iron())
+def o_torch(f=0):
+    bx(54, 60, 74, 64, 0, 9, m_iron(), .6); cy(64, 62, 92, 6, 7, m_iron(), r2=3); bx(62, 90, 66, 99, 0, 8, m_iron(), .5)
+    for (mm, r, h, dx, d) in ((emit((.95, .22, .03), 1.6), 7.5, 17 + f * 2, f * 1.6 - .8, 7), (emit((1.0, .55, .08), 2.2), 5.0, 11 - f, .6 - f, 9.5), (emit((1.0, .85, .40), 3.0), 2.6, 5.5, 0, 11.5)):
+        o = ball(64 + dx, 60 - h * .78, r, d, mm, (1, .8, h / r)); o.rotation_euler = (0, math.radians(dx * 5), 0)
+        ball(64 + dx * 1.4, 60 - h * 1.62, r * .42, d, mm, (1, .8, 2.0))
+    l = bpy.data.lights.new('pt', 'POINT'); l.energy = 40; l.color = (1, .6, .25); l.shadow_soft_size = .1; lo = bpy.data.objects.new('pt', l); col.objects.link(lo); lo.location = (PXx(64), -16 * UN, PZz(46))
+def o_torch0(): o_torch(0)
+def o_torch1(): o_torch(1)
+def o_lever(down=False):
+    bx(50, 38, 78, 94, 0, 3, m_iron(), 1.2); bx(53, 41, 75, 91, 3, 4.2, mat(IRON2, rough=.5, metal=1, grain=.25, gscale=40, bump=.2), 1); bx(62, 46, 66, 86, 4.2, 4.5, m_dark())
+    y = 80 if down else 50; me = bpy.data.meshes.new('a'); bm = bmesh.new(); bmesh.ops.create_cone(bm, cap_ends=True, segments=10, radius1=2.3 * UN, radius2=2.3 * UN, depth=1); bm.to_mesh(me); bm.free()
+    a = Vector((PXx(64), -4 * UN, PZz(66))); b = Vector((PXx(64), -17 * UN, PZz(y))); o = obj(me, m_wood((.26, .15, .07))); o.location = (a + b) / 2; o.scale = (1, 1, (b - a).length); o.rotation_euler = (b - a).to_track_quat('Z', 'Y').to_euler()
+    ball(64, y, 6, 17, m_gold())
+def o_lever0(): o_lever(False)
+def o_lever1(): o_lever(True)
+def o_niche(full=False):
+    bx(36, 44, 92, 94, .1, .4, m_dark()); bx(39, 86, 89, 93, .4, 3.5, mat((.05, .045, .04), grain=.3))
+    for (a, b, c, d) in ((32, 40, 96, 46), (32, 92, 96, 99), (32, 46, 38, 92), (90, 46, 96, 92)): bx(a, b, c, d, 0, 5, m_stone(STONE2), 1.4, 1)
+    if full:
+        bx(54, 76, 74, 91, .5, 12, m_gold(), 1.5); bx(54, 81, 74, 83, .5, 12.5, m_wood((.12, .07, .03)), .3); bx(62, 79, 66, 85, 12, 13, m_brass(), .5)
+def o_niche0(): o_niche(True)
+def o_niche1(): o_niche(False)
+def o_btn(down=False):
+    bx(55, 59, 73, 75, 0, .6, m_dark())
+    bx(58, 62, 70, 72, 0, .8 if down else 3.2, m_stone((.12, .115, .10) if down else STONE2), .8)
+def o_btn0(): o_btn(False)
+def o_btn1(): o_btn(True)
+def o_sign():
+    bx(28, 38, 96, 86, 0, 3, mat((.42, .39, .33), grain=.25, gscale=20, bump=.4), 1.2)
+    for i in range(5): bx(36, 46 + i * 7, 88 - ((i * 13) % 17), 48 + i * 7, 3, 3.25, mat((.05, .04, .03), grain=0, bump=0))
+    for (x, y) in ((32, 42), (92, 42), (32, 82), (92, 82)): ball(x, y, 1.6, 3.2, m_iron(), (1, .6, 1))
+def o_shop(inn=False):
+    o_door(False)
+    cyh(80, 120, 20, 1.5, 14, m_iron()); bx(118, 14, 121, 26, 0, 16, m_iron(), .5)
+    for x in (90, 110): cy(x, 20, 27, .8, 14, m_iron(), seg=6)
+    bx(84, 26, 116, 50, 12.5, 15.5, m_wood((.30, .17, .08), (.5, 7, 7)), 1.2)
+    if inn:
+        cy(99, 31, 45, 5.5, 17, mat((.62, .56, .46), rough=.5, grain=.15), seg=14); ring(105, 38, 4, 1, 17, mat((.62, .56, .46), rough=.5, grain=.15)); cyd(99, 30.5, 5.6, 14, 20, mat((.9, .88, .8), grain=.1), seg=14) if False else ball(99, 31, 5.6, 17, mat((.85, .83, .76), grain=.1), (1, 1, .35))
+    else:
+        cyd(100, 38, 8, 15.5, 17, m_gold(), seg=20); cyd(100, 38, 4.5, 17, 17.5, m_brass(), seg=16)
+def o_inn(): o_shop(True)
+def flight(up=True, carpet=False):
+    x0, x1, yt = 22, 106, 12
+    arch_frame(x0, x1, yt, 44, dark=False)
+    st = lambda: mat(vary((.26, .245, .22), .06), grain=.3, gscale=20, bump=.5)
+    wallm = mat((.10, .095, .085), grain=.35, gscale=14, bump=.6)
+    n = 11; run = 11.0; rise = 10.0 if up else -4.6
+    for i in range(n):
+        ytop = 128 - (i + 1) * rise if up else 126 + i * (-rise)
+        d0 = -(i + 1) * run; d1 = -i * run
+        bx(x0, ytop, x1, 128 + (0 if up else 140), d0, d1, st(), .6)
+        if carpet: bx(64 - 20, ytop - .7, 64 + 20, ytop + 1, d0 - .2, d1 + .4, m_cloth((.34, .03, .03)))
+    L_ = n * run + 30
+    bx(x0 - 8, -160, x0, 300, -L_, 0, wallm); bx(x1, -160, x1 + 8, 300, -L_, 0, wallm); bx(x0 - 8, -170, x1 + 8, -160, -L_, 0, wallm); bx(x0 - 8, -170, x1 + 8, 300, -L_ - 4, -L_, m_dark())
+    if up:
+        l = bpy.data.lights.new('pt', 'POINT'); l.energy = 260; l.color = (1, .9, .68); l.shadow_soft_size = .3; lo = bpy.data.objects.new('pt', l); col.objects.link(lo); lo.location = (PXx(64), (n * run * .8) * UN, PZz(128 - n * rise - 40))
+    else:
+        l = bpy.data.lights.new('pt', 'POINT'); l.energy = 30; l.color = (1, .6, .3); l.shadow_soft_size = .2; lo = bpy.data.objects.new('pt', l); col.objects.link(lo); lo.location = (PXx(40), 34 * UN, PZz(80))
+def o_flightU(): flight(True)
+def o_flightD(): flight(False)
+def o_flightUc(): flight(True, True)
+def o_flightDc(): flight(False, True)
+def o_deco_stone():   # chaînes et anneaux de geôle
+    for x in (40, 88):
+        cyd(x, 22, 4.5, 0, 2, m_iron()); ring(x, 22, 4, 1.2, 3, m_steel())
+        for i, y in enumerate(range(30, 86, 8)): ring(x + math.sin(y) * 1.2, y, 3.6, 1.0, 3, m_steel() if i % 2 else m_iron(), (0, 0, math.radians(90) if i % 2 else 0)).scale = (.62, 1, 1)
+        ring(x, 92, 6.2, 1.4, 3, m_steel())
+def o_deco_abbey():   # bannière aux armes
+    cyh(22, 102, 14, 2.4, 5, m_wood((.22, .13, .06), (.5, 7, 7))); 
+    for x in (22, 102): ball(x, 14, 3.4, 5, m_brass())
+    bx(30, 16, 94, 106, 3, 4, m_cloth((.36, .04, .035))); 
+    for (a, b, c, d) in ((30, 16, 94, 20), (30, 16, 33, 106), (91, 16, 94, 106)): bx(a, b, c, d, 4, 4.4, m_cloth((.62, .42, .12)))
+    for x in range(30, 94, 8):
+        me = bpy.data.meshes.new('t'); me.from_pydata([(PXx(x), -3.5 * UN, PZz(106)), (PXx(x + 8), -3.5 * UN, PZz(106)), (PXx(x + 4), -3.5 * UN, PZz(114))], [], [(0, 1, 2)]); obj(me, m_cloth((.36, .04, .035)))
+    g = m_cloth((.62, .42, .12)); bx(52, 52, 72, 82, 4, 4.5, g)
+    for x in (50, 59, 68): bx(x, 44, x + 6, 53, 4, 4.5, g)
+    bx(59, 66, 65, 82, 4.5, 4.8, m_cloth((.20, .02, .02)))
+def o_deco_lamp():    # lanterne suspendue
+    cy(64, 12, 40, .9, 6, m_iron(), seg=6); bx(54, 40, 74, 45, 0, 12, m_iron(), 1); bx(54, 72, 74, 78, 0, 12, m_iron(), 1)
+    bx(57, 45, 71, 72, 1.5, 10.5, emit((1.0, .62, .18), 2.2))
+    for x in (55.2, 63.2, 71.2): bx(x - .4, 45, x + 1.4, 72, .5, 11.5, m_iron())
+    bx(60, 8, 68, 13, 0, 8, m_iron(), 1)
+    l = bpy.data.lights.new('pt', 'POINT'); l.energy = 30; l.color = (1, .65, .3); l.shadow_soft_size = .1; lo = bpy.data.objects.new('pt', l); col.objects.link(lo); lo.location = (PXx(64), -22 * UN, PZz(58))
+
+# ---------- meubles (grille 96, sol à y = 90) ----------
+def dz(w): return w * .62   # profondeur par défaut d'un meuble de largeur w
+def pb(x0, y0, x1, y1, m, depth=None, bevel=.8, front=0, chisel=0):
+    d = (x1 - x0) * .62 if depth is None else depth; return bx(x0, y0, x1, y1, front - d / 2, front + d / 2, m, bevel, chisel)
+def p_chest(open_=False):
+    w = m_wood((.24, .13, .06), (.5, 7, 7)); pb(22, 58, 74, 90, w, 30)
+    for x in (30, 62): pb(x, 57, x + 4, 90, m_iron(), 31.5, .3)
+    pb(21, 70, 75, 73, m_iron(), 31.5, .3)
+    if open_:
+        pb(22, 28, 74, 58, w, 5, .8, -14)
+        for x in (30, 62): pb(x, 27, x + 4, 58, m_iron(), 6, .3, -14)
+        pb(25, 55, 71, 59, m_dark(), 26)
+        for (x, y) in ((38, 57), (50, 56), (58, 57), (44, 56)): ball(x, y, 5, 2 + R() * 6 - 4, m_gold(), (1, 1, .45))
+    else:
+        o = cyh(22, 74, 58, 15, 0, w, seg=18); o.scale = (.5, 1, 1)
+        for x in (32, 64): cyh(x - 2, x + 2, 58, 15.4, 0, m_iron(), seg=18).scale = (.5, 1, 1)
+        pb(44, 55, 52, 66, m_brass(), 2, .5, 15.5)
+def p_chest_o(): p_chest(True)
+def p_barrel():
+    o = cy(48, 38, 90, 20, 0, m_wood((.26, .15, .07)), seg=20)
+    for y in (46, 62, 80): cy(48, y - 1.5, y + 1.5, 20.6, 0, m_iron(), seg=20)
+    cy(48, 37, 39, 18, 0, m_wood(WOODD), seg=20)
+def p_keg():
+    cy(48, 50, 90, 18, 0, m_wood((.16, .09, .04)), seg=20)
+    for y in (58, 79): cy(48, y - 1.5, y + 1.5, 18.6, 0, m_iron(), seg=20)
+    pb(40, 66, 56, 74, m_cloth((.42, .05, .04)), 1, .2, 18.3); cy(54, 38, 50, .8, 0, m_cloth((.5, .42, .3)), seg=5); ball(54, 37, 2.2, 0, emit((1, .6, .15), 2.5))
+def p_crate():
+    w = m_wood((.30, .19, .09)); pb(24, 46, 72, 90, w, 44, .6)
+    f = m_wood((.14, .08, .04))
+    for (a, b, c, d) in ((24, 46, 72, 50), (24, 86, 72, 90), (24, 46, 28, 90), (68, 46, 72, 90)): pb(a, b, c, d, f, 1.6, .3, 22.6)
+    for sgn in (1, -1):
+        o = pb(46, 44, 50, 92, f, 1.4, .3, 22.5); o.rotation_euler = (0, sgn * math.radians(46), 0)
+def p_sacks():
+    for (x, y, r, d) in ((36, 78, 14, 2), (60, 78, 14, -3), (48, 62, 13, 0)):
+        ball(x, y, r, d, m_cloth(vary((.40, .31, .18), .1)), (1, .9, .85)); ball(x, y - r * .85, 3.2, d, m_cloth((.2, .15, .08)))
+def p_table():
+    w = m_wood((.22, .13, .06), (.5, 7, 7)); pb(16, 54, 80, 61, w, 40, 1)
+    for x in (20, 72):
+        for d in (-15, 15): pb(x, 61, x + 5, 90, m_wood(WOODD), 5, .5, d)
+    cy(38, 44, 54, 4, 4, mat((.55, .52, .46), rough=.4, grain=.15), seg=12); ball(58, 52.5, 7, -4, m_cloth((.42, .08, .06)), (1, 1, .3)); ball(27, 52, 4, 8, m_cloth((.55, .40, .18)), (1, 1, .7))
+def p_bed():
+    w = m_wood(WOODD, (.5, 7, 7)); pb(14, 70, 82, 78, w, 44); pb(14, 54, 82, 90, w, 4, .5, -22); pb(14, 66, 82, 90, w, 3, .5, 22)
+    pb(17, 63, 79, 71, m_cloth((.50, .42, .28)), 40, 2); pb(19, 59, 37, 66, m_cloth((.70, .66, .56)), 30, 3, -4); pb(40, 61.5, 79.5, 71, m_cloth((.30, .06, .06)), 41, 2)
+def p_altar():
+    s = lambda: m_stone((.34, .32, .28)); pb(24, 50, 72, 90, s(), 30, 1.5, 0, 1); pb(18, 44, 78, 51, s(), 36, 1.5, 0, .8)
+    pb(30, 51, 66, 84, m_cloth((.36, .04, .04)), 1, .2, 15.5); pb(46, 56, 50, 78, m_gold(), .8, .2, 16.2); pb(40, 62, 56, 66, m_gold(), .8, .2, 16.2)
+    for x in (27.5, 68.5):
+        cy(x, 32, 44, 1.6, 6, mat((.72, .68, .58), rough=.5, grain=.1), seg=8); ball(x, 30, 2, 6, emit((1, .65, .2), 2.5), (.8, .8, 1.5))
+def p_rack():
+    w = m_wood(WOODD)
+    for x in (18, 74): pb(x, 24, x + 4, 90, w, 6, .5)
+    for y in (34, 70): pb(18, y, 78, y + 4, m_wood((.22, .13, .06), (.5, 7, 7)), 8, .5)
+    for i, x in enumerate((30, 42, 54, 66)):
+        cy(x, 22, 84, 1.0, 5, m_steel() if i != 2 else m_wood((.26, .16, .08)), seg=6); pb(x - 4, 62, x + 4, 64, m_brass(), 2, .3, 5)
+        if i == 2: ball(x, 22, 2.6, 5, m_steel(), (.5, .5, 2.2))
+        else: cy(x, 14, 22, 1.0, 5, m_steel(), r2=.1, seg=6)
+def p_shelf():
+    w = m_wood((.24, .14, .07)); pb(18, 14, 22, 90, w, 16, .4); pb(74, 14, 78, 90, w, 16, .4); pb(18, 12, 78, 16, w, 17, .4); pb(20, 14, 76, 90, m_wood(WOODD), 1, 0, -8)
+    C = [(.36, .07, .06), (.08, .13, .30), (.16, .20, .08), (.50, .36, .10), (.22, .10, .18), (.42, .36, .26)]
+    for y in (34, 52, 70, 88):
+        pb(20, y, 76, y + 2, w, 16, .3); x = 23.0
+        while x < 71:
+            t = 2.6 + R() * 2.4; h = 9 + R() * 5; pb(x, y - h, x + t, y, m_cloth(vary(random.choice(C), .15)), 9 + R() * 2, .3, 1); x += t + .3 + (3 if R() < .12 else 0)
+def p_fountain():
+    s = lambda: m_stone((.32, .30, .27)); o = cy(48, 66, 90, 30, 0, s(), seg=18); o.scale = (1, .75, 1)
+    cy(48, 65.5, 67, 26.5, 0, mat((.05, .16, .22), rough=.08, grain=.1, bump=.05), seg=18).scale = (1, .75, 1)
+    cy(48, 36, 68, 5, 0, s(), seg=10); cy(48, 33, 37, 12, 0, s(), r2=8, seg=14)
+    for dx in (-6.5, 6.5): cy(48 + dx, 40, 66, .8, 4, mat((.45, .62, .72), rough=.1, grain=0, bump=0), seg=5)
+def p_bell():
+    w = m_wood(WOODD)
+    for x in (20, 71): pb(x, 14, x + 5, 90, w, 6, .5)
+    pb(16, 13, 80, 19, m_wood(WOODD, (.5, 7, 7)), 8, .5)
+    cy(48, 24, 54, 9, 0, m_gold(), r2=15, seg=18) if False else None
+    o = cy(48, 24, 54, 15, 0, m_brass(), r2=8, seg=18); cy(48, 19, 24, 2, 0, m_iron(), seg=6); ball(48, 57, 3, 0, m_iron()); cy(47, 60, 84, .5, 3, m_cloth((.5, .42, .3)), seg=5)
+def p_stele():
+    s = m_stone((.30, .29, .27)); pb(30, 54, 66, 90, s, 9, 1.2, 0, 1); cyd(48, 54, 18, -4.5, 4.5, s, seg=20)
+    k = mat((.05, .05, .05), grain=0, bump=0); pb(46, 48, 50, 66, k, .5, 0, 4.6); pb(40, 54, 56, 58, k, .5, 0, 4.6)
+    for y in (72, 77, 82): pb(36, y, 60, y + 1.5, k, .5, 0, 4.6)
+def p_brazier():
+    for (x, d) in ((36, 5), (60, 5), (48, -8)):
+        me = bpy.data.meshes.new('a'); bm = bmesh.new(); bmesh.ops.create_cone(bm, cap_ends=True, segments=6, radius1=1.4 * UN, radius2=1.4 * UN, depth=1); bm.to_mesh(me); bm.free()
+        a = Vector((PXx(x), -d * UN, PZz(90))); b = Vector((PXx(48 + (x - 48) * .4), -d * .4 * UN, PZz(62))); o = obj(me, m_iron()); o.location = (a + b) / 2; o.scale = (1, 1, (b - a).length); o.rotation_euler = (b - a).to_track_quat('Z', 'Y').to_euler()
+    cy(48, 52, 64, 18, 0, m_iron(), r2=12, seg=14); ball(48, 53, 15, 0, emit((.8, .18, .02), 1.2), (1, 1, .3))
+    for (mm, r, h, dx, d) in ((emit((.95, .22, .03), 1.6), 7, 12, -5, 0), (emit((.95, .22, .03), 1.6), 7.5, 15, 5, -2), (emit((1.0, .55, .08), 2.2), 5, 9, 0, 3), (emit((1.0, .85, .40), 3.0), 2.6, 5, 1, 5)):
+        ball(48 + dx, 52 - h * .7, r, d, mm, (1, .8, h / r))
+def p_well():
+    s = lambda: m_stone((.30, .29, .26)); cy(48, 62, 90, 24, 0, s(), seg=16).scale = (1, .8, 1); cy(48, 61.5, 63, 20, 0, m_dark(), seg=16).scale = (1, .8, 1)
+    w = m_wood(WOODD)
+    for x in (26, 66): pb(x, 30, x + 4, 64, w, 4, .4)
+    cyh(24, 72, 30, 2.6, 0, m_wood((.22, .13, .06), (.5, 7, 7))); cy(48, 32, 56, .5, 0, m_cloth((.5, .42, .3)), seg=5); cy(48, 54, 63, 5, 0, m_wood((.26, .15, .07)), seg=10)
+def p_cart():
+    w = m_wood((.24, .14, .07), (.5, 7, 7)); pb(16, 52, 72, 70, w, 34, .8); pb(15, 49, 73, 53, m_wood(WOODD, (.5, 7, 7)), 36, .5)
+    for d in (19, -19):
+        cyd(32, 78, 12, d - 1.5, d + 1.5, m_wood(WOODD), seg=18); cyd(32, 78, 12.6, d - 1, d + 1, m_iron(), seg=18) if False else None; cyd(32, 78, 3, d - 2.4, d + 2.4, m_iron(), seg=10)
+    me = bpy.data.meshes.new('a'); bm = bmesh.new(); bmesh.ops.create_cone(bm, cap_ends=True, segments=6, radius1=1.6 * UN, radius2=1.6 * UN, depth=1); bm.to_mesh(me); bm.free()
+    for d in (10, -10):
+        a = Vector((PXx(70), -d * UN, PZz(63))); b = Vector((PXx(92), -d * UN, PZz(74))); o = obj(me.copy(), m_wood(WOODD)); o.location = (a + b) / 2; o.scale = (1, 1, (b - a).length); o.rotation_euler = (b - a).to_track_quat('Z', 'Y').to_euler()
+def p_statue():   # silhouette de pierre : socle, corps drapé, tête, bras
+    s = m_stone((.36, .35, .32)); pb(30, 76, 66, 90, s, 26, 1.5, 0, 1); cy(48, 36, 77, 11, 0, s, r2=8, seg=12); ball(48, 26, 8.5, 0, s, (.9, .9, 1.1)); ball(48, 37, 12, 0, s, (1, .6, .5))
+    for x in (35.5, 60.5): cy(x, 38, 64, 3.4, 1, s, r2=2.6, seg=8)
+    pb(46.4, 30, 49.6, 82, s, 2.4, .6, 9)
+def p_sac():
+    ball(48, 77, 14, 0, m_cloth((.36, .25, .12)), (1, 1, .95)); cy(48, 56, 66, 4, 0, m_cloth((.36, .25, .12)), r2=6.5, seg=10); cy(48, 63, 66, 6.2, 0, m_cloth((.12, .08, .04)), seg=10)
+def p_or():
+    for (a, b, d) in ((38, 87, 3), (48, 88, 7), (58, 87, 2), (43, 84, -2), (53, 84, -3), (48, 81, 2), (46, 86, -6)):
+        cy(a, b - 2.2, b, 6.5, d, m_gold(), seg=14)
+
 globals()[name]()
 
 # ---------- caméra et lumière : les mêmes que pour les personnages ----------
 sc.render.engine = 'CYCLES'; sc.cycles.device = 'CPU'; sc.cycles.samples = 40; sc.cycles.use_denoising = False; sc.cycles.max_bounces = 3
-sc.render.resolution_x = (PX + MG) * SS; sc.render.resolution_y = (PX + (MG if kind != 't' else 0)) * SS; sc.render.resolution_percentage = 100
-sc.render.image_settings.file_format = 'PNG'; sc.view_settings.view_transform = 'Standard'; sc.view_settings.look = 'None'
-cam = bpy.data.cameras.new('C'); co = bpy.data.objects.new('C', cam); col.objects.link(co); sc.camera = co; cam.type = 'ORTHO'
-cam.ortho_scale = W * (PX + MG) / PX; cam.clip_end = 100
-if kind == 't':
-    co.location = (W / 2 - MGm / 2, -20, W / 2); co.rotation_euler = (math.radians(90), 0, 0)
+if kind in ('o', 'p'):
+    sc.render.film_transparent = True; sc.render.image_settings.color_mode = 'RGBA'; sc.cycles.samples = 64
+    N_ = 128 if kind == 'o' else 96; sc.render.resolution_x = N_ * 4; sc.render.resolution_y = N_ * 4; sc.render.resolution_percentage = 100
+    sc.render.image_settings.file_format = 'PNG'; sc.view_settings.view_transform = 'Standard'; sc.view_settings.look = 'None'
+    cam = bpy.data.cameras.new('C'); co = bpy.data.objects.new('C', cam); col.objects.link(co); sc.camera = co; cam.clip_end = 100; cam.sensor_fit = 'VERTICAL'; cam.sensor_height = 36
+    if kind == 'o':
+        Dc = 4.35; co.location = (W / 2, -Dc, W / 2); co.rotation_euler = (math.radians(90), 0, 0); cam.lens = 36 * Dc / W
+        if name != 'o_grille' and not name.startswith('o_leaf') and not name.startswith('o_flight'):
+            sp_ = box(W / 2, .0005, W / 2, W * 3, .001, W * 3, mat((.5, .5, .5))); sp_.is_shadow_catcher = True
+    else:
+        Dc = 4.0; eye = 1.45; co.location = (0, -Dc, eye); co.rotation_euler = (math.radians(90), 0, 0); cam.lens = 36 * Dc / SPANP
+        cam.shift_y = -((6.0 / 96.0) - .5 + eye / SPANP)
+        gp = box(0, 0, -.0005, 8, 8, .001, mat((.5, .5, .5))); gp.is_shadow_catcher = True
 else:
-    co.location = (W / 2 - MGm / 2, W / 2 - MGm / 2, 20); co.rotation_euler = (0, 0, 0)
+    sc.render.resolution_x = (PX + MG) * SS; sc.render.resolution_y = (PX + (MG if kind != 't' else 0)) * SS; sc.render.resolution_percentage = 100
+    sc.render.image_settings.file_format = 'PNG'; sc.view_settings.view_transform = 'Standard'; sc.view_settings.look = 'None'
+    cam = bpy.data.cameras.new('C'); co = bpy.data.objects.new('C', cam); col.objects.link(co); sc.camera = co; cam.type = 'ORTHO'
+    cam.ortho_scale = W * (PX + MG) / PX; cam.clip_end = 100
+    if kind == 't':
+        co.location = (W / 2 - MGm / 2, -20, W / 2); co.rotation_euler = (math.radians(90), 0, 0)
+    else:
+        co.location = (W / 2 - MGm / 2, W / 2 - MGm / 2, 20); co.rotation_euler = (0, 0, 0)
 def sun(n, elev, azim, e, c, ang=6):
     l = bpy.data.lights.new(n, 'SUN'); l.energy = e; l.color = c; l.angle = math.radians(ang); o = bpy.data.objects.new(n, l); col.objects.link(o)
     o.rotation_euler = (math.radians(90 - elev), 0, math.radians(azim))
-if kind == 't':
+if kind in ('t', 'o', 'p'):
     sun('key', 52, -48, 3.6, (1.0, .86, .68)); sun('fill', 12, 62, .4, (.55, .68, 1.0), 30)
 else:   # vue de dessus : la torche rase le sol depuis le haut à gauche
     sun('key', 38, -48 + 180, 3.2, (1.0, .86, .68)); sun('fill', 60, 62, .4, (.55, .68, 1.0), 30)

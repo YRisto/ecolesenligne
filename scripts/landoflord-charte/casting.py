@@ -4,7 +4,7 @@ W = lambda f, o: ['hero/%s.blend' % f, o]
 WF = lambda f, o: ['heroine/%s.blend' % f, o]
 MEL = [1, 3, 5, 7, 9, 11, 13, 14, 15, 16, 19, 21, 22, 24]      # repos 2, marche 4, frappe 4, touché, mort 3
 SHO = [1, 3, 5, 7, 9, 11, 29, 30, 31, 32, 19, 21, 22, 24]      # idem, tir à la place de la frappe
-NPC = [1, 2, 3, 4, 26]                                          # repos 4, geste
+NPC = [1, 2, 3, 4, 25]                                          # repos 4, geste
 PLATE_BARE = [W('plate_greaves', 'HumanMale'), W('plate_boots', 'HumanMale'), W('plate_gauntlets', 'HumanMale')]
 CHAIN_BARE = [W('chain_greaves', 'HumanMale'), W('chain_boots', 'HumanMale'), W('chain_gloves', 'HumanMale')]
 SH = {'HeavyShield': .64, 'LightShield': .62}
@@ -44,7 +44,14 @@ C = {
  'reine':      dict(base='heroine/robes.blend', add=[WF('head_long', 'LongHair')], colors={'Cloth': 'blue', 'Trim': 'gold', 'DarkHair': 'hair_blond', 'HairHighlights': 'hair_blond', 'Skin': 'skin_pale'}, frames=NPC),
  'aldric':     dict(base='hero/plate_cuirass.blend', add=PLATE_BARE + [W('male_head1', 'MaleHead1'), W('longsword', 'Longsword')], colors={'Leather': 'red', 'SteelDull': 'steel_dull', 'DarkHair': 'hair_dark', 'WhiteCloth': 'red'}, frames=NPC),
 }
+FACES = {'aldric': dict(beard='hair_dark'), 'ermite': dict(beard='hair_grey', brow='hair_grey'), 'odon': dict(beard='hair_brown', brow='hair_brown'), 'borgne': dict(patch=1, stache='hair_dark', scar=1),
+ 'grolard': dict(stache='hair_grey', brow='hair_grey'), 'pillard': dict(beard='hair_brown', brow='hair_brown'), 'contrebandier': dict(stache='hair_dark'), 'renaud': dict(beard='hair_brown', brow='hair_brown'),
+ 'capitaine': dict(stache='hair_grey', brow='hair_grey'), 'barnabe': dict(brow='hair_grey'), 'fulbert': dict(beard='hair_red', brow='hair_red'), 'chancelier': dict(beard='hair_white', brow='hair_white'),
+ 'goupil': dict(brow='hair_red', stache='hair_red'), 'braconnier': dict(brow='hair_red', beard='hair_red'), 'deserteur': dict(brow='hair_blond'), 'anselme': dict(brow='hair_grey', beard='hair_grey'),
+ 'vouivre': dict(brow='hair_red', mouth='red'), 'ysolde': dict(brow='hair_blond', mouth='red'), 'reine': dict(brow='hair_blond', mouth='red'), 'brune': dict(brow='hair_brown')}
 for k, v in C.items():
-    v = dict(v); v['name'] = k; v.setdefault('frames', MEL); v.setdefault('scale_obj', SH); v.update(fw=288, fh=208, eye=1.45, span=2.8)
+    v = dict(v); v['name'] = k; v['face'] = dict(FACES.get(k, {})); v['face'].setdefault('skin', v.get('colors', {}).get('Skin', 'skin'))
+    if v.get('frames', MEL) is MEL: v['rotz_frames'] = {'0': 35, '1': 35}
+    v.setdefault('frames', MEL); v.setdefault('scale_obj', SH); v.update(fw=288, fh=208, eye=1.45, span=2.8)
     json.dump(v, open('/home/claude/work/specs/c/%s.json' % k, 'w'))
 print(len(C))

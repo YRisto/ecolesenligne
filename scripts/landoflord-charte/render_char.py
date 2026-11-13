@@ -1,7 +1,7 @@
 # Rendu d'un personnage Flare (CC-BY-SA 3.0) avec la caméra et la lumière de la charte.
 # usage : python render_char.py spec.json outdir
-import bpy, sys, math, os, json
-from mathutils import Vector
+import bpy, bmesh, sys, math, os, json
+from mathutils import Vector, Matrix, Euler
 
 ART = '/home/claude/src/flare-game/art_src/characters/'
 spec = json.load(open(sys.argv[1])); out = sys.argv[2]
@@ -129,6 +129,34 @@ for ob in bpy.data.objects:
         ob.data.materials[i] = charter_mat(key if isinstance(key, str) else (tuple(key[0]), key[1], key[2]))
 print('MATS', json.dumps(used))
 
+
+# ---------- visage : yeux, sourcils, nez, bouche, barbe, posés sur la tête au repos puis attachés à l'os ----------
+FACE = spec.get('face', {})
+if FACE is not None and arm.data.bones.get('Head') and not spec.get('noface'):
+    arm.data.pose_position = 'REST'; bpy.context.view_layer.update()
+    hb = arm.data.bones['Head']; fem = 'Female' in arm.name
+    zc = (1.735 if not fem else 1.665); yf = (-.112 if not fem else -.098); k = 1.0 if not fem else .92
+    par = arm.matrix_world @ hb.matrix_local @ Matrix.Translation((0, hb.length, 0))
+    def feat(loc, size, key, rot=(0, 0, 0)):
+        me = bpy.data.meshes.new('f'); bm = bmesh.new(); bmesh.ops.create_icosphere(bm, subdivisions=2, radius=1); bmesh.ops.scale(bm, vec=size, verts=bm.verts); bm.to_mesh(me); bm.free()
+        for pl in me.polygons: pl.use_smooth = True
+        me.materials.append(charter_mat(key)); o = bpy.data.objects.new('face', me); sc.collection.objects.link(o)
+        wm = Matrix.Translation(loc) @ Euler(rot).to_matrix().to_4x4()
+        o.parent = arm; o.parent_type = 'BONE'; o.parent_bone = 'Head'; o.matrix_parent_inverse = par.inverted(); o.matrix_basis = wm; return o
+    eye = FACE.get('eye', 'hair_dark'); brow = FACE.get('brow', FACE.get('hair', 'hair_dark'))
+    for sx in (-1, 1):
+        feat((sx * .034 * k, yf + .012, zc + .022), (.016 * k, .012, .011), eye)                      # yeux
+        feat((sx * .036 * k, yf + .010, zc + .045), (.024 * k, .012, .007), brow, (0, sx * -.18, 0))   # sourcils
+    feat((0, yf - .004, zc - .012), (.011, .016, .026), FACE.get('skin', 'skin'))                     # nez
+    feat((0, yf + .012, zc - .058), (.026 * k, .010, .0065), FACE.get('mouth', 'wine' if fem else 'leather'))   # bouche
+    if FACE.get('beard'):
+        feat((0, yf + .028, zc - .085), (.058, .045, .058), FACE['beard']); feat((0, yf + .014, zc - .040), (.036, .012, .008), FACE['beard'])
+    if FACE.get('stache'): feat((0, yf + .010, zc - .042), (.040, .012, .010), FACE['stache'])
+    if FACE.get('patch'):   # bandeau sur l'œil
+        feat((.034, yf + .006, zc + .022), (.024, .012, .020), 'leather_black'); feat((0, yf + .03, zc + .05), (.098, .105, .010), 'leather_black', (.25, .35, 0))
+    if FACE.get('scar'): feat((-.045, yf + .016, zc - .01), (.005, .008, .045), 'wine', (0, .3, 0))
+    arm.data.pose_position = 'POSE'; bpy.context.view_layer.update()
+
 # ---------- caméra et lumière de la charte ----------
 sc.render.engine = 'CYCLES'; sc.cycles.device = 'CPU'; sc.cycles.samples = spec.get('samples', 48); sc.cycles.use_denoising = False; sc.cycles.max_bounces = 3
 sc.render.film_transparent = True; sc.render.resolution_x = FW * SS; sc.render.resolution_y = FH * SS; sc.render.resolution_percentage = 100
@@ -162,11 +190,11 @@ s = spec.get('scale', 1.0)
 if s != 1.0:
     roots = [o for o in bpy.data.objects if o.parent is None and o.type in ('MESH', 'ARMATURE', 'EMPTY')]
     for o in roots: o.scale = [v * s for v in o.scale]; o.location = [v * s for v in o.location]
-if spec.get('rotz'):
-    roots = [o for o in bpy.data.objects if o.parent is None and o.type in ('MESH', 'ARMATURE', 'EMPTY')]
-    piv = bpy.data.objects.new('PIV', None); sc.collection.objects.link(piv)
-    for o in roots: o.parent = piv
-    piv.rotation_euler = (0, 0, math.radians(spec['rotz']))
+roots = [o for o in bpy.data.objects if o.parent is None and o.type in ('MESH', 'ARMATURE', 'EMPTY')]
+piv = bpy.data.objects.new('PIV', None); sc.collection.objects.link(piv)
+for o in roots: o.parent = piv
+RZ = spec.get('rotz_frames', {})
 for i, f in enumerate(spec['frames']):
+    piv.rotation_euler = (0, 0, math.radians(RZ.get(str(i), spec.get('rotz', 0))))
     sc.frame_set(int(f)); sc.render.filepath = os.path.join(out, 'f%02d.png' % i); bpy.ops.render.render(write_still=True)
 print('DONE', spec.get('name'))
