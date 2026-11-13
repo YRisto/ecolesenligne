@@ -624,11 +624,192 @@ def p_or():
     for (a, b, d) in ((38, 87, 3), (48, 88, 7), (58, 87, 2), (43, 84, -2), (53, 84, -3), (48, 81, 2), (46, 86, -6)):
         cy(a, b - 2.2, b, 6.5, d, m_gold(), seg=14)
 
+
+# =====================================================================
+# Intérieurs (h_* : échoppes vues derrière le comptoir) et scènes (s_*), 400 x 200.
+# Repère : sol z = 0, mur du fond en y = +3, spectateur en y = -4 à hauteur d'yeux.
+# =====================================================================
+def wb(x0, x1, y0, y1, z0, z1, m, bevel=0, chisel=0, rot=(0, 0, 0)):
+    return box((x0 + x1) / 2, (y0 + y1) / 2, (z0 + z1) / 2, abs(x1 - x0), abs(y1 - y0), abs(z1 - z0), m, bevel, rot, chisel)
+def wc(x, y, z0, z1, r, m, r2=None, seg=14): return cyl(x, y, z0, z1, r, m, r2, seg)
+def wcx(x0, x1, y, z, r, m, seg=12):
+    me = bpy.data.meshes.new('c'); bm = bmesh.new(); bmesh.ops.create_cone(bm, cap_ends=True, segments=seg, radius1=r, radius2=r, depth=abs(x1 - x0)); bm.to_mesh(me); bm.free()
+    for p in me.polygons: p.use_smooth = True
+    o = obj(me, m); o.rotation_euler = (0, math.radians(90), 0); o.location = ((x0 + x1) / 2, y, z); return o
+def wcy(x, y0, y1, z, r, m, seg=12, r2=None):
+    me = bpy.data.meshes.new('c'); bm = bmesh.new(); bmesh.ops.create_cone(bm, cap_ends=True, segments=seg, radius1=r, radius2=r if r2 is None else r2, depth=abs(y1 - y0)); bm.to_mesh(me); bm.free()
+    for p in me.polygons: p.use_smooth = True
+    o = obj(me, m); o.rotation_euler = (math.radians(-90), 0, 0); o.location = (x, (y0 + y1) / 2, z); return o
+def wsph(x, y, z, r, m, sc=(1, 1, 1)):
+    me = bpy.data.meshes.new('s'); bm = bmesh.new(); bmesh.ops.create_icosphere(bm, subdivisions=2, radius=r); bmesh.ops.scale(bm, vec=sc, verts=bm.verts); bm.to_mesh(me); bm.free()
+    for p in me.polygons: p.use_smooth = True
+    o = obj(me, m); o.location = (x, y, z); return o
+def lamp(x, y, z, e, c=(1, .62, .28), size=.15):
+    l = bpy.data.lights.new('pt', 'POINT'); l.energy = e; l.color = c; l.shadow_soft_size = size; lo = bpy.data.objects.new('pt', l); col.objects.link(lo); lo.location = (x, y, z); return lo
+def stone_wall(y, x0=-6, x1=6, z0=0, z1=3.4, bw=(.6, 1.0), bh=.5, cols_=None, depth=.16, **kw):
+    cols_ = cols_ or [GREY, GREY2, (.20, .18, .16)]; wb(x0, x1, y + .02, y + .1, z0, z1, mat((.012, .011, .01)))
+    z = z0; r_ = 0
+    while z < z1:
+        x = x0 - R() * bw[1]
+        while x < x1:
+            w = U(*bw); wb(x + .025, x + w - .025, y - depth + U(-.02, .02), y, z + .025, min(z + bh, z1) - .025, mat(vary(random.choice(cols_), .2), grain=.4, gscale=22, bump=.8, spots=.5, spotcol=(.07, .07, .065)), .05, kw.get('chisel', .04)); x += w
+        z += bh
+def plank_wall(y, x0=-6, x1=6, z0=0, z1=3.4, c=WOOD, w=.36):
+    x = x0
+    while x < x1: wb(x + .008, x + w - .008, y - .06, y, z0, z1, m_wood(vary(c, .14)), .01); x += w
+def room(wall='stone', floor_c=(.10, .085, .07), ceil=True, **kw):
+    if wall == 'stone': stone_wall(3.0, **kw)
+    elif wall == 'plank': plank_wall(3.0, c=kw.get('c', WOOD))
+    wb(-7, 7, -6, 3.2, -.1, 0, mat(floor_c, grain=.4, gscale=10, bump=.6))
+    if ceil:
+        wb(-7, 7, -6, 3.2, 3.4, 3.5, mat((.07, .045, .025), grain=.5, gscale=9, stretch=(.5, 8, 8), bump=.4))
+        for x in (-4.2, -2.1, 0, 2.1, 4.2): wb(x - .13, x + .13, -6, 3.1, 3.12, 3.4, m_wood(WOODD, (8, .5, 8)), .02)
+def counter(c=(.24, .14, .07)):
+    wb(-6, 6, -1.75, -1.1, 0, .96, m_wood(vary(c, .05), (.5, 7, 7)), .015); wb(-6, 6, -1.82, -1.04, .96, 1.03, m_wood((.30, .18, .09), (.5, 7, 7)), .02)
+    for x in (-3.3, -1.1, 1.1, 3.3): wb(x - .04, x + .04, -1.78, -1.74, 0, .96, m_wood(WOODD), .01)
+def shelf_(x0, x1, z, y=2.9, d=.34, c=WOODD):
+    wb(x0, x1, y - d, y, z - .04, z, m_wood(c, (.5, 7, 7)), .01)
+    for x in (x0 + .05, x1 - .05): wb(x - .03, x + .03, y - d + .03, y, z - .22, z - .04, m_wood(c), .01)
+def jars(x0, x1, z, y=2.72, cols_=None, n=9):
+    cols_ = cols_ or [(.20, .32, .10), (.38, .09, .06), (.55, .40, .12), (.10, .20, .34), (.26, .10, .26), (.08, .24, .14)]
+    for i in range(n):
+        x = x0 + (i + .5) * (x1 - x0) / n; h = U(.16, .26); r = U(.055, .08); m = mat(vary(random.choice(cols_), .15), rough=.25, grain=.12, bump=.05)
+        wc(x, y, z, z + h, r, m); wc(x, y, z + h, z + h + .04, r * .6, m_wood(WOODD))
+def fire(x, y, z, s=1.0):
+    for (c, e, r, h, dx) in (((.95, .22, .03), .9, .22, .5, -.12), ((.95, .22, .03), .9, .2, .62, .14), ((1.0, .55, .08), 1.3, .15, .42, 0), ((1.0, .85, .4), 1.9, .08, .22, .03)):
+        wsph(x + dx * s, y, z + h * s * .5, r * s, emit(c, e), (1, .8, h / r * .5))
+    lamp(x, y - .5, z + .4, 260 * s)
+
+def h_forge():
+    room('stone'); counter()
+    wb(1.5, 4.2, 2.0, 2.95, 0, 1.0, m_stone((.14, .13, .12)), .06, .04); wb(1.7, 4.0, 1.9, 2.9, 1.0, 1.12, mat((.02, .018, .016)))
+    for i in range(14): wsph(U(1.9, 3.8), U(2.1, 2.7), 1.14, U(.07, .12), emit((.9, .2 + R() * .2, .03), .6 + R() * .8), (1, 1, .6))
+    fire(2.85, 2.4, 1.1, .9)
+    wb(1.4, 4.3, 1.9, 2.95, 2.3, 3.3, m_stone((.11, .10, .095)), .05, .04)   # hotte
+    for i, x in enumerate((-.7, -.25, .2, .65)):   # épées au mur
+        l = U(.9, 1.2); wb(x - .035, x + .035, 2.80, 2.84, 1.95 - l + 1.0, 2.95 - .2, m_steel(), .008); wb(x - .14, x + .14, 2.78, 2.84, 1.75 - l + 1.0, 1.80 - l + 1.0, m_brass(), .01); wb(x - .03, x + .03, 2.78, 2.84, 1.50 - l + 1.0, 1.76 - l + 1.0, m_wood(WOODD), .01)
+    wcy(-4.2, 2.78, 2.86, 2.1, .5, m_steel(), 20); wcy(-4.2, 2.72, 2.80, 2.1, .13, m_brass(), 12)
+    wb(-5.6, -3.2, 2.6, 2.95, 0, 1.0, m_wood(WOODD), .02); 
+    for x in (-5.2, -4.6, -4.0, -3.5): wc(x, 2.75, 1.0, 1.0 + U(.25, .5), .1, m_iron(), seg=8)
+    lamp(-2, 0, 2.6, 60, (1, .75, .5))
+def h_herbes():
+    room('plank', c=(.20, .12, .06)); counter()
+    for z in (1.5, 2.15): shelf_(-5.4, -.6, z); jars(-5.3, -.7, z, n=13)
+    wcx(-.2, 5.6, 2.6, 3.0, .04, m_wood(WOODD))
+    for i in range(13):   # bouquets pendus
+        x = .1 + i * .42; l = U(.35, .6); wc(x, 2.6, 3.0 - l * .35, 3.0, .012, m_cloth((.3, .24, .14)), seg=5)
+        wsph(x, 2.6, 3.0 - l * .35 - l * .4, .13, m_cloth(vary(random.choice([(.10, .20, .05), (.16, .22, .07), (.28, .22, .10), (.16, .10, .22)]), .2)), (1, 1, l / .13 * .5))
+    shelf_(1.2, 5.2, 1.45); jars(1.3, 5.1, 1.45, n=8)
+    wc(4.4, 2.2, 1.45, 1.75, .04, mat((.72, .68, .58), grain=.1), seg=8); wsph(4.4, 2.2, 1.8, .045, emit((1, .7, .25), 6), (1, 1, 1.8)); lamp(4.4, 1.9, 1.9, 50)
+    lamp(-2, 0, 2.6, 70, (1, .8, .55))
+def h_drap():
+    room('plank', c=(.24, .15, .09)); counter()
+    cs = [(.38, .05, .05), (.07, .14, .30), (.55, .40, .12), (.10, .22, .08), (.22, .06, .20), (.62, .58, .50), (.26, .15, .08)]
+    for j, z in enumerate((.95, 1.6, 2.25)):
+        shelf_(-5.5, -1.2, z)
+        for i in range(8): wcx(-5.4 + i * .52, -5.4 + i * .52 + .46, 2.72, z + .17, .16, m_cloth(vary(cs[(i + j * 2) % 7], .1)), 12)
+    wb(2.4, 4.6, 2.9, 2.98, 1.0, 2.9, emit((.55, .66, .85), 1.6)); wb(2.3, 4.7, 2.86, 2.96, .9, 1.0, m_wood(WOODD)); wb(2.3, 4.7, 2.86, 2.96, 2.9, 3.0, m_wood(WOODD))
+    for x in (2.3, 3.5, 4.7): wb(x - .05, x + .05, 2.86, 2.96, .9, 3.0, m_wood(WOODD))
+    wb(2.3, 4.7, 2.86, 2.96, 1.9, 1.98, m_wood(WOODD))
+    wc(.6, 2.3, 0, 1.3, .03, m_wood(WOODD), seg=6); wc(.6, 2.3, 1.0, 1.9, .34, m_cloth((.40, .06, .06)), r2=.2, seg=14); wsph(.6, 2.3, 2.0, .2, m_cloth((.40, .06, .06)), (1.3, .7, .6)); wsph(.6, 2.3, 2.3, .13, m_wood((.3, .2, .1)))
+    wc(.6, 2.3, 1.88, 1.93, .22, m_cloth((.6, .42, .12)), seg=14)
+    lamp(3.5, 2.2, 2.2, 120, (.7, .8, 1.0), .5); lamp(-2, 0, 2.6, 70, (1, .8, .55))
+def h_taverne():
+    room('plank', c=(.17, .10, .05)); counter()
+    wb(2.0, 5.0, 2.3, 2.98, 0, 2.0, m_stone((.15, .14, .13)), .06, .04); wb(2.5, 4.5, 2.2, 2.9, .1, 1.3, mat((.012, .01, .009))); fire(3.5, 2.5, .15, 1.2); wb(1.9, 5.1, 2.2, 2.98, 2.0, 2.2, m_wood(WOODD, (.5, 7, 7)), .02)
+    for (x, z, r) in ((-5.0, .55, .55), (-3.8, .55, .55), (-4.4, 1.55, .5)):   # tonneaux couchés
+        wcy(x, 2.0, 2.9, z, r, m_wood((.24, .14, .07), (7, .5, 7)), 18)
+        for y in (2.02, 2.45): wcy(x, y, y + .06, z, r + .015, m_iron(), 18)
+        wcy(x, 1.98, 2.0, z, r * .92, m_wood(WOODD), 18)
+    shelf_(-2.6, 1.4, 1.75)
+    for i in range(8):
+        x = -2.4 + i * .5; wc(x, 2.72, 1.75, 1.97, .08, mat((.50, .42, .28), rough=.5, grain=.15), seg=10); wb(x + .08, x + .13, 2.70, 2.74, 1.80, 1.92, mat((.40, .33, .22), grain=.15))
+    wc(-.6, 1.6, 2.5, 3.2, .012, m_iron(), seg=5); wb(-.72, -.48, 1.48, 1.72, 2.2, 2.5, emit((.9, .40, .05), .55)); lamp(-.6, 1.3, 2.3, 60)
+def h_etal():
+    room('stone', cols_=[(.11, .11, .13), (.13, .125, .14), (.10, .10, .11)]); counter((.20, .12, .06))
+    wb(2.6, 3.8, 2.95, 3.0, 2.0, 2.9, emit((.30, .40, .65), 1.4))
+    for x in (2.85, 3.2, 3.55): wc(x, 2.82, 1.95, 2.95, .04, m_iron(), seg=8)
+    lamp(3.2, 2.4, 2.4, 90, (.55, .68, 1.0), .4)
+    shelf_(-5.2, -1.0, 1.55)
+    for i in range(5): wsph(-4.8 + i * .85, 2.72, 1.66, .26, m_cloth(vary((.40, .25, .10), .1)), (1, .8, .45))
+    wcx(-.2, 2.0, 2.7, 3.0, .03, m_wood(WOODD))
+    for i in range(6):
+        x = 0 + i * .34; l = U(.4, .62); wc(x, 2.7, 3.0 - l, 3.0, .055, m_cloth(vary((.30, .07, .05), .15)), seg=8)
+    wc(-5.2, 1.6, 0, 1.4, .5, m_cloth((.34, .25, .13)), r2=.62, seg=14)
+    lamp(-2.5, 0, 2.5, 40, (1, .7, .4))
+def h_chariot():
+    sky = emit((.30, .42, .62), 1.0); wb(-30, 30, 20, 20.1, -5, 25, sky)
+    for (x, y, r, c) in ((-9, 17, 9, (.10, .15, .13)), (8, 16, 11, (.09, .14, .11)), (-2, 12, 7, (.07, .12, .06)), (12, 11, 6, (.08, .13, .05)), (-12, 10, 6, (.09, .13, .05))):
+        wsph(x, y, -1.0, r, mat(c, grain=.4, gscale=1.2, bump=.4), (1, 1, .42))
+    wb(-20, 20, -8, 20, -.1, 0, mat((.11, .13, .05), grain=.5, gscale=6, bump=.6))
+    counter((.26, .16, .08))
+    for x in (-5.2, 5.2): wc(x, -.6, 0, 3.3, .07, m_wood(WOODD))
+    for i in range(10):   # auvent rayé
+        x0 = -5.6 + i * 1.12; o = wb(x0, x0 + 1.12, -1.6, 1.4, 3.1, 3.14, m_cloth((.38, .05, .04) if i % 2 else (.60, .56, .46))); o.rotation_euler = (math.radians(-9), 0, 0)
+    wb(-5.6, 5.6, -1.72, -1.66, 2.66, 2.98, m_cloth((.38, .05, .04)))
+    wcy(4.3, 1.2, 1.36, .9, .9, m_wood(WOODD), 20); wcy(4.3, 1.14, 1.42, .9, .14, m_iron(), 10)
+    for a in range(6):
+        o = wb(4.27, 4.33, 1.24, 1.32, .1, 1.7, m_wood((.22, .13, .06))); o.rotation_euler = (0, a * math.pi / 6, 0)
+    for (x, z, w) in ((-4.6, 0, 1.2), (-3.2, 0, .9), (-4.1, 1.2, .8)): wb(x - w / 2, x + w / 2, .6, .6 + w, z, z + w, m_wood(vary((.28, .18, .09), .1)), .03)
+def h_cloitre():
+    room('stone', cols_=[(.24, .21, .16), (.27, .23, .17), (.20, .18, .14)], ceil=False)
+    wb(-7, 7, -6, 3.2, 3.6, 3.7, mat((.08, .07, .06)))
+    counter((.22, .14, .08))
+    for x in (-4.4, -1.5, 1.5, 4.4):
+        wc(x, 2.3, 0, 2.6, .2, m_stone((.34, .31, .26)), seg=12); wb(x - .3, x + .3, 2.0, 2.6, 2.6, 2.8, m_stone((.36, .33, .28)), .04); wb(x - .28, x + .28, 2.02, 2.58, 0, .2, m_stone((.36, .33, .28)), .04)
+    for x in (-2.95, 0, 2.95):   # vitraux
+        wb(x - .7, x + .7, 2.74, 2.80, .9, 2.4, emit((.55, .32, .06), .5)); wsph(x, 2.77, 2.4, .7, emit((.45, .06, .05), .5), (1, .05, 1)); wb(x - .7, x + .7, 2.73, 2.79, .9, 1.4, emit((.05, .12, .40), .5))
+        wb(x - .03, x + .03, 2.70, 2.74, .9, 3.1, m_iron()); wb(x - .7, x + .7, 2.70, 2.74, 1.6, 1.66, m_iron()); wb(x - .7, x + .7, 2.70, 2.74, 1.38, 1.43, m_iron())
+        lamp(x, 2.3, 1.8, 60, (1, .75, .4), .4)
+    for x in (-3.6, -.7, 2.2):
+        wc(x, -.9, 1.03, 1.4, .035, mat((.72, .68, .58), grain=.1), seg=8) if False else None
+def h_egout():
+    room('stone', cols_=[SEW, (.12, .13, .11), (.09, .10, .10)], bw=(.4, .7), bh=.3, floor_c=(.04, .06, .05)); counter((.16, .10, .05))
+    wb(1.6, 4.6, 2.78, 2.9, 0, 1.6, emit((.004, .006, .005), 1)); wsph(3.1, 2.84, 1.6, 1.5, emit((.004, .006, .005), 1), (1, .04, 1))
+    wb(1.6, 4.6, 2.5, 2.9, 0, .28, mat((.03, .12, .09), rough=.08, grain=.1, bump=.05))
+    for a in range(9):
+        t = math.pi * (a + .5) / 9; o = wb(3.1 - 1.72 * math.cos(t) - .3, 3.1 - 1.72 * math.cos(t) + .3, 2.62, 2.84, 1.6 + 1.72 * math.sin(t) - .17, 1.6 + 1.72 * math.sin(t) + .17, m_stone((.13, .14, .12)), .04, .03); o.rotation_euler = (0, t - math.pi / 2, 0)
+    wc(-1.6, 1.4, 2.6, 3.4, .012, m_iron(), seg=5); wb(-1.72, -1.48, 1.28, 1.52, 2.3, 2.6, emit((.9, .40, .05), .55)); lamp(-1.6, 1.1, 2.4, 70)
+    for (x, z, w) in ((-4.8, 0, 1.1), (-3.6, 0, .8), (-4.5, 1.1, .7)): wb(x - w / 2, x + w / 2, 1.8, 1.8 + w, z, z + w, m_wood(vary((.20, .13, .07), .1)), .03)
+def s_throne():
+    stone_wall(6.0, x0=-8, x1=8, z1=6, cols_=[(.30, .28, .25), (.34, .31, .27), (.26, .245, .22)], bw=(.9, 1.4), bh=.7, chisel=.02)
+    wb(-9, 9, -8, 6.2, -.1, 0, mat((.20, .19, .17), rough=.4, grain=.25, gscale=5, bump=.2)); wb(-9, 9, -8, 6.2, 6, 6.1, mat((.10, .09, .08)))
+    for i in range(-4, 5):
+        for j in range(-3, 3): 
+            if (i + j) % 2: wb(i * 1.5, i * 1.5 + 1.5, j * 1.5, j * 1.5 + 1.5, 0, .006, mat((.07, .07, .08), rough=.3, grain=.2))
+    wb(-.9, .9, -8, 4.4, .005, .02, m_cloth((.36, .04, .04))); 
+    for x in (-.9, .82): wb(x, x + .08, -8, 4.4, .02, .025, m_cloth((.62, .42, .12)))
+    for k, yy in enumerate((-.5, 2.2, 4.9)):
+        for sx in (-1, 1):
+            x = sx * 3.3; wc(x, yy, 0, 5.2, .32, m_stone((.36, .34, .30)), seg=14); wb(x - .5, x + .5, yy - .5, yy + .5, 0, .35, m_stone((.38, .36, .32)), .05); wb(x - .5, x + .5, yy - .5, yy + .5, 5.2, 5.6, m_stone((.38, .36, .32)), .05)
+            if k < 2:
+                bxx = sx * 4.6; wb(bxx - .45, bxx + .45, yy + 1.2, yy + 1.25, 2.0, 4.6, m_cloth((.07, .12, .30) if k == 0 else (.36, .04, .04))); wb(bxx - .2, bxx + .2, yy + 1.17, yy + 1.2, 3.1, 3.6, m_cloth((.62, .42, .12)))
+    for i, (d, h) in enumerate(((1.6, .22), (1.25, .44), (.9, .66))): wb(-2.4 + i * .35, 2.4 - i * .35, 5.9 - d - .4, 5.95, 0, h, m_stone((.34, .32, .29)), .03)
+    g = m_gold(); w = m_wood((.20, .10, .05))
+    wb(-.55, .55, 5.0, 5.75, .66, 1.25, w, .03); wb(-.6, .6, 5.6, 5.8, .66, 3.1, w, .04); wb(-.45, .45, 5.56, 5.6, 1.3, 2.9, m_cloth((.36, .04, .04)))
+    for x in (-.62, .5): wb(x, x + .12, 5.0, 5.75, 1.25, 1.6, g, .03)
+    wsph(0, 5.7, 3.25, .22, g); 
+    for x in (-.55, .55): wsph(x, 5.7, 3.12, .12, g)
+    for sx in (-1, 1):
+        wc(sx * 1.9, 5.2, .66, 2.2, .05, m_iron(), seg=8); wc(sx * 1.9, 5.2, 2.2, 2.35, .2, m_iron(), r2=.12, seg=10); fire(sx * 1.9, 5.2, 2.35, .5)
+    for sx in (-1, 1): wb(sx * 6.2 - .2, sx * 6.2 + .2, -8, 6.2, 0, 6, mat((.22, .205, .185), grain=.4, gscale=3, bump=.8, spots=.5, spotcol=(.14, .13, .12)))
+    lamp(0, 2, 5, 400, (1, .85, .65), 1.0)
+
 globals()[name]()
+if kind == 'h':   # le fond de l'échoppe est rapproché du comptoir : les objets se lisent mieux
+    for o_ in list(col.objects):
+        if o_.location.y > .5: o_.location.y -= 1.7
+    lamp(-1.5, -.6, 2.7, 160, (1, .82, .6), .6)
 
 # ---------- caméra et lumière : les mêmes que pour les personnages ----------
 sc.render.engine = 'CYCLES'; sc.cycles.device = 'CPU'; sc.cycles.samples = 40; sc.cycles.use_denoising = False; sc.cycles.max_bounces = 3
-if kind in ('o', 'p'):
+if kind in ('h', 's'):
+    sc.cycles.samples = 48; sc.render.resolution_x = 1200; sc.render.resolution_y = 600; sc.render.resolution_percentage = 100
+    sc.render.image_settings.file_format = 'PNG'; sc.view_settings.view_transform = 'Standard'; sc.view_settings.look = 'None'
+    cam = bpy.data.cameras.new('C'); co = bpy.data.objects.new('C', cam); col.objects.link(co); sc.camera = co; cam.clip_end = 200; cam.sensor_fit = 'VERTICAL'; cam.sensor_height = 36
+    if kind == 'h': co.location = (0, -4.15, 1.45); co.rotation_euler = (math.radians(90), 0, 0); cam.lens = 36 * 267 / 200
+    else: co.location = (0, -7.5, 1.7); co.rotation_euler = (math.radians(92), 0, 0); cam.lens = 36 * 230 / 200
+elif kind in ('o', 'p'):
     sc.render.film_transparent = True; sc.render.image_settings.color_mode = 'RGBA'; sc.cycles.samples = 64
     N_ = 128 if kind == 'o' else 96; sc.render.resolution_x = N_ * 4; sc.render.resolution_y = N_ * 4; sc.render.resolution_percentage = 100
     sc.render.image_settings.file_format = 'PNG'; sc.view_settings.view_transform = 'Standard'; sc.view_settings.look = 'None'
@@ -653,7 +834,9 @@ else:
 def sun(n, elev, azim, e, c, ang=6):
     l = bpy.data.lights.new(n, 'SUN'); l.energy = e; l.color = c; l.angle = math.radians(ang); o = bpy.data.objects.new(n, l); col.objects.link(o)
     o.rotation_euler = (math.radians(90 - elev), 0, math.radians(azim))
-if kind in ('t', 'o', 'p'):
+if kind in ('h', 's'):
+    sun('key', 40, -35, 1.6 if name != 'h_chariot' else 3.6, (1.0, .86, .68)); sun('fill', 12, 62, .3, (.55, .68, 1.0), 30)
+elif kind in ('t', 'o', 'p'):
     sun('key', 52, -48, 3.6, (1.0, .86, .68)); sun('fill', 12, 62, .4, (.55, .68, 1.0), 30)
 else:   # vue de dessus : la torche rase le sol depuis le haut à gauche
     sun('key', 38, -48 + 180, 3.2, (1.0, .86, .68)); sun('fill', 60, 62, .4, (.55, .68, 1.0), 30)

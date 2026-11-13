@@ -2,7 +2,7 @@
 import re, sys, io, os, json, base64, subprocess, glob
 import numpy as np
 from PIL import Image
-SWV = 19
+SWV = 20
 sys.path.insert(0, '/home/claude/work/tools'); import charte
 REPO = '/home/claude/ecolesenligne'; REL = 'public/landoflord/index.html'
 WK = '/home/claude/work'
@@ -37,6 +37,8 @@ def quant_bust(im, b):
     for i in range(Hd // eh + 1):
         if i * eh < Hd and Wd > 192 + mw: q((192 + mw, i * eh, min(Wd, 192 + mw + ew), min(Hd, (i + 1) * eh)), (ex, ey))
     return charte.quantize(out, dither=0)
+for f in sorted(glob.glob(WK + '/scn/h_*.png')):   # intérieurs d'échoppe
+    new[os.path.basename(f)[:-4]] = uri(Image.open(f))
 for f in sorted(glob.glob(WK + '/obj/*.png')):   # éléments de mur et meubles rendus en 3D
     new[os.path.basename(f)[:-4]] = uri(Image.open(f))
 for k, u in old.items():
@@ -141,6 +143,7 @@ s = rep1(s, "function vars(c){c=outlined(vga(c,10));", "function vars(c,raw){c=r
 s = rep1(s, "function buildProps(){const P=(n,fn)=>addSpr('p_'+n,paint(96,g=>{g.fillStyle='rgba(0,0,0,.35)';el(g,48,90,26,4);fn(g);}))",
  "function buildProps(){const RI=k=>mk(96,96,g=>{g.imageSmoothingEnabled=false;g.drawImage(IMGEL[k],0,0);});for(const k of['sac','or'])if(IMGEL['p_'+k])addSpr(k,RI('p_'+k),1);"
  "const P=(n,fn)=>IMGEL['p_'+n]?addSpr('p_'+n,RI('p_'+n),1):addSpr('p_'+n,paint(96,g=>{g.fillStyle='rgba(0,0,0,.35)';el(g,48,90,26,4);fn(g);}))")
+s = rep1(s, "function shopBg(kind){if(SHBG[kind])return SHBG[kind];", "function shopBg(kind){if(SHBG[kind])return SHBG[kind];if(IMGEL['h_'+kind])return SHBG[kind]=mk(400,200,g=>{g.imageSmoothingEnabled=false;g.drawImage(IMGEL['h_'+kind],0,0);});")
 # 3f. lumière : ombrage par crans, brume teintée par lieu (murs, personnages, sols et plafonds)
 s = rep1(s, "lt=d=>Math.max(.045,1-d/LR);", "lt=d=>Math.max(.045,Math.round((1-d/LR)*16)/16);")
 s = rep1(s, "FOGC=LV.sky===1?'46,60,78':LV.sky===2?'62,70,66':LV.sky===3?'6,8,20':'5,3,2';", "FOGC=LV.sky===1?'46,60,78':LV.sky===2?'62,70,66':LV.sky===3?'6,8,20':({sewer:'8,18,10',crypt:'8,10,24',mine:'20,10,4',abbey:'14,9,5',palace:'12,11,11',panel:'14,8,3',stone:'9,8,10'})[LV.theme]||'5,3,2';FOGA=FOGC.split(',').map(Number);")
