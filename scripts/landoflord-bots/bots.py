@@ -66,7 +66,9 @@ def ui(b,name,mode,secs=150):
                         pg.keyboard.press('Tab')
                     pg.keyboard.press(f"Digit{a['i']+1}");pg.keyboard.press('Escape') if pg.evaluate("!!S.hand") else None
                 elif k=='dlg':pg.keyboard.press('Enter' if a['n']<0 else f"Digit{a['n']+1}")
-                elif k=='buy':pg.click(f"[data-buy=\"{a['id']}\"]")
+                elif k=='buy':
+                    pg.click(f"[data-sh^=\"pick,buy,{a['id']},\"]");pg.wait_for_timeout(40)
+                    if pg.query_selector('[data-sh="buy"]:not(:disabled)'):pg.click('[data-sh="buy"]')
                 else:pg.wait_for_timeout(50)
             elif land and k not in('dlg','buy','close') and pg.evaluate("!$('dlg').hidden||!$('modal').hidden"):pg.wait_for_timeout(40)   # une réplique vient de s'ouvrir : on la lira au tour suivant
             elif land:
@@ -89,7 +91,9 @@ def ui(b,name,mode,secs=150):
                 elif k=='rest':ltap('#bRest')
                 elif k=='dlg':
                     bs=pg.query_selector_all('#dlgBtns button');ltap_el(bs[0] if a['n']<0 else bs[a['n']])
-                elif k=='buy':ltap(f"[data-buy=\"{a['id']}\"]")
+                elif k=='buy':
+                    ltap(f"[data-sh^=\"pick,buy,{a['id']},\"]");pg.wait_for_timeout(40)
+                    if pg.query_selector('[data-sh="buy"]:not(:disabled)'):ltap('[data-sh="buy"]')
                 elif k=='close':ltap('#mClose')
                 else:pg.wait_for_timeout(50)
             else:
@@ -108,7 +112,9 @@ def ui(b,name,mode,secs=150):
                 elif k=='rest':tap('#bRest')
                 elif k=='dlg':
                     bs=pg.query_selector_all('#dlgBtns button');(bs[0] if a['n']<0 else bs[a['n']]).tap() if touch else (bs[0] if a['n']<0 else bs[a['n']]).click()
-                elif k=='buy':tap(f"[data-buy=\"{a['id']}\"]")
+                elif k=='buy':
+                    tap(f"[data-sh^=\"pick,buy,{a['id']},\"]");pg.wait_for_timeout(40)
+                    if pg.query_selector('[data-sh="buy"]:not(:disabled)'):tap('[data-sh="buy"]')
                 elif k=='close':tap('#modal [data-close]')
                 else:pg.wait_for_timeout(50)
             pg.wait_for_timeout(35 if k!='wait' else 20)

@@ -92,7 +92,7 @@ window.BOT={mem:null,ORD:['geoles','egouts','egouts2','village','mine','mine2','
   else if(t.includes('Venez avec nous'))n=P.anselme||0;else if(t.includes('Cette fois'))n=P.odon||0;else if(t.includes('faisons simple'))n=P.style.hagen||0;
   if(!bs[n]||bs[n].disabled)n=0;return{k:'dlg',n};},
  modal(){const m=this.mem,st=m.P.style,box=$('modalBox');
-  if(box.querySelector('[data-buy]')&&!st.noshop){const want=[];const lack=k=>S.party.some(c=>!c.eq[k]);
+  if(box.querySelector('[data-sh^="pick,buy"]')&&!st.noshop){const want=[];const lack=k=>S.party.some(c=>!c.eq[k]);
    const cnt=id=>S.bag.filter(x=>x===id).length;
    if(LV.dark&&!has('lanterne'))want.push('lanterne');
    const stock=SHOPS[shopId+'_'+S.lv]||SHOPS[shopId];for(const id of stock){const it=ITEMS[id];
@@ -101,7 +101,7 @@ window.BOT={mem:null,ORD:['geoles','egouts','egouts2','village','mine','mine2','
     if(it.k==='appoint'&&lack('appoint')&&!S.bag.some(b=>ITEMS[b].k==='appoint'))want.push(id);
     if(it.k==='main'&&!it.rng&&S.party.some(c=>c.sk.armes.l>=2&&wpn(c).m+1.5<it.m)&&!S.bag.some(b=>ITEMS[b].k==='main'&&ITEMS[b].m>=it.m))want.push(id);}
    if(cnt('onguent')<3)want.push('onguent');if(cnt('herbes')<2&&SHOPS[shopId].includes('herbes'))want.push('herbes');if(LV.dark&&cnt('huile')<1&&SHOPS[shopId].includes('huile'))want.push('huile');
-   for(const id of want){const b=box.querySelector(`[data-buy="${id}"]`);if(b&&!b.disabled&&!b.classList.contains('no')&&m.stat.buys<60){m.stat.buys++;return{k:'buy',id};}}}
+   for(const id of want){const b=box.querySelector(`[data-sh^="pick,buy,${id},"]`);if(b&&S.gold>=shopPrice(shopId,id)&&S.bag.length<BAGMAX&&m.stat.buys<60){m.stat.buys++;return{k:'buy',id};}}}
   return{k:'close'};},
  check(){const v=this.mem.viol,bad=s=>{if(v.length<12&&!v.includes(s))v.push(s);};
   if(!S||!LS)return;if(!pass(S.x,S.y))bad('joueur dans un mur '+S.lv+' '+S.x+','+S.y);if(!isFinite(S.T))bad('temps invalide');if(S.bag.filter(id=>ITEMS[id]&&ITEMS[id].k!=='key').length>BAGMAX)bad('sac > 48');
@@ -120,7 +120,7 @@ window.BOT={mem:null,ORD:['geoles','egouts','egouts2','village','mine','mine2','
    case'dlg':{twDone();const bs=[...$('dlgBtns').querySelectorAll('button')];if(a.n<0)nextLine();else bs[a.n].click();break;}
    case'hero':chooseHero(a.id);break;
    case'drop':{const i=S.bag.indexOf(a.id);if(i<0)break;if(S.hand)stow();S.hand=S.bag.splice(i,1)[0];dropHand();const it=LS.items[LS.items.length-1];if(it)it.dropped=1;this.adv(50);break;}
-   case'buy':$('modalBox').querySelector(`[data-buy="${a.id}"]`).click();break;case'close':$('modal').hidden=true;ui();break;}},
+   case'buy':{$('modalBox').querySelector(`[data-sh^="pick,buy,${a.id},"]`).click();const ok=$('modalBox').querySelector('[data-sh="buy"]');if(ok&&!ok.disabled)ok.click();break;}case'close':$('modal').hidden=true;ui();break;}},
  run(P,levels){const out={name:P.name,levels:[],errors:[]};try{
    $('title').hidden=true;newGame(P.diff);this.init(P);const m=this.mem;let cur=null,L=null,guard=0;
    const open=()=>{L={lv:S.lv,T0:S.T,dead0:m.dead,s0:Object.assign({},m.stat),res:'en cours'};m.stat.minHp=1;};
