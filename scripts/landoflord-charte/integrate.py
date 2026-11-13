@@ -1,0 +1,119 @@
+# Reconstruit index.html à partir de la version d'origine (git HEAD) : images de la charte + retouches du moteur.
+import re, sys, io, os, json, base64, subprocess, glob
+import numpy as np
+from PIL import Image
+sys.path.insert(0, '/home/claude/work/tools'); import charte
+REPO = '/home/claude/ecolesenligne'; REL = 'public/landoflord/index.html'
+WK = '/home/claude/work'
+src = subprocess.run(['git', '-C', REPO, 'show', 'HEAD:' + REL], capture_output=True).stdout.decode('utf8')
+L = src.split('\n')
+
+def uri(im):
+    b = io.BytesIO(); kw = {}
+    if 'transparency' in im.info: kw['transparency'] = im.info['transparency']
+    im.save(b, 'PNG', optimize=True, **kw); return 'data:image/png;base64,' + base64.b64encode(b.getvalue()).decode()
+def load(u): return Image.open(io.BytesIO(base64.b64decode(u.split(',', 1)[1])))
+def pairs(line): return re.findall(r'"([A-Za-z0-9_]+)":\s*"(data:image/[a-z]+;base64,[A-Za-z0-9+/=]+)"', line)
+def rep1(s, a, b, n=1):
+    assert s.count(a) == n, (s.count(a), a[:80]); return s.replace(a, b)
+
+# ---------- 1. décors, illustrations, bustes ----------
+i_img = next(i for i, l in enumerate(L) if l.startswith('const IMG={'))
+i_bust = next(i for i, l in enumerate(L) if l.startswith('const BUSTS='))
+BUSTS = json.loads(L[i_bust][len('const BUSTS='):].rstrip(';'))
+old = dict(pairs(L[i_img])); new = {}
+for f in sorted(glob.glob(WK + '/tex/*.png')):
+    new[os.path.basename(f)[:-4]] = uri(Image.open(f))
+def quant_bust(im, b):
+    im = im.convert('RGBA'); Wd, Hd = im.size; out = Image.new('RGBA', im.size, (0, 0, 0, 0))
+    def q(region, dest):   # quantifie une zone avec la phase de tramage de l'endroit où elle sera affichée
+        x0, y0, x1, y1 = region; cv = Image.new('RGBA', (dest[0] + x1 - x0 + 4, dest[1] + y1 - y0 + 4), (0, 0, 0, 0)); cv.paste(im.crop(region), dest)
+        r = charte.quantize(cv, dither=10).convert('RGBA').crop((dest[0], dest[1], dest[0] + x1 - x0, dest[1] + y1 - y0)); out.paste(r, (x0, y0))
+    q((0, 0, min(192, Wd), Hd), (0, 0))
+    mx, my, mw, mh = b['m']; ex, ey, ew, eh = b['e']
+    for i in range(Hd // mh + 1):
+        if i * mh < Hd and Wd > 192: q((192, i * mh, min(Wd, 192 + mw), min(Hd, (i + 1) * mh)), (mx, my))
+    for i in range(Hd // eh + 1):
+        if i * eh < Hd and Wd > 192 + mw: q((192 + mw, i * eh, min(Wd, 192 + mw + ew), min(Hd, (i + 1) * eh)), (ex, ey))
+    return charte.quantize(out, dither=0)
+for k, u in old.items():
+    if k[:2] == 's_' and os.path.exists(WK + '/scenes/%s.png' % k): new[k] = uri(charte.quantize(Image.open(WK + '/scenes/%s.png' % k).convert('RGBA'), dither=0))
+    elif k[:2] == 's_': new[k] = uri(charte.quantize(load(u).convert('RGBA'), dither=12, sat=.95))
+    elif k[:2] == 'b_': new[k] = uri(quant_bust(load(u), BUSTS[k[2:]]))
+    elif k[:2] in ('t_', 'f_', 'c_'): pass
+    else: new[k] = u
+L[i_img] = 'const IMG={' + ', '.join('"%s": "%s"' % kv for kv in new.items()) + '};'
+
+# ---------- 2. personnages et bêtes ----------
+i_sh = next(i for i, l in enumerate(L) if l.startswith('const SHEETS='))
+meta = {}
+for l in L[i_sh:i_sh + 4]:
+    for m in re.finditer(r'"([a-z_]+)": (\{"w"[^}]*\})', l): meta[m.group(1)] = json.loads(m.group(2))
+imgs = {}
+for l in L[i_sh:i_sh + 4]: imgs.update(dict(pairs(l)))
+order = list(imgs.keys()); out_img = {}; out_meta = {}
+for k in order:
+    f = WK + '/sheets/%s.png' % k
+    if os.path.exists(f):
+        m = json.load(open(WK + '/sheets/%s.json' % k))
+        if meta[k].get('npc'): m.update(npc=1, idle=4, gest=4)
+        out_img[k] = uri(Image.open(f)); out_meta[k] = m
+    else:   # bêtes : mêmes rendus 3D, ramenés à la densité de pixels, au contraste et à la palette de la charte
+        m = dict(meta[k]); im = load(imgs[k]).convert('RGBA'); sc_ = {'loup': .56, 'rat': .36, 'molosse': .55, 'ragondin': .5}[k]
+        dens = m['ay'] * m.get('hk', .66) / (.6 * sc_ / .82); f = min(1.0, 215.0 / dens)
+        w2, h2 = int(round(m['w'] * f)), int(round(m['h'] * f)); sheet = Image.new('RGBA', (w2 * m['n'], h2), (0, 0, 0, 0)); gy = int(round(m['ay'] * f))
+        for i in range(m['n']):
+            a = np.asarray(im.crop((i * m['w'], 0, (i + 1) * m['w'], m['h']))).astype(np.float64)
+            a[..., :3] = np.clip((a[..., :3] - 110) * 1.22 + 108, 0, 255); a[a[..., 3] < 200, 3] = 0   # l'ancienne ombre fondue disparaît
+            pm = a.copy(); pm[..., :3] *= pm[..., 3:4] / 255.0
+            sm = np.asarray(Image.fromarray(pm.astype(np.uint8), 'RGBA').resize((w2, h2), Image.BOX)).astype(np.float64)
+            al = sm[..., 3:4]; rgb = np.where(al > 0, sm[..., :3] * 255.0 / np.maximum(al, 1), 0); body = sm[..., 3] > 127
+            fr = np.concatenate([np.clip(rgb, 0, 255), np.where(body, 255, 0)[..., None]], -1).astype(np.uint8)
+            q = np.asarray(charte.quantize(Image.fromarray(fr, 'RGBA'), dither=12).convert('RGBA')).copy()
+            cols = np.where(body[max(0, gy - 30):min(h2, gy + 6)].any(0))[0]
+            if len(cols) and i < 11:   # ombre tramée, comme celle des personnages
+                x0, x1 = cols[0], cols[-1]; yy, xx = np.mgrid[0:h2, 0:w2]; rx = max(8, (x1 - x0) / 2); ry = max(3, rx * .2)
+                e = (((xx - (x0 + x1) / 2) / rx) ** 2 + ((yy - gy) / ry) ** 2 <= 1) & ~body & (((xx + yy) & 1) == 0); q[e] = (8, 6, 10, 255)
+            sheet.paste(Image.fromarray(q, 'RGBA'), (i * w2, 0))
+        m.update(w=w2, h=h2, ax=round(m['ax'] * f, 1), ay=round(m['ay'] * f, 1))
+        out_img[k] = uri(charte.quantize(sheet, dither=0)); out_meta[k] = m
+L[i_sh] = 'const SHEETS={"img": {' + ', '.join('"%s": "%s"' % kv for kv in out_img.items()) + '}, "meta": ' + json.dumps(out_meta) + '};'
+for j in (1, 2, 3):
+    assert L[i_sh + j].startswith('/*'), L[i_sh + j][:40]
+    L[i_sh + j] = L[i_sh + j][:L[i_sh + j].index('*/') + 2]
+s = '\n'.join(L)
+
+# ---------- 3. moteur ----------
+# 3a. le filtre « VGA » devient le passage dans la palette de référence (table 32x32x32 précalculée)
+lut = charte.lut()[::2, ::2, ::2]   # 64^3 -> 32^3
+g = np.arange(32) * 8 + 4; grid = np.stack(np.meshgrid(g, g, g, indexing='ij'), -1)
+lut32 = charte.lut()[grid[..., 0] >> 2, grid[..., 1] >> 2, grid[..., 2] >> 2].astype(np.uint8)
+pal_js = ','.join(str((c[0] << 16) | (c[1] << 8) | c[2]) for c in charte.PAL)
+a0 = s.index('function vga(c,q){'); a1 = s.index('\n', a0)
+new_vga = ("/* Charte graphique : palette de référence (16 rampes de 16 tons, pas VGA) ; tout ce qui est peint par le jeu y passe. */\n"
+ "const CHP=[" + pal_js + "],CHL=Uint8Array.from(atob('" + base64.b64encode(lut32.tobytes()).decode() + "'),c=>c.charCodeAt(0)),CHS=new Set(CHP);\n"
+ "function vga(c,q){const g=c.getContext('2d'),im=g.getImageData(0,0,c.width,c.height),d=im.data,B=[0,8,2,10,12,4,14,6,3,11,1,9,15,7,13,5],w=c.width;q=Math.min(q||12,12);"
+ "for(let y=0;y<c.height;y++)for(let x=0;x<w;x++){const i=(y*w+x)*4;if(!d[i+3]||CHS.has(d[i]<<16|d[i+1]<<8|d[i+2]))continue;const t=(B[(y&3)*4+(x&3)]/16-.47)*q,"
+ "r=Math.max(0,Math.min(255,d[i]+t)),v=Math.max(0,Math.min(255,d[i+1]+t)),b=Math.max(0,Math.min(255,d[i+2]+t)),p=CHP[CHL[(r>>3)<<10|(v>>3)<<5|(b>>3)]];d[i]=p>>16;d[i+1]=p>>8&255;d[i+2]=p&255;}"
+ "g.putImageData(im,0,0);return c;}")
+s = s[:a0] + new_vga + s[a1:]
+# 3b. murs : l'image de la charte telle quelle (corniches, étais et feuillages sont dans le rendu)
+a0 = s.index("function wallBase(g,th,seed){"); a1 = s.index(" if(th==='forest'){g.fillStyle=lg(g,0,0,0,TS,'#16301a'", a0)
+s = s[:a0] + ("function wallBase(g,th,seed){const r=rng(seed);const im=IMGEL['t_'+th];\n"
+ " if(im){g.imageSmoothingEnabled=false;const o=(seed%2)*TS/2;g.drawImage(im,o,0,TS-o,TS,0,0,TS-o,TS);if(o)g.drawImage(im,0,0,o,TS,TS-o,0,o,TS);return;}\n") + s[a1:]
+# 3c. sols et plafonds : même densité que les murs (128 points par case au lieu de 64)
+a0 = s.index("for(const[k,o,th]of[['f_stone',FL,'stone']"); a1 = s.index('\n', a0)
+s = s[:a0] + ("for(const th in seeds)for(const[p,o]of[['f_',FL],['c_',CL]])if(IMGEL[p+th])o[th]=pix(mk(128,128,g=>{g.imageSmoothingEnabled=false;g.drawImage(IMGEL[p+th],0,0,128,128);}));\n"
+ " for(const o of[FL,CL])for(const k in o)if(o[k]&&o[k].length===4096){const a=o[k],b=new Uint32Array(16384);for(let y=0;y<128;y++)for(let x=0;x<128;x++)b[y*128+x]=a[(y>>1)*64+(x>>1)];o[k]=b;}") + s[a1:]
+s = rep1(s, "sx=d*ex*64,sy=d*ey*64;let fx_=(vx+d*rx0)*64,fy_=(vy+d*ry0)*64;", "sx=d*ex*128,sy=d*ey*128;let fx_=(vx+d*rx0)*128,fy_=(vy+d*ry0)*128;")
+s = rep1(s, "const i=((fy_&63)<<6)|(fx_&63);let c=ft[i];if(FXM){const a=fx_>>6,b=fy_>>6,u=fx_&63,v=fy_&63;", "const i=((fy_&127)<<7)|(fx_&127);let c=ft[i];if(FXM){const a=fx_>>7,b=fy_>>7,u=(fx_&127)>>1,v=(fy_&127)>>1;")
+# 3d. plus de reteinte à la volée : les couleurs viennent des matières de la charte
+s = rep1(s, "function regrade(){", "function regrade(){return;")
+s = rep1(s, "/* Personnages animés : Flare (Clint Bellanger et contributeurs), CC-BY-SA 3.0, recomposés et retraités. */",
+ "/* Personnages : modèles 3D de Flare (Clint Bellanger et contributeurs, CC-BY-SA 3.0), rendus de face à hauteur d'yeux avec la lumière et la palette de la charte. Décors modélisés et rendus avec la même lumière. */")
+s = rep1(s, "<p><b>Soldats animés</b> : tirés du jeu libre Flare (Clint Bellanger et contributeurs), licence CC-BY-SA 3.0, recomposés et retraités pour ce jeu. Ces images restent sous la même licence.</p>",
+ "<p><b>Personnages</b> : modèles 3D du jeu libre Flare (Clint Bellanger et contributeurs), licence CC-BY-SA 3.0, rendus de face pour ce jeu avec la lumière et la palette de sa charte graphique. Ces images restent sous la même licence.</p><p><b>Décors</b> : murs, sols et plafonds modélisés et rendus pour ce jeu, avec la même lumière et la même palette de 256 couleurs que les personnages.</p>")
+open(os.path.join(REPO, REL), 'w', encoding='utf8').write(s)
+sw = os.path.join(REPO, 'public/landoflord/sw.js'); t = open(sw).read()
+t2 = re.sub(r"general-dechu-v(\d+)'", lambda m: "general-dechu-v%d'" % (17 if int(m.group(1)) < 17 else int(m.group(1))), t, count=1); open(sw, 'w').write(t2)
+print('index.html', len(s) // 1024, 'Ko ;', len(new), 'images de décor/illustration ;', len(out_img), 'planches')
