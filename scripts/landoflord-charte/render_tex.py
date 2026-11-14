@@ -356,7 +356,7 @@ m_cloth = lambda c: mat(c, rough=.9, grain=.18, gscale=30, bump=.15)
 m_dark = lambda: emit((.0045, .004, .0035), 1)
 if kind == 'o': G_ = 128.0; UN = W / 128.0
 elif kind == 'p':
-    PSCL = {'chest': .36, 'chest_o': .36, 'barrel': .5, 'crate': .44, 'sacks': .42, 'table': .48, 'bed': .4, 'altar': .58, 'rack': .72, 'shelf': .82, 'fountain': .6, 'bell': .82, 'stele': .5, 'statue': .86, 'brazier': .52, 'well': .52, 'cart': .56, 'keg': .44, 'sac': .5, 'or': .5}
+    PSCL = {'chest': .36, 'chest_o': .36, 'barrel': .5, 'crate': .44, 'sacks': .42, 'table': .48, 'bed': .4, 'altar': .58, 'rack': .72, 'shelf': .82, 'fountain': .6, 'bell': .82, 'stele': .5, 'statue': .86, 'brazier': .52, 'well': .52, 'cart': .56, 'keg': .44, 'sac': .5, 'or': .5, 'vanne': .5, 'chandelier': .62, 'pupitre': .5, 'tambour': .4}
     SPANP = PSCL[theme] * W; G_ = 96.0; UN = SPANP / 96.0
 else: UN = 1
 def PXx(px): return px * UN if kind == 'o' else (px - 48) * UN
@@ -703,6 +703,31 @@ def p_statue():   # silhouette de pierre : socle, corps drapé, tête, bras
     s = m_stone((.36, .35, .32)); pb(30, 76, 66, 90, s, 26, 1.5, 0, 1); cy(48, 36, 77, 11, 0, s, r2=8, seg=12); ball(48, 26, 8.5, 0, s, (.9, .9, 1.1)); ball(48, 37, 12, 0, s, (1, .6, .5))
     for x in (35.5, 60.5): cy(x, 38, 64, 3.4, 1, s, r2=2.6, seg=8)
     pb(46.4, 30, 49.6, 82, s, 2.4, .6, 9)
+
+def p_vanne():      # vanne à volant
+    cy(48, 40, 90, 6, 0, m_iron(), seg=12); bx(36, 84, 60, 90, -8, 8, m_iron(), 1); cyh(48, 78, 58, 5.5, 0, m_iron(), seg=12); cyd(48, 44, 3, 6, 12, m_steel(), seg=8)
+    ring(48, 44, 15, 2, 12, mat((.36, .06, .05), rough=.5, metal=.6, grain=.2))
+    for a in range(3):
+        o = bx(46.6, 30, 49.4, 58, 11.2, 12.8, mat((.36, .06, .05), rough=.5, metal=.6, grain=.2), .4); o.rotation_euler = (0, a * math.pi / 3, 0)
+def p_chandelier(): # chandelier à trois branches
+    cy(48, 30, 88, 1.6, 0, m_iron(), seg=8); cy(48, 86, 90, 11, 0, m_iron(), r2=4, seg=12); cyh(30, 66, 34, 1.3, 0, m_iron(), seg=6)
+    for x in (31, 48, 65):
+        cy(x, 30 if x != 48 else 26, 35 if x != 48 else 31, 3.2, 0, m_brass(), r2=2, seg=10); cy(x, 16 if x != 48 else 12, 30 if x != 48 else 26, 1.5, 0, mat((.72, .68, .58), grain=.1), seg=8)
+        ball(x, 13 if x != 48 else 9, 2.1, 0, emit((1, .6, .15), 2.4), (.8, .8, 1.7))
+def p_pupitre():    # pupitre et registre ouvert
+    w = m_wood((.22, .12, .06)); cy(48, 54, 88, 3.4, 0, w, seg=8); pb(36, 86, 60, 90, w, 18, 1); o = pb(30, 44, 66, 49, w, 24, 1); o.rotation_euler = (math.radians(-28), 0, 0)
+    for (x0, x1) in ((32, 47.4), (48.6, 64)):
+        o = pb(x0, 40.5, x1, 43.5, mat((.62, .56, .42), rough=.8, grain=.15, gscale=30, bump=.1), 19, .6, 1.5); o.rotation_euler = (math.radians(-28), 0, 0)
+    o = pb(47.4, 40, 48.6, 44, m_cloth((.36, .04, .04)), 19, .2, 1.6); o.rotation_euler = (math.radians(-28), 0, 0)
+def p_tambour():    # tambour de campagne
+    cy(48, 56, 88, 17, 0, m_cloth((.34, .04, .04)), seg=20)
+    for y in (57, 87): cy(48, y - 2, y + 2, 17.6, 0, m_brass(), seg=20)
+    cy(48, 54.5, 56, 16.4, 0, mat((.62, .56, .44), rough=.7, grain=.15), seg=20)
+    for a in range(8):
+        t = a * math.pi / 4; x = 48 + 17.3 * math.cos(t); d = 17.3 * math.sin(t)
+        if d > -4: bx(x - .5, 58, x + .5, 86, d, d + .5, mat((.62, .56, .44), grain=.1))
+    for sgn in (1, -1):
+        o = cy(48 + sgn * 6, 46, 55, .9, 4, m_wood((.3, .2, .1)), seg=6); o.rotation_euler = (math.radians(70), 0, sgn * .5); o.location.z = PZz(53.5)
 def p_sac():
     ball(48, 77, 14, 0, m_cloth((.36, .25, .12)), (1, 1, .95)); cy(48, 56, 66, 4, 0, m_cloth((.36, .25, .12)), r2=6.5, seg=10); cy(48, 63, 66, 6.2, 0, m_cloth((.12, .08, .04)), seg=10)
 def p_or():

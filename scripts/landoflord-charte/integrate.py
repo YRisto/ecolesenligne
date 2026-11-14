@@ -2,7 +2,7 @@
 import re, sys, io, os, json, base64, subprocess, glob
 import numpy as np
 from PIL import Image
-SWV = 25
+SWV = 26
 sys.path.insert(0, '/home/claude/work/tools'); import charte
 REPO = '/home/claude/ecolesenligne'; REL = 'public/landoflord/index.html'
 WK = '/home/claude/work'
@@ -221,6 +221,14 @@ LIEUX = {
 s = rep1(s, "fadeIn();fire('intro_'+id);}", "fadeIn();fire('intro_'+id);lieuBark(id,0);}\nconst LIEUX=" + json.dumps(LIEUX, ensure_ascii=False) + ";\n"
  "function lieuBark(id,n){const L=LIEUX[id];if(!L||S.flags['lb_'+id]||n>8)return;setTimeout(()=>{if(!S||S.lv!==id||S.flags['lb_'+id])return;if(!$('dlg').hidden||!$('modal').hidden||resting){lieuBark(id,n+1);return;}"
  "const who=['brune','odon','pepin'].filter(w=>L[w]&&S.party.some(c=>c.id===w&&c.hp>0));if(!who.length)return;S.flags['lb_'+id]=1;const w=who[rnd(0,who.length-1)];log(`<i>${NAMES[w]} : « ${L[w][rnd(0,L[w].length-1)]} »</i>`);},n?5000:9000);}")
+
+# 4e. énigmes de lieu
+sys.path.insert(0, WK + '/tools'); import puz
+s = rep1(s, "function useProp(p){LS.pr=LS.pr||{};const st=LS.pr[p.id];", "function useProp(p){LS.pr=LS.pr||{};const st=LS.pr[p.id];if(p.pz!=null&&SC[p.sc]){SC[p.sc](p);return;}")
+s = rep1(s, "cart:.56,keg:.44};", "cart:.56,keg:.44,vanne:.5,chandelier:.62,pupitre:.5,tambour:.4};")
+s = rep1(s, "const P=(n,fn)=>IMGEL['p_'+n]?", "for(const n of['vanne','chandelier','pupitre','tambour'])if(IMGEL['p_'+n])addSpr('p_'+n,RI('p_'+n),1);const P=(n,fn)=>IMGEL['p_'+n]?")
+s = rep1(s, "${S.strats.length} stratagèmes sur 7.", "${S.strats.length} stratagèmes sur 7, ${Object.values(S.L).filter(l=>l.pz&&l.pz.ok).length} énigmes de lieu résolues sur ${Object.keys(PUZ).length}.")
+i_end = s.rindex('</script>'); s = s[:i_end] + puz.JS + s[i_end:]
 
 open(os.path.join(REPO, REL), 'w', encoding='utf8').write(s)
 sw = os.path.join(REPO, 'public/landoflord/sw.js'); t = open(sw).read()
