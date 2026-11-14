@@ -58,25 +58,25 @@ PUZ = {
    ok="L'air file droit dans le rameau. Derrière un étai, le casse-croûte des sapeurs et leur cagnotte de chantier.", loot=[G(50), ['huile', 0], ['onguent', 0]]),
 }
 JS = "\n/* énigmes de lieu : placées au chargement sur des cases libres qui ne coupent aucun passage */\nconst PUZ=" + json.dumps(PUZ, ensure_ascii=False) + r""";
-(function(){const D4=[[1,0],[-1,0],[0,1],[0,-1]];
- const ARR={};for(const a in LEVELS)for(const k in LEVELS[a].links||{}){const v=LEVELS[a].links[k];if(v&&v.lv)(ARR[v.lv]=ARR[v.lv]||[]).push(v.x+','+v.y);}
- for(const lv in PUZ){const L=LEVELS[lv],P=PUZ[lv];if(!L||!L.map||!L.start){delete PUZ[lv];continue;}const M=L.map,H=M.length,W=M[0].length,sx=L.start[0],sy=L.start[1];
-  const occ=new Set();for(const p of L.props||[])occ.add(p.x+','+p.y);for(const n of L.npcs||[])occ.add(n.x+','+n.y);
-  const busy=new Set(occ);for(const it of L.items||[])busy.add(it[1]+','+it[2]);for(const m of L.mons||[])busy.add(m[1]+','+m[2]);for(const k in L.fx||{})busy.add(k);for(const t of L.trig||[])busy.add(t[0]+','+t[1]);for(const k in L.links||{})busy.add(k);for(const k in L.ports||{})busy.add(L.ports[k][0]+','+L.ports[k][1]);for(const k of ARR[lv]||[])busy.add(k);
-  const walk=(x,y)=>y>=0&&y<H&&x>=0&&x<W&&M[y][x]!=='#'&&!occ.has(x+','+y);
-  const reach=(bx,by)=>{const seen=new Set([sx+','+sy]),q=[[sx,sy]];while(q.length){const[x,y]=q.pop();for(const[dx,dy]of D4){const nx=x+dx,ny=y+dy,k=nx+','+ny;if(seen.has(k)||!walk(nx,ny)||(nx===bx&&ny===by))continue;seen.add(k);q.push([nx,ny]);}}return seen;};
-  let base=reach(-1,-1);const cand=[];
-  for(let y=1;y<H-1;y++)for(let x=1;x<W-1;x++){const k=x+','+y;if(M[y][x]!=='.'||busy.has(k)||!base.has(k)||Math.abs(x-sx)+Math.abs(y-sy)<3)continue;
-   let ok=1,w=0;for(const[dx,dy]of D4){const c=M[y+dy][x+dx];if(c==='#')w++;else if(c!=='.')ok=0;}if(ok&&w===2&&((M[y][x-1]==='#'&&M[y][x+1]==='#')||(M[y-1][x]==='#'&&M[y+1][x]==='#')))ok=0;/* pas au milieu d'un couloir */if(ok&&w>=2)cand.push([x,y,((x*73856093^y*19349663)>>>0)%9973]);}
-  const picks=[],take=(c)=>{if(reach(c[0],c[1]).size!==base.size-1)return false;occ.add(c[0]+','+c[1]);base=reach(-1,-1);picks.push(c);return true;};
-  cand.sort((a,b)=>Math.abs(a[0]-sx)+Math.abs(a[1]-sy)-Math.abs(b[0]-sx)-Math.abs(b[1]-sy));
-  for(const c of cand)if(take(c))break;
-  cand.sort((a,b)=>a[2]-b[2]);const need=P.n.length+1;
-  for(const gap of[7,4,2])for(const c of cand){if(picks.length>=need)break;if(picks.includes(c)||picks.some(p=>Math.abs(p[0]-c[0])+Math.abs(p[1]-c[1])<gap))continue;take(c);}
-  if(picks.length<need){delete PUZ[lv];continue;}
-  L.props=L.props||[];L.props.push({id:'z0',k:P.ck,x:picks[0][0],y:picks[0][1],sc:'puz',pz:-1});
-  P.n.forEach((n,i)=>L.props.push({id:'z'+(i+1),k:P.k[i],x:picks[i+1][0],y:picks[i+1][1],sc:'puz',pz:i}));}
-})();
+function freeCells(lv,need,nearFirst,loose){const D4=[[1,0],[-1,0],[0,1],[0,-1]],L=LEVELS[lv];if(!L||!L.map||!L.start)return null;
+ if(!freeCells.A){freeCells.A={};for(const a in LEVELS)for(const k in LEVELS[a].links||{}){const v=LEVELS[a].links[k];if(v&&v.lv)(freeCells.A[v.lv]=freeCells.A[v.lv]||[]).push(v.x+','+v.y);}}
+ const M=L.map,H=M.length,W=M[0].length,sx=L.start[0],sy=L.start[1];
+ const occ=new Set();for(const p of L.props||[])occ.add(p.x+','+p.y);for(const n of L.npcs||[])occ.add(n.x+','+n.y);
+ const busy=new Set(occ);for(const it of L.items||[])busy.add(it[1]+','+it[2]);for(const m of L.mons||[])busy.add(m[1]+','+m[2]);for(const k in L.fx||{})busy.add(k);for(const t of L.trig||[])busy.add(t[0]+','+t[1]);for(const k in L.links||{})busy.add(k);for(const k in L.ports||{})busy.add(L.ports[k][0]+','+L.ports[k][1]);for(const k of freeCells.A[lv]||[])busy.add(k);for(const k of L._res||[])busy.add(k);
+ const walk=(x,y)=>y>=0&&y<H&&x>=0&&x<W&&M[y][x]!=='#'&&!occ.has(x+','+y);
+ const reach=(bx,by)=>{const seen=new Set([sx+','+sy]),q=[[sx,sy]];while(q.length){const[x,y]=q.pop();for(const[dx,dy]of D4){const nx=x+dx,ny=y+dy,k=nx+','+ny;if(seen.has(k)||!walk(nx,ny)||(nx===bx&&ny===by))continue;seen.add(k);q.push([nx,ny]);}}return seen;};
+ let base=reach(-1,-1);const cand=[];
+ for(let y=1;y<H-1;y++)for(let x=1;x<W-1;x++){const k=x+','+y;if(M[y][x]!=='.'||busy.has(k)||!base.has(k)||Math.abs(x-sx)+Math.abs(y-sy)<3)continue;
+  let ok=1,w=0;for(const[dx,dy]of D4){const c=M[y+dy][x+dx];if(c==='#')w++;else if(c!=='.')ok=0;}
+  if(ok&&w===2&&((M[y][x-1]==='#'&&M[y][x+1]==='#')||(M[y-1][x]==='#'&&M[y+1][x]==='#')))ok=0;/* pas au milieu d'un couloir */if(ok&&w>=2)cand.push([x,y,((x*73856093^y*19349663^(need*977+(loose?31:0)))>>>0)%9973]);}
+ const picks=[],take=(c)=>{if(!loose&&reach(c[0],c[1]).size!==base.size-1)return false;if(!loose){occ.add(c[0]+','+c[1]);base=reach(-1,-1);}picks.push(c);return true;};
+ if(nearFirst){cand.sort((a,b)=>Math.abs(a[0]-sx)+Math.abs(a[1]-sy)-Math.abs(b[0]-sx)-Math.abs(b[1]-sy));for(const c of cand)if(take(c))break;}
+ cand.sort((a,b)=>a[2]-b[2]);
+ for(const gap of[7,4,2])for(const c of cand){if(picks.length>=need)break;if(picks.includes(c)||picks.some(p=>Math.abs(p[0]-c[0])+Math.abs(p[1]-c[1])<gap))continue;take(c);}
+ if(picks.length<need)return null;L._res=(L._res||[]).concat(picks.map(c=>c[0]+','+c[1]));return picks;}
+for(const lv in PUZ){const P=PUZ[lv],L=LEVELS[lv],picks=freeCells(lv,P.n.length+1,1);if(!picks){delete PUZ[lv];continue;}
+ L.props=L.props||[];L.props.push({id:'z0',k:P.ck,x:picks[0][0],y:picks[0][1],sc:'puz',pz:-1});
+ P.n.forEach((n,i)=>L.props.push({id:'z'+(i+1),k:P.k[i],x:picks[i+1][0],y:picks[i+1][1],sc:'puz',pz:i}));}
 SC.puz=function(p){const P=PUZ[S.lv];if(!P)return;const Z=LS.pz=LS.pz||{q:[],st:{},ok:0};
  if(p.pz<0){sfx('page');say([[null,P.clue]]);return;}
  const nm=P.n[p.pz];if(Z.ok){log(`${cap(nm)} : plus rien à en tirer, l'affaire est faite.`);return;}

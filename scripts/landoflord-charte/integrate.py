@@ -2,7 +2,7 @@
 import re, sys, io, os, json, base64, subprocess, glob
 import numpy as np
 from PIL import Image
-SWV = 26
+SWV = 27
 sys.path.insert(0, '/home/claude/work/tools'); import charte
 REPO = '/home/claude/ecolesenligne'; REL = 'public/landoflord/index.html'
 WK = '/home/claude/work'
@@ -229,6 +229,14 @@ s = rep1(s, "cart:.56,keg:.44};", "cart:.56,keg:.44,vanne:.5,chandelier:.62,pupi
 s = rep1(s, "const P=(n,fn)=>IMGEL['p_'+n]?", "for(const n of['vanne','chandelier','pupitre','tambour'])if(IMGEL['p_'+n])addSpr('p_'+n,RI('p_'+n),1);const P=(n,fn)=>IMGEL['p_'+n]?")
 s = rep1(s, "${S.strats.length} stratagèmes sur 7.", "${S.strats.length} stratagèmes sur 7, ${Object.values(S.L).filter(l=>l.pz&&l.pz.ok).length} énigmes de lieu résolues sur ${Object.keys(PUZ).length}.")
 i_end = s.rindex('</script>'); s = s[:i_end] + puz.JS + s[i_end:]
+
+# 4f. quêtes secondaires
+import quetes
+s = rep1(s, "Object.assign(ITEMS,{u_veuve:", "Object.assign(ITEMS,{" + ','.join('%s:%s' % kv for kv in quetes.ITEMS.items()) + ",u_veuve:")
+s = rep1(s, 'for(const[u,b]of[["u_veuve"', "for(const[u,b]of" + json.dumps(quetes.ICONS)[:-1] + ',["u_veuve"')
+s = rep1(s, "function tickMons(){", "function tickMons(){questTick();")
+s = rep1(s, "l.push(`<p class=\"dim\">Difficulté : ${DIFF[S.diff].n}.</p>`);return l.join('');};", "{const q=questLines();if(q.length)l.push(`<p><b>Affaires en cours.</b> ${q.map(cap).join(' ; ')}.</p>`);}l.push(`<p class=\"dim\">Difficulté : ${DIFF[S.diff].n}.</p>`);return l.join('');};")
+i_end = s.rindex('</script>'); s = s[:i_end] + quetes.JS + s[i_end:]
 
 open(os.path.join(REPO, REL), 'w', encoding='utf8').write(s)
 sw = os.path.join(REPO, 'public/landoflord/sw.js'); t = open(sw).read()
