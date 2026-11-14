@@ -2,7 +2,7 @@
 import re, sys, io, os, json, base64, subprocess, glob
 import numpy as np
 from PIL import Image
-SWV = 35
+SWV = 36
 sys.path.insert(0, '/home/claude/work/tools'); import charte
 REPO = '/home/claude/ecolesenligne'; REL = 'public/landoflord/index.html'
 WK = '/home/claude/work'
@@ -285,6 +285,17 @@ i_end = s.rindex('</script>'); s = s[:i_end] + quetes.JS + s[i_end:]
 
 # 6. musique : un ancien réglage « musique coupée » resté dans le navigateur la rendait muette sans rien dire ; on la rétablit une fois
 s = rep1(s, "if(PREF.lm==null)PREF.lm=PREF.mus===0?0:60;", "if(PREF.lm==null)PREF.lm=PREF.mus===0?0:60;if(!PREF.mfix2){PREF.mfix2=1;if(!(PREF.lm>0)){PREF.lm=60;PREF.mus=1;}if(!(PREF.lv>0)){PREF.lv=90;PREF.vox=1;PREF.vv=1;}if(!(PREF.ls>0)){PREF.ls=80;PREF.sfx=1;}try{localStorage.setItem('gd2_prefs',JSON.stringify(PREF));}catch(e){}}")
+# 7. témoin du son dans les réglages : de quoi dire, sur une photo, ce qui bloque la musique ou les voix
+DIAG = r"""
+const AUDE={v:%d,np:0,nv:0,ok:0};
+MUS.addEventListener('error',()=>{AUDE.me=(MUS.error&&MUS.error.code)+':'+MUS.src.split('/').pop();});MUS.addEventListener('playing',()=>{AUDE.pl=(AUDE.pl||0)+1;});
+{const _p=MUS.play.bind(MUS);MUS.play=function(){AUDE.np++;const r=_p();if(r&&r.catch)r.catch(e=>{AUDE.pe=(e&&e.name)||String(e);});return r;};
+ const _vl=voxLoad;voxLoad=function(k){return _vl(k).then(d=>{AUDE.ok++;return d;},e=>{AUDE.ve=((e&&e.name)||String(e))+':'+k;throw e;});};
+ const _v=vox;vox=function(w,t){AUDE.nv++;const r=_v(w,t);if(!r)AUDE.no=(AUDE.no||0)+1;return r;};}
+function AUDDIAG(){let s='Son (v'+AUDE.v+') : ';try{s+='contexte '+(AC?AC.state+' '+AC.sampleRate:'absent')+' · musique « '+(curTrack||'aucune')+' » '+(MUS.paused?'en pause':'en lecture')+' à '+MUS.currentTime.toFixed(1)+' s, volume '+MUS.volume.toFixed(2)+(MUS.muted?' MUET':'')+', état '+MUS.readyState+'/'+MUS.networkState+', lancements '+AUDE.np+', démarrages '+(AUDE.pl||0)+(AUDE.pe?', refus '+AUDE.pe:'')+(AUDE.me?', erreur '+AUDE.me:'')+' · voix : demandées '+AUDE.nv+', sans fichier '+(AUDE.no||0)+', chargées '+AUDE.ok+(AUDE.ve?', erreur '+AUDE.ve:'')+', sortie '+(BUS.vox?BUS.vox.gain.value.toFixed(2):'directe')+' · réglages '+PREF.lm+'/'+PREF.ls+'/'+PREF.lv+' · scène '+(mixScene?'oui':'non')+' · '+(window.LITE?'léger':'complet');}catch(e){s+='?'+e;}return s;}
+""" % SWV
+i_end = s.rindex('</script>'); s = s[:i_end] + DIAG + s[i_end:]
+s = rep1(s, "· ${LSM?'paysage':'portrait'}${navigator.standalone?' · icône':''}</p>", "· ${LSM?'paysage':'portrait'}${navigator.standalone?' · icône':''}</p><p class=\"dim\" style=\"font-size:11px\">${typeof AUDDIAG==='function'?AUDDIAG():''}</p>")
 # 5. le plan façon Lands of Lore et les sorties signalées
 import carte
 s = carte.apply(s, rep1)
