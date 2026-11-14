@@ -523,6 +523,85 @@ def o_deco_lamp():    # lanterne suspendue
     bx(60, 8, 68, 13, 0, 8, m_iron(), 1)
     l = bpy.data.lights.new('pt', 'POINT'); l.energy = 30; l.color = (1, .65, .3); l.shadow_soft_size = .1; lo = bpy.data.objects.new('pt', l); col.objects.link(lo); lo.location = (PXx(64), -22 * UN, PZz(58))
 
+
+def rock(x, y, r, d, c=None, sq=(1, 1, 1)):
+    me = bpy.data.meshes.new('k'); bm = bmesh.new(); bmesh.ops.create_icosphere(bm, subdivisions=2, radius=r * UN)
+    for v in bm.verts: v.co *= 1 + U(-.22, .22)
+    bmesh.ops.scale(bm, vec=sq, verts=bm.verts); bm.to_mesh(me); bm.free()
+    o = obj(me, mat(vary(c or (.17, .14, .11), .22), grain=.4, gscale=18, bump=.9, spots=.4, spotcol=(.08, .07, .06))); o.location = (PXx(x), -d * UN, PZz(y)); o.rotation_euler = (U(0, 3), U(0, 3), U(0, 3)); return o
+def o_frail():   # éboulis : un mur de blocs effondrés, des étais brisés ; on le reconnaît de loin
+    bx(0, 0, 128, 128, .1, .5, m_dark())
+    for row in range(9):
+        y = 122 - row * 13; n = 8 - row // 3
+        for i in range(n + 1):
+            r = U(8.5, 12.5) - row * .35; rock(-4 + (i + U(-.25, .25)) * 136 / n + (row % 2) * 8, y + U(-3, 3), r, U(2, 9) + (8 - row) * .9, sq=(1.15, .8, .85))
+    for i in range(14): rock(U(4, 124), U(116, 126), U(2.5, 5), U(12, 20), (.22, .19, .15))
+    w = m_wood(WOODD)
+    for (x0, y0, x1, y1, d) in ((20, 6, 58, 70, 13), (112, 2, 84, 52, 12)):
+        me = bpy.data.meshes.new('a'); bm = bmesh.new(); bmesh.ops.create_cube(bm, size=1); bmesh.ops.scale(bm, vec=(6 * UN, 6 * UN, 1), verts=bm.verts); bm.to_mesh(me); bm.free()
+        a = Vector((PXx(x0), -d * UN, PZz(y0))); b = Vector((PXx(x1), -(d + 5) * UN, PZz(y1))); o = obj(me, w); o.location = (a + b) / 2; o.scale = (1, 1, (b - a).length); o.rotation_euler = (b - a).to_track_quat('Z', 'Y').to_euler()
+def o_crack():   # mur fissuré : une lézarde ouverte sur du noir, des éclats au pied
+    P = [(60, -2), (52, 26), (70, 46), (56, 74), (74, 98), (62, 130)]
+    def seg(a, b, wd, m, d):
+        cx, cy = (a[0] + b[0]) / 2, (a[1] + b[1]) / 2; L = math.hypot(b[0] - a[0], b[1] - a[1]) * 1.08
+        bx(cx - wd / 2, cy - L / 2, cx + wd / 2, cy + L / 2, d - .5, d, m, 0, 0, (0, math.atan2(a[0] - b[0], b[1] - a[1]), 0))
+    for i in range(len(P) - 1):
+        seg(P[i], P[i + 1], 10, mat((.30, .27, .23), grain=.3, gscale=20, bump=.6), .6); seg(P[i], P[i + 1], 6, m_dark(), .9)
+    for (a, b) in (((70, 46), (94, 58)), ((56, 74), (32, 87)), ((52, 26), (38, 18))): seg(a, b, 5.5, mat((.30, .27, .23), grain=.3, gscale=20, bump=.6), .6); seg(a, b, 2.8, m_dark(), .9)
+    for i in range(9): rock(U(40, 90), U(120, 126), U(2.2, 4.5), U(4, 14), (.24, .21, .18))
+def o_secret():  # pierre pivotante : un seul moellon un peu en saillie, joint plus sombre ; il faut le chercher
+    bx(39, 59, 87, 95, .1, .5, m_dark()); bx(40.5, 60.5, 85.5, 93.5, .5, 2.4, m_stone((.21, .20, .18)), 1.2, .8)
+def o_hid():     # mur mobile commandé d'ailleurs : un joint fin dessine le panneau, deux griffures au pied
+    k = mat((.012, .011, .01), grain=0, bump=0)
+    for (a, b, c, d) in ((21, 12, 23.2, 128), (104.8, 12, 107, 128), (21, 12, 107, 14.2)): bx(a, b, c, d, .1, .45, k)
+    for (a, b, c, d) in ((23.2, 14.2, 24.2, 128), (23.2, 14.2, 104.8, 15.2)): bx(a, b, c, d, .1, .4, mat((.34, .32, .28), grain=0, bump=0))
+    for (a, b, c, d) in ((30, 124, 52, 125), (70, 125.5, 98, 126.5)): bx(a, b, c, d, .1, .4, mat((.30, .28, .25), grain=0, bump=0))
+
+def frame4(x0, y0, x1, y1, m=None, t=6, d=5):
+    for (a, b, c, e) in ((x0 - t, y0 - t, x1 + t, y0), (x0 - t, y1, x1 + t, y1 + t), (x0 - t, y0, x0, y1), (x1, y0, x1 + t, y1)): bx(a, b, c, e, 0, d, m or m_stone(STONE2), 1.4, 1)
+def o_sig_crypte():   # ossuaire
+    bx(26, 34, 102, 96, .1, .5, m_dark()); frame4(26, 34, 102, 96)
+    bone = lambda: mat(vary((.50, .45, .34), .12), rough=.7, grain=.2, gscale=30, bump=.3)
+    for r_ in range(3):
+        for i in range(5 - (r_ % 2)):
+            x = 35 + i * 15 + (r_ % 2) * 7.5; y = 88 - r_ * 17; ball(x, y, 6.6, 3, bone(), (1, .9, 1.05)); ball(x, y + 5.5, 4, 3.4, bone(), (1, .8, .7))
+            for dx in (-2.4, 2.4): ball(x + dx, y + .3, 1.7, 8.4, m_dark(), (1, .5, 1.1))
+            ball(x, y + 3.6, .9, 8.6, m_dark(), (1, .5, 1.3))
+def o_sig_palais():   # blason aux armes d'Austrevie sur deux épées croisées
+    for sgn in (1, -1):
+        o = bx(62.4, 18, 65.6, 104, 2, 3, m_steel(), .4); o.rotation_euler = (0, sgn * math.radians(38), 0)
+        o = bx(56, 92, 72, 95, 2, 3.4, m_brass(), .4); o.rotation_euler = (0, sgn * math.radians(38), 0); o.location = (PXx(64 - sgn * 21), -2.7 * UN, PZz(88))
+    bx(42, 36, 86, 70, 3, 5.5, m_cloth((.06, .12, .32)), 1.5); cyd(64, 70, 22, 3, 5.5, m_cloth((.06, .12, .32)), seg=24)
+    g = m_gold(); bx(56, 54, 72, 80, 5.5, 6.6, g, .5)
+    for x in (55, 61.5, 68): bx(x, 47, x + 5, 55, 5.5, 6.6, g, .4)
+    bx(61.5, 66, 66.5, 80, 6.6, 6.9, m_cloth((.03, .05, .14)))
+    for (a, b, c, e) in ((40, 34, 88, 37),): bx(a, b, c, e, 3, 6, g, .6)
+def o_sig_mine():     # râtelier d'outils
+    bx(18, 30, 110, 37, 0, 4, m_wood((.22, .13, .06), (.5, 7, 7)), .8)
+    for x in (30, 52, 76, 98): cyd(x, 33.5, 1.6, 4, 9, m_iron(), seg=8)
+    cy(30, 36, 108, 1.7, 6, m_wood((.28, .17, .08)), seg=8); o = bx(16, 38, 44, 43, 4.5, 7.5, m_steel(), 1); o.rotation_euler = (0, math.radians(-8), 0)
+    cy(52, 36, 100, 1.7, 6, m_wood((.28, .17, .08)), seg=8); bx(45, 96, 59, 116, 5, 7, m_steel(), 1.5)
+    cy(76, 36, 60, .7, 6, m_iron(), seg=5); bx(69, 60, 83, 64, 1, 11, m_iron(), .8); bx(69, 82, 83, 86, 1, 11, m_iron(), .8); bx(71.5, 64, 80.5, 82, 2.5, 9.5, emit((.9, .42, .06), .6))
+    for i in range(7): ring(98, 40 + i * 7, 3.2, .9, 6, m_steel() if i % 2 else m_iron(), (0, 0, math.radians(90) if i % 2 else 0)).scale = (.62, 1, 1)
+def o_sig_egout():    # bouche d'égout
+    cyd(64, 70, 26, 0, 6, m_stone((.16, .17, .15)), seg=22); cyd(64, 70, 19, 6, 6.3, m_dark(), seg=22)
+    for x in (53, 64, 75): cy(x, 52, 88, 1.5, 6.6, m_iron(), seg=6)
+    bx(58.5, 86, 69.5, 128, 6.2, 6.8, mat((.05, .16, .10), rough=.1, grain=.15, bump=.1)); bx(52, 122, 76, 128, 0, 9, mat((.05, .16, .10), rough=.1, grain=.15, bump=.1), 2)
+    leaves(60, (PXx(40), PZz(100), PXx(88), PZz(88)), [MOSS, (.05, .10, .05)], size=(.04, .1), ydepth=(-.2, -.14))
+def o_sig_geoles():   # soupirail grillagé
+    bx(40, 14, 88, 46, .1, .5, emit((.10, .13, .20), 1)); frame4(40, 14, 88, 46)
+    for x in (50, 64, 78): cy(x, 14, 46, 1.9, 2.5, m_iron(), seg=8)
+    cyh(40, 88, 30, 1.7, 3, m_iron())
+    for i in range(7): bx(34 + i * 5, 84, 35.2 + i * 5, 98, .1, .4, mat((.03, .028, .025), grain=0, bump=0))
+    o = bx(30, 90.4, 66, 91.6, .1, .45, mat((.03, .028, .025), grain=0, bump=0)); o.rotation_euler = (0, math.radians(-14), 0)
+def o_sig_abbaye():   # niche au saint
+    bx(44, 30, 84, 104, .1, .5, m_dark()); frame4(44, 30, 84, 104, m_stone((.36, .30, .21))); cyd(64, 30, 20, 0, 5, m_stone((.36, .30, .21)), seg=20); cyd(64, 31, 15, 5, 5.3, m_dark(), seg=20)
+    s_ = m_stone((.40, .36, .28)); cy(64, 54, 100, 9, 4, s_, r2=6.5, seg=12); ball(64, 46, 6.5, 4, s_, (.9, .9, 1.1)); ball(64, 57, 9.5, 4, s_, (1, .6, .5)); bx(58, 100, 70, 104, 1, 9, s_, 1)
+    cy(77, 92, 103, 1.3, 7, mat((.72, .68, .58), grain=.1), seg=8); ball(77, 90, 1.7, 7, emit((1, .6, .15), 2.2), (.8, .8, 1.6))
+def o_sig_camp():     # écu et lances croisées
+    for sgn in (1, -1):
+        o = cy(64, 10, 112, 1.5, 2, m_wood((.26, .16, .08)), seg=8); o.rotation_euler = (0, sgn * math.radians(34), 0)
+    cyd(64, 62, 24, 2.5, 5, m_wood((.30, .05, .04)), seg=24); ring(64, 62, 24, 1.6, 4.5, m_iron()); cyd(64, 62, 6, 5, 8, m_steel(), seg=14, r2=2)
 # ---------- meubles (grille 96, sol à y = 90) ----------
 def dz(w): return w * .62   # profondeur par défaut d'un meuble de largeur w
 def pb(x0, y0, x1, y1, m, depth=None, bevel=.8, front=0, chisel=0):

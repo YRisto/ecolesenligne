@@ -2,7 +2,7 @@
 import re, sys, io, os, json, base64, subprocess, glob
 import numpy as np
 from PIL import Image
-SWV = 24
+SWV = 25
 sys.path.insert(0, '/home/claude/work/tools'); import charte
 REPO = '/home/claude/ecolesenligne'; REL = 'public/landoflord/index.html'
 WK = '/home/claude/work'
@@ -139,6 +139,12 @@ pre("function pGrille(g){", OI('o_grille'))
 pre("function pFlight(g,up,carpet){", "{const _o=IMGEL['o_flight'+(up?'U':'D')+(carpet?'c':'')];if(_o){g.drawImage(_o,0,0);return;}}")
 pre("function pStairs(g,up){", OI2('up', 'o_flightU', 'o_flightD'))
 pre("function pDeco(g,th){", "{const _k=th==='stone'?'o_deco_stone':th==='abbey'?'o_deco_abbey':'o_deco_lamp';if(IMGEL[_k]){if(_k==='o_deco_lamp'){g.fillStyle=rg(g,64,58,44,'rgba(255,190,90,.42)','rgba(255,170,60,0)');g.fillRect(0,0,TS,TS);}g.drawImage(IMGEL[_k],0,0);return;}}")
+pre("function pFrail(g){", OI('o_frail'))
+pre("function pCrack(g){", OI('o_crack'))
+pre("function pSecret(g){", OI('o_secret'))
+# murs mobiles (H) : leur propre texture, sans torche ni décor accroché
+s = rep1(s, "crack:w(pCrack),secret:w(pSecret),", "crack:w(pCrack),secret:w(pSecret),hidw:w(g=>{if(IMGEL.o_hid)g.drawImage(IMGEL.o_hid,0,0);}),")
+s = rep1(s, "if(c==='S')return t.secret;if(c==='<')return t.stairU;", "if(c==='S')return t.secret;if(c==='H'&&t.hidw)return t.hidw;if(c==='<')return t.stairU;", s.count("if(c==='S')return t.secret;if(c==='<')return t.stairU;"))
 s = rep1(s, "function addSpr(n,c){SPR[n]={i:vars(c)};}", "function addSpr(n,c,raw){SPR[n]={i:vars(c,raw)};}")
 s = rep1(s, "function vars(c){c=outlined(vga(c,10));", "function vars(c,raw){c=raw?c:outlined(vga(c,10));")
 s = rep1(s, "function buildProps(){const P=(n,fn)=>addSpr('p_'+n,paint(96,g=>{g.fillStyle='rgba(0,0,0,.35)';el(g,48,90,26,4);fn(g);}))",
@@ -164,6 +170,22 @@ KEYS = ['castle', 'throne', 'cell', 'road', 'mine', 'abbey', 'end', 'village', '
 for n, k in enumerate(KEYS):
     if os.path.exists(WK + '/scenes/s_%s.png' % k): CR[n] = [CR[n][0], 'Décors et personnages du jeu', 'vue composée', 'https://ecolesenligne.fr/landoflord']
 s = s[:i_cr] + 'const CREDITS=' + json.dumps(CR, ensure_ascii=False) + ';' + s[j_cr:]
+
+# murs « signature » : un mur sur neuf porte le motif du lieu (ossuaire, blason, râtelier, bouche d'égout, soupirail, niche au saint, écu)
+s = rep1(s, "function texFor(c,x,y,fl){", "var SIGT={crypt:'o_sig_crypte',palace:'o_sig_palais',panel:'o_sig_palais',mine:'o_sig_mine',sewer:'o_sig_egout',stone:'o_sig_geoles',abbey:'o_sig_abbaye',camp:'o_sig_camp'};\nfunction texFor(c,x,y,fl){", s.count('function texFor(c,x,y,fl){'))
+s = rep1(s, "if(h===4)return t.deco;return h%2?t.wall:t.wall2;}", "if(h===4)return t.deco;if(h===6&&SIGT[LV.theme]&&t.sig)return t.sig;return h%2?t.wall:t.wall2;}", s.count('if(h===4)return t.deco;return h%2?t.wall:t.wall2;}'))
+# 4d. objets uniques cachés dans des niches difficiles
+UNIQ = {
+ 'u_veuve': ('epee_l', 'palais2', '14,1', "{n:\"La Veuve\",k:'main',dmg:[6,13],spd:1100,sk:'armes',p:150,m:8.5,ty:'t',d:\"Épée longue du connétable Hugues. Arme unique : elle a fait plus de veuves que la fièvre, et ne s'en excuse pas.\"}"),
+ 'u_tocsin': ('baton', 'abbaye', '12,13', "{n:\"Le Tocsin\",k:'main',dmg:[6,13],spd:1300,sk:'armes',p:130,m:9,ty:'c',d:\"Masse d'armes des abbés de Saint-Aubert. Arme unique : elle sonne les heures sur les casques, et les plates n'y résistent pas.\"}"),
+ 'u_aiguille': ('estoc', 'crypte', '1,26', "{n:\"L'Aiguille\",k:'main',dmg:[4,10],spd:800,sk:'armes',pierce:6,p:140,m:6.5,ty:'p',d:\"Estoc de duel, mince comme un reproche. Arme unique : elle trouve le défaut de toutes les mailles.\"}"),
+ 'u_pavois': ('ecu', 'ruines', '22,12', "{n:\"Le Pavois du Gué\",k:'appoint',prot:4,p:120,d:\"Il a tenu le Gué-aux-Corbeaux une première fois, il y a cent ans. Pièce unique : on se sent plus large derrière.\"}"),
+ 'u_haubert': ('mailles', 'palais3', '7,19', "{n:\"Haubert du roi Alaric\",k:'corps',prot:6,p:200,d:\"Mailles doubles, rivées pour un roi qui se méfiait de sa cour. Pièce unique : il avait raison.\"}"),
+}
+s = rep1(s, "for(const k in WM){ITEMS[k].m=WM[k][0];ITEMS[k].ty=WM[k][1];}", "for(const k in WM){ITEMS[k].m=WM[k][0];ITEMS[k].ty=WM[k][1];}\nObject.assign(ITEMS,{" + ','.join("%s:%s" % (k, v[3]) for k, v in UNIQ.items()) + "});")
+s = rep1(s, "for(const k in F){ICONC[k]=mk(16,16,F[k]);ICON[k]=ICONC[k].toDataURL();}", "for(const k in F){ICONC[k]=mk(16,16,F[k]);ICON[k]=ICONC[k].toDataURL();}\n for(const[u,b]of" + json.dumps([[k, v[0]] for k, v in UNIQ.items()]) + "){ICONC[u]=mk(16,16,g=>{g.drawImage(ICONC[b],0,0);g.globalCompositeOperation='source-atop';g.fillStyle='rgba(255,196,60,.42)';g.fillRect(0,0,16,16);});ICON[u]=ICONC[u].toDataURL();}")
+i_end = s.rindex('</script>')
+s = s[:i_end] + "\n/* objets uniques : ils remplacent l'or de cinq niches bien cachées */\nfor(const[u,lv,k]of" + json.dumps([[k, v[1], v[2]] for k, v in UNIQ.items()]) + ")if(LEVELS[lv]&&LEVELS[lv].niche&&LEVELS[lv].niche[k])LEVELS[lv].niche[k]=[[u,0]];\n" + s[i_end:]
 
 # ---------- 4. jeu ----------
 # 4a. résistances lisibles : la première fois qu'un type de coup marche mal ou bien sur un adversaire, la chronique le dit
