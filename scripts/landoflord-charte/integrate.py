@@ -2,7 +2,7 @@
 import re, sys, io, os, json, base64, subprocess, glob
 import numpy as np
 from PIL import Image
-SWV = 30
+SWV = 33
 sys.path.insert(0, '/home/claude/work/tools'); import charte
 REPO = '/home/claude/ecolesenligne'; REL = 'public/landoflord/index.html'
 WK = '/home/claude/work'
@@ -283,6 +283,9 @@ s = rep1(s, "function tickMons(){", "function tickMons(){questTick();")
 s = rep1(s, "l.push(`<p class=\"dim\">Difficulté : ${DIFF[S.diff].n}.</p>`);return l.join('');};", "{const q=questLines();if(q.length)l.push(`<p><b>Affaires en cours.</b> ${q.map(cap).join(' ; ')}.</p>`);}l.push(`<p class=\"dim\">Difficulté : ${DIFF[S.diff].n}.</p>`);return l.join('');};")
 i_end = s.rindex('</script>'); s = s[:i_end] + quetes.JS + s[i_end:]
 
+# 5. le plan façon Lands of Lore et les sorties signalées
+import carte
+s = carte.apply(s, rep1)
 open(os.path.join(REPO, REL), 'w', encoding='utf8').write(s)
 sw = os.path.join(REPO, 'public/landoflord/sw.js'); t = open(sw).read()
 t2 = re.sub(r"general-dechu-v(\d+)'", lambda m: "general-dechu-v%d'" % SWV, t, count=1); open(sw, 'w').write(t2)

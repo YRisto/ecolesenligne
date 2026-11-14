@@ -352,6 +352,22 @@ body.ls .shopS{grid-template-columns:minmax(0,42%) minmax(0,1fr);gap:10px}body.l
 body.ls .shopS .shBye{display:none}body.ls .shG{grid-template-columns:repeat(auto-fill,minmax(46px,1fr))}
 body.ls #modalBox>.row:last-child{position:static;box-shadow:none;background:none}
 .vols{display:grid;gap:6px;margin:0 0 10px}.vols label{display:grid;grid-template-columns:5.6em 1fr 2.2em;align-items:center;gap:10px;font-size:14px}.vols input{width:100%;height:36px;margin:0;accent-color:#c9a24a}.vols b{text-align:right;color:#e2c477;font-weight:normal}.vols small{font-size:11px;opacity:.7}
+
+.box.mapM{background:#cfae78!important;color:#42260f!important;border:5px solid #1c120a!important;box-shadow:inset 0 0 0 2px #7a5a2c,inset 0 0 40px rgba(74,44,16,.55),0 6px 30px rgba(0,0,0,.8)!important;font-family:"Palatino Linotype","Book Antiqua",Palatino,Georgia,serif}
+.box.mapM h2{display:none}
+.box.mapM #mapC{border:0;background:#120b06;box-shadow:0 3px 10px rgba(30,16,4,.6);image-rendering:auto}
+.box.mapM .legend,.box.mapM .rooms,.box.mapM .dim{color:#42260f!important;font-style:italic}
+.box.mapM .legend{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:2px 10px;font-size:13px;border-top:1px solid rgba(66,38,15,.5);border-bottom:1px solid rgba(66,38,15,.5);padding:6px 0}
+.box.mapM .legend span{margin:0;white-space:normal}.box.mapM .legend .mi{border:0;background:none}
+.box.mapM .lgT{font-variant:small-caps;font-weight:bold;letter-spacing:1px;font-size:14px;margin:6px 0 2px;color:#7a1e12;font-style:normal}
+.box.mapM .rooms b{background:none;color:#7a1e12;border:1px solid #7a1e12}
+.box.mapM .tabs button{background:rgba(236,220,174,.55)!important;color:#42260f!important;border:1px solid #6a4a22!important;font-family:inherit;font-style:italic;box-shadow:none!important}.box.mapM .tabs button.on{background:#42260f!important;color:#ecdcae!important}
+.box.mapM #mapNote{background:rgba(236,220,174,.7);border:1px solid #6a4a22;color:#42260f;font-family:inherit;font-style:italic}
+.box.mapM .row button{background:#42260f!important;color:#ecdcae!important;border:1px solid #1c120a!important;font-family:inherit;box-shadow:none!important}
+@media(min-width:900px){body:not(.ls) .box.mapM{display:grid;grid-template-columns:auto minmax(220px,300px);column-gap:16px;align-content:start;max-width:96vw!important;width:auto!important}
+body:not(.ls) .box.mapM>*{grid-column:2;min-width:0}
+body:not(.ls) .box.mapM>#mapC{grid-column:1;grid-row:1/9;height:calc(100vh - 110px);width:auto;max-width:none;margin:0}
+body:not(.ls) .box.mapM .legend{grid-template-columns:1fr 1fr}body:not(.ls) .box.mapM .rooms{display:block}body:not(.ls) .box.mapM .rooms span{display:block;margin:2px 0}}
 </style>
 </head>
 <body>
@@ -388,7 +404,7 @@ body.ls #modalBox>.row:last-child{position:static;box-shadow:none;background:non
  <button id="tCont" hidden>Continuer</button>
  <div class="keys">Souris, doigt ou clavier : tout se fait des trois façons. L'aide est dans la chronique (Échap).</div>
 </div>
-<script>(function(){var q=location.search,lite=/[?&]lite\b/.test(q)||(!/[?&]hd\b/.test(q)&&(/iPhone|iPod|Android.*Mobile|Windows Phone/i.test(navigator.userAgent)||(navigator.maxTouchPoints>1&&Math.min(screen.width,screen.height)<=600)));window.LITE=lite;document.write('<script src="pack-'+(lite?'lite':'hd')+'.js?v=30"><\/script>');})();</script>
+<script>(function(){var q=location.search,lite=/[?&]lite\b/.test(q)||(!/[?&]hd\b/.test(q)&&(/iPhone|iPod|Android.*Mobile|Windows Phone/i.test(navigator.userAgent)||(navigator.maxTouchPoints>1&&Math.min(screen.width,screen.height)<=600)));window.LITE=lite;document.write('<script src="pack-'+(lite?'lite':'hd')+'.js?v=33"><\/script>');})();</script>
 <script>
 /* Images : bustes du jeu libre Flare (CC-BY-SA 3.0), textures et illustrations libres (voir Crédits). */
 const IMG=PACK.IMG;
@@ -860,15 +876,17 @@ function pFlight(g,up,carpet){{const _o=IMGEL['o_flight'+(up?'U':'D')+(carpet?'c
    g.fillStyle='rgba(0,0,0,.55)';poly(g,[x0,y+11,64-hw,y+11,64-hw,y,x0,y]);poly(g,[x1,y+11,64+hw,y+11,64+hw,y,x1,y]);}
   g.fillStyle=lg(g,0,yt,0,TS-60,'rgba(0,0,0,1)','rgba(0,0,0,0)');g.fillRect(x0,yt,w,TS-60-yt);g.fillStyle=rg(g,x0+10,yt+44,26,'rgba(255,170,70,.28)','rgba(255,170,70,0)');g.fillRect(x0,yt+14,50,60);}
  g.fillStyle=lg(g,x0,0,x0+10,0,'rgba(0,0,0,.6)','rgba(0,0,0,0)');g.fillRect(x0,yt,10,TS);g.fillStyle=lg(g,x1-10,0,x1,0,'rgba(0,0,0,0)','rgba(0,0,0,.6)');g.fillRect(x1-10,yt,10,TS);g.restore();}
+function pLant(g){const gr=g.createRadialGradient(64,13,1,64,13,30);gr.addColorStop(0,'rgba(255,214,120,.85)');gr.addColorStop(.35,'rgba(255,170,70,.32)');gr.addColorStop(1,'rgba(255,150,50,0)');g.fillStyle=gr;g.fillRect(30,0,68,46);
+ g.fillStyle='#1c120a';g.fillRect(63,0,2,5);g.fillRect(58,5,12,2);g.fillRect(58,19,12,2);g.fillRect(58,5,2,16);g.fillRect(68,5,2,16);g.fillStyle='#ffe9a0';g.fillRect(60,7,8,12);g.fillStyle='#fff8d8';g.fillRect(62,10,4,7);g.fillStyle='#1c120a';g.fillRect(63,7,1,12);}
 function passTex(lv,c){const th=LEVELS[lv].theme,k=lv+c;if(PASSC[k]!==undefined)return PASSC[k];const d=(PASSD[lv]&&PASSD[lv][c])||(c==='<'?['up']:c==='>'?['down']:null);if(!d||!TX[th])return PASSC[k]=null;
- return PASSC[k]=vga(mk(TS,TS,g=>{g.drawImage(TX[th].wall,0,0);if(d[0]==='out')pOut(g,d[1],d[2]||{});else if(d[0]==='shaft')pShaft(g);else pFlight(g,d[0]==='up',th==='palace'||th==='panel');}),14);}
+ return PASSC[k]=vga(mk(TS,TS,g=>{g.drawImage(TX[th].wall,0,0);if(d[0]==='out')pOut(g,d[1],d[2]||{});else if(d[0]==='shaft')pShaft(g);else pFlight(g,d[0]==='up',th==='palace'||th==='panel');pLant(g);}),14);}
 function pix(c){const g=c.getContext('2d');return new Uint32Array(g.getImageData(0,0,c.width,c.height).data.buffer);}
 function buildTex(){
  const seeds={stone:7,mine:11,abbey:23,palace:31,forest:41,field:53,sewer:61,swamp:71,camp:83,town:97,crypt:101,ruin:107,panel:113};
  for(const th in seeds){const s=seeds[th],base=()=>mk(TS,TS,g=>wallBase(g,th,s));
   const w=(fn)=>mk(TS,TS,g=>{g.drawImage(B,0,0);fn(g);}),B=base();
   const TT={leaf:vga(mk(TS,TS,g=>pLeaf(g,0)),14),leafL:vga(mk(TS,TS,g=>pLeaf(g,1)),14),grille:mk(TS,TS,pGrille),wall:B,wall2:mk(TS,TS,g=>wallBase(g,th,s+50,1)),torch:[w(g=>pTorch(g,0)),w(g=>pTorch(g,1))],crack:w(pCrack),secret:w(pSecret),hidw:w(g=>{if(IMGEL.o_hid)g.drawImage(IMGEL.o_hid,0,0);}),stairU:w(g=>pStairs(g,1)),stairD:w(g=>pStairs(g,0)),shop:w(g=>pShop(g,0)),inn:w(g=>pShop(g,1)),sign:w(pSign),frail:w(pFrail),glyph:[0,1,2,3,4,5,6,7].map(i=>w(g=>pGlyph(g,i>>1,i&1))),niche:[w(g=>pNiche(g,0)),w(g=>pNiche(g,1))],btn:[w(g=>pBtn(g,0)),w(g=>pBtn(g,1))],door:w(g=>pDoor(g,0)),lock:w(g=>pDoor(g,1)),
-   gate:w(pGate),deco:w(g=>pDeco(g,th)),lever:[w(g=>pLever(g,0)),w(g=>pLever(g,1))],exit:w(pExit)};for(const k in TT)Array.isArray(TT[k])?TT[k].forEach(c=>vga(c,14)):vga(TT[k],14);TX[th]=TT;}
+   gate:w(pGate),deco:w(g=>pDeco(g,th)),lever:[w(g=>pLever(g,0)),w(g=>pLever(g,1))],exit:w(g=>{pExit(g);pLant(g);})};for(const k in TT)Array.isArray(TT[k])?TT[k].forEach(c=>vga(c,14)):vga(TT[k],14);TX[th]=TT;}
  const fimg=(k,fb)=>IMGEL[k]?pix(mk(64,64,g=>{g.drawImage(IMGEL[k],0,0,64,64);})):fb();
  FL.stone=pix(mk(64,64,g=>blocks(g,rng(3),PAL.fstone,64)));CL.stone=pix(mk(64,64,g=>blocks(g,rng(4),PAL.cstone,64)));
  FL.mine=pix(mk(64,64,g=>{const r=rng(5);g.fillStyle='#4a3a28';g.fillRect(0,0,64,64);for(let i=0;i<120;i++){const v=50+(r()*40|0);g.fillStyle=`rgb(${v+16},${v+2},${v-14})`;el(g,r()*64,r()*64,1+r()*4,1+r()*2);}speck(g,r,64,64,500,.4);}));
@@ -1584,7 +1602,7 @@ function render(ts){if(!S||!LS)return;let vx=S.x+.5,vy=S.y+.5,va=ANG[S.d];
   if(!tex){dist=Math.max(.05,side===0?sdx-ddx:sdy-ddy);wx=side===0?vy+dist*ry:vx+dist*rx;wx-=Math.floor(wx);if((side===0&&rx<0)||(side===1&&ry>0))wx=1-wx;tex=texFor(c,mx,my,fl);}
   zb[x]=dist;const h=HS/dist;
   G.drawImage(tex,Math.min(TS-1,wx*TS|0),0,1,TS,x,(VH-h)/2,1,h);
-  const tl=isTorch(c,mx,my),a=clamp(1-lt(dist)*(tl?1.8:1)+(side?.1:0),0,.96);if(tl&&dist<5){G.fillStyle='rgba(255,150,50,'+(.1+.03*Math.sin(ts/90+mx)).toFixed(3)+')';G.fillRect(x,(VH-h)/2,1,h);}if(a>.02){G.fillStyle='rgba('+FOGC+','+a.toFixed(2)+')';G.fillRect(x,(VH-h)/2,1,h);}}
+  const ex=c==='X'||c==='<'||c==='>',tl=isTorch(c,mx,my),a=clamp(1-lt(dist)*(tl?1.8:ex?2.4:1)+(side?.1:0),0,ex?.45:.96);if(tl&&dist<5){G.fillStyle='rgba(255,150,50,'+(.1+.03*Math.sin(ts/90+mx)).toFixed(3)+')';G.fillRect(x,(VH-h)/2,1,h);}if(a>.02){G.fillStyle='rgba('+FOGC+','+a.toFixed(2)+')';G.fillRect(x,(VH-h)/2,1,h);}}
  const sp=[],now=performance.now();
  for(const it of LS.items)sp.push([it.x+.5,it.y+.5,it.id==='or'?'or':'sac',.5,0]);
  for(const p of PROJ){const k=clamp((S.T-p.t)/85,0,1);sp.push([p.x+.5+DX[p.d]*k,p.y+.5+DY[p.d]*k,p.ic,.2,0,0,0,0,'P']);}
@@ -1949,7 +1967,14 @@ function exitLevel(){const go=()=>enterLevel(LV.next);
   [who('brune','aldric'),"Trois heures de mèche lente. Cela sautera à la troisième vague, à peu près. Ne me demandez pas plus précis : c'est de l'artisanat."],['pepin',"Et nous, à la troisième vague, on sera où ?"],['aldric',"Au gué, Pépin. Devant."]],go);return;}
  enterLevel(LV.next);}
 const BILAN=()=>{let k=0,lv=0;for(const id in S.L){lv++;for(const m of S.L[id].mons||[])if(m.hp<=0)k++;}const mn=Math.round((S.T||0)/60000),h=Math.floor(mn/60);return `Bilan de campagne : ${k} adversaires mis hors de combat, ${lv} lieux traversés, ${h?h+' h ':''}${mn%60} min de marche et de bataille, ${S.gold} écus en caisse, ${S.strats.length} stratagèmes sur 7, ${Object.values(S.L).filter(l=>l.pz&&l.pz.ok).length} énigmes de lieu résolues sur ${Object.keys(PUZ).length}. Difficulté : ${DIFF[S.diff].n}.`;};
-const JOURNAL=()=>{const l=[`<p><b>Objectif.</b> ${LV.obj}</p>`,`<p><b>La troupe.</b> ${S.party.map(c=>CH[c.id].full).join(', ')}.</p>`];
+const SORTIE=()=>{const c=[];for(let y=0;y<MH;y++)for(let x=0;x<MW;x++){const k=cell(x,y);if(k==='X')c.push([x,y,k]);}
+ if(!c.length&&LV.next)for(const k in LV.links||{})if(LV.links[k].lv===LV.next){const[x,y]=k.split(',').map(Number);c.push([x,y,cell(x,y)]);}
+ if(!c.length)return'';let x0=MW,x1=0,y0=MH,y1=0;for(let y=0;y<MH;y++)for(let x=0;x<MW;x++)if('.dDLgG'.includes(cell(x,y))){x0=Math.min(x0,x);x1=Math.max(x1,x);y0=Math.min(y0,y);y1=Math.max(y1,y);}
+ return'<p><b>La sortie.</b> '+c.map(([x,y,k])=>{const fx=(x-x0)/Math.max(1,x1-x0),fy=(y-y0)/Math.max(1,y1-y0),ns=fy<.36?'nord':fy>.64?'sud':'',eo=fx<.36?'ouest':fx>.64?'est':'',dir=ns&&eo?'au '+ns+'-'+eo:ns?'au '+ns:eo?"à l'"+eo:'au centre';
+  let best=null,bd=7;(LV.rooms||[]).forEach((r,i)=>{const dx=Math.max(r.x-x,0,x-(r.x+r.w-1)),dy=Math.max(r.y-y,0,y-(r.y+r.h-1)),d=dx+dy;if(d<bd){bd=d;best=[i,r];}});
+  let lock=false;for(let q=0;q<4;q++)if(cell(x+DX[q],y+DY[q])==='L')lock=true;
+  const d0=dir+' du plan';return(k==='<'?"Un escalier montant, "+d0:k==='>'?"Un escalier descendant, "+d0:d0[0].toUpperCase()+d0.slice(1))+(best?', '+(bd?'près de':'dans')+' « '+best[1].n+' » (lieu n° '+(best[0]+1)+')':'')+(lock?', derrière une porte verrouillée':'')+(LS.seen[x+','+y]?' — déjà portée sur votre carte':'')+'. Une lanterne allumée la signale.';}).join(' ')+'</p>';};
+const JOURNAL=()=>{const l=[`<p><b>Objectif.</b> ${LV.obj}</p>`,SORTIE(),`<p><b>La troupe.</b> ${S.party.map(c=>CH[c.id].full).join(', ')}.</p>`];
  l.push(`<p><b>Réputation.</b> ${S.hon>=2?"Homme d'honneur : on vous croit sur parole, ce qui vous étonne encore.":S.hon<=-1?"Homme pratique : on vous croit capable de tout, ce qui simplifie les négociations.":"Incertaine : le royaume attend de voir."}</p>`);
  if(S.flags.trempe)l.push(`<p><b>Trempe.</b> ${{fer:"De fer. Vos victoires parlent pour vous.",ruse:"De ruse. Vous savez qu'une faute d'accord peut sauver une tête.",science:"De science. Vous regardez la cire avant de lire la lettre."}[S.flags.trempe]}</p>`);
  if(S.flags.malvoisin)l.push("<p><b>Piste.</b> Le chancelier Malvoisin fait corriger les horoscopes qui lui déplaisent. Les lettres aussi, sans doute.</p>");
@@ -2120,12 +2145,16 @@ function openShop(id,mood){shopId=id;stow();const T=SHOPTALK[id]||SHOPTALK.fulbe
 function withLv(id,fn){const o=[LS,LV,MW,MH];LS=S.L[id];LV=LEVELS[id];MH=LS.g.length;MW=LS.g[0].length;try{fn();}finally{[LS,LV,MW,MH]=o;}}
 const MAPBG={},MAPL=[['you','la troupe'],['door','porte'],['lock','porte verrouillée'],['gate','herse'],['lever','levier'],['up','escalier montant'],['down','escalier descendant'],['exit','sortie'],['niche','niche'],['btn','bouton secret'],['secret','passage secret'],['crack','mur fissuré'],['frail','paroi friable'],['breach','brèche ouverte'],['medal','médaillon'],['sign','inscription'],['shop','échoppe'],['inn','auberge'],['plate','dalle'],['tplate','dalle à minuterie'],['dart','dalle à trait'],['pit','trappe'],['spin','dalle tournante'],['chest','coffre'],['fountain','vasque'],['bell','cloche'],['keg','mèche'],['furn','mobilier'],['npc','à qui parler'],['item','objet au sol'],['mark','votre repère']];
 let MAPK=new Set();
-function mapBg(W,H){const k=W+'x'+H;if(MAPBG[k])return MAPBG[k];const c=document.createElement('canvas');c.width=W;c.height=H;const g=c.getContext('2d');let s=W*31+H;const r=()=>(s=(s*1103515245+12345)&0x7fffffff)/0x7fffffff;
- g.fillStyle='#d9c391';g.fillRect(0,0,W,H);
- for(let i=0;i<W*H/1100;i++){const x=r()*W,y=r()*H,rad=10+r()*46,gr=g.createRadialGradient(x,y,0,x,y,rad);gr.addColorStop(0,r()<.5?'rgba(120,84,40,.10)':'rgba(255,244,205,.15)');gr.addColorStop(1,'rgba(0,0,0,0)');g.fillStyle=gr;g.fillRect(x-rad,y-rad,rad*2,rad*2);}
- for(let i=0;i<W*H/30;i++){g.fillStyle=r()<.5?'rgba(90,60,26,.07)':'rgba(255,246,214,.09)';g.fillRect(r()*W|0,r()*H|0,1+(r()*2|0),1);}
- const e=Math.max(8,Math.min(W,H)*.09);for(const[x0,y0,x1,y1,a,b,cw,ch]of[[0,0,e,0,0,0,e,H],[W,0,W-e,0,W-e,0,e,H],[0,0,0,e,0,0,W,e],[0,H,0,H-e,0,H-e,W,e]]){const gr=g.createLinearGradient(x0,y0,x1,y1);gr.addColorStop(0,'rgba(84,52,20,.36)');gr.addColorStop(1,'rgba(84,52,20,0)');g.fillStyle=gr;g.fillRect(a,b,cw,ch);}
- return MAPBG[k]=c;}
+function mapBg(W,H,torn){const k=W+'x'+H+(torn?'t':'');if(MAPBG[k])return MAPBG[k];const c=document.createElement('canvas');c.width=W;c.height=H;const g=c.getContext('2d');let s=W*31+H;const r=()=>(s=(s*1103515245+12345)&0x7fffffff)/0x7fffffff;
+ g.fillStyle='#cfae78';g.fillRect(0,0,W,H);
+ for(let i=0;i<W*H/900;i++){const x=r()*W,y=r()*H,rad=12+r()*60,gr=g.createRadialGradient(x,y,0,x,y,rad);gr.addColorStop(0,r()<.55?'rgba(122,82,38,.13)':'rgba(240,216,160,.20)');gr.addColorStop(1,'rgba(0,0,0,0)');g.fillStyle=gr;g.fillRect(x-rad,y-rad,rad*2,rad*2);}
+ for(let i=0;i<W*H/26;i++){g.fillStyle=r()<.5?'rgba(96,62,26,.08)':'rgba(250,232,186,.10)';g.fillRect(r()*W|0,r()*H|0,1+(r()*3|0),1);}
+ if(torn){g.strokeStyle='rgba(110,74,34,.16)';g.lineWidth=1.2;for(const f of[.34,.67]){g.beginPath();g.moveTo(W*f+r()*4,0);g.lineTo(W*f+r()*4,H);g.stroke();g.beginPath();g.moveTo(0,H*f+r()*4);g.lineTo(W,H*f+r()*4);g.stroke();}
+  for(let i=0;i<5;i++){const x=r()*W,y=r()*H,rad=14+r()*30;g.strokeStyle='rgba(100,60,24,.14)';g.lineWidth=2+r()*3;g.beginPath();g.arc(x,y,rad,r()*6,r()*6+3+r()*3);g.stroke();}}
+ const e=Math.max(8,Math.min(W,H)*(torn?.11:.09));for(const[x0,y0,x1,y1,a,b,cw,ch]of[[0,0,e,0,0,0,e,H],[W,0,W-e,0,W-e,0,e,H],[0,0,0,e,0,0,W,e],[0,H,0,H-e,0,H-e,W,e]]){const gr=g.createLinearGradient(x0,y0,x1,y1);gr.addColorStop(0,'rgba(74,44,16,.5)');gr.addColorStop(1,'rgba(74,44,16,0)');g.fillStyle=gr;g.fillRect(a,b,cw,ch);}
+ if(torn){g.fillStyle='#120b06';const jag=(n,f)=>{g.beginPath();f(0,0,1);for(let i=0;i<=n;i++){const d=(i%7===3?6:2)+r()*5;f(i/n,d,0);}f(1,0,0);g.closePath();g.fill();};
+  jag(W/9|0,(t,d,m)=>m?g.moveTo(0,0):g.lineTo(t*W,d));jag(W/9|0,(t,d,m)=>m?g.moveTo(0,H):g.lineTo(t*W,H-d));jag(H/9|0,(t,d,m)=>m?g.moveTo(0,0):g.lineTo(d,t*H));jag(H/9|0,(t,d,m)=>m?g.moveTo(W,0):g.lineTo(W-d,t*H));}
+ try{vga(c,10);}catch(e){}return MAPBG[k]=c;}
 /* un pictogramme dans la case (X,Y,cs) ; st : état (ouvert, sens, vidé…) */
 function mapIcon(g,k,X,Y,cs,st){st=st||{};const c=X+cs/2,m=Y+cs/2,u=cs/10,INK='#3d2610',disc=(col,r,ring)=>{g.fillStyle=col;g.beginPath();g.arc(c,m,r*u,0,7);g.fill();if(ring){g.strokeStyle=ring;g.stroke();}},tri=(d,col,r)=>{g.save();g.translate(c,m);g.rotate(d*Math.PI/2);g.fillStyle=col;g.beginPath();g.moveTo(0,-r*u);g.lineTo(r*.85*u,r*.8*u);g.lineTo(-r*.85*u,r*.8*u);g.closePath();g.fill();g.restore();};
  g.lineWidth=Math.max(1,cs/10);g.lineCap='round';g.lineJoin='round';
@@ -2144,7 +2173,7 @@ function mapIcon(g,k,X,Y,cs,st){st=st||{};const c=X+cs/2,m=Y+cs/2,u=cs/10,INK='#
  case'shop':disc('#e0b030',2.8,'#7a5608');g.fillStyle='#7a5608';g.fillRect(c-.5*u,m-1.5*u,u,3*u);break;
  case'inn':g.fillStyle='#4f7396';g.fillRect(c-2.4*u,m-2*u,4*u,4.6*u);g.strokeStyle='#4f7396';g.beginPath();g.arc(c+1.8*u,m+.3*u,1.6*u,-1.3,1.3);g.stroke();g.fillStyle='#f3ecd6';g.fillRect(c-2.4*u,m-2.9*u,4*u,1.2*u);break;
  case'up':case'down':g.fillStyle='#efe2b8';g.fillRect(X+u,Y+u,cs-2*u,cs-2*u);g.strokeStyle='#5c2f7e';for(let i=0;i<3;i++){const y=Y+(2.6+i*2.3)*u,w=k==='up'?(2+i)*u:(4-i)*u;g.beginPath();g.moveTo(c-w,y);g.lineTo(c+w,y);g.stroke();}tri(k==='up'?0:2,'#5c2f7e',1.7);break;
- case'exit':g.fillStyle='#efe2b8';g.fillRect(X+u,Y+u,cs-2*u,cs-2*u);tri(st.d||0,'#2f7a3c',3.2);break;
+ case'exit':{g.fillStyle='#1f5a2a';g.beginPath();g.moveTo(X+1.2*u,Y+cs-u);g.lineTo(X+1.2*u,m-u);g.quadraticCurveTo(X+1.2*u,Y+u,c,Y+u);g.quadraticCurveTo(X+cs-1.2*u,Y+u,X+cs-1.2*u,m-u);g.lineTo(X+cs-1.2*u,Y+cs-u);g.closePath();g.fill();g.strokeStyle='#0e2c14';g.stroke();tri(st.d||0,'#f4e6a8',2.2);break;}
  case'plate':case'tplate':case'dart':g.strokeStyle='rgba(61,38,16,.75)';g.strokeRect(X+2.6*u,Y+2.6*u,4.8*u,4.8*u);if(k==='tplate')disc(INK,.9);if(k==='dart')tri(st.d||0,'#b3261e',1.8);break;
  case'pit':disc('#150d07',2.8,INK);break;
  case'spin':g.strokeStyle='#5c2f7e';g.beginPath();g.arc(c,m,2.5*u,.6,5.4);g.stroke();g.fillStyle='#5c2f7e';g.beginPath();g.moveTo(c+3.6*u,m-1.9*u);g.lineTo(c+1.2*u,m-2.6*u);g.lineTo(c+2.4*u,m-.2*u);g.fill();break;
@@ -2157,37 +2186,51 @@ function mapIcon(g,k,X,Y,cs,st){st=st||{};const c=X+cs/2,m=Y+cs/2,u=cs/10,INK='#
  case'item':disc('#c99a1e',1.3,'#6a4c08');break;
  case'mark':g.strokeStyle='#b3261e';g.lineWidth=Math.max(1.5,cs/7);g.beginPath();g.moveTo(X+2*u,Y+2*u);g.lineTo(X+cs-2*u,Y+cs-2*u);g.moveTo(X+cs-2*u,Y+2*u);g.lineTo(X+2*u,Y+cs-2*u);g.stroke();break;
  case'you':g.save();g.translate(c,m);g.rotate((st.d||0)*Math.PI/2);g.fillStyle='#c3261e';g.strokeStyle='#3a0a06';g.beginPath();g.moveTo(0,-4.3*u);g.lineTo(3.4*u,3.4*u);g.lineTo(0,1.8*u);g.lineTo(-3.4*u,3.4*u);g.closePath();g.fill();g.stroke();g.restore();break;}}
-function paintMap(g,cs,id){id=id||S.lv;const W=MW*cs,H=MH*cs,INK='#3d2610',K=new Set(),mkd=(S.marks||{})[id]||{},nt=LS.nt||{},pr=LS.pr||{},PP={},small=cs<8;for(const p of LV.props||[])PP[p.x+','+p.y]=p;
- const ch=(x,y)=>(x<0||y<0||x>=MW||y>=MH)?'#':cell(x,y),open=c=>'.dDLgG'.includes(c),seen=(x,y)=>LS.seen[x+','+y],orig=(x,y)=>LV.map[y][x],ic=(k,x,y,st)=>{K.add(k);if(!small||'you door lock gate up down exit'.includes(k))mapIcon(g,k,x*cs,y*cs,cs,st);};
- g.clearRect(0,0,W,H);g.drawImage(mapBg(W,H),0,0);
- if(!small){const rx=W-cs*1.9,ry=cs*1.9,R=cs*1.25;g.save();g.globalAlpha=.55;g.strokeStyle=INK;g.fillStyle=INK;g.lineWidth=1;g.beginPath();g.arc(rx,ry,R*.62,0,7);g.stroke();for(let k=0;k<4;k++){g.save();g.translate(rx,ry);g.rotate(k*Math.PI/2);g.beginPath();g.moveTo(0,-R);g.lineTo(R*.2,0);g.lineTo(-R*.2,0);g.closePath();k?g.stroke():g.fill();g.restore();}g.font=`bold ${Math.round(cs*.7)}px Georgia,serif`;g.textAlign='center';g.textBaseline='bottom';g.fillText('N',rx,ry-R-1);g.restore();}
- // sols explorés
- for(let y=0;y<MH;y++)for(let x=0;x<MW;x++){if(!seen(x,y)||!open(ch(x,y)))continue;g.fillStyle='#f1e4ba';g.fillRect(x*cs,y*cs,cs,cs);if(!small){g.fillStyle='rgba(120,90,50,.13)';g.fillRect(x*cs,y*cs,cs,1);g.fillRect(x*cs,y*cs,1,cs);}}
- // murs à l'encre : le bord de chaque case ouverte qui donne sur du plein
- const t=Math.max(1.5,cs*.22);g.fillStyle=INK;for(let y=0;y<MH;y++)for(let x=0;x<MW;x++){if(!seen(x,y)||!open(ch(x,y)))continue;const X=x*cs,Y=y*cs;
-  if(!open(ch(x,y-1)))g.fillRect(X-t/2,Y-t,cs+t,t);if(!open(ch(x,y+1)))g.fillRect(X-t/2,Y+cs,cs+t,t);if(!open(ch(x-1,y)))g.fillRect(X-t,Y-t/2,t,cs+t);if(!open(ch(x+1,y)))g.fillRect(X+cs,Y-t/2,t,cs+t);}
+function paintMap(g,cs,id){id=id||S.lv;const W=MW*cs,H=MH*cs,INK='#42260f',K=new Set(),mkd=(S.marks||{})[id]||{},nt=LS.nt||{},pr=LS.pr||{},PP={},small=cs<8,pad=small?0:Math.round(cs*1.6);for(const p of LV.props||[])PP[p.x+','+p.y]=p;
+ const ch=(x,y)=>(x<0||y<0||x>=MW||y>=MH)?'#':cell(x,y),open=c=>'.dDLgG'.includes(c),seen=(x,y)=>LS.seen[x+','+y],orig=(x,y)=>LV.map[y][x],ic=(k,x,y,st)=>{K.add(k);if(!small||'you door lock gate up down exit'.includes(k))mapIcon(g,k,x*cs,y*cs,cs,st);},hs=(x,y,n)=>((x*73856093^y*19349663^n*83492791)>>>0)%1000/1000;
+ g.setTransform(1,0,0,1,0,0);g.clearRect(0,0,W+2*pad,H+2*pad);g.drawImage(mapBg(W+2*pad,H+2*pad,!small),0,0);g.translate(pad,pad);
+ const t=Math.max(1.5,cs*.26),sh=small?0:Math.max(1.5,cs*.2),wob=small?0:cs*.05;
+ // ombre portée des murs, vers le sud-est, comme sur les plans de Gladstone
+ if(sh){g.fillStyle='rgba(74,44,16,.30)';for(let y=0;y<MH;y++)for(let x=0;x<MW;x++){if(!seen(x,y)||!open(ch(x,y)))continue;const X=x*cs,Y=y*cs;if(!open(ch(x,y+1)))g.fillRect(X+sh,Y+cs+t,cs,sh);if(!open(ch(x+1,y)))g.fillRect(X+cs+t,Y+sh,sh,cs);}}
+ // sols explorés : dallage clair
+ for(let y=0;y<MH;y++)for(let x=0;x<MW;x++){if(!seen(x,y)||!open(ch(x,y)))continue;g.fillStyle=hs(x,y,1)<.5?'#ecdcae':'#e6d3a2';g.fillRect(x*cs,y*cs,cs,cs);if(!small){g.fillStyle='rgba(126,92,48,.20)';g.fillRect(x*cs,y*cs,cs,1);g.fillRect(x*cs,y*cs,1,cs);if(!open(ch(x,y-1))){g.fillStyle='rgba(74,44,16,.16)';g.fillRect(x*cs,y*cs,cs,cs*.22);}if(!open(ch(x-1,y))){g.fillStyle='rgba(74,44,16,.16)';g.fillRect(x*cs,y*cs,cs*.22,cs);}}}
+ // murs : trait épais à la plume, un peu irrégulier, liseré clair côté lumière
+ for(let y=0;y<MH;y++)for(let x=0;x<MW;x++){if(!seen(x,y)||!open(ch(x,y)))continue;const X=x*cs,Y=y*cs,w=n=>(hs(x,y,n)-.5)*2*wob;
+  const seg=(a,b,c,d,hl)=>{g.fillStyle=INK;g.fillRect(a,b,c,d);if(!small){g.fillStyle='rgba(150,104,56,.75)';hl?g.fillRect(a,b,c,Math.max(1,t*.22)):g.fillRect(a,b,Math.max(1,t*.22),d);}};
+  if(!open(ch(x,y-1)))seg(X-t/2,Y-t+w(2),cs+t,t,1);if(!open(ch(x,y+1)))seg(X-t/2,Y+cs+w(3),cs+t,t,1);if(!open(ch(x-1,y)))seg(X-t+w(4),Y-t/2,t,cs+t,0);if(!open(ch(x+1,y)))seg(X+cs+w(5),Y-t/2,t,cs+t,0);}
  // pictogrammes
+ const lab=[];
  for(let y=0;y<MH;y++)for(let x=0;x<MW;x++){if(!seen(x,y))continue;const c=ch(x,y),o=orig(x,y),k=x+','+y,h=!open(ch(x-1,y))&&!open(ch(x+1,y));
   if(c==='D'||c==='d')ic('door',x,y,{open:c==='d',h});else if(c==='L')ic('lock',x,y,{h});else if(c==='G'||c==='g')ic('gate',x,y,{open:c==='g',h});
   else if(c==='V'||c==='v')ic('lever',x,y,{down:c==='v'});else if(c==='N')ic('niche',x,y,{empty:!!nt[k]});else if(c==='B'){if(nt[k])ic('btn',x,y);}
   else if(c==='W')ic('crack',x,y);else if(c==='F')ic('frail',x,y);else if(c==='Q')ic('medal',x,y,{down:seqDown(k)});else if(c==='I')ic('sign',x,y);else if(c==='M')ic('shop',x,y);else if(c==='A')ic('inn',x,y);
-  else if(c==='<')ic('up',x,y);else if(c==='>')ic('down',x,y);else if(c==='X'){let d=0;for(let q=0;q<4;q++)if(open(ch(x+DX[q],y+DY[q])))d=(q+2)%4;ic('exit',x,y,{d});}
+  else if(c==='<'){ic('up',x,y);lab.push([x,y,'montée']);}else if(c==='>'){ic('down',x,y);lab.push([x,y,'descente']);}else if(c==='X'){let d=0;for(let q=0;q<4;q++)if(open(ch(x+DX[q],y+DY[q])))d=(q+2)%4;ic('exit',x,y,{d});lab.push([x,y,'Sortie']);}
   if(c==='.'&&(o==='S'||o==='H'))ic('secret',x,y);if(c==='.'&&(o==='W'||o==='F'))ic('breach',x,y);
   const f=LV.fx&&LV.fx[k];if(f){if(f.t==='pit'){if(nt['p'+k])ic('pit',x,y);}else if(f.t==='plate'||f.t==='tplate')ic(f.t,x,y);else if(f.t==='dart')ic(nt['f'+k]?'dart':'plate',x,y,{d:f.d});else if(nt['f'+k])ic('spin',x,y);}
   const p=PP[k];if(p){const kk=p.k==='chest'?'chest':p.k==='fountain'||p.k==='well'?'fountain':p.k==='bell'?'bell':p.sc?'keg':'furn';ic(kk,x,y,{open:!!pr[p.id]});}
   if(npcAt(x,y))ic('npc',x,y);else if(open(c)&&itemsAt(x,y).length)ic('item',x,y);
   if(mkd[k])ic('mark',x,y);}
- if(!small)(LV.rooms||[]).forEach((r,i)=>{let s=false;for(let y=r.y;y<r.y+r.h&&!s;y++)for(let x=r.x;x<r.x+r.w;x++)if(seen(x,y)){s=true;break;}if(!s)return;g.font=`italic bold ${Math.round(cs*.92)}px Georgia,serif`;g.textAlign='center';g.textBaseline='middle';const cx=(r.x+r.w/2)*cs,cy=(r.y+r.h/2)*cs+1;g.lineWidth=3;g.strokeStyle='rgba(241,228,186,.9)';g.strokeText(i+1,cx,cy);g.fillStyle='#7a1e12';g.fillText(i+1,cx,cy);});
- if(id===S.lv)ic('you',S.x,S.y,{d:S.d});MAPK=K;}
+ if(!small){const FT='"Palatino Linotype","Book Antiqua",Palatino,Georgia,serif';
+  // mentions à la plume : sorties et escaliers
+  for(const[x,y,tx]of lab){const big=tx==='Sortie';g.font=`italic ${big?'bold ':''}${Math.round(cs*(big?.95:.78))}px ${FT}`;const tw=g.measureText(tx).width,right=(x+1)*cs+4+tw<W+pad-4;g.textAlign=right?'left':'right';g.textBaseline='middle';const tx0=right?(x+1)*cs+t+3:x*cs-t-3,ty=y*cs+cs/2;g.lineWidth=3.5;g.strokeStyle='rgba(226,200,146,.92)';g.strokeText(tx,tx0,ty);g.fillStyle=big?'#1f5a2a':'#4a2468';g.fillText(tx,tx0,ty);}
+  // numéros des lieux, dans un rond d'encre
+  (LV.rooms||[]).forEach((r,i)=>{let s=false;for(let y=r.y;y<r.y+r.h&&!s;y++)for(let x=r.x;x<r.x+r.w;x++)if(seen(x,y)){s=true;break;}if(!s)return;const cx=(r.x+r.w/2)*cs,cy=(r.y+r.h/2)*cs,R=cs*.62;g.fillStyle='rgba(236,220,174,.85)';g.beginPath();g.arc(cx,cy,R,0,7);g.fill();g.strokeStyle='#7a1e12';g.lineWidth=1.2;g.stroke();g.font=`bold ${Math.round(cs*.8)}px ${FT}`;g.textAlign='center';g.textBaseline='middle';g.fillStyle='#7a1e12';g.fillText(i+1,cx,cy+1);});
+  // rose des vents
+  const rx=W+pad*.1-cs*1.3,ry=H+pad*.1-cs*1.3,R=cs*1.7;g.save();g.translate(rx,ry);g.globalAlpha=.8;g.strokeStyle=INK;g.lineWidth=1;g.beginPath();g.arc(0,0,R*.62,0,7);g.stroke();g.beginPath();g.arc(0,0,R*.5,0,7);g.stroke();
+  for(let k=0;k<8;k++){g.save();g.rotate(k*Math.PI/4);const L=k&1?R*.55:R;g.beginPath();g.moveTo(0,-L);g.lineTo(L*.17,0);g.lineTo(0,0);g.closePath();g.fillStyle=k?INK:'#8e1c12';g.fill();g.beginPath();g.moveTo(0,-L);g.lineTo(-L*.17,0);g.lineTo(0,0);g.closePath();g.fillStyle='#e6d3a2';g.fill();g.stroke();g.restore();}
+  g.font=`bold ${Math.round(cs*.85)}px ${FT}`;g.textAlign='center';g.textBaseline='bottom';g.fillStyle='#8e1c12';g.fillText('N',0,-R-1);g.restore();
+  // cartouche du lieu
+  const nm=LEVELS[id].name;g.font=`italic bold ${Math.round(cs*.95)}px ${FT}`;g.textAlign='left';g.textBaseline='middle';const tw=g.measureText(nm).width,bx=-pad*.35,by=-pad*.62;g.fillStyle='rgba(236,220,174,.7)';g.fillRect(bx,by-cs*.62,tw+cs*1.2,cs*1.24);g.strokeStyle=INK;g.lineWidth=1.2;g.strokeRect(bx,by-cs*.62,tw+cs*1.2,cs*1.24);g.strokeRect(bx+2.5,by-cs*.62+2.5,tw+cs*1.2-5,cs*1.24-5);g.fillStyle=INK;g.fillText(nm,bx+cs*.6,by+1);}
+ if(id===S.lv)ic('you',S.x,S.y,{d:S.d});g.setTransform(1,0,0,1,0,0);MAPK=K;}
 function miniMap(){if(!S||!LS)return;$('compass').textContent='NESO'[S.d];const m=$('mini');if(m.offsetParent){const cs=MW>20?5:10;if(m.width!==MW*cs||m.height!==MH*cs){m.width=MW*cs;m.height=MH*cs;}paintMap(m.getContext('2d'),cs);}}
-function openMap(id){id=id&&S.L[id]?id:S.lv;const ids=Object.keys(LEVELS).filter(k=>S.L[k]),L=LEVELS[id],w=L.map[0].length,hh=L.map.length,cs=w>20?14:18,lg=(c,t)=>`<span><i style="background:${c}"></i>${t}</span>`;
+function openMap(id){id=id&&S.L[id]?id:S.lv;const ids=Object.keys(LEVELS).filter(k=>S.L[k]),L=LEVELS[id],w=L.map[0].length,hh=L.map.length,cs=window.LITE?(w>20?14:18):(w>20?22:28),pad=Math.round(cs*1.6),lg=(c,t)=>`<span><i style="background:${c}"></i>${t}</span>`;
  openModal(`<h2>${L.name}</h2>${ids.length>1?'<div class="tabs">'+ids.map(k=>`<button data-maptab="${k}" class="${k===id?'on':''}">${TABN[k]||LEVELS[k].name.replace(/^(Les?|La) /,'').split(' ')[0]}</button>`).join('')+'</div>':''}
- <canvas id="mapC" width="${w*cs}" height="${hh*cs}"></canvas><div class="legend" id="mapLg"></div>
+ <canvas id="mapC" width="${w*cs+2*pad}" height="${hh*cs+2*pad}"></canvas><div class="lgT">Légende</div><div class="legend" id="mapLg"></div>
  ${(()=>{const R=(L.rooms||[]).map((r,i)=>{for(let y=r.y;y<r.y+r.h;y++)for(let x=r.x;x<r.x+r.w;x++)if(S.L[id].seen[x+','+y])return`<span><b>${i+1}</b> ${r.n}</span>`;return'';}).filter(Boolean);return R.length?'<div class="rooms">'+R.join('')+'</div>':'';})()}
- <p class="dim">Cliquez une case explorée pour y poser ou ôter un repère.</p><input id="mapNote" maxlength="140" placeholder="Note pour ce lieu (ex. : coffre derrière la herse, revenir avec un sac)" value="${((S.notes||{})[id]||'').replace(/"/g,'&quot;')}">
+ <p class="dim">Touchez une case explorée pour y poser ou ôter un repère.</p><input id="mapNote" maxlength="140" placeholder="Note pour ce lieu (ex. : coffre derrière la herse, revenir avec un sac)" value="${((S.notes||{})[id]||'').replace(/"/g,'&quot;')}">
  <div class="row"><button class="main" data-close>Fermer</button></div>`);$('modalBox').classList.add('wide','mapM');
- const cv=$('mapC'),draw=()=>{withLv(id,()=>paintMap(cv.getContext('2d'),cs,id));const L=$('mapLg');L.innerHTML=MAPL.filter(a=>MAPK.has(a[0])).map(a=>`<span><canvas class="mi" width="22" height="22" data-ico="${a[0]}"></canvas>${a[1]}</span>`).join('');L.querySelectorAll('canvas').forEach(c=>{const g=c.getContext('2d');g.fillStyle='#f1e4ba';g.fillRect(0,0,22,22);mapIcon(g,c.dataset.ico,2,2,18,{h:1,d:c.dataset.ico==='exit'?1:0});});};draw();
- cv.onclick=e=>{const r=cv.getBoundingClientRect(),x=(e.clientX-r.left)/r.width*w|0,y=(e.clientY-r.top)/r.height*hh|0,k=x+','+y;if(!S.L[id].seen[k])return;const m=S.marks[id]=S.marks[id]||{};if(m[k])delete m[k];else m[k]=1;draw();};
+ const cv=$('mapC'),draw=()=>{withLv(id,()=>paintMap(cv.getContext('2d'),cs,id));const L=$('mapLg');L.innerHTML=MAPL.filter(a=>MAPK.has(a[0])).map(a=>`<span><canvas class="mi" width="22" height="22" data-ico="${a[0]}"></canvas>${a[1]}</span>`).join('');L.querySelectorAll('canvas').forEach(c=>{const g=c.getContext('2d');g.clearRect(0,0,22,22);mapIcon(g,c.dataset.ico,2,2,18,{h:1,d:c.dataset.ico==='exit'?1:0});});};draw();
+ cv.onclick=e=>{const r=cv.getBoundingClientRect(),x=Math.floor(((e.clientX-r.left)/r.width*cv.width-pad)/cs),y=Math.floor(((e.clientY-r.top)/r.height*cv.height-pad)/cs),k=x+','+y;if(!S.L[id].seen[k])return;const m=S.marks[id]=S.marks[id]||{};if(m[k])delete m[k];else m[k]=1;draw();};
  $('mapNote').onchange=e=>{S.notes[id]=e.target.value;};}
 let bagF='tout',bagSel=-1;
 const BAGF=[['tout','Tout'],['armes','Armes'],['prot','Protections'],['soins','Soins et vivres'],['divers','Divers']],bagCat=id=>{const k=ITEMS[id].k;return k==='main'||k==='throw'?'armes':SLK.includes(k)?'prot':k==='use'?'soins':'divers';};
@@ -2222,7 +2265,7 @@ const HELP=`<h2>Aide et commandes</h2>
 <h3>Troupe et terrain</h3><p><b>Huit emplacements</b> par personnage : arme, bouclier, tête, corps, mains, pieds, anneau, cou. La fiche permet aussi de changer la <b>place dans la ligne</b> : un adversaire frappe d'abord qui lui fait face, et ils peuvent être deux par case.</p>
 <p><b>Dalles</b> : une dalle marquée au sol ouvre une herse tant qu'un poids repose dessus, vous ou un objet posé. <b>Carte</b> : tracée à l'encre sur parchemin, un onglet par lieu visité. Portes, herses, leviers, escaliers, coffres, niches et inscriptions y figurent à leur place ; les pièges et les passages secrets s'y ajoutent dès que vous les avez découverts. La légende ne montre que ce qui est sur la carte. Un clic pose un repère ; une note par lieu.</p>
 <p><b>Livrées</b> : au palais, si toute la troupe en porte une, la garde royale ne vous remarque pas. Les reîtres, si.</p>
-<h3>Lieux et mécanismes</h3><p>Chaque carte a son <b>objectif</b> (rappelé dans le journal, touche J ou bouton Chronique) et ses lieux nommés, numérotés sur la carte. <b>Escaliers</b> : ils relient les étages, dans les deux sens. <b>Coffres</b> : certains demandent une petite clé, qui n'y sert qu'une fois. <b>Vasques</b> : l'eau rend souffle et un peu de vie, puis se remplit lentement. <b>Échoppes et auberges</b> : une porte sous enseigne ; l'auberge vend une nuit complète et, parfois, une rumeur.</p>
+<h3>Lieux et mécanismes</h3><p>Chaque carte a son <b>objectif</b> (rappelé dans le journal, touche J ou bouton Chronique) et ses lieux nommés, numérotés sur la carte. <b>Sorties et escaliers</b> : une lanterne allumée brûle au-dessus de chacun, visible de loin ; le journal dit de quel côté du plan chercher la sortie. <b>Coffres</b> : certains demandent une petite clé, qui n'y sert qu'une fois. <b>Vasques</b> : l'eau rend souffle et un peu de vie, puis se remplit lentement. <b>Échoppes et auberges</b> : une porte sous enseigne ; l'auberge vend une nuit complète et, parfois, une rumeur.</p>
 <p><b>Niches</b> : un renfoncement visible dans le mur, à vider d'un clic. <b>Boutons</b> : une pierre un peu trop propre ouvre un réduit tout près. <b>Murs fissurés</b> : la poudre. <b>Parois friables</b> : la pioche, ou Brune. <b>Médaillons</b> : à enfoncer dans le bon ordre ; l'ordre est toujours écrit quelque part. <b>Inscriptions</b> : lisez-les, elles ne sont pas là pour décorer.</p>
 <p><b>Dalles pressées</b> : la herse ne reste levée que quelques secondes, courez. <b>Dalles à trait</b> : un clic sous la botte, un carreau dans le couloir. <b>Clés</b> : chacune n'ouvre qu'une serrure et y reste. <b>Lanterne</b> : cliquer la jauge d'huile verse une fiole. <b>Sac</b> : la touche I (ou le bouton du sac) ouvre le grand inventaire, avec tri et silhouette d'équipement.</p>
 <h3>Adversaires</h3><p>Ils n'ont pas tous les mêmes manières. Les <b>loups</b>, les <b>molosses</b> et les <b>rats</b> chassent en meute : en réveiller un, c'est les réveiller tous, et le loup bondit de loin. Les <b>gardes</b> et les <b>sentinelles</b> donnent l'alerte. Les <b>pillards</b> et les <b>contrebandiers</b> vous font les poches puis détalent : rattrapez-les, ils rendent tout en tombant.</p>
@@ -2590,6 +2633,9 @@ function postIcons(){for(const[a,b]of[['cape','livree'],['mantel','livree'],['ce
 
 loadImgs().then(()=>{regrade();buildArt();buildDeco2();buildDecals();buildIcons();postIcons();showTitle();requestAnimationFrame(loop);});
 if(ONSITE){const l=document.createElement('link');l.rel='manifest';l.href='/landoflord/manifest.webmanifest';document.head.appendChild(l);const a=document.createElement('link');a.rel='apple-touch-icon';a.href='/landoflord/icon-180.png';document.head.appendChild(a);if('serviceWorker'in navigator)navigator.serviceWorker.register('/landoflord/sw.js',{scope:'/landoflord'}).catch(()=>{});}
+/* p24 : dalle de la chambre forte de Brocevaux déplacée entre les deux pierres levées (elle était au pied de la herse du chemin) */
+(function(){const L=LEVELS.foret,f=L&&L.fx&&L.fx['14,16'];if(!f||f.t!=='tplate'||!f.gate||f.gate[0]!==17||f.gate[1]!==13||L.map[17][14]!=='G'||L.map[15][19]!=='.'||L.fx['19,15'])return;
+ for(const p of L.props||[])if(p.x===19&&p.y===15)return;L.fx['19,15']=f;delete L.fx['14,16'];})();
 
 /* objets uniques : ils remplacent l'or de cinq niches bien cachées */
 for(const[u,lv,k]of[["u_veuve", "palais2", "14,1"], ["u_tocsin", "abbaye", "12,13"], ["u_aiguille", "crypte", "1,26"], ["u_pavois", "ruines", "22,12"], ["u_haubert", "palais3", "7,19"]])if(LEVELS[lv]&&LEVELS[lv].niche&&LEVELS[lv].niche[k])LEVELS[lv].niche[k]=[[u,0]];
@@ -2639,9 +2685,6 @@ SC.qpri=function(p){const q=QPRI[p.pz],f='q_'+q.id;if(S.flags[f]===2){log("Prime
  if(!LS.qsp){LS.qsp=1;if(!LS.mons.some(m=>m.t===q.id)){const m=mkMon(q.id,q.at[0],q.at[1]);LS.mons.push(m);}}S.flags[f]=S.flags[f]||1;sfx('page');say([[null,q.txt]]);};
 function questTick(){for(const q of QPRI){if(q.off||q.lv!==S.lv||S.flags['q_'+q.id]===2)continue;const m=LS.mons.find(m=>m.t===q.id);if(m&&m.hp<=0){S.flags['q_'+q.id]=2;sfx('coin');const got=q.loot.map(l=>give(l[0],l[1]||0));log(`<b>Prime : ${q.n} ne nuira plus.</b> Dans sa bourse, de quoi vous payer vous-même : <b>${got.join(', ')}</b>.`);ui();}}}
 function questLines(){const l=[];for(const q of QCOM)if(!q.off&&S.flags['q_'+q.it]===1)l.push(`rapporter ${ITEMS[q.it].n.toLowerCase()} (${LEVELS[q.a].name})`);for(const q of QPRI)if(!q.off&&S.flags['q_'+q.id]===1)l.push(`prime sur ${q.n} (${LEVELS[q.lv].name})`);return l;}
-/* p24 : dalle de la chambre forte de Brocevaux déplacée entre les deux pierres levées (elle était au pied de la herse du chemin) */
-(function(){const L=LEVELS.foret,f=L&&L.fx&&L.fx['14,16'];if(!f||f.t!=='tplate'||!f.gate||f.gate[0]!==17||f.gate[1]!==13||L.map[17][14]!=='G'||L.map[15][19]!=='.'||L.fx['19,15'])return;
- for(const p of L.props||[])if(p.x===19&&p.y===15)return;L.fx['19,15']=f;delete L.fx['14,16'];})();
 </script>
 </body>
 </html>
