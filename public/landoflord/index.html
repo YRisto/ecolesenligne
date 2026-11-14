@@ -1220,15 +1220,16 @@ function markSeen(){for(let dy=-1;dy<=1;dy++)for(let dx=-1;dx<=1;dx++)LS.seen[(S
 
 /* ---------- journal & dialogues ---------- */
 /* ---------- mixage : trois niveaux (musique, bruitages, voix) comme dans l'original, fondus en plus ---------- */
-const BUS={};let mixScene=0,voxGn=null;
+const BUS={};let mixScene=0,voxGn=null,vrT=0;const IOS=/iPad|iPhone|iPod/.test(navigator.userAgent)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);
+function vramp(v,d){clearInterval(vrT);if(!(d>0)){try{MUS.volume=v;}catch(e){}return;}const v0=MUS.volume,t0=performance.now();vrT=setInterval(()=>{const k=Math.min(1,(performance.now()-t0)/(d*1000));try{MUS.volume=v0+(v-v0)*k;}catch(e){}if(k>=1)clearInterval(vrT);},40);}
 const OUT=k=>BUS[k]||AC.destination,voxOn=()=>!!(BASE&&AC&&PREF.vox!==0),musBase=()=>(curTrack==='combat'?.22:.2)*(PREF.lm/60);
 function mixInit(){try{BUS.sfx=AC.createGain();BUS.sfx.connect(AC.destination);BUS.amb=AC.createGain();BUS.amb.connect(BUS.sfx);BUS.vox=AC.createGain();BUS.vox.connect(AC.destination);}catch(e){}
- try{const g=AC.createGain();g.gain.value=0;g.connect(AC.destination);AC.createMediaElementSource(MUS).connect(g);BUS.mus=g;MUS.volume=1;}catch(e){BUS.mus=null;}
+ if(IOS)try{const g=AC.createGain();g.gain.value=0;g.connect(AC.destination);AC.createMediaElementSource(MUS).connect(g);BUS.mus=g;MUS.volume=1;}catch(e){BUS.mus=null;}
  mixUpd(1);}
 function gset(p,v,d){const t=AC.currentTime;try{p.cancelScheduledValues(t);if(d>0)p.setTargetAtTime(v,t,d/3);else p.setValueAtTime(v,t);}catch(e){try{p.value=v;}catch(x){}}}
 /* scène parlée (intro, intermèdes) : musique et ambiance s'éteignent en fondu ; ailleurs la musique baisse seulement sous une voix */
 function mixUpd(now){const sc=(cineMode&&!$('dlg').hidden&&voxOn())?1:0,f=sc?0:duckF,d=now?0:sc?.8:mixScene?1.5:duckF<1?.25:.6;mixScene=sc;
- if(AC&&BUS.mus)gset(BUS.mus.gain,musBase()*f,d);else try{MUS.volume=Math.min(1,musBase()*f);}catch(e){}
+ if(AC&&BUS.mus)gset(BUS.mus.gain,musBase()*f,d);else vramp(Math.min(1,musBase()*f),d);
  if(!AC)return;if(BUS.amb)gset(BUS.amb.gain,sc?0:1,d);if(BUS.sfx)gset(BUS.sfx.gain,PREF.ls/80,now?0:.05);if(BUS.vox)gset(BUS.vox.gain,PREF.lv/100,now?0:.05);}
 function setVol(k,v){PREF[k]=v;const m=PREF.mus,s=PREF.sfx;PREF.mus=PREF.lm>0?1:0;PREF.sfx=PREF.ls>0?1:0;PREF.vox=PREF.lv>0?1:0;
  if(PREF.mus!==m)music();if(PREF.sfx!==s){if(amb)amb.gain.value=PREF.sfx?.05:0;ambKey='-';ambience();}if(!PREF.vox)voxStop();mixUpd(1);}

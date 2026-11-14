@@ -18,7 +18,12 @@ sur iPhone, fondu de la musique et de l'ambiance pendant les scènes parlées, v
 
     python3 scripts/landoflord-voix/p22_site.py public/landoflord/index.html
 
-Dans cet ordre : p21 d'abord, p22 ensuite. Test : `scripts/landoflord-bots/t39.py`.
+Puis la sortie de la musique (directe sur ordinateur et Android, par le circuit Web Audio sur iPhone et iPad seulement :
+sur ordinateur, un contexte audio resté suspendu rendait la musique muette) :
+
+    python3 scripts/landoflord-voix/p23_site.py public/landoflord/index.html
+
+Dans cet ordre : p21, p22, p23. Tests : `t39.py`, `t41.py` (Chrome, Firefox, iPhone simulé). Test : `scripts/landoflord-bots/t39.py`.
 
 ## Chaîne d'enregistrement
 
