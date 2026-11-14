@@ -2,7 +2,7 @@
 import re, sys, io, os, json, base64, subprocess, glob
 import numpy as np
 from PIL import Image
-SWV = 37
+SWV = 38
 sys.path.insert(0, '/home/claude/work/tools'); import charte
 REPO = '/home/claude/ecolesenligne'; REL = 'public/landoflord/index.html'
 WK = '/home/claude/work'
@@ -296,6 +296,17 @@ function AUDDIAG(){let s='Son (v'+AUDE.v+') : ';try{s+='contexte '+(AC?AC.state+
 """ % SWV
 i_end = s.rindex('</script>'); s = s[:i_end] + DIAG + s[i_end:]
 s = rep1(s, "· ${LSM?'paysage':'portrait'}${navigator.standalone?' · icône':''}</p>", "· ${LSM?'paysage':'portrait'}${navigator.standalone?' · icône':''}</p><p class=\"dim\" style=\"font-size:11px\">${typeof AUDDIAG==='function'?AUDDIAG():''}</p>")
+# 8. changement de morceau sans à-coup : l'ancien s'éteint en un quart de seconde, le nouveau n'entre qu'une fois réellement en lecture
+s = rep1(s, """if(curTrack&&MUS.loop)MPOS[curTrack]=MUS.currentTime;curTrack=t;if(!t){MUS.pause();return;}const once=t==='defaite'||t==='victoire';MUS.loop=!once;mixUpd(1);MUS.src=t==='combat'?'/lejeuduDG/musique-jeu.mp3':BASE+'mus/'+t+'.mp3';
+ const p=MPOS[t];if(p&&!once&&t!=='combat')MUS.addEventListener('loadedmetadata',()=>{try{MUS.currentTime=p;}catch(e){}},{once:true});MUS.play().catch(()=>{});}""",
+"""if(curTrack&&MUS.loop&&!musHold)MPOS[curTrack]=MUS.currentTime;const was=curTrack&&!MUS.paused&&!musHold;curTrack=t;clearTimeout(musSwT);if(!t){MUS.pause();return;}const tok=++musTok;
+ const go=()=>{if(tok!==musTok)return;const once=t==='defaite'||t==='victoire';MUS.loop=!once;musHold=1;mixUpd(1);MUS.src=t==='combat'?'/lejeuduDG/musique-jeu.mp3':BASE+'mus/'+t+'.mp3';
+  const p=MPOS[t];if(p&&!once&&t!=='combat')MUS.addEventListener('loadedmetadata',()=>{if(tok===musTok)try{MUS.currentTime=p;}catch(e){}},{once:true});
+  MUS.addEventListener('playing',()=>{if(tok!==musTok)return;setTimeout(()=>{if(tok===musTok){musHold=0;mixUpd();}},120);},{once:true});MUS.play().catch(()=>{});};
+ if(was){musHold=1;mixUpd();musSwT=setTimeout(go,300);}else go();}
+let musHold=0,musTok=0,musSwT=0;""")
+s = rep1(s, "f=sc?0:duckF,d=now?0:sc?.8:", "f=(sc||musHold)?0:duckF,d=now?0:musHold?.22:sc?.8:")
+s = rep1(s, "else if(fightT&&S.T-fightT>5000)fightT=0;", "else if(fightT&&S.T-fightT>8000)fightT=0;")
 # 5. le plan façon Lands of Lore et les sorties signalées
 import carte
 s = carte.apply(s, rep1)

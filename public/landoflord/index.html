@@ -404,7 +404,7 @@ body:not(.ls) .box.mapM .legend{grid-template-columns:1fr 1fr}body:not(.ls) .box
  <button id="tCont" hidden>Continuer</button>
  <div class="keys">Souris, doigt ou clavier : tout se fait des trois façons. L'aide est dans la chronique (Échap).</div>
 </div>
-<script>(function(){var q=location.search,lite=/[?&]lite\b/.test(q)||(!/[?&]hd\b/.test(q)&&(/iPhone|iPod|Android.*Mobile|Windows Phone/i.test(navigator.userAgent)||(navigator.maxTouchPoints>1&&Math.min(screen.width,screen.height)<=600)));window.LITE=lite;var base=/landoflord/i.test(location.pathname)&&location.protocol!=='file:'?'/landoflord/':'';document.write('<script src="'+base+'pack-'+(lite?'lite':'hd')+'.js?v=37"><\/script>');})();</script>
+<script>(function(){var q=location.search,lite=/[?&]lite\b/.test(q)||(!/[?&]hd\b/.test(q)&&(/iPhone|iPod|Android.*Mobile|Windows Phone/i.test(navigator.userAgent)||(navigator.maxTouchPoints>1&&Math.min(screen.width,screen.height)<=600)));window.LITE=lite;var base=/landoflord/i.test(location.pathname)&&location.protocol!=='file:'?'/landoflord/':'';document.write('<script src="'+base+'pack-'+(lite?'lite':'hd')+'.js?v=38"><\/script>');})();</script>
 <script>
 /* Images : bustes du jeu libre Flare (CC-BY-SA 3.0), textures et illustrations libres (voir Crédits). */
 const IMG=PACK.IMG;
@@ -1176,8 +1176,12 @@ function audioOn(){if(AC)return;try{AC=new(window.AudioContext||window.webkitAud
 function trackFor(){if(musForce)return musForce;if(!$('title').hidden)return'barde';if(!$('heroSel').hidden)return'festin';if(!S)return'barde';if(!LS)return'complainte';
  if(!$('modal').hidden&&$('modalBox').querySelector('.shop'))return'marche';if(resting)return'taverne';if(fightT)return'combat';return TRACK[S.lv]||'barde';}
 function music(){if(!BASE)return;const t=PREF.mus?trackFor():'';if(t===curTrack){if(t&&MUS.paused&&!MUS.ended)MUS.play().catch(()=>{});return;}
- if(curTrack&&MUS.loop)MPOS[curTrack]=MUS.currentTime;curTrack=t;if(!t){MUS.pause();return;}const once=t==='defaite'||t==='victoire';MUS.loop=!once;mixUpd(1);MUS.src=t==='combat'?'/lejeuduDG/musique-jeu.mp3':BASE+'mus/'+t+'.mp3';
- const p=MPOS[t];if(p&&!once&&t!=='combat')MUS.addEventListener('loadedmetadata',()=>{try{MUS.currentTime=p;}catch(e){}},{once:true});MUS.play().catch(()=>{});}
+ if(curTrack&&MUS.loop&&!musHold)MPOS[curTrack]=MUS.currentTime;const was=curTrack&&!MUS.paused&&!musHold;curTrack=t;clearTimeout(musSwT);if(!t){MUS.pause();return;}const tok=++musTok;
+ const go=()=>{if(tok!==musTok)return;const once=t==='defaite'||t==='victoire';MUS.loop=!once;musHold=1;mixUpd(1);MUS.src=t==='combat'?'/lejeuduDG/musique-jeu.mp3':BASE+'mus/'+t+'.mp3';
+  const p=MPOS[t];if(p&&!once&&t!=='combat')MUS.addEventListener('loadedmetadata',()=>{if(tok===musTok)try{MUS.currentTime=p;}catch(e){}},{once:true});
+  MUS.addEventListener('playing',()=>{if(tok!==musTok)return;setTimeout(()=>{if(tok===musTok){musHold=0;mixUpd();}},120);},{once:true});MUS.play().catch(()=>{});};
+ if(was){musHold=1;mixUpd();musSwT=setTimeout(go,300);}else go();}
+let musHold=0,musTok=0,musSwT=0;
 function tone(type,f0,f1,dur,vol,delay){const t=AC.currentTime+(delay||0),o=AC.createOscillator(),g=AC.createGain();o.type=type;o.frequency.setValueAtTime(f0,t);o.frequency.exponentialRampToValueAtTime(Math.max(20,f1),t+dur);
  g.gain.setValueAtTime(vol,t);g.gain.exponentialRampToValueAtTime(.001,t+dur);o.connect(g).connect(OUT('sfx'));o.start(t);o.stop(t+dur+.02);}
 function noise(dur,vol,fq,q,delay){const t=AC.currentTime+(delay||0),b=AC.createBuffer(1,AC.sampleRate*dur|0,AC.sampleRate),d=b.getChannelData(0);for(let i=0;i<d.length;i++)d[i]=Math.random()*2-1;
@@ -1246,7 +1250,7 @@ function mixInit(){try{BUS.sfx=AC.createGain();BUS.sfx.connect(AC.destination);B
  mixUpd(1);}
 function gset(p,v,d){const t=AC.currentTime;try{p.cancelScheduledValues(t);if(d>0)p.setTargetAtTime(v,t,d/3);else p.setValueAtTime(v,t);}catch(e){try{p.value=v;}catch(x){}}}
 /* scène parlée (intro, intermèdes) : musique et ambiance s'éteignent en fondu ; ailleurs la musique baisse seulement sous une voix */
-function mixUpd(now){const sc=(cineMode&&!$('dlg').hidden&&voxOn())?1:0,f=sc?0:duckF,d=now?0:sc?.8:mixScene?1.5:duckF<1?.25:.6;mixScene=sc;
+function mixUpd(now){const sc=(cineMode&&!$('dlg').hidden&&voxOn())?1:0,f=(sc||musHold)?0:duckF,d=now?0:musHold?.22:sc?.8:mixScene?1.5:duckF<1?.25:.6;mixScene=sc;
  if(AC&&BUS.mus)gset(BUS.mus.gain,musBase()*f,d);else vramp(Math.min(1,musBase()*f),d);
  if(!AC)return;if(BUS.amb)gset(BUS.amb.gain,sc?0:1,d);if(BUS.sfx)gset(BUS.sfx.gain,PREF.ls/80,now?0:.05);if(BUS.vox)gset(BUS.vox.gain,PREF.lv/100,now?0:.05);}
 function setVol(k,v){PREF[k]=v;const m=PREF.mus,s=PREF.sfx;PREF.mus=PREF.lm>0?1:0;PREF.sfx=PREF.ls>0?1:0;PREF.vox=PREF.lv>0?1:0;
@@ -1644,7 +1648,7 @@ function tickWaves(){const W=LV.waves;if(!W||LS.mons.some(m=>m.hp>0&&!m.gone))re
  if(i){for(const c of S.party){c.hp=Math.min(c.hpM,Math.max(c.hp,0)+Math.round(c.hpM*.4));c.sf=Math.min(c.sfM,c.sf+Math.round(c.sfM*.35));c.poison=0;}log(hasChar('odon')?"<i>Odon passe dans les rangs : pansements, thériaque, et une remarque par blessé.</i>":"<i>On resserre les rangs et les pansements.</i>");}
  for(const e of w.mons){if(e[3]&&S.flags[e[3]])continue;if(occupied(e[1],e[2]))continue;const m=mkMon(e[0],e[1],e[2]);m.d=2;wake(m);LS.mons.push(m);}
  log('<b>'+w.msg+'</b>');for(const a of w.ally||[])if(S.flags[a[0]])log('<i>'+a[1]+'</i>');sfx('boom');shake();save('auto');}
-function musTick(dt){musAcc+=dt;if(musAcc<500)return;musAcc=0;if(S&&LS&&!paused()){const f=LS.mons.some(m=>m.hp>0&&!m.gone&&m.mode==='pursue'&&df[m.y*MW+m.x]<=3);if(f)fightT=S.T||1;else if(fightT&&S.T-fightT>5000)fightT=0;}music();ambience();}
+function musTick(dt){musAcc+=dt;if(musAcc<500)return;musAcc=0;if(S&&LS&&!paused()){const f=LS.mons.some(m=>m.hp>0&&!m.gone&&m.mode==='pursue'&&df[m.y*MW+m.x]<=3);if(f)fightT=S.T||1;else if(fightT&&S.T-fightT>8000)fightT=0;}music();ambience();}
 let ambSrc=null,ambG=null,ambKey='',ambSyn=null;
 function ambStop(){if(ambSrc){const s=ambSrc,g=ambG;try{g.gain.setTargetAtTime(0,AC.currentTime,.35);}catch(e){}setTimeout(()=>{try{s.stop();}catch(e){}},1400);ambSrc=null;ambG=null;}if(ambSyn){clearInterval(ambSyn);ambSyn=null;}if(amb)amb.gain.value=PREF.sfx?.05:0;}
 /* ambiance du lieu : boucle enregistrée sur le site, petits accents synthétiques ailleurs */
@@ -2686,7 +2690,7 @@ SC.qpri=function(p){const q=QPRI[p.pz],f='q_'+q.id;if(S.flags[f]===2){log("Prime
 function questTick(){for(const q of QPRI){if(q.off||q.lv!==S.lv||S.flags['q_'+q.id]===2)continue;const m=LS.mons.find(m=>m.t===q.id);if(m&&m.hp<=0){S.flags['q_'+q.id]=2;sfx('coin');const got=q.loot.map(l=>give(l[0],l[1]||0));log(`<b>Prime : ${q.n} ne nuira plus.</b> Dans sa bourse, de quoi vous payer vous-même : <b>${got.join(', ')}</b>.`);ui();}}}
 function questLines(){const l=[];for(const q of QCOM)if(!q.off&&S.flags['q_'+q.it]===1)l.push(`rapporter ${ITEMS[q.it].n.toLowerCase()} (${LEVELS[q.a].name})`);for(const q of QPRI)if(!q.off&&S.flags['q_'+q.id]===1)l.push(`prime sur ${q.n} (${LEVELS[q.lv].name})`);return l;}
 
-const AUDE={v:37,np:0,nv:0,ok:0};
+const AUDE={v:38,np:0,nv:0,ok:0};
 MUS.addEventListener('error',()=>{AUDE.me=(MUS.error&&MUS.error.code)+':'+MUS.src.split('/').pop();});MUS.addEventListener('playing',()=>{AUDE.pl=(AUDE.pl||0)+1;});
 {const _p=MUS.play.bind(MUS);MUS.play=function(){AUDE.np++;const r=_p();if(r&&r.catch)r.catch(e=>{AUDE.pe=(e&&e.name)||String(e);});return r;};
  const _vl=voxLoad;voxLoad=function(k){return _vl(k).then(d=>{AUDE.ok++;return d;},e=>{AUDE.ve=((e&&e.name)||String(e))+':'+k;throw e;});};
