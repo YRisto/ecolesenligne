@@ -39,3 +39,11 @@ Distribution : `distribution.json` (identifiant du personnage → numéro de voi
 `kyutai/tts-voices`). Le faussaire du prologue, non distribué, emprunte la voix du prévôt de Karst.
 
 Licences : Pocket TTS (Kyutai) CC-BY 4.0 ; timbres CML-TTS (lectures LibriVox) CC-BY 4.0. Crédités dans le jeu.
+
+## Herses (hors voix)
+
+`p24_site.py` : la dalle à minuterie de la forêt de Brocevaux n'est plus au pied de la herse du chemin (elle ouvrait la herse
+de la chambre forte) ; le message d'une dalle dit de quel côté la herse remonte ; une herse examinée dit ce qui la commande
+(levier et salle, dalle, signes gravés). À réappliquer comme les autres après une construction qui ne l'intègre pas :
+
+    python3 scripts/landoflord-voix/p24_site.py public/landoflord/index.html

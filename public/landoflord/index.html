@@ -1333,7 +1333,7 @@ function interact(){if(paused())return;const[x,y]=front(),n=npcAt(x,y);
   if(gt[2]==='wall'){if(!open){log("Le levier est bloqué en position basse. Ce qui devait bouger a bougé.");return;}LS.g[y]=LS.g[y].substring(0,x)+'v'+LS.g[y].substring(x+1);setCell(gt[0],gt[1],'.');sfx('lever');shake();const b=best('adresse');if(b)gainXp(b,'adresse',10);log("Le levier s'abaisse. Un pan de mur s'efface dans un grondement de contrepoids.");return;}LS.g[y]=LS.g[y].substring(0,x)+(open?'v':'V')+LS.g[y].substring(x+1);
   if(!open&&occupied(gt[0],gt[1])){LS.g[y]=LS.g[y].substring(0,x)+'v'+LS.g[y].substring(x+1);log("Quelque chose bloque la herse.");return;}
   setCell(gt[0],gt[1],open?'g':'G');doorAnim(gt[0],gt[1]);sfx('lever');log(open?"Le levier s'abaisse. Au loin, une herse remonte dans un fracas de chaînes.":"Le levier remonte. La herse retombe.");}
- else if(c==='G')log("Une herse de fer. Elle se commande d'ailleurs : cherchez un levier.");
+ else if(c==='G')log(gateHint(x,y));
  else if(c==='S'){setCell(x,y,'.');sfx('lever');log("La pierre pivote sur un axe huilé. Quelqu'un tenait à ce passage.");const b=best('adresse');if(b)gainXp(b,'adresse',12);}
  else if(c==='N'){const k=x+','+y;LS.nt=LS.nt||{};if(LS.nt[k]){log("Une niche vide. La poussière garde la forme de ce qu'on y a pris.");return;}
   for(const[id,q]of LV.niche[k]||[]){const full=id!=='or'&&!ITEMS[id].learn&&S.hand&&S.bag.length>=BAGMAX&&ITEMS[id].k!=='key';log(`Dans la niche : <b>${give(id,q)}</b>.${full?" Le sac est plein : l'objet tombe à vos pieds.":''}`);}
@@ -1350,10 +1350,20 @@ function interact(){if(paused())return;const[x,y]=front(),n=npcAt(x,y);
  else if(itemsAt(S.x,S.y).length)takeFloor(S.x,S.y);
  else if(c==='#')log(["Un mur. Il ne cédera pas à l'argumentation.","De la pierre, de la bonne.","Rien de particulier, sinon l'humidité."][rnd(0,2)]);
  else log("Rien à signaler.");}
+/* ---------- herses : qui les commande, et de quel côté ---------- */
+function dirTo(dx,dy){const ns=dy<-1?'nord':dy>1?'sud':'',ew=dx<-1?'ouest':dx>1?'est':'',d=ns&&ew?ns+'-'+ew:ns||ew;return!d?'tout près':(d[0]==='e'||d[0]==='o'?"à l'":'au ')+d;}
+function roomAt(x,y){for(const r of LV.rooms||[])if(x>=r.x&&x<r.x+r.w&&y>=r.y&&y<r.y+r.h)return r.n;return'';}
+function gateHint(x,y){const k=x+','+y;
+ for(const lk in LV.levers||{}){const t=LV.levers[lk];if(t[0]!==x||t[1]!==y)continue;const[lx,ly]=lk.split(',').map(Number);let rn='';for(let d=0;d<4&&!rn;d++){const a=lx+DX[d],b=ly+DY[d];if(LEVELS[S.lv].map[b]&&LEVELS[S.lv].map[b][a]==='.')rn=roomAt(a,b);}
+  return rn?`Une herse de fer. Elle se commande d'ailleurs : cherchez un levier du côté de « ${rn} », ${dirTo(lx-S.x,ly-S.y)}.`:`Une herse de fer. Elle se commande d'ailleurs : cherchez un levier ${dirTo(lx-S.x,ly-S.y)}.`;}
+ for(const fk in LV.fx||{}){const f=LV.fx[fk];if(!f.gate||f.gate[0]!==x||f.gate[1]!==y)continue;const[px,py]=fk.split(',').map(Number);
+  return f.t==='tplate'?`Une herse de fer, sans levier. Une dalle la commande, ${dirTo(px-S.x,py-S.y)}, et ne la tient pas longtemps levée : il faudra courir.`:`Une herse de fer, sans levier. Une dalle la commande, ${dirTo(px-S.x,py-S.y)}.`;}
+ for(const q of LV.seq||[])if(q.target&&q.target[0]===x&&q.target[1]===y)return"Une herse de fer, sans levier. Des signes gravés la commandent, dans un ordre précis.";
+ return"Une herse de fer. Elle se commande d'ailleurs : cherchez un levier.";}
 function cellFx(){const f=LV.fx&&LV.fx[S.x+','+S.y];if(f&&f.t!=='pit'){LS.nt=LS.nt||{};LS.nt['f'+S.x+','+S.y]=1;}
  if(f&&f.t==='tele'){S.x=f.to[0];S.y=f.to[1];if(f.to[2]!=null)S.d=f.to[2];anim=null;computeDF();markSeen();sfx('lever');shake();log(f.msg||"Le sol pivote. Vous voilà ailleurs, et Pépin a le mal de mer.");}
  else if(f&&f.t==='pit'&&!(LS.nt&&LS.nt['p'+S.x+','+S.y])){LS.nt=LS.nt||{};LS.nt['p'+S.x+','+S.y]=1;if(FXM)FXM[S.y*MW+S.x]=1;S.x=f.to[0];S.y=f.to[1];anim=null;computeDF();markSeen();shake();sfx('boom');for(const c of S.party)if(c.hp>0)c.hp=Math.max(1,c.hp-rnd(3,f.dmg||7));hurtT=performance.now();log(f.msg||"Le sol cède. La chute est courte, l'atterrissage moins.");log("<i>Vous saurez l'enjamber la prochaine fois : la trappe est repérée.</i>");}
- else if(f&&f.t==='tplate'){const g=f.gate;if(cell(g[0],g[1])==='G'){setCell(g[0],g[1],'g');doorAnim(g[0],g[1]);sfx('lever');log("Une dalle s'enfonce : une herse remonte, et quelque part un cliquetis se met à compter.");}LS.tp=LS.tp||{};LS.tp[g.join(',')]=S.T+(f.ms||7000);}
+ else if(f&&f.t==='tplate'){const g=f.gate;if(cell(g[0],g[1])==='G'){setCell(g[0],g[1],'g');doorAnim(g[0],g[1]);sfx('lever');log(`Une dalle s'enfonce : une herse remonte ${dirTo(g[0]-S.x,g[1]-S.y)}, à quelques pas, et un cliquetis se met à compter.`);}LS.tp=LS.tp||{};LS.tp[g.join(',')]=S.T+(f.ms||7000);}
  else if(f&&f.t==='dart'){sfx('shot');log("Clic. Une dalle a cédé sous votre botte, et quelque chose siffle.");launch({x:f.from[0],y:f.from[1],d:f.d,kind:'shot',ic:'trait',range:14,from:'trap',dmg:f.dmg||6});}
  else if(f&&f.t==='spin'){S.d=(S.d+(f.by||1))%4;anim=null;sfx('lever');log("Le sol pivote sous vos pieds. La boussole n'est plus d'accord avec vos souvenirs.");}
  plates();}
@@ -2629,6 +2639,9 @@ SC.qpri=function(p){const q=QPRI[p.pz],f='q_'+q.id;if(S.flags[f]===2){log("Prime
  if(!LS.qsp){LS.qsp=1;if(!LS.mons.some(m=>m.t===q.id)){const m=mkMon(q.id,q.at[0],q.at[1]);LS.mons.push(m);}}S.flags[f]=S.flags[f]||1;sfx('page');say([[null,q.txt]]);};
 function questTick(){for(const q of QPRI){if(q.off||q.lv!==S.lv||S.flags['q_'+q.id]===2)continue;const m=LS.mons.find(m=>m.t===q.id);if(m&&m.hp<=0){S.flags['q_'+q.id]=2;sfx('coin');const got=q.loot.map(l=>give(l[0],l[1]||0));log(`<b>Prime : ${q.n} ne nuira plus.</b> Dans sa bourse, de quoi vous payer vous-même : <b>${got.join(', ')}</b>.`);ui();}}}
 function questLines(){const l=[];for(const q of QCOM)if(!q.off&&S.flags['q_'+q.it]===1)l.push(`rapporter ${ITEMS[q.it].n.toLowerCase()} (${LEVELS[q.a].name})`);for(const q of QPRI)if(!q.off&&S.flags['q_'+q.id]===1)l.push(`prime sur ${q.n} (${LEVELS[q.lv].name})`);return l;}
+/* p24 : dalle de la chambre forte de Brocevaux déplacée entre les deux pierres levées (elle était au pied de la herse du chemin) */
+(function(){const L=LEVELS.foret,f=L&&L.fx&&L.fx['14,16'];if(!f||f.t!=='tplate'||!f.gate||f.gate[0]!==17||f.gate[1]!==13||L.map[17][14]!=='G'||L.map[15][19]!=='.'||L.fx['19,15'])return;
+ for(const p of L.props||[])if(p.x===19&&p.y===15)return;L.fx['19,15']=f;delete L.fx['14,16'];})();
 </script>
 </body>
 </html>
