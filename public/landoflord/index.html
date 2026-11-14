@@ -404,7 +404,7 @@ body:not(.ls) .box.mapM .legend{grid-template-columns:1fr 1fr}body:not(.ls) .box
  <button id="tCont" hidden>Continuer</button>
  <div class="keys">Souris, doigt ou clavier : tout se fait des trois façons. L'aide est dans la chronique (Échap).</div>
 </div>
-<script>(function(){var q=location.search,lite=/[?&]lite\b/.test(q)||(!/[?&]hd\b/.test(q)&&(/iPhone|iPod|Android.*Mobile|Windows Phone/i.test(navigator.userAgent)||(navigator.maxTouchPoints>1&&Math.min(screen.width,screen.height)<=600)));window.LITE=lite;document.write('<script src="pack-'+(lite?'lite':'hd')+'.js?v=34"><\/script>');})();</script>
+<script>(function(){var q=location.search,lite=/[?&]lite\b/.test(q)||(!/[?&]hd\b/.test(q)&&(/iPhone|iPod|Android.*Mobile|Windows Phone/i.test(navigator.userAgent)||(navigator.maxTouchPoints>1&&Math.min(screen.width,screen.height)<=600)));window.LITE=lite;document.write('<script src="pack-'+(lite?'lite':'hd')+'.js?v=35"><\/script>');})();</script>
 <script>
 /* Images : bustes du jeu libre Flare (CC-BY-SA 3.0), textures et illustrations libres (voir Crédits). */
 const IMG=PACK.IMG;
@@ -1161,7 +1161,7 @@ const DIFF=[{n:"Écuyer",d:"Ennemis plus fragiles, plus lents, moins adroits. Po
 const ONSITE=location.pathname.toLowerCase().indexOf('landoflord')>=0;
 let S=null,LS=null,LV=null,MW=16,MH=14,df=[],anim=null,queued=null,fx=[],hurtT=-1e9,lockCd=0,logs=[],barkT=0;
 let PREF={mus:1,sfx:1,vox:1,vv:1};try{Object.assign(PREF,JSON.parse(localStorage.getItem('gd2_prefs')||'{}'));}catch(e){}
-if(PREF.lm==null)PREF.lm=PREF.mus===0?0:60;if(!PREF.mfix){PREF.mfix=1;if(!(PREF.lm>0)){PREF.lm=60;PREF.mus=1;}try{localStorage.setItem('gd2_prefs',JSON.stringify(PREF));}catch(e){}}if(PREF.ls==null)PREF.ls=PREF.sfx===0?0:80;if(PREF.lv==null)PREF.lv=PREF.vox===0?0:[60,90,100][PREF.vv==null?1:PREF.vv];
+if(PREF.lm==null)PREF.lm=PREF.mus===0?0:60;if(!PREF.mfix2){PREF.mfix2=1;if(!(PREF.lm>0)){PREF.lm=60;PREF.mus=1;}if(!(PREF.lv>0)){PREF.lv=90;PREF.vox=1;PREF.vv=1;}if(!(PREF.ls>0)){PREF.ls=80;PREF.sfx=1;}try{localStorage.setItem('gd2_prefs',JSON.stringify(PREF));}catch(e){}}if(PREF.ls==null)PREF.ls=PREF.sfx===0?0:80;if(PREF.lv==null)PREF.lv=PREF.vox===0?0:[60,90,100][PREF.vv==null?1:PREF.vv];
 const savePref=()=>{try{localStorage.setItem('gd2_prefs',JSON.stringify(PREF));}catch(e){}};
 
 /* ---------- sons ---------- */
