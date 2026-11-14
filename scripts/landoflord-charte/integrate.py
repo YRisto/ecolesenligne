@@ -2,7 +2,7 @@
 import re, sys, io, os, json, base64, subprocess, glob
 import numpy as np
 from PIL import Image
-SWV = 36
+SWV = 37
 sys.path.insert(0, '/home/claude/work/tools'); import charte
 REPO = '/home/claude/ecolesenligne'; REL = 'public/landoflord/index.html'
 WK = '/home/claude/work'
@@ -123,7 +123,7 @@ for j in (1, 2, 3):
 s = '\n'.join(L)
 # le chargeur choisit le paquet : allégé sur téléphone, complet ailleurs (?hd ou ?lite dans l'adresse pour forcer)
 i_ms = s.rfind('<script', 0, s.index('const IMG=PACK.IMG;'))
-s = s[:i_ms] + "<script>(function(){var q=location.search,lite=/[?&]lite\\b/.test(q)||(!/[?&]hd\\b/.test(q)&&(/iPhone|iPod|Android.*Mobile|Windows Phone/i.test(navigator.userAgent)||(navigator.maxTouchPoints>1&&Math.min(screen.width,screen.height)<=600)));window.LITE=lite;document.write('<script src=\"pack-'+(lite?'lite':'hd')+'.js?v=" + str(SWV) + "\"><\\/script>');})();</script>\n" + s[i_ms:]
+s = s[:i_ms] + "<script>(function(){var q=location.search,lite=/[?&]lite\\b/.test(q)||(!/[?&]hd\\b/.test(q)&&(/iPhone|iPod|Android.*Mobile|Windows Phone/i.test(navigator.userAgent)||(navigator.maxTouchPoints>1&&Math.min(screen.width,screen.height)<=600)));window.LITE=lite;var base=/landoflord/i.test(location.pathname)&&location.protocol!=='file:'?'/landoflord/':'';document.write('<script src=\"'+base+'pack-'+(lite?'lite':'hd')+'.js?v=" + str(SWV) + "\"><\\/script>');})();</script>\n" + s[i_ms:]
 
 # ---------- 3. moteur ----------
 # 3a. le filtre « VGA » devient le passage dans la palette de référence (table 32x32x32 précalculée)
