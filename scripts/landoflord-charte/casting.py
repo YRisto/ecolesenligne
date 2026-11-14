@@ -59,3 +59,9 @@ for k, v in C.items():
     v.setdefault('frames', MEL); v.setdefault('scale_obj', SH); v.update(fw=288, fh=208, eye=1.45, span=2.8)
     json.dump(v, open('/home/claude/work/specs/c/%s.json' % k, 'w'))
 print(len(C))
+
+# personnages rencontrés refaits d'après leurs portraits (specs/p) : ils remplacent les définitions ci-dessus
+import glob
+for f in sorted(glob.glob('/home/claude/work/specs/p/*.json')):
+    v = json.load(open(f)); v.update(frames=NPC, fw=288, fh=208, eye=1.45, span=2.8); v.pop('samples', None)
+    json.dump(v, open('/home/claude/work/specs/c/%s.json' % v['name'], 'w'))

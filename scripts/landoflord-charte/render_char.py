@@ -155,6 +155,44 @@ if FACE is not None and arm.data.bones.get('Head') and not spec.get('noface'):
     if FACE.get('patch'):   # bandeau sur l'œil
         feat((.034, yf + .006, zc + .022), (.024, .012, .020), 'leather_black'); feat((0, yf + .03, zc + .05), (.098, .105, .010), 'leather_black', (.25, .35, 0))
     if FACE.get('scar'): feat((-.045, yf + .016, zc - .01), (.005, .008, .045), 'wine', (0, .3, 0))
+    # coiffures et accessoires ajoutés pour coller aux portraits
+    H = FACE.get('hairc', 'hair_dark')
+    if FACE.get('cap'):  feat((0, .022, zc + .052), (.104 * k, .112, .095), H)                                # cheveux courts (calotte)
+    if FACE.get('bob'):                                                                                       # carré au menton
+        feat((0, .022, zc + .052), (.106 * k, .114, .097), H); feat((0, .085, zc - .03), (.092 * k, .05, .12), H)
+        for sx in (-1, 1): feat((sx * .094 * k, .012, zc - .025), (.034, .072, .10), H)
+    if FACE.get('mane'):                                                                                      # cheveux longs sur les épaules
+        feat((0, .022, zc + .052), (.106 * k, .114, .097), H); feat((0, .082, zc - .10), (.105 * k, .06, .21), H)
+        for sx in (-1, 1): feat((sx * .098 * k, .005, zc - .09), (.032, .06, .17), H)
+    if FACE.get('bun'):  feat((0, .022, zc + .052), (.104 * k, .112, .095), H); feat((0, .10, zc + .07), (.05, .05, .05), H)   # chignon
+    if FACE.get('crest'): feat((0, .0, zc + .135), (.034, .10, .035), H)                                      # crête courte
+    if FACE.get('glasses'):
+        for sx in (-1, 1): feat((sx * .036 * k, yf + .002, zc + .022), (.026 * k, .006, .020), 'steel')
+        feat((0, yf + .004, zc + .026), (.012, .005, .004), 'leather_black')
+    if FACE.get('goggles'):
+        for sx in (-1, 1): feat((sx * .04 * k, yf + .012, zc + .085), (.032 * k, .016, .026), 'brass')
+        feat((0, .01, zc + .085), (.108 * k, .118, .016), 'leather_black')
+    if FACE.get('circlet'): feat((0, .01, zc + .078), (.108 * k, .118, .010), 'gold')
+    if FACE.get('scarf'): feat((0, .0, zc - .135), (.105, .095, .05), FACE['scarf'])
+    if FACE.get('collar'): feat((0, -.01, zc - .15), (.12, .10, .035), FACE['collar'])
+    arm.data.pose_position = 'POSE'; bpy.context.view_layer.update()
+
+# ---------- jupe longue (robe de dame) : cône rigide de la taille aux chevilles, pour les personnages qui restent sur place ----------
+if spec.get('skirt'):
+    arm.data.pose_position = 'REST'; bpy.context.view_layer.update()
+    fem = 'Female' in arm.name; z0 = 1.04 if fem else 1.08; N = 14; vs = []; fs = []; R_ = 6
+    for r in range(R_ + 1):
+        t = r / R_; z = z0 - t * (z0 - .05); rad = .17 + t * .21
+        for i in range(N):
+            a_ = i / N * 2 * math.pi; vs.append((math.sin(a_) * rad * (1 + .05 * math.sin(a_ * 5) * t), math.cos(a_) * rad * .82 * (1 + .05 * math.sin(a_ * 5) * t) + .01, z))
+    for r in range(R_):
+        for i in range(N): fs.append((r * N + i, r * N + (i + 1) % N, (r + 1) * N + (i + 1) % N, (r + 1) * N + i))
+    me = bpy.data.meshes.new('sk'); me.from_pydata(vs, [], fs); me.update()
+    for pl in me.polygons: pl.use_smooth = True
+    me.materials.append(charter_mat(spec['skirt'])); o = bpy.data.objects.new('skirt', me); sc.collection.objects.link(o); o.parent = arm; o.matrix_parent_inverse = arm.matrix_world.inverted()
+    if spec.get('hem'):
+        vh = [(x * 1.012, y * 1.012, z) for (x, y, z) in vs[-2 * N:]]; fh = [(i, (i + 1) % N, N + (i + 1) % N, N + i) for i in range(N)]
+        mh = bpy.data.meshes.new('hem'); mh.from_pydata(vh, [], fh); mh.update(); mh.materials.append(charter_mat(spec['hem'])); oh = bpy.data.objects.new('hem', mh); sc.collection.objects.link(oh); oh.parent = arm; oh.matrix_parent_inverse = arm.matrix_world.inverted()
     arm.data.pose_position = 'POSE'; bpy.context.view_layer.update()
 
 # ---------- cape et tabard : posés au repos, attachés à l'os du dos ----------

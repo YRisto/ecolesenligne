@@ -2,7 +2,7 @@
 import re, sys, io, os, json, base64, subprocess, glob
 import numpy as np
 from PIL import Image
-SWV = 39
+SWV = 40
 sys.path.insert(0, '/home/claude/work/tools'); import charte
 REPO = '/home/claude/ecolesenligne'; REL = 'public/landoflord/index.html'
 WK = '/home/claude/work'
@@ -57,6 +57,8 @@ for l in L[i_sh:i_sh + 4]:
 imgs = {}
 for l in L[i_sh:i_sh + 4]: imgs.update(dict(pairs(l)))
 order = list(imgs.keys()); out_img = {}; out_meta = {}
+for k in ['rodeur', 'aubergiste', 'taupe', 'messager', 'passeur', 'brunehaut', 'espionne']:   # personnages qui empruntaient la silhouette d'un autre : chacun la sienne, d'après son portrait
+    if k not in order and os.path.exists(WK + '/sheets/%s.png' % k): order.append(k); meta[k] = {'npc': 1}
 for k in order:
     f = WK + '/sheets/%s.png' % k
     if os.path.exists(f):
@@ -329,6 +331,8 @@ function rugMap(){if(LV.theme!=='palace'&&LV.theme!=='panel')return null;if(RUGC
  return RUGC[S.lv]=n;}
 """
 i_end = s.rindex('</script>'); s = s[:i_end] + RUG + s[i_end:]
+# 10. chaque personnage rencontré porte la silhouette de son propre portrait
+i_end = s.rindex('</script>'); s = s[:i_end] + "\nfor(const lv in LEVELS)for(const n of LEVELS[lv].npcs||[])if(SHEETS.meta[n.id])n.spr=n.id;\n" + s[i_end:]
 # 5. le plan façon Lands of Lore et les sorties signalées
 import carte
 s = carte.apply(s, rep1)
