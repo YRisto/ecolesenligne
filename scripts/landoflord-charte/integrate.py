@@ -2,7 +2,7 @@
 import re, sys, io, os, json, base64, subprocess, glob
 import numpy as np
 from PIL import Image
-SWV = 28
+SWV = 29
 sys.path.insert(0, '/home/claude/work/tools'); import charte
 REPO = '/home/claude/ecolesenligne'; REL = 'public/landoflord/index.html'
 WK = '/home/claude/work'
@@ -82,11 +82,48 @@ for k in order:
             sheet.paste(Image.fromarray(q, 'RGBA'), (i * w2, 0))
         m.update(w=w2, h=h2, ax=round(m['ax'] * f, 1), ay=round(m['ay'] * f, 1))
         out_img[k] = uri(charte.quantize(sheet, dither=0)); out_meta[k] = m
-L[i_sh] = 'const SHEETS={"img": {' + ', '.join('"%s": "%s"' % kv for kv in out_img.items()) + '}, "meta": ' + json.dumps(out_meta) + '};'
+# ---------- 2b. deux paquets d'images : complet (ordinateur) et allégé (téléphone) ; index.html ne garde que le code ----------
+def frames_rgba(u, m): im = load(u).convert('RGBA'); return [im.crop((i * m['w'], 0, (i + 1) * m['w'], m['h'])) for i in range(m['n'])]
+def shrink(im, w2, h2):
+    a = np.asarray(im).astype(np.float64); pm = a.copy(); pm[..., :3] *= pm[..., 3:4] / 255.0
+    sm = np.asarray(Image.fromarray(pm.astype(np.uint8), 'RGBA').resize((w2, h2), Image.BOX)).astype(np.float64)
+    al = sm[..., 3:4]; rgb = np.where(al > 0, sm[..., :3] * 255.0 / np.maximum(al, 1), 0)
+    return Image.fromarray(np.concatenate([np.clip(rgb, 0, 255), np.where(sm[..., 3:4] > 110, 255, 0)], -1).astype(np.uint8), 'RGBA')
+def lite_sheet(u, m, sc=.62):
+    fr = frames_rgba(u, m); sel = [0, 2, 4, 6, 8, 10, 12, 13, 14, 15, 16, 18, 19, 21] if m['n'] == 22 else list(range(m['n']))
+    w2, h2 = int(round(m['w'] * sc)), int(round(m['h'] * sc)); sheet = Image.new('RGBA', (w2 * len(sel), h2), (0, 0, 0, 0))
+    for j, i in enumerate(sel): sheet.paste(shrink(fr[i], w2, h2), (j * w2, 0))
+    m2 = dict(m); m2.update(w=w2, h=h2, n=len(sel), ax=round(m['ax'] * sc, 1), ay=round(m['ay'] * sc, 1))
+    return uri(charte.quantize(sheet, dither=6)), m2
+hd_img = dict(out_img); hd_meta = dict(out_meta)
+for k in order:   # images de près (ordinateur seulement) : repos, frappe, touché, rendus 1,6 fois plus fins
+    f = WK + '/sheets_n/%s.png' % k
+    if os.path.exists(f) and os.path.getsize(WK + '/sheets_n/%s.json' % k) > 10:
+        m = json.load(open(WK + '/sheets_n/%s.json' % k)); idx = json.load(open(WK + '/specs/n/%s.json' % k))['near']
+        if out_meta[k]['n'] == max(idx) + 1 or out_meta[k]['n'] >= max(idx) + 1:
+            m['map'] = {str(i): j for j, i in enumerate(idx)}; hd_img[k + '@n'] = uri(Image.open(f)); hd_meta[k + '@n'] = m
+lt_img = {}; lt_meta = {}
+for k in order: lt_img[k], lt_meta[k] = lite_sheet(out_img[k], out_meta[k])
+lt_IMG = {}
+for k, u in new.items():
+    if k[:2] in ('u_', 'g_'): continue
+    if k[:2] in ('s_', 'h_'): lt_IMG[k] = uri(charte.quantize(load(u).convert('RGB').resize((256, 128), Image.BOX).convert('RGBA'), dither=6))
+    else: lt_IMG[k] = u
+OUTD = os.path.join(REPO, 'public/landoflord')
+def pack(name, I, SI, SM):
+    t = 'window.PACK={IMG:{' + ', '.join('"%s": "%s"' % kv for kv in I.items()) + '},SHEETS:{"img": {' + ', '.join('"%s": "%s"' % kv for kv in SI.items()) + '}, "meta": ' + json.dumps(SM) + '}};'
+    open(os.path.join(OUTD, name), 'w', encoding='utf8').write(t); return len(t) // 1024
+print('paquets :', pack('pack-hd.js', new, hd_img, hd_meta), 'Ko (complet),', pack('pack-lite.js', lt_IMG, lt_img, lt_meta), 'Ko (allégé)')
+L[i_img] = 'const IMG=PACK.IMG;'
+L[i_sh] = 'const SHEETS=PACK.SHEETS;'
+
 for j in (1, 2, 3):
     assert L[i_sh + j].startswith('/*'), L[i_sh + j][:40]
     L[i_sh + j] = L[i_sh + j][:L[i_sh + j].index('*/') + 2]
 s = '\n'.join(L)
+# le chargeur choisit le paquet : allégé sur téléphone, complet ailleurs (?hd ou ?lite dans l'adresse pour forcer)
+i_ms = s.rfind('<script', 0, s.index('const IMG=PACK.IMG;'))
+s = s[:i_ms] + "<script>(function(){var q=location.search,lite=/[?&]lite\\b/.test(q)||(!/[?&]hd\\b/.test(q)&&(/iPhone|iPod|Android.*Mobile|Windows Phone/i.test(navigator.userAgent)||(navigator.maxTouchPoints>1&&Math.min(screen.width,screen.height)<=600)));window.LITE=lite;document.write('<script src=\"pack-'+(lite?'lite':'hd')+'.js?v=" + str(SWV) + "\"><\\/script>');})();</script>\n" + s[i_ms:]
 
 # ---------- 3. moteur ----------
 # 3a. le filtre « VGA » devient le passage dans la palette de référence (table 32x32x32 précalculée)
@@ -97,7 +134,7 @@ pal_js = ','.join(str((c[0] << 16) | (c[1] << 8) | c[2]) for c in charte.PAL)
 a0 = s.index('function vga(c,q){'); a1 = s.index('\n', a0)
 new_vga = ("/* Charte graphique : palette de référence (16 rampes de 16 tons, pas VGA) ; tout ce qui est peint par le jeu y passe. */\n"
  "const CHP=[" + pal_js + "],CHL=Uint8Array.from(atob('" + base64.b64encode(lut32.tobytes()).decode() + "'),c=>c.charCodeAt(0)),CHS=new Set(CHP);\n"
- "function vga(c,q){const g=c.getContext('2d'),im=g.getImageData(0,0,c.width,c.height),d=im.data,B=[0,8,2,10,12,4,14,6,3,11,1,9,15,7,13,5],w=c.width;q=Math.min(q||12,12);"
+ "function vga(c,q){const g=c.getContext('2d'),im=g.getImageData(0,0,c.width,c.height),d=im.data,B=[0,8,2,10,12,4,14,6,3,11,1,9,15,7,13,5],w=c.width;q=q<0?0:Math.min(q||12,12);"
  "for(let y=0;y<c.height;y++)for(let x=0;x<w;x++){const i=(y*w+x)*4;if(!d[i+3]||CHS.has(d[i]<<16|d[i+1]<<8|d[i+2]))continue;const t=(B[(y&3)*4+(x&3)]/16-.47)*q,"
  "r=Math.max(0,Math.min(255,d[i]+t)),v=Math.max(0,Math.min(255,d[i+1]+t)),b=Math.max(0,Math.min(255,d[i+2]+t)),p=CHP[CHL[(r>>3)<<10|(v>>3)<<5|(b>>3)]];d[i]=p>>16;d[i+1]=p>>8&255;d[i+2]=p&255;}"
  "g.putImageData(im,0,0);return c;}")
@@ -151,7 +188,7 @@ s = rep1(s, "function vars(c){c=outlined(vga(c,10));", "function vars(c,raw){c=r
 s = rep1(s, "function buildProps(){const P=(n,fn)=>addSpr('p_'+n,paint(96,g=>{g.fillStyle='rgba(0,0,0,.35)';el(g,48,90,26,4);fn(g);}))",
  "function buildProps(){const RI=k=>mk(96,96,g=>{g.imageSmoothingEnabled=false;g.drawImage(IMGEL[k],0,0);});for(const k of['sac','or'])if(IMGEL['p_'+k])addSpr(k,RI('p_'+k),1);"
  "const P=(n,fn)=>IMGEL['p_'+n]?addSpr('p_'+n,RI('p_'+n),1):addSpr('p_'+n,paint(96,g=>{g.fillStyle='rgba(0,0,0,.35)';el(g,48,90,26,4);fn(g);}))")
-s = rep1(s, "function shopBg(kind){if(SHBG[kind])return SHBG[kind];", "function shopBg(kind){if(SHBG[kind])return SHBG[kind];if(IMGEL['h_'+kind])return SHBG[kind]=mk(400,200,g=>{g.imageSmoothingEnabled=false;g.drawImage(IMGEL['h_'+kind],0,0);});")
+s = rep1(s, "function shopBg(kind){if(SHBG[kind])return SHBG[kind];", "function shopBg(kind){if(SHBG[kind])return SHBG[kind];if(IMGEL['h_'+kind])return SHBG[kind]=mk(400,200,g=>{g.imageSmoothingEnabled=false;g.drawImage(IMGEL['h_'+kind],0,0,400,200);});")
 # 3f. lumière : ombrage par crans, brume teintée par lieu (murs, personnages, sols et plafonds)
 s = rep1(s, "lt=d=>Math.max(.045,1-d/LR);", "lt=d=>Math.max(.045,Math.round((1-d/LR)*16)/16);")
 s = rep1(s, "FOGC=LV.sky===1?'46,60,78':LV.sky===2?'62,70,66':LV.sky===3?'6,8,20':'5,3,2';", "FOGC=LV.sky===1?'46,60,78':LV.sky===2?'62,70,66':LV.sky===3?'6,8,20':({sewer:'8,18,10',crypt:'8,10,24',mine:'20,10,4',abbey:'14,9,5',palace:'12,11,11',panel:'14,8,3',stone:'9,8,10'})[LV.theme]||'5,3,2';FOGA=FOGC.split(',').map(Number);")
@@ -159,6 +196,13 @@ s = rep1(s, "let FOGC='5,3,2';", "let FOGC='5,3,2',FOGA=[5,3,2];")
 s = rep1(s, "const row=y*VW,crow=(VH-1-y)*VW;", "const row=y*VW,crow=(VH-1-y)*VW,f0=FOGA[0]*(256-li)>>8,f1=FOGA[1]*(256-li)>>8,f2=FOGA[2]*(256-li)>>8,e0=FOGA[0]*(256-li2)>>8,e1=FOGA[1]*(256-li2)>>8,e2=FOGA[2]*(256-li2)>>8;")
 s = rep1(s, "fb[row+x]=0xff000000|((c&255)*li>>8)|(((c>>8&255)*li>>8)<<8)|(((c>>16&255)*li>>8)<<16);c=ct[i];", "fb[row+x]=0xff000000|(((c&255)*li>>8)+f0)|((((c>>8&255)*li>>8)+f1)<<8)|((((c>>16&255)*li>>8)+f2)<<16);c=ct[i];")
 s = rep1(s, "0xff000000|((c&255)*li2>>8)|(((c>>8&255)*li2>>8)<<8)|(((c>>16&255)*li2>>8)<<16);fx_+=sx;", "0xff000000|(((c&255)*li2>>8)+e0)|((((c>>8&255)*li2>>8)+e1)<<8)|((((c>>16&255)*li2>>8)+e2)<<16);fx_+=sx;")
+
+# 3i. images de près : à moins d'une case et demie, on prend la planche fine quand elle a l'image voulue
+s = rep1(s, "if(s[8]==='S'){const M=SHEETS.meta[s[2]],k=wh*.6*(s[3]/.82)/(M.ay*(M.hk||.66));SCR.width=M.w;SCR.height=M.h;SG.drawImage(SHEET[s[2]],s[7]*M.w,0,M.w,M.h,0,0,M.w,M.h);",
+ "if(s[8]==='S'){let M=SHEETS.meta[s[2]],SH=SHEET[s[2]],fr=s[7];if(tY<1.6){const N2=SHEETS.meta[s[2]+'@n'];if(N2&&SHEET[s[2]+'@n']&&N2.map[fr]!=null){M=N2;SH=SHEET[s[2]+'@n'];fr=N2.map[fr];}}const k=wh*.6*(s[3]/.82)/(M.ay*(M.hk||.66));SCR.width=M.w;SCR.height=M.h;SG.drawImage(SH,fr*M.w,0,M.w,M.h,0,0,M.w,M.h);")
+
+# 3j. interface : icônes et boiseries passées dans la palette de référence
+s = rep1(s, "document.documentElement.style.setProperty('--wood',`url(${wood.toDataURL()})`);", "vga(wood,6);document.documentElement.style.setProperty('--wood',`url(${wood.toDataURL()})`);")
 
 # 3g. animations longues (22 images : repos 4, marche 8, frappe 4, touché 2, mort 4) ; les planches à 14 images gardent l'ancien découpage
 s = rep1(s, "function monFrame(m,mt,now,ts){if(m.hp<=0)", "function monFrame(m,mt,now,ts){const L=((SHEETS.meta[mt.spr||m.t]||{}).n||0)>=22;if(m.hp<=0)")
@@ -184,7 +228,7 @@ UNIQ = {
  'u_haubert': ('mailles', 'palais3', '7,19', "{n:\"Haubert du roi Alaric\",k:'corps',prot:6,p:200,d:\"Mailles doubles, rivées pour un roi qui se méfiait de sa cour. Pièce unique : il avait raison.\"}"),
 }
 s = rep1(s, "for(const k in WM){ITEMS[k].m=WM[k][0];ITEMS[k].ty=WM[k][1];}", "for(const k in WM){ITEMS[k].m=WM[k][0];ITEMS[k].ty=WM[k][1];}\nObject.assign(ITEMS,{" + ','.join("%s:%s" % (k, v[3]) for k, v in UNIQ.items()) + "});")
-s = rep1(s, "for(const k in F){ICONC[k]=mk(16,16,F[k]);ICON[k]=ICONC[k].toDataURL();}", "for(const k in F){ICONC[k]=mk(16,16,F[k]);ICON[k]=ICONC[k].toDataURL();}\n for(const[u,b]of" + json.dumps([[k, v[0]] for k, v in UNIQ.items()]) + "){ICONC[u]=mk(16,16,g=>{g.drawImage(ICONC[b],0,0);g.globalCompositeOperation='source-atop';g.fillStyle='rgba(255,196,60,.42)';g.fillRect(0,0,16,16);});ICON[u]=ICONC[u].toDataURL();}")
+s = rep1(s, "for(const k in F){ICONC[k]=mk(16,16,F[k]);ICON[k]=ICONC[k].toDataURL();}", "for(const k in F){ICONC[k]=vga(mk(16,16,F[k]),-1);ICON[k]=ICONC[k].toDataURL();}\n for(const[u,b]of" + json.dumps([[k, v[0]] for k, v in UNIQ.items()]) + "){ICONC[u]=mk(16,16,g=>{g.drawImage(ICONC[b],0,0);g.globalCompositeOperation='source-atop';g.fillStyle='rgba(255,196,60,.42)';g.fillRect(0,0,16,16);});ICON[u]=ICONC[u].toDataURL();}")
 i_end = s.rindex('</script>')
 s = s[:i_end] + "\n/* objets uniques : ils remplacent l'or de cinq niches bien cachées */\nfor(const[u,lv,k]of" + json.dumps([[k, v[1], v[2]] for k, v in UNIQ.items()]) + ")if(LEVELS[lv]&&LEVELS[lv].niche&&LEVELS[lv].niche[k])LEVELS[lv].niche[k]=[[u,0]];\n" + s[i_end:]
 

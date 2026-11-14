@@ -4,7 +4,7 @@ set -e
 cd /home/claude/ecolesenligne
 git fetch -q --depth=20 origin main
 if [ "$(git rev-parse origin/main)" != "$(git rev-parse HEAD)" ]; then echo "DIVERGENCE: origin/main a bougé ($(git log --oneline -1 origin/main))"; exit 3; fi
-cp public/landoflord/index.html /home/claude/jeu/index.html
+cp public/landoflord/index.html public/landoflord/pack-hd.js public/landoflord/pack-lite.js /home/claude/jeu/
 r=$(cd scripts/landoflord-bots && timeout 500 python3 b1.py ${BOT:-03} 2>&1 | tail -1)
 echo "$r" | grep -o "bataille:[^/|]*|.*" | cut -c1-200
 echo "$r" | grep -q "bataille:réussi" || { echo "BOT KO"; echo "$r" | cut -c1-600; exit 4; }
