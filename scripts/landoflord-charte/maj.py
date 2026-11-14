@@ -57,7 +57,7 @@ JS = r"""
    const val=loose.filter(i=>i[0]!=='or'&&ITEMS[i[0]].p>=40),purse=loose.filter(i=>i[0]==='or'),cons=loose.filter(i=>i[0]!=='or'&&!val.includes(i)&&(ITEMS[i[0]].k==='use'||ITEMS[i[0]].k==='throw')),gear=loose.filter(i=>!val.includes(i)&&!purse.includes(i)&&!cons.includes(i));
    const chests=(L.props||[]).filter(p=>p.k==='chest'&&Array.isArray(p.loot)&&!p.sc&&!p.pz&&!/^(q|cf)/.test(p.id));
    const kV=pick(val,Math.ceil(val.length/2)),onFloor=[];kV.forEach((i,n)=>{if(chests.length){const c=chests[n%chests.length];c.loot=c.loot.concat([[i[0],0]]);}else onFloor.push(i);});
-   const kP=pick(purse,Math.max(1,Math.round(F*.15))),kC=pick(cons,Math.max(1,Math.round(F*.15))),kG=pick(gear,Math.max(1,Math.round(F*.13)));
+   const kP=pick(purse,Math.max(1,Math.round(F*.15))),kC=pick(cons,Math.max(2,Math.round(F*.22))),kG=pick(gear,Math.max(1,Math.round(F*.13)));
    const sumA=purse.reduce((a,i)=>a+(i[3]||0),0),sumK=kP.reduce((a,i)=>a+(i[3]||0),0);if(sumK)for(const i of kP)i[3]=Math.max(1,Math.round((i[3]||0)*sumA/sumK));
    const kept=new Set([...kP,...kC,...kG,...onFloor]),free=loose.filter(i=>!kept.has(i)).map(i=>[rr(),i[1],i[2]]).sort((a,b)=>a[0]-b[0]);
    const nR=Math.round(F*.4),nJ=Math.round(F*.15),J=['fer','tesson','os','chiffon'],add=[];free.forEach((f,n)=>{if(n<nR)add.push(['pierre',f[1],f[2]]);else if(n<nR+nJ)add.push([J[(n+id.length)%4],f[1],f[2]]);});
@@ -90,7 +90,7 @@ def apply(s, rep1):
     s = rep1(s, "function hurt(m,dmg,c,sk,perf){dmg=Math.max(1,Math.round(dmg));", "function hurt(m,dmg,c,sk,perf){if(m.slp){m.slp=0;dmg*=2;log('<i>Pris en plein sommeil : le coup porte double.</i>');}dmg=Math.max(1,Math.round(dmg));")
     s = rep1(s, "function roused(m){const mt=MON[m.t];", "function roused(m){const mt=MON[m.t];if(mt.lead&&!m.ldS){m.ldS=1;log('<b>'+cap(mt.n)+' vous a vus. Celui-là commande aux autres.</b>');bark('brune',[\"Celui-là, c'est le chef. Les autres le regardent avant de frapper.\",\"Le meneur. Lui tombé, les autres réfléchiront.\"],.9);}")
     # moins de combats : chaque victoire rapporte davantage (expérience et bourse)
-    s = rep1(s, "const s=c.sk[sk];s.x+=a;", "const s=c.sk[sk];s.x+=a*1.5;")
+    s = rep1(s, "const s=c.sk[sk];s.x+=a;", "const s=c.sk[sk];s.x+=a*1.75;")
     s = rep1(s, "const g=rnd(mt.gold[0],mt.gold[1]);if(g){S.gold+=g;", "const g=Math.round(rnd(mt.gold[0],mt.gold[1])*1.5);if(g){S.gold+=g;")
     # les pierres et rebuts ne remplissent pas le sac : deux de chaque au plus sont ramassés d'office
     s = rep1(s, "for(const it of here){if(it.id==='or'){S.gold+=it.q;", "for(const it of here){if(ITEMS[it.id]&&ITEMS[it.id].junk&&S.bag.filter(b=>b===it.id).length+(S.hand===it.id?1:0)>=2)continue;if(it.id==='or'){S.gold+=it.q;")

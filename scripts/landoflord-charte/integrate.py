@@ -2,7 +2,7 @@
 import re, sys, io, os, json, base64, subprocess, glob
 import numpy as np
 from PIL import Image
-SWV = 41
+SWV = 42
 sys.path.insert(0, '/home/claude/work/tools'); import charte
 REPO = '/home/claude/ecolesenligne'; REL = 'public/landoflord/index.html'
 WK = '/home/claude/work'
@@ -333,6 +333,9 @@ function rugMap(){if(LV.theme!=='palace'&&LV.theme!=='panel')return null;if(RUGC
 i_end = s.rindex('</script>'); s = s[:i_end] + RUG + s[i_end:]
 # 10. chaque personnage rencontré porte la silhouette de son propre portrait
 i_end = s.rindex('</script>'); s = s[:i_end] + "\nfor(const lv in LEVELS)for(const n of LEVELS[lv].npcs||[])if(SHEETS.meta[n.id])n.spr=n.id;\n" + s[i_end:]
+# 10b. tailles de niveaux variées et salles mémorables (avant le rééquilibrage, qui compte les cases restantes)
+import maj2
+s = maj2.apply(s, rep1)
 # 11. grosse mise à jour : densités de l'original, meneurs, bestiaire par région, dormeurs, pluie, boutiques vivantes
 import maj
 s = maj.apply(s, rep1)
