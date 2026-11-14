@@ -404,7 +404,7 @@ body:not(.ls) .box.mapM .legend{grid-template-columns:1fr 1fr}body:not(.ls) .box
  <button id="tCont" hidden>Continuer</button>
  <div class="keys">Souris, doigt ou clavier : tout se fait des trois façons. L'aide est dans la chronique (Échap).</div>
 </div>
-<script>(function(){var q=location.search,lite=/[?&]lite\b/.test(q)||(!/[?&]hd\b/.test(q)&&(/iPhone|iPod|Android.*Mobile|Windows Phone/i.test(navigator.userAgent)||(navigator.maxTouchPoints>1&&Math.min(screen.width,screen.height)<=600)));window.LITE=lite;var base=/landoflord/i.test(location.pathname)&&location.protocol!=='file:'?'/landoflord/':'';document.write('<script src="'+base+'pack-'+(lite?'lite':'hd')+'.js?v=38"><\/script>');})();</script>
+<script>(function(){var q=location.search,lite=/[?&]lite\b/.test(q)||(!/[?&]hd\b/.test(q)&&(/iPhone|iPod|Android.*Mobile|Windows Phone/i.test(navigator.userAgent)||(navigator.maxTouchPoints>1&&Math.min(screen.width,screen.height)<=600)));window.LITE=lite;var base=/landoflord/i.test(location.pathname)&&location.protocol!=='file:'?'/landoflord/':'';document.write('<script src="'+base+'pack-'+(lite?'lite':'hd')+'.js?v=39"><\/script>');})();</script>
 <script>
 /* Images : bustes du jeu libre Flare (CC-BY-SA 3.0), textures et illustrations libres (voir Crédits). */
 const IMG=PACK.IMG;
@@ -1585,9 +1585,9 @@ function render(ts){if(!S||!LS)return;let vx=S.x+.5,vy=S.y+.5,va=ANG[S.d];
  if(anim){let k=(ts-anim.t0)/anim.dur;if(k>=1){anim=null;if(queued){const q=queued;queued=null;q();}}else{k=Math.max(0,k);k=k*(2-k);vx=anim.fx+(anim.tx-anim.fx)*k;vy=anim.fy+(anim.ty-anim.fy)*k;va=anim.fa+(anim.ta-anim.fa)*k;}}
  const dX=Math.cos(va),dY=Math.sin(va),pX=-dY*PLANE,pY=dX*PLANE,fl=(ts/200|0)&1;
  const LR=(LV.sky?[0,13,6.2,7.4][LV.sky]:LV.dark?(has('lanterne')?3.1+3.1*Math.ceil((S.oil||0)/25)/4:3.1):7.6)*(1+.035*Math.sin(ts/97)+.02*Math.sin(ts/41)),lt=d=>Math.max(.045,Math.round((1-d/LR)*16)/16);
- const sky=!!LV.sky,SKYR=SKYS[LV.sky||1],ft=FL[LV.theme],ftB=FLB[LV.theme],ct=CL[LV.theme]||FL[LV.theme],half=VH>>1,rx0=dX-pX,ry0=dY-pY,ex=2*pX/VW,ey=2*pY/VW;
+ const sky=!!LV.sky,SKYR=SKYS[LV.sky||1],ft=FL[LV.theme],ftB=FLB[LV.theme],ct=CL[LV.theme]||FL[LV.theme],RUGM=rugMap(),half=VH>>1,rx0=dX-pX,ry0=dY-pY,ex=2*pX/VW,ey=2*pY/VW;
  for(let y=half+1;y<VH;y++){const d=HS/(2*(y-half)),li=lt(d)*256|0,li2=li*.8|0,sx=d*ex*128,sy=d*ey*128;let fx_=(vx+d*rx0)*128,fy_=(vy+d*ry0)*128;const row=y*VW,crow=(VH-1-y)*VW,f0=FOGA[0]*(256-li)>>8,f1=FOGA[1]*(256-li)>>8,f2=FOGA[2]*(256-li)>>8,e0=FOGA[0]*(256-li2)>>8,e1=FOGA[1]*(256-li2)>>8,e2=FOGA[2]*(256-li2)>>8;
-  for(let x=0;x<VW;x++){const i=((fy_&127)<<7)|(fx_&127);let c=(ftB&&((fx_>>7)*7+(fy_>>7)*13)%4===0?ftB:ft)[i];if(FXM){const a=fx_>>7,b=fy_>>7,u=(fx_&127)>>1,v=(fy_&127)>>1;if(a>=0&&b>=0&&a<MW&&b<MH&&FXM[b*MW+a]&&u>9&&u<54&&v>9&&v<54)c=(u<12||u>51||v<12||v>51)?0xff101010:((c>>1)&0x7f7f7f)|0xff000000;}
+  for(let x=0;x<VW;x++){const i=((fy_&127)<<7)|(fx_&127);let c=(ftB&&((fx_>>7)*7+(fy_>>7)*13)%4===0?ftB:ft)[i];if(RUGM){const a=fx_>>7,b=fy_>>7;if(a>=0&&b>=0&&a<MW&&b<MH){const m=RUGM[b*MW+a];if(m){const u=fx_&127,v=fy_&127;let r=0;if(m&4)r=((m&8&&u<8)||(m&16&&u>119)||(m&32&&v<8)||(m&64&&v>119))?(((u+v)&7)<2?RUGG[1]:RUGG[0]):RUGF[(v<<7)|u];else{if(m&1)r=RUGT[(v<<7)|u];if(!r&&m&2)r=RUGT[(u<<7)|v];}if(r)c=r;}}}if(FXM){const a=fx_>>7,b=fy_>>7,u=(fx_&127)>>1,v=(fy_&127)>>1;if(a>=0&&b>=0&&a<MW&&b<MH&&FXM[b*MW+a]&&u>9&&u<54&&v>9&&v<54)c=(u<12||u>51||v<12||v>51)?0xff101010:((c>>1)&0x7f7f7f)|0xff000000;}
    fb[row+x]=0xff000000|(((c&255)*li>>8)+f0)|((((c>>8&255)*li>>8)+f1)<<8)|((((c>>16&255)*li>>8)+f2)<<16);c=ct[i];
    fb[crow+x]=sky?SKYR[VH-1-y]:0xff000000|(((c&255)*li2>>8)+e0)|((((c>>8&255)*li2>>8)+e1)<<8)|((((c>>16&255)*li2>>8)+e2)<<16);fx_+=sx;fy_+=sy;}}
  G.putImageData(fbImg,0,0);if(sky)drawPano(va);
@@ -2590,7 +2590,7 @@ function texFor(c,x,y,fl){const t=TX[LV.theme];if(c==='D')return t.door;if(c==='
  if(c==='V')return t.lever[0];if(c==='v')return t.lever[1];const h=(x*7+y*13)%9;if(h===0)return t.torch[fl];if(h===4)return t.deco;if(t.deco2){const h2=(x*31+y*57+((x^y)&7)*3)%14;if(h2<3)return t.deco2[h2];}return h%2?t.wall:t.wall2;}
 const isTorch=(c,x,y)=>c==='#'&&(x*7+y*13)%9===0&&!LV.sky;
 /* --- sols : ce qui traîne par terre --- */
-const DECK={stone:['d_straw','d_bones','d_rubble'],sewer:['d_puddle','d_puddle','d_rubble'],crypt:['d_bones','d_bones','d_rubble'],mine:['d_rubble','d_rubble','d_puddle'],abbey:['d_straw','d_rubble'],palace:['d_rug'],panel:['d_rug'],town:['d_puddle','d_straw'],camp:['d_ash','d_straw'],forest:['d_leaves','d_leaves','d_stones'],swamp:['d_puddle','d_leaves'],ruin:['d_rubble','d_leaves'],field:['d_stones','d_ash']};
+const DECK={stone:['d_straw','d_bones','d_rubble'],sewer:['d_puddle','d_puddle','d_rubble'],crypt:['d_bones','d_bones','d_rubble'],mine:['d_rubble','d_rubble','d_puddle'],abbey:['d_straw','d_rubble'],town:['d_puddle','d_straw'],camp:['d_ash','d_straw'],forest:['d_leaves','d_leaves','d_stones'],swamp:['d_puddle','d_leaves'],ruin:['d_rubble','d_leaves'],field:['d_stones','d_ash']};
 const DECC={};
 function buildDecals(){const flat=fn=>({i:(c=>[c,c,c,c,c])(paint(96,fn))}),R=rng(5150);
  SPR.d_bones=flat(g=>{g.strokeStyle='#d8d0b8';g.lineCap='round';for(let i=0;i<7;i++){g.lineWidth=3+R()*2;const x=20+R()*56,y=24+R()*48,a=R()*6;g.beginPath();g.moveTo(x,y);g.lineTo(x+Math.cos(a)*18,y+Math.sin(a)*18);g.stroke();}g.fillStyle='#e0d8c0';el(g,60,40,10,12);g.fillStyle='#16110e';el(g,56,38,2.5,3);el(g,64,38,2.5,3);});
@@ -2690,12 +2690,28 @@ SC.qpri=function(p){const q=QPRI[p.pz],f='q_'+q.id;if(S.flags[f]===2){log("Prime
 function questTick(){for(const q of QPRI){if(q.off||q.lv!==S.lv||S.flags['q_'+q.id]===2)continue;const m=LS.mons.find(m=>m.t===q.id);if(m&&m.hp<=0){S.flags['q_'+q.id]=2;sfx('coin');const got=q.loot.map(l=>give(l[0],l[1]||0));log(`<b>Prime : ${q.n} ne nuira plus.</b> Dans sa bourse, de quoi vous payer vous-même : <b>${got.join(', ')}</b>.`);ui();}}}
 function questLines(){const l=[];for(const q of QCOM)if(!q.off&&S.flags['q_'+q.it]===1)l.push(`rapporter ${ITEMS[q.it].n.toLowerCase()} (${LEVELS[q.a].name})`);for(const q of QPRI)if(!q.off&&S.flags['q_'+q.id]===1)l.push(`prime sur ${q.n} (${LEVELS[q.lv].name})`);return l;}
 
-const AUDE={v:38,np:0,nv:0,ok:0};
+const AUDE={v:39,np:0,nv:0,ok:0};
 MUS.addEventListener('error',()=>{AUDE.me=(MUS.error&&MUS.error.code)+':'+MUS.src.split('/').pop();});MUS.addEventListener('playing',()=>{AUDE.pl=(AUDE.pl||0)+1;});
 {const _p=MUS.play.bind(MUS);MUS.play=function(){AUDE.np++;const r=_p();if(r&&r.catch)r.catch(e=>{AUDE.pe=(e&&e.name)||String(e);});return r;};
  const _vl=voxLoad;voxLoad=function(k){return _vl(k).then(d=>{AUDE.ok++;return d;},e=>{AUDE.ve=((e&&e.name)||String(e))+':'+k;throw e;});};
  const _v=vox;vox=function(w,t){AUDE.nv++;const r=_v(w,t);if(!r)AUDE.no=(AUDE.no||0)+1;return r;};}
 function AUDDIAG(){let s='Son (v'+AUDE.v+') : ';try{s+='contexte '+(AC?AC.state+' '+AC.sampleRate:'absent')+' · musique « '+(curTrack||'aucune')+' » '+(MUS.paused?'en pause':'en lecture')+' à '+MUS.currentTime.toFixed(1)+' s, volume '+MUS.volume.toFixed(2)+(MUS.muted?' MUET':'')+', état '+MUS.readyState+'/'+MUS.networkState+', lancements '+AUDE.np+', démarrages '+(AUDE.pl||0)+(AUDE.pe?', refus '+AUDE.pe:'')+(AUDE.me?', erreur '+AUDE.me:'')+' · voix : demandées '+AUDE.nv+', sans fichier '+(AUDE.no||0)+', chargées '+AUDE.ok+(AUDE.ve?', erreur '+AUDE.ve:'')+', sortie '+(BUS.vox?BUS.vox.gain.value.toFixed(2):'directe')+' · réglages '+PREF.lm+'/'+PREF.ls+'/'+PREF.lv+' · scène '+(mixScene?'oui':'non')+' · '+(window.LITE?'léger':'complet');}catch(e){s+='?'+e;}return s;}
+
+let RUGT=null,RUGF=null,RUGG=null;const RUGC={};
+function rugMap(){if(LV.theme!=='palace'&&LV.theme!=='panel')return null;if(RUGC[S.lv])return RUGC[S.lv];
+ if(!RUGT){const c=mk(128,128,g=>{let s=77;const r=()=>(s=(s*1103515245+12345)&0x7fffffff)/0x7fffffff;g.fillStyle='#20120c';g.fillRect(30,0,68,128);g.fillStyle='#8a6a26';g.fillRect(32,0,64,128);g.fillStyle='#b8943c';g.fillRect(33,0,2,128);g.fillRect(93,0,2,128);g.fillStyle='#6e1a18';g.fillRect(37,0,54,128);g.fillStyle='#571210';g.fillRect(41,0,2,128);g.fillRect(85,0,2,128);
+   for(let k=0;k<2;k++){const y=32+k*64;g.fillStyle='#571210';g.beginPath();g.moveTo(64,y-20);g.lineTo(80,y);g.lineTo(64,y+20);g.lineTo(48,y);g.closePath();g.fill();g.fillStyle='#a8842e';g.beginPath();g.moveTo(64,y-8);g.lineTo(70,y);g.lineTo(64,y+8);g.lineTo(58,y);g.closePath();g.fill();}
+   for(let i=0;i<1500;i++){g.fillStyle=r()<.5?'rgba(0,0,0,.14)':'rgba(255,220,180,.07)';g.fillRect(32+(r()*64|0),r()*128|0,1,1+(r()*2|0));}});
+  try{vga(c,-1);}catch(e){}const d=c.getContext('2d').getImageData(0,0,128,128).data;RUGT=new Uint32Array(16384);for(let i=0;i<16384;i++)RUGT[i]=(i&127)>=30&&(i&127)<98?(0xff000000|(d[i*4+2]<<16)|(d[i*4+1]<<8)|d[i*4])>>>0:0;}
+ if(!RUGF){const c=mk(128,128,g=>{let s=91;const r=()=>(s=(s*1103515245+12345)&0x7fffffff)/0x7fffffff;g.fillStyle='#6e1a18';g.fillRect(0,0,128,128);g.fillStyle='#571210';g.beginPath();g.moveTo(64,14);g.lineTo(114,64);g.lineTo(64,114);g.lineTo(14,64);g.closePath();g.fill();g.fillStyle='#7c2220';g.beginPath();g.moveTo(64,34);g.lineTo(94,64);g.lineTo(64,94);g.lineTo(34,64);g.closePath();g.fill();g.fillStyle='#a8842e';g.beginPath();g.moveTo(64,52);g.lineTo(76,64);g.lineTo(64,76);g.lineTo(52,64);g.closePath();g.fill();for(const[x,y]of[[0,0],[128,0],[0,128],[128,128]]){g.fillStyle='#8a6a26';g.beginPath();g.arc(x,y,7,0,7);g.fill();}
+   for(let i=0;i<2600;i++){g.fillStyle=r()<.5?'rgba(0,0,0,.14)':'rgba(255,220,180,.07)';g.fillRect(r()*128|0,r()*128|0,1,1+(r()*2|0));}g.fillStyle='#8a6a26';g.fillRect(0,0,1,1);g.fillStyle='#b8943c';g.fillRect(1,0,1,1);});
+  try{vga(c,-1);}catch(e){}const d=c.getContext('2d').getImageData(0,0,128,128).data,px=i=>(0xff000000|(d[i*4+2]<<16)|(d[i*4+1]<<8)|d[i*4])>>>0;RUGG=[px(0),px(1)];RUGF=new Uint32Array(16384);for(let i=0;i<16384;i++)RUGF[i]=px(i<2?130:i);}
+ const m=new Uint8Array(MW*MH),occ=new Set((LV.props||[]).map(p=>p.x+','+p.y)),fl=(x,y)=>x>=0&&y>=0&&x<MW&&y<MH&&'.dDLgG'.includes(cell(x,y)),pl=(x,y)=>x>=0&&y>=0&&x<MW&&y<MH&&cell(x,y)==='.'&&!occ.has(x+','+y);
+ for(let y=0;y<MH;y++)for(let x=0;x<MW;x++){if(!pl(x,y))continue;const L=fl(x-1,y),R=fl(x+1,y),U=fl(x,y-1),D=fl(x,y+1);if(!L&&!R&&(U||D))m[y*MW+x]=1;else if(!U&&!D&&(L||R))m[y*MW+x]=2;}
+ const n=m.slice();for(let y=1;y<MH-1;y++)for(let x=1;x<MW-1;x++){if(m[y*MW+x]||!pl(x,y))continue;let v=0;if(m[(y-1)*MW+x]&1||m[(y+1)*MW+x]&1)v|=1;if(m[y*MW+x-1]&2||m[y*MW+x+1]&2)v|=2;if(v===3||(v&1&&m[(y-1)*MW+x]&1&&m[(y+1)*MW+x]&1)||(v&2&&m[y*MW+x-1]&2&&m[y*MW+x+1]&2))n[y*MW+x]=v;}
+ const R=(x,y)=>pl(x,y)&&pl(x-1,y)&&pl(x+1,y)&&pl(x,y-1)&&pl(x,y+1)&&fl(x-1,y-1)&&fl(x+1,y-1)&&fl(x-1,y+1)&&fl(x+1,y+1);
+ for(let y=1;y<MH-1;y++)for(let x=1;x<MW-1;x++)if(R(x,y))n[y*MW+x]=4|(R(x-1,y)?0:8)|(R(x+1,y)?0:16)|(R(x,y-1)?0:32)|(R(x,y+1)?0:64);
+ return RUGC[S.lv]=n;}
 </script>
 </body>
 </html>

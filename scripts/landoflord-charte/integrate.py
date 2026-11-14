@@ -2,7 +2,7 @@
 import re, sys, io, os, json, base64, subprocess, glob
 import numpy as np
 from PIL import Image
-SWV = 38
+SWV = 39
 sys.path.insert(0, '/home/claude/work/tools'); import charte
 REPO = '/home/claude/ecolesenligne'; REL = 'public/landoflord/index.html'
 WK = '/home/claude/work'
@@ -307,6 +307,28 @@ s = rep1(s, """if(curTrack&&MUS.loop)MPOS[curTrack]=MUS.currentTime;curTrack=t;i
 let musHold=0,musTok=0,musSwT=0;""")
 s = rep1(s, "f=sc?0:duckF,d=now?0:sc?.8:", "f=(sc||musHold)?0:duckF,d=now?0:musHold?.22:sc?.8:")
 s = rep1(s, "else if(fightT&&S.T-fightT>5000)fightT=0;", "else if(fightT&&S.T-fightT>8000)fightT=0;")
+# 9. tapis des palais : plus de panneaux posés au hasard ; un chemin de tapis tissé dans le sol, en vraie perspective, le long des couloirs
+s = rep1(s, "palace:['d_rug'],panel:['d_rug'],", "")
+s = rep1(s, "let c=(ftB&&((fx_>>7)*7+(fy_>>7)*13)%4===0?ftB:ft)[i];", "let c=(ftB&&((fx_>>7)*7+(fy_>>7)*13)%4===0?ftB:ft)[i];if(RUGM){const a=fx_>>7,b=fy_>>7;if(a>=0&&b>=0&&a<MW&&b<MH){const m=RUGM[b*MW+a];if(m){const u=fx_&127,v=fy_&127;let r=0;if(m&4)r=((m&8&&u<8)||(m&16&&u>119)||(m&32&&v<8)||(m&64&&v>119))?(((u+v)&7)<2?RUGG[1]:RUGG[0]):RUGF[(v<<7)|u];else{if(m&1)r=RUGT[(v<<7)|u];if(!r&&m&2)r=RUGT[(u<<7)|v];}if(r)c=r;}}}")
+s = rep1(s, "ct=CL[LV.theme]||FL[LV.theme],half=VH>>1,", "ct=CL[LV.theme]||FL[LV.theme],RUGM=rugMap(),half=VH>>1,")
+RUG = r"""
+let RUGT=null,RUGF=null,RUGG=null;const RUGC={};
+function rugMap(){if(LV.theme!=='palace'&&LV.theme!=='panel')return null;if(RUGC[S.lv])return RUGC[S.lv];
+ if(!RUGT){const c=mk(128,128,g=>{let s=77;const r=()=>(s=(s*1103515245+12345)&0x7fffffff)/0x7fffffff;g.fillStyle='#20120c';g.fillRect(30,0,68,128);g.fillStyle='#8a6a26';g.fillRect(32,0,64,128);g.fillStyle='#b8943c';g.fillRect(33,0,2,128);g.fillRect(93,0,2,128);g.fillStyle='#6e1a18';g.fillRect(37,0,54,128);g.fillStyle='#571210';g.fillRect(41,0,2,128);g.fillRect(85,0,2,128);
+   for(let k=0;k<2;k++){const y=32+k*64;g.fillStyle='#571210';g.beginPath();g.moveTo(64,y-20);g.lineTo(80,y);g.lineTo(64,y+20);g.lineTo(48,y);g.closePath();g.fill();g.fillStyle='#a8842e';g.beginPath();g.moveTo(64,y-8);g.lineTo(70,y);g.lineTo(64,y+8);g.lineTo(58,y);g.closePath();g.fill();}
+   for(let i=0;i<1500;i++){g.fillStyle=r()<.5?'rgba(0,0,0,.14)':'rgba(255,220,180,.07)';g.fillRect(32+(r()*64|0),r()*128|0,1,1+(r()*2|0));}});
+  try{vga(c,-1);}catch(e){}const d=c.getContext('2d').getImageData(0,0,128,128).data;RUGT=new Uint32Array(16384);for(let i=0;i<16384;i++)RUGT[i]=(i&127)>=30&&(i&127)<98?(0xff000000|(d[i*4+2]<<16)|(d[i*4+1]<<8)|d[i*4])>>>0:0;}
+ if(!RUGF){const c=mk(128,128,g=>{let s=91;const r=()=>(s=(s*1103515245+12345)&0x7fffffff)/0x7fffffff;g.fillStyle='#6e1a18';g.fillRect(0,0,128,128);g.fillStyle='#571210';g.beginPath();g.moveTo(64,14);g.lineTo(114,64);g.lineTo(64,114);g.lineTo(14,64);g.closePath();g.fill();g.fillStyle='#7c2220';g.beginPath();g.moveTo(64,34);g.lineTo(94,64);g.lineTo(64,94);g.lineTo(34,64);g.closePath();g.fill();g.fillStyle='#a8842e';g.beginPath();g.moveTo(64,52);g.lineTo(76,64);g.lineTo(64,76);g.lineTo(52,64);g.closePath();g.fill();for(const[x,y]of[[0,0],[128,0],[0,128],[128,128]]){g.fillStyle='#8a6a26';g.beginPath();g.arc(x,y,7,0,7);g.fill();}
+   for(let i=0;i<2600;i++){g.fillStyle=r()<.5?'rgba(0,0,0,.14)':'rgba(255,220,180,.07)';g.fillRect(r()*128|0,r()*128|0,1,1+(r()*2|0));}g.fillStyle='#8a6a26';g.fillRect(0,0,1,1);g.fillStyle='#b8943c';g.fillRect(1,0,1,1);});
+  try{vga(c,-1);}catch(e){}const d=c.getContext('2d').getImageData(0,0,128,128).data,px=i=>(0xff000000|(d[i*4+2]<<16)|(d[i*4+1]<<8)|d[i*4])>>>0;RUGG=[px(0),px(1)];RUGF=new Uint32Array(16384);for(let i=0;i<16384;i++)RUGF[i]=px(i<2?130:i);}
+ const m=new Uint8Array(MW*MH),occ=new Set((LV.props||[]).map(p=>p.x+','+p.y)),fl=(x,y)=>x>=0&&y>=0&&x<MW&&y<MH&&'.dDLgG'.includes(cell(x,y)),pl=(x,y)=>x>=0&&y>=0&&x<MW&&y<MH&&cell(x,y)==='.'&&!occ.has(x+','+y);
+ for(let y=0;y<MH;y++)for(let x=0;x<MW;x++){if(!pl(x,y))continue;const L=fl(x-1,y),R=fl(x+1,y),U=fl(x,y-1),D=fl(x,y+1);if(!L&&!R&&(U||D))m[y*MW+x]=1;else if(!U&&!D&&(L||R))m[y*MW+x]=2;}
+ const n=m.slice();for(let y=1;y<MH-1;y++)for(let x=1;x<MW-1;x++){if(m[y*MW+x]||!pl(x,y))continue;let v=0;if(m[(y-1)*MW+x]&1||m[(y+1)*MW+x]&1)v|=1;if(m[y*MW+x-1]&2||m[y*MW+x+1]&2)v|=2;if(v===3||(v&1&&m[(y-1)*MW+x]&1&&m[(y+1)*MW+x]&1)||(v&2&&m[y*MW+x-1]&2&&m[y*MW+x+1]&2))n[y*MW+x]=v;}
+ const R=(x,y)=>pl(x,y)&&pl(x-1,y)&&pl(x+1,y)&&pl(x,y-1)&&pl(x,y+1)&&fl(x-1,y-1)&&fl(x+1,y-1)&&fl(x-1,y+1)&&fl(x+1,y+1);
+ for(let y=1;y<MH-1;y++)for(let x=1;x<MW-1;x++)if(R(x,y))n[y*MW+x]=4|(R(x-1,y)?0:8)|(R(x+1,y)?0:16)|(R(x,y-1)?0:32)|(R(x,y+1)?0:64);
+ return RUGC[S.lv]=n;}
+"""
+i_end = s.rindex('</script>'); s = s[:i_end] + RUG + s[i_end:]
 # 5. le plan façon Lands of Lore et les sorties signalées
 import carte
 s = carte.apply(s, rep1)
