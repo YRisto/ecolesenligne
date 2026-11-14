@@ -2,7 +2,7 @@
 import re, sys, io, os, json, base64, subprocess, glob
 import numpy as np
 from PIL import Image
-SWV = 33
+SWV = 34
 sys.path.insert(0, '/home/claude/work/tools'); import charte
 REPO = '/home/claude/ecolesenligne'; REL = 'public/landoflord/index.html'
 WK = '/home/claude/work'
@@ -283,6 +283,8 @@ s = rep1(s, "function tickMons(){", "function tickMons(){questTick();")
 s = rep1(s, "l.push(`<p class=\"dim\">Difficulté : ${DIFF[S.diff].n}.</p>`);return l.join('');};", "{const q=questLines();if(q.length)l.push(`<p><b>Affaires en cours.</b> ${q.map(cap).join(' ; ')}.</p>`);}l.push(`<p class=\"dim\">Difficulté : ${DIFF[S.diff].n}.</p>`);return l.join('');};")
 i_end = s.rindex('</script>'); s = s[:i_end] + quetes.JS + s[i_end:]
 
+# 6. musique : un ancien réglage « musique coupée » resté dans le navigateur la rendait muette sans rien dire ; on la rétablit une fois
+s = rep1(s, "if(PREF.lm==null)PREF.lm=PREF.mus===0?0:60;", "if(PREF.lm==null)PREF.lm=PREF.mus===0?0:60;if(!PREF.mfix){PREF.mfix=1;if(!(PREF.lm>0)){PREF.lm=60;PREF.mus=1;}try{localStorage.setItem('gd2_prefs',JSON.stringify(PREF));}catch(e){}}")
 # 5. le plan façon Lands of Lore et les sorties signalées
 import carte
 s = carte.apply(s, rep1)
