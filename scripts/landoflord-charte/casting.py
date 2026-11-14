@@ -54,6 +54,8 @@ for k, v in C.items():
     if v.get('frames', MEL) is MEL: v['rotz_frames'] = {'0': 35, '1': 35, '2': 35, '3': 35}
     g_ = {'grolard': 1.22, 'borgne': 1.1, 'sergent': 1.1, 'champion': 1.08, 'marechal': 1.06, 'ysolde': .94, 'reine': .95, 'barnabe': 1.15, 'goupil': .95, 'ermite': .92}.get(k)
     if g_: v['girth'] = g_
+    v.update({'marechal': dict(cape='red'), 'prevot': dict(cape='wine'), 'renaud': dict(cape='green'), 'hagen': dict(cape='wine'), 'aldric': dict(cape='red'), 'capitaine': dict(cape='blue'), 'reine': dict(cape='blue'),
+      'garde_royal': dict(tabard='blue', emblem='ochre'), 'champion': dict(tabard='red', emblem='ochre'), 'garde': dict(tabard='slate'), 'sergent': dict(tabard='red', emblem='black'), 'sentinelle': dict(tabard='red'), 'lancier': dict(tabard='slate', emblem='cream')}.get(k, {}))
     v.setdefault('frames', MEL); v.setdefault('scale_obj', SH); v.update(fw=288, fh=208, eye=1.45, span=2.8)
     json.dump(v, open('/home/claude/work/specs/c/%s.json' % k, 'w'))
 print(len(C))

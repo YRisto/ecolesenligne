@@ -2,7 +2,7 @@
 import re, sys, io, os, json, base64, subprocess, glob
 import numpy as np
 from PIL import Image
-SWV = 27
+SWV = 28
 sys.path.insert(0, '/home/claude/work/tools'); import charte
 REPO = '/home/claude/ecolesenligne'; REL = 'public/landoflord/index.html'
 WK = '/home/claude/work'
@@ -109,10 +109,11 @@ s = s[:a0] + ("function wallBase(g,th,seed,v){const r=rng(seed);const im=(v&&IMG
 s = rep1(s, "wall2:mk(TS,TS,g=>wallBase(g,th,s+50))", "wall2:mk(TS,TS,g=>wallBase(g,th,s+50,1))")
 # 3c. sols et plafonds : même densité que les murs (128 points par case au lieu de 64)
 a0 = s.index("for(const[k,o,th]of[['f_stone',FL,'stone']"); a1 = s.index('\n', a0)
-s = s[:a0] + ("for(const th in seeds)for(const[p,o]of[['f_',FL],['c_',CL]])if(IMGEL[p+th])o[th]=pix(mk(128,128,g=>{g.imageSmoothingEnabled=false;g.drawImage(IMGEL[p+th],0,0,128,128);}));\n"
+s = s[:a0] + ("for(const th in seeds)for(const[p,o]of[['f_',FL],['c_',CL]])if(IMGEL[p+th])o[th]=pix(mk(128,128,g=>{g.imageSmoothingEnabled=false;g.drawImage(IMGEL[p+th],0,0,128,128);}));for(const th in seeds)if(IMGEL['g_'+th])FLB[th]=pix(mk(128,128,g=>{g.imageSmoothingEnabled=false;g.drawImage(IMGEL['g_'+th],0,0,128,128);}));\n"
  " for(const o of[FL,CL])for(const k in o)if(o[k]&&o[k].length===4096){const a=o[k],b=new Uint32Array(16384);for(let y=0;y<128;y++)for(let x=0;x<128;x++)b[y*128+x]=a[(y>>1)*64+(x>>1)];o[k]=b;}") + s[a1:]
 s = rep1(s, "sx=d*ex*64,sy=d*ey*64;let fx_=(vx+d*rx0)*64,fy_=(vy+d*ry0)*64;", "sx=d*ex*128,sy=d*ey*128;let fx_=(vx+d*rx0)*128,fy_=(vy+d*ry0)*128;")
-s = rep1(s, "const i=((fy_&63)<<6)|(fx_&63);let c=ft[i];if(FXM){const a=fx_>>6,b=fy_>>6,u=fx_&63,v=fy_&63;", "const i=((fy_&127)<<7)|(fx_&127);let c=ft[i];if(FXM){const a=fx_>>7,b=fy_>>7,u=(fx_&127)>>1,v=(fy_&127)>>1;")
+s = rep1(s, "const i=((fy_&63)<<6)|(fx_&63);let c=ft[i];if(FXM){const a=fx_>>6,b=fy_>>6,u=fx_&63,v=fy_&63;", "const i=((fy_&127)<<7)|(fx_&127);let c=(ftB&&((fx_>>7)*7+(fy_>>7)*13)%4===0?ftB:ft)[i];if(FXM){const a=fx_>>7,b=fy_>>7,u=(fx_&127)>>1,v=(fy_&127)>>1;")
+s = rep1(s, "ft=FL[LV.theme],ct=CL[LV.theme]||FL[LV.theme],half=VH>>1", "ft=FL[LV.theme],ftB=FLB[LV.theme],ct=CL[LV.theme]||FL[LV.theme],half=VH>>1")
 # 3d. plus de reteinte à la volée : les couleurs viennent des matières de la charte
 s = rep1(s, "function regrade(){", "function regrade(){return;")
 s = rep1(s, "/* Personnages animés : Flare (Clint Bellanger et contributeurs), CC-BY-SA 3.0, recomposés et retraités. */",
@@ -172,7 +173,7 @@ for n, k in enumerate(KEYS):
 s = s[:i_cr] + 'const CREDITS=' + json.dumps(CR, ensure_ascii=False) + ';' + s[j_cr:]
 
 # murs « signature » : un mur sur neuf porte le motif du lieu (ossuaire, blason, râtelier, bouche d'égout, soupirail, niche au saint, écu)
-s = rep1(s, "function texFor(c,x,y,fl){", "var SIGT={crypt:'o_sig_crypte',palace:'o_sig_palais',panel:'o_sig_palais',mine:'o_sig_mine',sewer:'o_sig_egout',stone:'o_sig_geoles',abbey:'o_sig_abbaye',camp:'o_sig_camp'};\nfunction texFor(c,x,y,fl){", s.count('function texFor(c,x,y,fl){'))
+s = rep1(s, "function texFor(c,x,y,fl){", "var FLB={};var SIGT={crypt:'o_sig_crypte',palace:'o_sig_palais',panel:'o_sig_palais',mine:'o_sig_mine',sewer:'o_sig_egout',stone:'o_sig_geoles',abbey:'o_sig_abbaye',camp:'o_sig_camp'};\nfunction texFor(c,x,y,fl){", s.count('function texFor(c,x,y,fl){'))
 s = rep1(s, "if(h===4)return t.deco;return h%2?t.wall:t.wall2;}", "if(h===4)return t.deco;if(h===6&&SIGT[LV.theme]&&t.sig)return t.sig;return h%2?t.wall:t.wall2;}", s.count('if(h===4)return t.deco;return h%2?t.wall:t.wall2;}'))
 # 4d. objets uniques cachés dans des niches difficiles
 UNIQ = {

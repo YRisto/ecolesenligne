@@ -5,8 +5,10 @@ from mathutils import Vector, Matrix, Euler
 
 name, out = sys.argv[1], sys.argv[2]
 kind, theme = name[0], name[2:]
-VAR = kind == 'u'   # u_* : seconde variante d'un mur
-if VAR: kind = 't'
+VAR = kind in ('u', 'g')   # u_* : seconde variante d'un mur ; g_* : seconde variante d'un sol
+FVAR = kind == 'g'
+if kind == 'u': kind = 't'
+if kind == 'g': kind = 'f'
 W = 2.9; PX = 128; MG = 16; SS = 3
 random.seed(hash(name) % 9999 if False else sum(ord(c) * (i + 3) for i, c in enumerate(name)))
 R = random.random
@@ -905,8 +907,11 @@ def s_throne():
     for sx in (-1, 1): wb(sx * 6.2 - .2, sx * 6.2 + .2, -8, 6.2, 0, 6, mat((.22, .205, .185), grain=.4, gscale=3, bump=.8, spots=.5, spotcol=(.14, .13, .12)))
     lamp(0, 2, 5, 400, (1, .85, .65), 1.0)
 
-globals()['t_' + theme if VAR else name]()
-if VAR and theme in ('stone', 'sewer', 'crypt', 'abbey', 'palace', 'mine'):   # variante : traces d'humidité et mousse au pied du mur
+globals()[('f_' if FVAR else 't_') + theme if VAR else name]()
+if FVAR:   # sol : quelques gravats et une tache de mousse, pour rompre la répétition
+    pebbles(7, [ROCK, (.24, .20, .16), (.13, .11, .09)], size=(.025, .06))
+    if theme in ('stone', 'sewer', 'crypt', 'ruin', 'town', 'abbey'): leaves(60, (U(.3, 1.6), U(.3, 1.6), U(1.6, 2.6), U(1.6, 2.6)), [MOSS, (.05, .10, .05)], size=(.05, .12), ydepth=(-.09, -.07), wall=False)
+if VAR and not FVAR and theme in ('stone', 'sewer', 'crypt', 'abbey', 'palace', 'mine'):   # variante : traces d'humidité et mousse au pied du mur
     leaves(90 if theme in ('abbey', 'palace') else 220, (0, -.05, W, .45 if theme != 'sewer' else 1.2), [MOSS, (.05, .10, .05), (.09, .14, .07)], size=(.05, .13), ydepth=(-.14, -.09))
     for i in range(5):
         x = U(0, W); leaves(26, (x - .06, U(.8, 1.6), x + .06, W + .05), [(.045, .07, .05), (.06, .09, .055)], size=(.05, .11), ydepth=(-.135, -.10))

@@ -157,6 +157,33 @@ if FACE is not None and arm.data.bones.get('Head') and not spec.get('noface'):
     if FACE.get('scar'): feat((-.045, yf + .016, zc - .01), (.005, .008, .045), 'wine', (0, .3, 0))
     arm.data.pose_position = 'POSE'; bpy.context.view_layer.update()
 
+# ---------- cape et tabard : posés au repos, attachés à l'os du dos ----------
+if (spec.get('cape') or spec.get('tabard')) and arm.data.bones.get('Back'):
+    arm.data.pose_position = 'REST'; bpy.context.view_layer.update()
+    bb = arm.data.bones['Back']; fem = 'Female' in arm.name; kz = .93 if fem else 1.0
+    parb = arm.matrix_world @ bb.matrix_local @ Matrix.Translation((0, bb.length, 0))
+    def cloth(verts, faces, key):
+        me = bpy.data.meshes.new('cl'); me.from_pydata(verts, [], faces); me.update()
+        for pl in me.polygons: pl.use_smooth = True
+        me.materials.append(charter_mat(key)); o = bpy.data.objects.new('cloth', me); sc.collection.objects.link(o)
+        so = o.modifiers.new('s', 'SOLIDIFY'); so.thickness = .012
+        o.parent = arm; o.parent_type = 'BONE'; o.parent_bone = 'Back'; o.matrix_parent_inverse = parb.inverted(); o.matrix_basis = Matrix.Identity(4); return o
+    if spec.get('cape'):
+        vs = []; fs = []; N = 7; R_ = 9
+        for r in range(R_ + 1):
+            t = r / R_; z = (1.47 - t * 1.12) * kz; w = .27 + t * .22; back = .15 + t * .12
+            for i in range(N):
+                u = i / (N - 1) * 2 - 1; vs.append((u * w, back - abs(u) ** 2 * (.20 + t * .06) + .03 * math.sin(u * 5 + t * 6) * t, z))
+        for r in range(R_):
+            for i in range(N - 1): fs.append((r * N + i, r * N + i + 1, (r + 1) * N + i + 1, (r + 1) * N + i))
+        cloth(vs, fs, spec['cape'])
+        cloth([(-.26, -.10, 1.50 * kz), (.26, -.10, 1.50 * kz), (.27, .17, 1.47 * kz), (-.27, .17, 1.47 * kz)], [(0, 1, 2, 3)], spec['cape'])   # col sur les épaules
+    if spec.get('tabard'):
+        y = -.165 if not fem else -.15
+        cloth([(-.15, y + .02, 1.40 * kz), (.15, y + .02, 1.40 * kz), (.17, y - .01, 1.02 * kz), (-.17, y - .01, 1.02 * kz), (.15, y + .01, .72 * kz), (-.15, y + .01, .72 * kz)], [(0, 1, 2, 3), (3, 2, 4, 5)], spec['tabard'])
+        if spec.get('emblem'): cloth([(-.06, y - .025, 1.28 * kz), (.06, y - .025, 1.28 * kz), (.06, y - .03, 1.10 * kz), (-.06, y - .03, 1.10 * kz)], [(0, 1, 2, 3)], spec['emblem'])
+    arm.data.pose_position = 'POSE'; bpy.context.view_layer.update()
+
 # ---------- caméra et lumière de la charte ----------
 sc.render.engine = 'CYCLES'; sc.cycles.device = 'CPU'; sc.cycles.samples = spec.get('samples', 48); sc.cycles.use_denoising = False; sc.cycles.max_bounces = 3
 sc.render.film_transparent = True; sc.render.resolution_x = FW * SS; sc.render.resolution_y = FH * SS; sc.render.resolution_percentage = 100
