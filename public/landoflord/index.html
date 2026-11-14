@@ -404,7 +404,7 @@ body:not(.ls) .box.mapM .legend{grid-template-columns:1fr 1fr}body:not(.ls) .box
  <button id="tCont" hidden>Continuer</button>
  <div class="keys">Souris, doigt ou clavier : tout se fait des trois façons. L'aide est dans la chronique (Échap).</div>
 </div>
-<script>(function(){var q=location.search,lite=/[?&]lite\b/.test(q)||(!/[?&]hd\b/.test(q)&&(/iPhone|iPod|Android.*Mobile|Windows Phone/i.test(navigator.userAgent)||(navigator.maxTouchPoints>1&&Math.min(screen.width,screen.height)<=600)));window.LITE=lite;var base=/landoflord/i.test(location.pathname)&&location.protocol!=='file:'?'/landoflord/':'';document.write('<script src="'+base+'pack-'+(lite?'lite':'hd')+'.js?v=40"><\/script>');})();</script>
+<script>(function(){var q=location.search,lite=/[?&]lite\b/.test(q)||(!/[?&]hd\b/.test(q)&&(/iPhone|iPod|Android.*Mobile|Windows Phone/i.test(navigator.userAgent)||(navigator.maxTouchPoints>1&&Math.min(screen.width,screen.height)<=600)));window.LITE=lite;var base=/landoflord/i.test(location.pathname)&&location.protocol!=='file:'?'/landoflord/':'';document.write('<script src="'+base+'pack-'+(lite?'lite':'hd')+'.js?v=41"><\/script>');})();</script>
 <script>
 /* Images : bustes du jeu libre Flare (CC-BY-SA 3.0), textures et illustrations libres (voir Crédits). */
 const IMG=PACK.IMG;
@@ -1207,7 +1207,7 @@ const hx=t=>HXR&&typeof t==='string'?HXR(t):t;
 const bk=id=>id==='aldric'&&S&&BUSTS[S.hero]?S.hero:id;
 let STG=[],lastSp=null,autoT=0,autoStart=0,autoDur=0;
 function mkMon(t,x,y){const v=Math.max(1,Math.round(MON[t].hp*DIFF[S.diff].hp*(MON[t].boss?1:.75+Math.random()*.5)));const o={t,x,y,hp:v,hpM:v,next:0,d:rnd(0,3)};if(MON[t].amb&&Math.random()<MON[t].amb)o.hid=1;return o;}
-function initLevel(id){const L=LEVELS[id],h=DIFF[S.diff].hp;return{g:L.map.slice(),mons:L.mons.map(m=>{const o=mkMon(m[0],m[1],m[2]);if(m[3])o.loot=m[3];return o;}),
+function initLevel(id){const L=LEVELS[id],h=DIFF[S.diff].hp;return{g:L.map.slice(),mons:L.mons.map(m=>{const o=mkMon(m[0],m[1],m[2]);if(m[3])o.loot=m[3];if(m[4])Object.assign(o,m[4]);return o;}),
  items:L.items.map(a=>({id:a[0],x:a[1],y:a[2],q:a[3]||0})),seen:{},fired:{},gone:{}};}
 function newGame(diff){musForce=null;LS=null;LV=null;resting=false;applyHero('aldric');S={hero:'aldric',lv:'',x:0,y:0,d:0,gold:6,bag:[],hand:null,party:[mkChar('aldric'),mkChar('pepin')],L:{},flags:{},T:0,sfT:0,hon:0,diff:diff,off:0,strats:['soins'],oil:100};PROJ=[];logs=[];SC.prologue();}
 function enterLevel(id){S.lv=id;if(!S.L[id])S.L[id]=initLevel(id);const st=LEVELS[id].start;S.x=st[0];S.y=st[1];S.d=st[2];bind();save('auto');banner();music();fadeIn();fire('intro_'+id);lieuBark(id,0);}
@@ -1331,10 +1331,10 @@ function move(rel){if(paused())return;if(resting){stopRest("Vous vous relevez.")
  if(rel===0&&'DL'.includes(c)){interact();return;}
  {const hm=monAt(nx,ny);if(hm&&hm.hid){wake(hm);sfx('ambush');log(`<b>${cap(MON[hm.t].n)} ${MON[hm.t].ambT||'jaillit de sa cachette'} !</b>`);}}
  if(!pass(nx,ny)||monAt(nx,ny)||npcAt(nx,ny)||propAt(nx,ny)){sfx('bump');return;}
- const ox=S.x,oy=S.y;S.x=nx;S.y=ny;startAnim(ox+.5,oy+.5,ANG[S.d],nx+.5,ny+.5,ANG[S.d],165);computeDF();markSeen();sfx('step');pickup();cellFx();miniMap();
+ const ox=S.x,oy=S.y;S.x=nx;S.y=ny;startAnim(ox+.5,oy+.5,ANG[S.d],nx+.5,ny+.5,ANG[S.d],LV.theme==='swamp'?255:165);if(LV.theme==='swamp'&&!S.flags.vase){S.flags.vase=1;log('<i>La vase colle aux bottes : ici, chaque pas coûte, et la pluie ne fait pas de quartier.</i>');}computeDF();markSeen();sfx('step');pickup();cellFx();miniMap();
  for(const t of LV.trig)if(t[0]===nx&&t[1]===ny)fire(t[2]);}
 function pickup(){const here=itemsAt(S.x,S.y).filter(i=>!i.dropped);if(!here.length)return;
- for(const it of here){if(it.id==='or'){S.gold+=it.q;sfx('coin');log(`Vous ramassez ${it.q} écus.`);bark('pepin',["Je les garde. Pour la sécurité.","Enfin une bonne nouvelle.","C'est toujours ça que le chancelier n'aura pas."],.25);}else if(ITEMS[it.id].learn){learn(ITEMS[it.id].learn);}else if(S.bag.length>=BAGMAX&&ITEMS[it.id].k!=='key'){it.dropped=1;log("Le sac est plein : l'objet reste à vos pieds.");}else{S.bag.push(it.id);sfx('pick');log(`Ramassé : ${ITEMS[it.id].n}.`);}}
+ for(const it of here){if(ITEMS[it.id]&&ITEMS[it.id].junk&&S.bag.filter(b=>b===it.id).length+(S.hand===it.id?1:0)>=2)continue;if(it.id==='or'){S.gold+=it.q;sfx('coin');log(`Vous ramassez ${it.q} écus.`);bark('pepin',["Je les garde. Pour la sécurité.","Enfin une bonne nouvelle.","C'est toujours ça que le chancelier n'aura pas."],.25);}else if(ITEMS[it.id].learn){learn(ITEMS[it.id].learn);}else if(S.bag.length>=BAGMAX&&ITEMS[it.id].k!=='key'){it.dropped=1;log("Le sac est plein : l'objet reste à vos pieds.");}else{S.bag.push(it.id);sfx('pick');log(`Ramassé : ${ITEMS[it.id].n}.`);}}
  LS.items=LS.items.filter(i=>!(i.x===S.x&&i.y===S.y&&!i.dropped));ui();}
 function has(id){return id&&(S.bag.includes(id)||S.hand===id);}
 function had(id){return has(id)||!!(S.used&&S.used[id]);}
@@ -1433,7 +1433,7 @@ const wears=(c,id)=>Object.values(c.eq).includes(id);
 const need=l=>20*l*l;
 const busy=c=>c.hp<=0||(c.stunT&&S.T<c.stunT);
 const haste=c=>(c.sk.adresse.l>=8?.5:c.sk.adresse.l>=4?.75:1)*(wears(c,'anneau_duel')?.8:1)*(wears(c,'baudrier')?.9:1)*(c.id==='aldric'&&HEROES[S.hero]&&HEROES[S.hero].fast?.8:1);
-function gainXp(c,sk,a){if(!c||c.hp<=0)return;const s=c.sk[sk];s.x+=a;let up=false;while(s.x>=need(s.l)){s.x-=need(s.l);s.l++;c.hpM+=sk==='armes'?rnd(2,6):rnd(1,3);c.sfM+=sk==='savoir'?rnd(3,5):sk==='adresse'?rnd(1,3):1;if(sk==='armes')c.force++;up=true;
+function gainXp(c,sk,a){if(!c||c.hp<=0)return;const s=c.sk[sk];s.x+=a*1.5;let up=false;while(s.x>=need(s.l)){s.x-=need(s.l);s.l++;c.hpM+=sk==='armes'?rnd(2,6):rnd(1,3);c.sfM+=sk==='savoir'?rnd(3,5):sk==='adresse'?rnd(1,3):1;if(sk==='armes')c.force++;up=true;
  log(`<b>${CH[c.id].n} progresse en ${SKL[sk]} : niveau ${s.l}.</b>`);}if(up){sfx('up');floatT(SKL[sk]+' +1','#8fe08a');}}
 function target(r,L){let x=S.x,y=S.y;for(let i=1;i<=r;i++){x+=DX[S.d];y+=DY[S.d];if(!pass(x,y)||propAt(x,y)||npcAt(x,y))return null;const l=monsAt(x,y);if(l.length)return l.length<2||L==null?l[0]:l.sort((a,b)=>Math.abs((a.sl||0)-L)-Math.abs((b.sl||0)-L))[0];}return null;}
 function floatT(t,col){fx.push({t,col:col||'#fff',t0:performance.now(),x:VW/2+rnd(-34,34)});}
@@ -1444,7 +1444,7 @@ function dmgMax(might,ty,res,P,perf){let d=might*((res&&res[ty])||1);if(!perf)d-
 function roll2(d){d=Math.max(1,Math.round(d));return Math.max(2,rnd(1,d)+rnd(1,d));}
 function wake(m,q){const was=m.aw;if(m.mode!=='flee')m.mode='pursue';m.aw=1;m.hid=0;if(!was&&!q)roused(m);}
 const PACKT={loup:"Un hurlement monte sous les arbres. D'autres lui répondent : la meute rapplique.",chien:"Le molosse donne de la voix. Ses frères de chenil arrivent ventre à terre.",rat:"Un couinement, puis dix. Toute la famille est prévenue.",ragondin:"Des clapotis convergent. Les ragondins chassent en bande."};
-function roused(m){const mt=MON[m.t];LS.cry=LS.cry||{};if(LV.calm){if(mt.pack&&S.T>(LS.cry[mt.pack]||0)){LS.cry[mt.pack]=S.T+10000;sfx('cry_'+mt.pack);}return;}const near=(o,r)=>o!==m&&o.hp>0&&!o.gone&&!o.aw&&!o.hid&&Math.abs(o.x-m.x)+Math.abs(o.y-m.y)<=r;
+function roused(m){const mt=MON[m.t];if(mt.lead&&!m.ldS){m.ldS=1;log('<b>'+cap(mt.n)+' vous a vus. Celui-là commande aux autres.</b>');bark('brune',["Celui-là, c'est le chef. Les autres le regardent avant de frapper.","Le meneur. Lui tombé, les autres réfléchiront."],.9);}LS.cry=LS.cry||{};if(LV.calm){if(mt.pack&&S.T>(LS.cry[mt.pack]||0)){LS.cry[mt.pack]=S.T+10000;sfx('cry_'+mt.pack);}return;}const near=(o,r)=>o!==m&&o.hp>0&&!o.gone&&!o.aw&&!o.hid&&Math.abs(o.x-m.x)+Math.abs(o.y-m.y)<=r;
  if(mt.pack){let n=0;for(const o of LS.mons)if(MON[o.t].pack===mt.pack&&near(o,mt.packR||6)){wake(o,1);o.next=S.T+rnd(250,800);n++;}
   if(S.T>(LS.cry[mt.pack]||0)){LS.cry[mt.pack]=S.T+10000;sfx('cry_'+mt.pack);if(n)log(PACKT[mt.pack]);}}
  if(mt.alert){let n=0;for(const o of LS.mons)if(near(o,mt.alert)){wake(o,1);o.next=S.T+rnd(350,1000);n++;}
@@ -1459,11 +1459,11 @@ function attack(i){const c=S.party[i];if(!c||paused()||S.T<c.cd)return;if(restin
  const m=target(w.reach||1,lat(i));
  if(!m){c.cd=S.T+350;c.cdD=350;sfx('miss');log(`${CH[c.id].n} frappe dans le vide, avec conviction.`);return;}
  const h=strike(c,m,w),d=w.spd*haste(c)*(h?1:1.35);c.cd=S.T+d;c.cdD=d;}
-function hurt(m,dmg,c,sk,perf){dmg=Math.max(1,Math.round(dmg));const mt=MON[m.t];m.hp-=dmg;m.flash=S.T+170;wake(m);sfx('hit');if(mt.hitS&&m.hp>0&&rnd(1,100)<=45)sfx(mt.hitS);floatT('-'+dmg+(perf?' !':''),perf?'#ff9a3c':'#ffd23f');if(c)gainXp(c,sk,Math.min(dmg,m.hp+dmg));
+function hurt(m,dmg,c,sk,perf){if(m.slp){m.slp=0;dmg*=2;log('<i>Pris en plein sommeil : le coup porte double.</i>');}dmg=Math.max(1,Math.round(dmg));const mt=MON[m.t];m.hp-=dmg;m.flash=S.T+170;wake(m);sfx('hit');if(mt.hitS&&m.hp>0&&rnd(1,100)<=45)sfx(mt.hitS);floatT('-'+dmg+(perf?' !':''),perf?'#ff9a3c':'#ffd23f');if(c)gainXp(c,sk,Math.min(dmg,m.hp+dmg));
  if(mt.boss&&!m.rage&&m.hp>0&&m.hp<=m.hpM/2){m.rage=1;log(`<b>${mt.rageT}</b>`);}
  if(mt.coward&&m.hp>0&&m.hp<m.hpM*.3&&m.mode!=='flee'&&!m.fled){m.mode='flee';m.fled=1;m.fleeN=22;log(`${cap(mt.n)} prend la fuite.`);}
  if(m.hp<=0&&mt.p2&&!m.p2){m.p2=1;m.hp=Math.round(m.hpM*mt.p2[0]);m.stun=S.T+1500;shake();sfx('boom');log('<b>'+mt.p2[1]+'</b>');ui();return;}
- if(m.hp<=0){m.dieT=S.T;reslot(m.x,m.y);if(mt.yield){m.gone=1;SC[mt.yield]();return;}sfx(mt.dieS||'ko');log(mt.ko);if(c)gainXp(c,sk,m.hpM);const g=rnd(mt.gold[0],mt.gold[1]);if(g){S.gold+=g;sfx('coin');log(`Vous récupérez ${g} écus.`);}
+ if(m.hp<=0){m.dieT=S.T;reslot(m.x,m.y);if(mt.yield){m.gone=1;SC[mt.yield]();return;}sfx(mt.dieS||'ko');log(mt.ko);if(c)gainXp(c,sk,m.hpM);const g=Math.round(rnd(mt.gold[0],mt.gold[1])*1.5);if(g){S.gold+=g;sfx('coin');log(`Vous récupérez ${g} écus.`);}
   if(mt.drop)LS.items.push({id:mt.drop,x:m.x,y:m.y,q:0});for(const id of m.loot||[])LS.items.push({id,x:m.x,y:m.y,q:0});if(mt.learn)learn(mt.learn);
   bark('pepin',["Je l'avais fatigué.","Vous avez vu ? J'ai presque aidé.","Il n'avait qu'à pas commencer.","Je note qu'on gagne. Je note aussi que ça m'inquiète."],.3);ui();}}
 /* projectiles : ils avancent case par case et retombent où ils s'arrêtent */
@@ -1486,7 +1486,7 @@ function throwHand(){if(!S.hand)return;const id=S.hand,pot=id==='potfeu';S.hand=
  launch({x:S.x,y:S.y,d:S.d,kind:pot?'pot':'item',ic:id,id,range:pot?3:4,might:16+(best('savoir')?best('savoir').sk.savoir.l*2:0),from:'party'});ui();}
 /* monstres : en garde, errance, poursuite, fuite */
 function los(x0,y0,x1,y1){const n=Math.max(Math.abs(x1-x0),Math.abs(y1-y0))*2;for(let i=1;i<n;i++){const x=Math.round(x0+(x1-x0)*i/n),y=Math.round(y0+(y1-y0)*i/n);if((x!==x0||y!==y0)&&(x!==x1||y!==y1)&&!pass(x,y))return false;}return true;}
-function sees(m){const dx=S.x-m.x,dy=S.y-m.y;if(MON[m.t].fool&&(S.flags.garde_ok||S.party.every(c=>c.hp<=0||wears(c,'livree'))))return false;if(Math.abs(dx)+Math.abs(dy)===1)return pass(S.x,S.y)&&cell(m.x,m.y)!=='D';
+function sees(m){const dx=S.x-m.x,dy=S.y-m.y;if(m.slp){const dd=Math.abs(dx)+Math.abs(dy);if(dd<=3&&!m.slpS&&los(m.x,m.y,S.x,S.y)){m.slpS=1;log('<i>'+cap(MON[m.t].n)+' dort debout, le menton sur la poitrine. Un premier coup porterait double.</i>');bark('pepin',["Chut. Il rêve qu'il monte la garde.","Celui-là dort. Je propose qu'on ne le dérange pas, ou alors très fort.","Un garde qui dort : enfin un collègue."],.7);}if(dd>1||rnd(1,100)>30)return false;m.slp=0;log(cap(MON[m.t].n)+' se réveille en sursaut.');}if(MON[m.t].fool&&(S.flags.garde_ok||S.party.every(c=>c.hp<=0||wears(c,'livree'))))return false;if(Math.abs(dx)+Math.abs(dy)===1)return pass(S.x,S.y)&&cell(m.x,m.y)!=='D';
  if(Math.abs(dx)+Math.abs(dy)<=2)return los(m.x,m.y,S.x,S.y);
  const f=DX[m.d]*dx+DY[m.d]*dy,lat=Math.abs(DX[m.d]*dy-DY[m.d]*dx);if(f<1||f>(MON[m.t].rng?4:3)||lat>f)return false;return los(m.x,m.y,S.x,S.y);}
 function aligned(m){if(m.x!==S.x&&m.y!==S.y)return 0;const dx=Math.sign(S.x-m.x),dy=Math.sign(S.y-m.y);let x=m.x,y=m.y,n=0;
@@ -2099,12 +2099,12 @@ function cineTick(ts){if($('dlg').hidden||!cineMode)return;drawFx(ts);const g=$(
 function openModal(h){h=touchTxt(h);$('modalBox').className='box';$('modalBox').innerHTML=h;$('modal').hidden=false;const f=$('modalBox').querySelector('button:not(:disabled)');if(f)f.focus({preventScroll:true});}
 function closeModal(){$('modal').hidden=true;ui();}
 function info(id){const it=ITEMS[id];if(it.k==='main')return`Arme ${it.m} ${TYN[it.ty]} · ${it.spd<900?'rapide':it.spd<1300?'moyenne':'lente'}${it.rng?' · à distance':''}${it.reach?' · allonge 2':''}${it.pierce?' · perce-armure':''} · ${SKL[it.sk]}`;
- const sn=(SLOTS.find(s=>s[0]===it.k)||[0,''])[1].toLowerCase();if(it.fx)return`${it.fx}${it.prot?' · protection +'+it.prot:''} (${sn})`;if(it.prot)return`Protection +${it.prot} (${sn})`;if(it.heal)return`Soin +${it.heal}${it.cure?' · contre-poison':''}`;if(it.sf)return`Souffle +${it.sf}`;if(it.oil)return'Huile de lanterne · fourniture';if(it.k==='throw')return'À lancer · feu';return'Objet utile';}
+ const sn=(SLOTS.find(s=>s[0]===it.k)||[0,''])[1].toLowerCase();if(it.fx)return`${it.fx}${it.prot?' · protection +'+it.prot:''} (${sn})`;if(it.prot)return`Protection +${it.prot} (${sn})`;if(it.heal)return`Soin +${it.heal}${it.cure?' · contre-poison':''}`;if(it.sf)return`Souffle +${it.sf}`;if(it.oil)return'Huile de lanterne · fourniture';if(it.k==='throw')return it.junk?'À lancer · se ramasse':'À lancer · feu';return'Objet utile';}
 function describe(id){const it=ITEMS[id];log(`<b>${it.n}</b> (${info(id)}). ${it.d}`);}
 function tapSlot(bi,right){if(paused())return;const id=S.bag[bi];
  if(right){if(id)describe(id);return;}
  if(S.hand){if(id){S.bag[bi]=S.hand;S.hand=id;}else if(S.bag.length<BAGMAX){S.bag.push(S.hand);S.hand=null;}else{log("Le sac est plein.");return;}sfx('drop');ui();}
- else if(id){S.hand=id;S.bag.splice(bi,1);sfx('pick');const it=ITEMS[id];log(`En main : <b>${it.n}</b> (${info(id)}). ${it.k==='key'?it.d:it.oil?'Cliquez la jauge de la lanterne, en haut de la vue, pour la verser.':it.k==='use'?'Cliquez un portrait pour le donner.':it.k==='throw'?'Cliquez le haut de la vue pour le lancer.':"Cliquez un portrait pour l'équiper, le haut de la vue pour le lancer."}`);}}
+ else if(id){S.hand=id;S.bag.splice(bi,1);sfx('pick');const it=ITEMS[id];log(`En main : <b>${it.n}</b> (${info(id)}). ${it.k==='key'?it.d:it.oil?'Cliquez la jauge de la lanterne, en haut de la vue, pour la verser.':it.k==='use'?'Cliquez un portrait pour le donner.':it.k==='throw'?'Cliquez le haut de la vue pour le lancer.'+(it.junk?' Il retombe là où il frappe : on peut le reprendre.':''):"Cliquez un portrait pour l'équiper, le haut de la vue pour le lancer."}`);}}
 function cycleHand(dir){if(paused())return;if(S.hand){dir>0?S.bag.push(S.hand):S.bag.unshift(S.hand);S.hand=null;}if(!S.bag.length){ui();return;}S.hand=dir>0?S.bag.shift():S.bag.pop();
  sfx('pick');log(`En main : <b>${ITEMS[S.hand].n}</b> (${info(S.hand)}). 1 à 4 pour le donner, Espace pour le lancer ou le poser, Échap pour le ranger.`);}
 function refill(){if(paused())return;if((S.oil||0)>=100){log("La lanterne est pleine.");return;}if(!has('huile')){log("Plus de fiole d'huile. Les marchands en vendent ; quand la jauge est vide, la lanterne n'éclaire plus qu'à deux pas.");return;}consume('huile');S.oil=Math.min(100,(S.oil||0)+ITEMS.huile.oil);sfx('pick');log("Vous versez une fiole : la lanterne reprend des couleurs.");ui();}
@@ -2483,7 +2483,7 @@ function shopBg(kind){if(SHBG[kind])return SHBG[kind];if(IMGEL['h_'+kind])return
 function shopSay(t){if(!SHS)return;SHS.line=t;SHS.t0=performance.now();SHS.tl=speechTL(t).tl;const i=t.lastIndexOf(' écus. ');if(!vox(SHS.sid,t)&&i>0)vox(SHS.sid,t.slice(i+7));}
 function shopDraw(){const cv=$('shopCv');if(!cv||!SHS||$('modal').hidden){clearInterval(shT);shT=0;SHS=null;if($('dlg').hidden)voxStop();if(S&&LS)music();return;}
  const g=cv.getContext('2d'),now=performance.now(),vend=SHS.tl.length?SHS.tl[SHS.tl.length-1][1]:0,vp=voxLine?voxPos():0,ms=voxLine?(vp<0?-1:vp*vend):(now-SHS.t0)*1.2,talk=SHS.tl.length&&ms>=0&&ms<vend;g.imageSmoothingEnabled=false;
- g.drawImage(shopBg(SHK[SHS.id]||'etal'),0,0);
+ g.drawImage(shopBg(SHK[SHS.id]||'etal'),0,0);shopFx(g,now);
  /* le marchand, derrière son comptoir */
  const bs=176,bx=40,by=154-bs+22+(talk?Math.round(Math.sin(now/240)*1.2):0);bustTo(SHS.id,talk?mouthAt(SHS.tl,ms):null,blinkAtT(now,7));
  g.save();g.beginPath();g.rect(0,0,400,153);g.clip();g.drawImage(PSC,bx,by,bs,bs);g.restore();
@@ -2690,7 +2690,7 @@ SC.qpri=function(p){const q=QPRI[p.pz],f='q_'+q.id;if(S.flags[f]===2){log("Prime
 function questTick(){for(const q of QPRI){if(q.off||q.lv!==S.lv||S.flags['q_'+q.id]===2)continue;const m=LS.mons.find(m=>m.t===q.id);if(m&&m.hp<=0){S.flags['q_'+q.id]=2;sfx('coin');const got=q.loot.map(l=>give(l[0],l[1]||0));log(`<b>Prime : ${q.n} ne nuira plus.</b> Dans sa bourse, de quoi vous payer vous-même : <b>${got.join(', ')}</b>.`);ui();}}}
 function questLines(){const l=[];for(const q of QCOM)if(!q.off&&S.flags['q_'+q.it]===1)l.push(`rapporter ${ITEMS[q.it].n.toLowerCase()} (${LEVELS[q.a].name})`);for(const q of QPRI)if(!q.off&&S.flags['q_'+q.id]===1)l.push(`prime sur ${q.n} (${LEVELS[q.lv].name})`);return l;}
 
-const AUDE={v:40,np:0,nv:0,ok:0};
+const AUDE={v:41,np:0,nv:0,ok:0};
 MUS.addEventListener('error',()=>{AUDE.me=(MUS.error&&MUS.error.code)+':'+MUS.src.split('/').pop();});MUS.addEventListener('playing',()=>{AUDE.pl=(AUDE.pl||0)+1;});
 {const _p=MUS.play.bind(MUS);MUS.play=function(){AUDE.np++;const r=_p();if(r&&r.catch)r.catch(e=>{AUDE.pe=(e&&e.name)||String(e);});return r;};
  const _vl=voxLoad;voxLoad=function(k){return _vl(k).then(d=>{AUDE.ok++;return d;},e=>{AUDE.ve=((e&&e.name)||String(e))+':'+k;throw e;});};
@@ -2714,6 +2714,87 @@ function rugMap(){if(LV.theme!=='palace'&&LV.theme!=='panel')return null;if(RUGC
  return RUGC[S.lv]=n;}
 
 for(const lv in LEVELS)for(const n of LEVELS[lv].npcs||[])if(SHEETS.meta[n.id])n.spr=n.id;
+
+/* ====== MAJ : densités de l'original, meneurs, bestiaire par région ====== */
+(function(){
+ const OPEN='.dDLgG';let seed=20261114;const rr=()=>(seed=(seed*1103515245+12345)&0x7fffffff)/0x7fffffff;
+ Object.assign(ITEMS,{
+  pierre:{n:"Pierre",k:'throw',junk:1,m:2.5,ty:'c',p:0,d:"Une pierre. Elle se lance, se ramasse et se relance. L'arme la plus ancienne du royaume, et la moins chère."},
+  fer:{n:"Fer à cheval",k:'throw',junk:1,m:3,ty:'c',p:2,d:"Il porte bonheur, dit-on. Lancé avec conviction, il le retire à quelqu'un d'autre."},
+  tesson:{n:"Tesson de cruche",k:'throw',junk:1,m:2,ty:'t',p:0,d:"Le fond d'une cruche. Ce qu'elle contenait a été bu depuis longtemps, sans doute par Pépin."},
+  os:{n:"Os rongé",k:'throw',junk:1,m:1.5,ty:'c',p:0,d:"Rongé avec application. Quelqu'un, ou quelque chose, a pris son temps."},
+  chiffon:{n:"Chemise déchirée",k:'throw',junk:1,m:.5,ty:'c',p:1,d:"Une chemise qui a connu des jours meilleurs et au moins une bagarre."}});
+ const U={u_patience:['lance',"La Longue Patience",3,0,"Lance du capitaine Malebrèche. Arme unique : elle attend son heure plus longtemps que celui d'en face."],
+  u_potdefer:['casque',"Le Pot-de-fer du guet",0,2,"Casque du sergent Trognon. Pièce unique : cabossé de partout, percé nulle part."],
+  u_raisonneuse:['hache',"La Raisonneuse",3,0,"Hache du lieutenant Corbac. Arme unique : elle met fin aux discussions, et à ceux qui les prolongent."],
+  u_rondache:['bouclier',"La Rondache de Florimond",0,2,"Bouclier du maître d'armes. Pièce unique : trente ans de leçons, pas une touche."],
+  u_taupiere:['pioche',"La Taupière",3,0,"Pic du maître sapeur Gringoire. Arme unique : elle ouvre les galeries et les avis contraires."]};
+ for(const k in U){const[b,n,dd,dp,d]=U[k],B=ITEMS[b];if(!B)continue;const o=Object.assign({},B,{n,d,p:Math.round(B.p*2.5+40),base:b});if(B.dmg)o.dmg=[B.dmg[0]+dd-1,B.dmg[1]+dd];if(B.m)o.m=B.m+dd*.6;if(B.prot)o.prot=B.prot+dp;ITEMS[k]=o;}
+ const LEAD={ruines:["le capitaine Malebrèche",'u_patience'],faubourgs:["le sergent Trognon",'u_potdefer'],cour:["le lieutenant Corbac",'u_raisonneuse'],palais2:["le maître d'armes Florimond",'u_rondache'],galeries:["le maître sapeur Gringoire",'u_taupiere']};
+ const VAR={
+  mine:{arbal:["le frondeur des puits",1,1,{kite:1}],lancier:["le piqueur de galerie",1.1,1,{}],molosse:["le chien de carrier",1.2,1,{}],rat:["le rat de mine",1.3,1,{}]},
+  abbaye:{arbal:["l'archer du clocher",1,1.1,{}],lancier:["le hallebardier du chapitre",1.15,1,{}],reitre:["le reître de Hagen",1,1,{alert:3,alertT:"« Au capitaine ! » Le cri file sous les voûtes."}],molosse:["le dogue du cellier",1.3,1.1,{}]},
+  mine2:{pillard:["le mineur dévoyé",1.1,1,{cap:['etourdi',14],coward:0}],arbal:["le guetteur de puits",1,1,{amb:.4,ambT:"se laisse tomber d'un boisage"}],lancier:["le porteur d'étai",1.25,.9,{}],molosse:["le chien de fond",1.2,1,{}]},
+  crypte:{reitre:["le pilleur de caveaux",.9,1,{cap:['vol',16],coward:1}],arbal:["le veilleur de crypte",1,1,{amb:.5,ambT:"sort de derrière un gisant"}],lancier:["le fossoyeur armé",1.2,1.1,{}],molosse:["le chien des tombes",1.1,1.1,{}]},
+  ruines:{pillard:["le chercheur de ruines",1,1,{cap:['vol',14]}],arbal:["le guetteur des créneaux",1,1.1,{kite:1}],lancier:["le piquier perdu",1.1,1,{}]},
+  faubourgs:{reitre:["le soudard de faubourg",.9,1,{coward:1}],garde_royal:["l'homme du guet",.9,.9,{alert:4,alertT:"« Au guet ! » Des volets claquent, des bottes accourent."}]},
+  cour:{garde:["le garde de la cour",1.2,1.1,{}],arbal:["l'arbalétrier des remparts",1.1,1.1,{kite:1}],reitre:["le reître de la cour",1.1,1,{}]},
+  palais2:{arbal:["l'arbalétrier de la galerie",1.1,1.1,{}],lancier:["le hallebardier d'apparat",1.3,1.1,{}],reitre:["le gentilhomme d'armes",1.1,1.15,{}]},
+  palais3:{arbal:["le tireur du chancelier",1.2,1.2,{kite:1}],lancier:["le garde du sceau",1.4,1.15,{}],reitre:["le spadassin du chancelier",1.2,1.2,{}]},
+  camp:{lancier:["le piquier de Karst",1.3,1.1,{}],molosse:["le chien de guerre",1.5,1.2,{}],reitre:["le vétéran de Karst",1.25,1.15,{}]},
+  galeries:{molosse:["le chien de sape",1.4,1.1,{}],sentinelle:["le veilleur de sape",1,1,{amb:.35,ambT:"surgit d'une niche de mine"}]}};
+ /* geôles : le sergent cognait trop fort pour un premier chef */
+ if(MON.sergent){MON.sergent.hp=40;MON.sergent.m=5;}
+ const cnt={};for(const id in LEVELS)for(const m of LEVELS[id].mons||[])cnt[m[0]]=(cnt[m[0]]||0)+1;
+ const pick=(a,n)=>{if(n>=a.length)return a.slice();const o=[];for(let i=0;i<n;i++)o.push(a[Math.floor((i+.5)*a.length/n)]);return o;};
+ window.MAJSTAT={};
+ for(const id in LEVELS){const L=LEVELS[id];if(!L.map||L.waves)continue;let cells=0;for(const row of L.map)for(const c of row)if(OPEN.includes(c))cells++;
+  const st=MAJSTAT[id]={cells,m0:(L.mons||[]).length,i0:(L.items||[]).length};
+  /* --- adversaires : un pour vingt cases environ, trois quarts de base, un quart de costauds --- */
+  if(L.mons&&L.mons.length){const T=Math.max(5,Math.round(cells/21)),isFix=m=>!MON[m[0]]||MON[m[0]].boss||MON[m[0]].drop||m[3]||cnt[m[0]]===1;
+   const fix=L.mons.filter(isFix),rest=L.mons.filter(m=>!isFix(m)),pw=m=>MON[m[0]].hp*MON[m[0]].m,ps=[...new Set(rest.map(pw))].sort((a,b)=>a-b),med=ps[ps.length>>1];
+   const tough=rest.filter(m=>ps.length>1&&pw(m)>=med),base=rest.filter(m=>!(ps.length>1&&pw(m)>=med));
+   if(L.mons.length>T){const room=Math.max(2,T-fix.length);let nT=Math.min(tough.length,Math.round(room*.25)),nB=Math.min(base.length,room-nT);nT=Math.min(tough.length,room-nB);
+    const keep=new Set([...fix,...pick(tough,nT),...pick(base,nB)]);L.mons=L.mons.filter(m=>keep.has(m));}
+   /* un meneur nommé là où il n'y avait pas de chef : il porte l'objet remarquable du niveau */
+   if(LEAD[id]){const sx=L.start[0],sy=L.start[1],c=L.mons.filter(m=>!isFix(m)&&MON[m[0]].sc>=.8).sort((a,b)=>pw(b)-pw(a)||(Math.abs(b[1]-sx)+Math.abs(b[2]-sy))-(Math.abs(a[1]-sx)+Math.abs(a[2]-sy)))[0];
+    if(c){const b=MON[c[0]],n=LEAD[id][0];MON['lead_'+id]=Object.assign({},b,{n,lead:1,spr:b.spr||c[0],hp:Math.round(b.hp*1.9),m:Math.round(b.m*1.25),lv:b.lv+1,sc:(b.sc||.82)*1.1,coward:0,amb:0,kite:0,gold:[15,30],alert:Math.max(b.alert||0,4),alertT:"« À moi ! » "+cap(n)+" n'a pas besoin de le dire deux fois.",ko:cap(n)+" tombe. Ses hommes n'ont plus personne à qui obéir."});c[0]='lead_'+id;c[3]=[LEAD[id][1]];}}
+   /* bestiaire de la région, et un garde sur quatre assoupi à son poste */
+   const V=VAR[id]||{};let k=0;for(const m of L.mons){if(isFix(m)||MON[m[0]].lead)continue;const b0=m[0];
+    if(V[b0]){const[n,h,mm,ex]=V[b0],nid=id+'_'+b0;if(!MON[nid]){const b=MON[b0];MON[nid]=Object.assign({},b,{n,spr:b.spr||b0,hp:Math.round(b.hp*h),m:Math.max(1,Math.round(b.m*mm*10)/10),ko:cap(n)+" "+(b.sc<.7?"file sans demander son reste.":"s'effondre.")},ex);}m[0]=nid;}
+    const t=MON[m[0]];if(id!=='geoles'&&t.sc>=.8&&t.mode!=='w'&&!t.amb&&!t.rng&&(k++%4)===1)m[4]={slp:1};}
+   st.m1=L.mons.length;st.kinds=[...new Set(L.mons.map(m=>MON[m[0]].n))];}
+  /* --- objets : moitié moins à ramasser, surtout de l'ordinaire --- */
+  if(L.items&&L.items.length&&id!=='bataille'){const tut=id==='geoles'?['tabouret','onguent','epee_c','fronde']:[];
+   const key=i=>{const t=ITEMS[i[0]];return i[0]!=='or'&&(!t||t.k==='key'||t.learn||/^[uq]_/.test(i[0])||tut.includes(i[0]));};
+   const F=Math.max(4,Math.round(cells/24)),fixI=L.items.filter(key),loose=L.items.filter(i=>!key(i));
+   const val=loose.filter(i=>i[0]!=='or'&&ITEMS[i[0]].p>=40),purse=loose.filter(i=>i[0]==='or'),cons=loose.filter(i=>i[0]!=='or'&&!val.includes(i)&&(ITEMS[i[0]].k==='use'||ITEMS[i[0]].k==='throw')),gear=loose.filter(i=>!val.includes(i)&&!purse.includes(i)&&!cons.includes(i));
+   const chests=(L.props||[]).filter(p=>p.k==='chest'&&Array.isArray(p.loot)&&!p.sc&&!p.pz&&!/^(q|cf)/.test(p.id));
+   const kV=pick(val,Math.ceil(val.length/2)),onFloor=[];kV.forEach((i,n)=>{if(chests.length){const c=chests[n%chests.length];c.loot=c.loot.concat([[i[0],0]]);}else onFloor.push(i);});
+   const kP=pick(purse,Math.max(1,Math.round(F*.15))),kC=pick(cons,Math.max(1,Math.round(F*.15))),kG=pick(gear,Math.max(1,Math.round(F*.13)));
+   const sumA=purse.reduce((a,i)=>a+(i[3]||0),0),sumK=kP.reduce((a,i)=>a+(i[3]||0),0);if(sumK)for(const i of kP)i[3]=Math.max(1,Math.round((i[3]||0)*sumA/sumK));
+   const kept=new Set([...kP,...kC,...kG,...onFloor]),free=loose.filter(i=>!kept.has(i)).map(i=>[rr(),i[1],i[2]]).sort((a,b)=>a[0]-b[0]);
+   const nR=Math.round(F*.4),nJ=Math.round(F*.15),J=['fer','tesson','os','chiffon'],add=[];free.forEach((f,n)=>{if(n<nR)add.push(['pierre',f[1],f[2]]);else if(n<nR+nJ)add.push([J[(n+id.length)%4],f[1],f[2]]);});
+   L.items=[...fixI,...kP,...kC,...kG,...onFloor,...add];
+   /* meubles : un sur deux ne cache plus rien (sauf clés) */
+   let q=0;for(const p of L.props||[]){if(p.k==='chest'||!Array.isArray(p.loot)||p.sc||p.pz!=null)continue;if(p.loot.some(l=>l[0]!=='or'&&ITEMS[l[0]]&&(ITEMS[l[0]].k==='key'||/^[uq]_/.test(l[0]))))continue;if(q++%2)delete p.loot;}
+   st.i1=L.items.length;st.comp={};for(const i of L.items){const t=ITEMS[i[0]],c=i[0]==='or'?'bourse':!t?'?':t.junk?(i[0]==='pierre'?'pierre':'rebut'):t.k==='key'||/^[uq]_/.test(i[0])?'quête':t.k==='use'||t.k==='throw'?'consommable':'arme/armure';st.comp[c]=(st.comp[c]||0)+1;}}
+ }
+ /* icônes des nouveaux objets */
+ const _pi=postIcons;postIcons=function(){_pi();try{
+  const blob=(g,c1,c2)=>{g.fillStyle='#1a120c';g.beginPath();g.ellipse(8,9.5,5.6,4.6,0,0,7);g.fill();g.fillStyle=c1;g.beginPath();g.ellipse(8,9,4.8,3.8,0,0,7);g.fill();g.fillStyle=c2;g.beginPath();g.ellipse(6.6,7.8,2.2,1.4,0,0,7);g.fill();};
+  ICONC.pierre=mk(16,16,g=>blob(g,'#6c6a66','#9a9892'));ICONC.os=mk(16,16,g=>{g.strokeStyle='#1a120c';g.lineWidth=4;g.beginPath();g.moveTo(4,12);g.lineTo(12,4);g.stroke();g.strokeStyle='#d8cfb4';g.lineWidth=2;g.stroke();for(const[x,y]of[[3,11],[5,13],[11,3],[13,5]]){g.fillStyle='#d8cfb4';g.fillRect(x-1,y-1,2,2);}});
+  ICONC.tesson=mk(16,16,g=>{g.fillStyle='#1a120c';g.beginPath();g.moveTo(3,13);g.lineTo(6,3);g.lineTo(10,7);g.lineTo(13,5);g.lineTo(12,13);g.closePath();g.fill();g.fillStyle='#8a5a34';g.beginPath();g.moveTo(4.5,12);g.lineTo(6.6,5);g.lineTo(10,8.6);g.lineTo(11.8,7.4);g.lineTo(11,12);g.closePath();g.fill();});
+  ICONC.fer=mk(16,16,g=>{g.strokeStyle='#1a120c';g.lineWidth=5;g.beginPath();g.arc(8,7,4,Math.PI*.15,Math.PI*.85,true);g.stroke();g.strokeStyle='#7c7f86';g.lineWidth=2.6;g.stroke();});
+  ICONC.chiffon=mk(16,16,g=>{g.fillStyle='#1a120c';g.fillRect(2,4,12,10);g.fillStyle='#b9ad8e';g.fillRect(3,5,10,8);g.fillStyle='#1a120c';g.fillRect(6,5,4,2);g.fillRect(4,10,1,3);g.fillRect(9,11,1,2);});
+  for(const k in ITEMS)if(ITEMS[k].base&&!ICONC[k]&&ICONC[ITEMS[k].base])ICONC[k]=mk(16,16,g=>{g.drawImage(ICONC[ITEMS[k].base],0,0);g.globalCompositeOperation='source-atop';g.fillStyle='rgba(214,168,60,.38)';g.fillRect(0,0,16,16);});
+  for(const k of['pierre','os','tesson','fer','chiffon'])try{vga(ICONC[k],-1);}catch(e){}}catch(e){}};
+ /* pluie sur les lieux à ciel couvert, et marais */
+ const _render=render;render=function(ts){_render(ts);if(!S||!LS||!LV||!(LV.sky===2||LV.theme==='swamp'))return;const cv=$('view');if(!cv)return;const g=cv.getContext('2d'),W=cv.width,H=cv.height;g.save();g.strokeStyle='rgba(196,210,220,.26)';g.lineWidth=1;g.beginPath();
+  for(let i=0;i<70;i++){const sp=1+(i%4)*.18,x=((i*53.7+ts*.11*sp)%(W+40))-20,y=(i*97.3+ts*.62*sp)%H;g.moveTo(x,y);g.lineTo(x-3,y+9);}g.stroke();g.restore();};
+})();
+function shopFx(g,now){g.save();g.globalCompositeOperation='lighter';g.fillStyle='rgba(255,160,70,'+(.045+.03*Math.sin(now/130)+.018*Math.sin(now/47)).toFixed(3)+')';g.fillRect(0,0,400,153);
+ for(let i=0;i<14;i++){const x=(i*61+Math.sin(now/1900+i)*14+400)%400,y=150-((now/60*(.3+(i%4)*.12)+i*37)%150);g.fillStyle='rgba(255,230,180,'+(.18+.14*Math.sin(now/700+i)).toFixed(2)+')';g.fillRect(x|0,y|0,1,1);}g.restore();}
 </script>
 </body>
 </html>
