@@ -421,7 +421,7 @@ body:not(.ls) .box.mapM .legend{grid-template-columns:1fr 1fr}body:not(.ls) .box
  <button id="tCont" hidden>Continuer</button>
  <div class="keys">Souris, doigt ou clavier : tout se fait des trois façons. L'aide est dans la chronique (Échap).</div>
 </div>
-<script>(function(){var q=location.search,lite=/[?&]lite\b/.test(q)||(!/[?&]hd\b/.test(q)&&(/iPhone|iPod|Android.*Mobile|Windows Phone/i.test(navigator.userAgent)||(navigator.maxTouchPoints>1&&Math.min(screen.width,screen.height)<=600)));window.LITE=lite;var base=/landoflord/i.test(location.pathname)&&location.protocol!=='file:'?'/landoflord/':'';document.write('<script src="'+base+'pack-'+(lite?'lite':'hd')+'.js?v=45"><\/script>');})();</script>
+<script>(function(){var q=location.search,lite=/[?&]lite\b/.test(q)||(!/[?&]hd\b/.test(q)&&(/iPhone|iPod|Android.*Mobile|Windows Phone/i.test(navigator.userAgent)||(navigator.maxTouchPoints>1&&Math.min(screen.width,screen.height)<=600)));window.LITE=lite;var base=/landoflord/i.test(location.pathname)&&location.protocol!=='file:'?'/landoflord/':'';document.write('<script src="'+base+'pack-'+(lite?'lite':'hd')+'.js?v=46"><\/script>');})();</script>
 <script>
 /* Images : bustes du jeu libre Flare (CC-BY-SA 3.0), textures et illustrations libres (voir Crédits). */
 const IMG=PACK.IMG;
@@ -1190,7 +1190,7 @@ function loadSnd(){if(!BASE||!AC||loadSnd.done)return;loadSnd.done=1;for(const k
 function audioOn(){if(AC)return;try{AC=new(window.AudioContext||window.webkitAudioContext)();}catch(e){return;}mixInit();
  const n=AC.createBuffer(1,AC.sampleRate*2,AC.sampleRate),d=n.getChannelData(0);let l=0;for(let i=0;i<d.length;i++){l=(l+.02*(Math.random()*2-1))/1.02;d[i]=l*3.5;}
  const s=AC.createBufferSource();s.buffer=n;s.loop=true;const f=AC.createBiquadFilter();f.type='lowpass';f.frequency.value=320;amb=AC.createGain();amb.gain.value=PREF.sfx?.05:0;s.connect(f).connect(amb).connect(OUT('amb'));s.start();loadSnd();}
-function trackFor(){if(musForce)return musForce;if(!$('title').hidden)return'barde';if(!$('heroSel').hidden)return'epopee';if(!S)return'barde';if(!LS)return'epopee';
+function trackFor(){if(musForce)return musForce;if(cineMode&&!$('dlg').hidden&&/^i_/.test(curScene))return'epopee';if(!$('title').hidden)return'barde';if(!$('heroSel').hidden)return'epopee';if(!S)return cineMode&&!$('dlg').hidden&&/^i_/.test(curScene)?'epopee':'barde';if(!LS)return'epopee';
  if(!$('modal').hidden&&$('modalBox').querySelector('.shop'))return'marche';if(resting)return'taverne';if(fightT)return'combat';return TRACK[S.lv]||'barde';}
 function music(){if(!BASE)return;const t=PREF.mus?trackFor():'';if(t===curTrack){if(t&&MUS.paused&&!MUS.ended)MUS.play().catch(()=>{});return;}
  if(curTrack&&MUS.loop&&!musHold)MPOS[curTrack]=MUS.currentTime;const was=curTrack&&!MUS.paused&&!musHold;curTrack=t;clearTimeout(musSwT);if(!t){MUS.pause();return;}const tok=++musTok;
@@ -2694,7 +2694,7 @@ SC.qpri=function(p){const q=QPRI[p.pz],f='q_'+q.id;if(S.flags[f]===2){log("Prime
 function questTick(){for(const q of QPRI){if(q.off||q.lv!==S.lv||S.flags['q_'+q.id]===2)continue;const m=LS.mons.find(m=>m.t===q.id);if(m&&m.hp<=0){S.flags['q_'+q.id]=2;sfx('coin');const got=q.loot.map(l=>give(l[0],l[1]||0));log(`<b>Prime : ${q.n} ne nuira plus.</b> Dans sa bourse, de quoi vous payer vous-même : <b>${got.join(', ')}</b>.`);ui();}}}
 function questLines(){const l=[];for(const q of QCOM)if(!q.off&&S.flags['q_'+q.it]===1)l.push(`rapporter ${ITEMS[q.it].n.toLowerCase()} (${LEVELS[q.a].name})`);for(const q of QPRI)if(!q.off&&S.flags['q_'+q.id]===1)l.push(`prime sur ${q.n} (${LEVELS[q.lv].name})`);return l;}
 
-const AUDE={v:45,np:0,nv:0,ok:0};
+const AUDE={v:46,np:0,nv:0,ok:0};
 MUS.addEventListener('error',()=>{AUDE.me=(MUS.error&&MUS.error.code)+':'+MUS.src.split('/').pop();});MUS.addEventListener('playing',()=>{AUDE.pl=(AUDE.pl||0)+1;});
 {const _p=MUS.play.bind(MUS);MUS.play=function(){AUDE.np++;const r=_p();if(r&&r.catch)r.catch(e=>{AUDE.pe=(e&&e.name)||String(e);});return r;};
  const _vl=voxLoad;voxLoad=function(k){return _vl(k).then(d=>{AUDE.ok++;return d;},e=>{AUDE.ve=((e&&e.name)||String(e))+':'+k;throw e;});};

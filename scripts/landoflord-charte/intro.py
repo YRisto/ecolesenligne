@@ -142,7 +142,8 @@ def apply(s, rep1):
     # après la sentence : l'armée sans son général, puis la cellule
     s = rep1(s, """[null,"La reine a dit « le temps d'y voir clair ». C'était il y a quarante jours.",0,'cell',"Quarante jours plus tard"]]""", """[null,"L'armée passa au duc de Fierbois. Au Gué-aux-Corbeaux, il tint une heure.",0,'i_field',"Le Gué-aux-Corbeaux"],[null,"La reine a dit « le temps d'y voir clair ». C'était il y a quarante jours.",0,'i_cell',"Quarante jours plus tard"]]""")
     # musique : un seul thème épique, du logo à la cellule ; elle passe sous les voix au lieu de se taire
-    s = rep1(s, "if(!$('heroSel').hidden)return'festin';if(!S)return'barde';if(!LS)return'complainte';", "if(!$('heroSel').hidden)return'epopee';if(!S)return'barde';if(!LS)return'epopee';")
+    s = rep1(s, "if(!$('heroSel').hidden)return'festin';if(!S)return'barde';if(!LS)return'complainte';", "if(!$('heroSel').hidden)return'epopee';if(!S)return cineMode&&!$('dlg').hidden&&/^i_/.test(curScene)?'epopee':'barde';if(!LS)return'epopee';")
+    s = rep1(s, "if(!$('title').hidden)return'barde';", "if(cineMode&&!$('dlg').hidden&&/^i_/.test(curScene))return'epopee';if(!$('title').hidden)return'barde';")
     s = rep1(s, "f=(sc||musHold)?0:duckF,d=now?0:musHold?.22:sc?.8:", "f=musHold?0:sc?(/^i_/.test(curScene)&&cineMode?(duckF<1?.4:1):0):duckF,d=now?0:musHold?.22:sc?.8:")
     s = rep1(s, "musBase=()=>(curTrack==='combat'?.22:.2)*(PREF.lm/60);", "musBase=()=>(curTrack==='combat'?.22:curTrack==='epopee'?.36:.2)*(PREF.lm/60);")
     return s
