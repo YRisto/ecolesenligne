@@ -4166,67 +4166,123 @@
  */
 (function (root) {
   'use strict';
+  // Grille : une case de Two Point Hospital = 2 x 2 cellules. Toutes les tailles ci-dessous sont en cellules.
+  // Référence d'échelle (porte = une case, comme dans Two Point Hospital) : 1 case ≈ 1 m, 1 cellule ≈ 0,5 m.
   var W = 60, H = 44, SPAWN = { x: 30, y: 43 }, DAY = 80;
   var rnd = Math.random;
   function ri(a, b) { return a + Math.floor(rnd() * (b - a + 1)); }
   function pick(a) { return a[Math.floor(rnd() * a.length)]; }
   function clamp(v, a, b) { return v < a ? a : v > b ? b : v; }
 
-  /* Salles : la coque (murs, sol, porte) a un prix, l'équipement obligatoire s'achète et se pose à part. */
+  /* Salles : la coque (murs, sol, porte) a un prix, l'équipement obligatoire s'achète et se pose à part.
+     min = taille minimale en cellules (deux cellules par case) ; staff/aide = personnel requis ; spec = spécialité du médecin. */
   var ROOMS = {
-    gp:      { name: 'Cabinet de généraliste', short: 'Généraliste', min: [6, 6], shell: 800, staff: 'doc', kind: 'diag', price: 100, dur: 0, color: '#9fdcc2', need: ['gp_desk', 'chair', 'cabinet'],
-               blurb: 'Tout commence ici. Et souvent, tout y revient.' },
-    radio:   { name: 'Radiologie approximative', short: 'Radiologie', min: [6, 8], shell: 1500, staff: 'doc', kind: 'diag', price: 260, dur: 34, machine: true, color: '#a9bdf0', need: ['xray', 'console'],
-               blurb: 'On voit à travers le patient. Pas toujours à travers son dossier.' },
-    psy:     { name: 'Psychiatrie', short: 'Psychiatrie', min: [6, 6], shell: 900, staff: 'doc', kind: 'both', price: 160, dur: 42, color: '#d3b6ee', need: ['couch', 'armchair', 'bookcase'],
-               blurb: 'Un divan, un médecin, et « on en reparle la semaine prochaine ».' },
-    pharma:  { name: 'Pharmacie', short: 'Pharmacie', min: [6, 6], shell: 800, staff: 'nurse', kind: 'cure', dur: 26, color: '#f5d48f', need: ['pharma_counter', 'pharma_shelf'],
-               blurb: 'Des cachets pour tout. Les notices sont offertes, personne ne les lit.' },
-    deco:    { name: 'Déconnecteur', short: 'Déconnecteur', min: [6, 8], shell: 1200, staff: 'doc', kind: 'cure', dur: 40, machine: true, color: '#f3aaa2', need: ['cage', 'console'],
-               blurb: 'Cage sans réseau, sans wifi, sans notifications. Les patients hurlent, puis guérissent.' },
-    guichet: { name: 'Guichet n° 12', short: 'Guichet 12', min: [6, 8], shell: 700, staff: 'nurse', kind: 'cure', dur: 46, color: '#c9d2bb', need: ['guichet', 'file_cabinet'],
-               blurb: 'Thérapie par exposition au formulaire. Il manque toujours une pièce.' },
-    platre:  { name: 'Atelier plâtre', short: 'Plâtre', min: [6, 6], shell: 900, staff: 'nurse', kind: 'cure', dur: 36, color: '#efe3c8', need: ['plaster_table', 'trolley'],
-               blurb: 'On plâtre large. Les amis signeront dessus.' },
-    repos:   { name: 'Salle de repos', short: 'Repos', min: [6, 6], shell: 600, staff: null, kind: 'service', color: '#a8d8ea', need: ['sofa'],
-               blurb: 'Canapé, machine à café, ragots. Sans elle, l\'équipe craque.' },
-    wc:      { name: 'Toilettes', short: 'Toilettes', min: [4, 6], shell: 500, staff: null, kind: 'service', color: '#bcd9ef', need: ['toilet'],
-               blurb: 'À construire avant le distributeur de boissons. Faites-nous confiance.' }
+    gp:        { name: 'Cabinet de généraliste', short: 'Généraliste', min: [6, 6], shell: 800, staff: 'doc', kind: 'diag', price: 100, dur: 0, color: '#9fdcc2', need: ['gp_desk', 'chair', 'cabinet'],
+                 blurb: 'Tout commence ici. Et souvent, tout y revient.' },
+    radio:     { name: 'Radiologie approximative', short: 'Radiologie', min: [6, 8], shell: 1500, staff: 'doc', kind: 'diag', price: 260, dur: 34, machine: 'xray', color: '#a9bdf0', need: ['xray', 'console'],
+                 blurb: 'On voit à travers le patient. Pas toujours à travers son dossier.' },
+    psy:       { name: 'Psychiatrie', short: 'Psychiatrie', min: [8, 8], shell: 900, staff: 'doc', spec: 'psy', kind: 'both', price: 160, dur: 42, color: '#d3b6ee', need: ['couch', 'armchair', 'bookcase'],
+                 blurb: 'Un divan, un psychiatre, et « on en reparle la semaine prochaine ».' },
+    lits:      { name: 'Service de lits', short: 'Lits', min: [6, 8], shell: 1100, staff: 'nurse', kind: 'ward', price: 220, dur: 150, color: '#bfe0f2', need: ['bed', 'nurse_station', 'screen'],
+                 blurb: 'Observation, convalescence et préparation au bloc. Un lit par patient, une infirmière pour tous.' },
+    pharma:    { name: 'Pharmacie', short: 'Pharmacie', min: [6, 6], shell: 800, staff: 'nurse', kind: 'cure', dur: 26, color: '#f5d48f', need: ['pharma_counter', 'pharma_shelf'],
+                 blurb: 'Des cachets pour tout. Les notices sont offertes, personne ne les lit.' },
+    bloc:      { name: 'Bloc opératoire', short: 'Bloc', min: [6, 8], shell: 2600, staff: 'doc', spec: 'chir', aide: 'nurse', kind: 'cure', dur: 70, color: '#cfeee7', need: ['op_table', 'monitor', 'scrub_sink'],
+                 blurb: 'Un chirurgien, une infirmière, et une lampe qui en a vu d\'autres. La salle qui rapporte le plus.' },
+    deco:      { name: 'Déconnecteur', short: 'Déconnecteur', min: [6, 8], shell: 1200, staff: 'doc', kind: 'cure', dur: 40, machine: 'cage', color: '#f3aaa2', need: ['cage', 'console'],
+                 blurb: 'Cage sans réseau, sans wifi, sans notifications. Les patients hurlent, puis guérissent.' },
+    upscale:   { name: 'Upscaleur 4K', short: 'Upscaleur', min: [6, 8], shell: 1400, staff: 'doc', kind: 'cure', dur: 44, machine: 'upscaler', color: '#b9e3f7', need: ['upscaler', 'console'],
+                 blurb: 'On entre en 144p, on ressort en ultra haute définition. Les rides aussi.' },
+    avion:     { name: 'Mode Avion', short: 'Mode Avion', min: [6, 8], shell: 1300, staff: 'nurse', kind: 'cure', dur: 40, machine: 'avion', color: '#f7d9a8', need: ['avion', 'console'],
+                 blurb: 'Un vol immobile de quarante minutes, sans réseau. Les notifications restent au sol.' },
+    guichet:   { name: 'Guichet n° 12', short: 'Guichet 12', min: [6, 8], shell: 700, staff: 'nurse', kind: 'cure', dur: 46, color: '#c9d2bb', need: ['guichet', 'file_cabinet'],
+                 blurb: 'Thérapie par exposition au formulaire. Il manque toujours une pièce.' },
+    platre:    { name: 'Atelier plâtre', short: 'Plâtre', min: [6, 6], shell: 900, staff: 'nurse', kind: 'cure', dur: 36, color: '#efe3c8', need: ['plaster_table', 'trolley'],
+                 blurb: 'On plâtre large. Les amis signeront dessus.' },
+    formation: { name: 'Salle de formation', short: 'Formation', min: [6, 6], shell: 1000, staff: 'doc', rank: 2, kind: 'train', color: '#e6d3b3', need: ['lectern', 'student_desk', 'board'],
+                 blurb: 'Un consultant enseigne, les autres progressent. Déposez-y le personnel à former.' },
+    recherche: { name: 'Laboratoire de recherche', short: 'Recherche', min: [6, 6], shell: 1800, staff: 'doc', spec: 'cherch', kind: 'lab', color: '#d6e9c6', need: ['lab_bench', 'lab_computer'],
+                 blurb: 'Des chercheurs, des tubes qui bouillonnent, et parfois une découverte.' },
+    repos:     { name: 'Salle de repos', short: 'Repos', min: [6, 6], shell: 600, staff: null, kind: 'service', color: '#a8d8ea', need: ['sofa'],
+                 blurb: 'Canapé, machine à café, ragots. Sans elle, l\'équipe craque.' },
+    wc:        { name: 'Toilettes', short: 'Toilettes', min: [6, 6], shell: 500, staff: null, kind: 'service', color: '#bcd9ef', need: ['toilet', 'sink'],
+                 blurb: 'À construire avant le distributeur de boissons. Faites-nous confiance.' }
   };
-  /* Objets. Repère local : w cases en largeur (x), d en profondeur (y), l'avant de l'objet regarde vers +y.
-     res  = cases à laisser libres (accès, place du soignant) ; spots = où l'on se tient pour s'en servir. */
+  var SPECS = { psy: 'Psychiatrie', chir: 'Chirurgie', cherch: 'Recherche' };
+  var RANKS = ['Interne', 'Docteur', 'Consultant'];
+
+  /* Objets. Repère local : w cellules en largeur (x), d en profondeur (y), l'avant de l'objet regarde vers +y.
+     res = cellules à laisser libres (accès, place du soignant) ; spots = où l'on se tient pour s'en servir.
+     sc = échelle du modèle 3D (les anciens modèles étaient dessinés pour une case de 1 cellule). */
   function SP(tile, pos, face, pose, h, any) { return { tile: tile, pos: pos || tile, face: face || [0, 1], pose: pose || 'stand', h: h || 0, any: !!any }; }
+  // Agrandit ×2 un objet dessiné à l'ancienne échelle : empreinte, cases d'accès, places et hauteurs suivent.
+  function X2(o) {
+    var w0 = o.w, d0 = o.d, w = w0 * 2, d = d0 * 2, c0x = (w0 - 1) / 2, c0y = (d0 - 1) / 2, cx = (w - 1) / 2, cy = (d - 1) / 2;
+    function ax(i, n0, n) { return i < 0 ? -1 : i >= n0 ? n : null; }
+    function cell(q, near) {
+      var nx = ax(q[0], w0, w), ny = ax(q[1], d0, d), out = [];
+      var xs = nx !== null ? [nx] : [2 * q[0], 2 * q[0] + 1], ys = ny !== null ? [ny] : [2 * q[1], 2 * q[1] + 1];
+      xs.forEach(function (x) { ys.forEach(function (y) { out.push([x, y]); }); });
+      if (near) { out.sort(function (a, b) { return Math.abs(a[0] - near[0]) + Math.abs(a[1] - near[1]) - Math.abs(b[0] - near[0]) - Math.abs(b[1] - near[1]); }); return out[0]; }
+      return out;
+    }
+    function sp(s) {
+      var pos = [cx + 2 * (s.pos[0] - c0x), cy + 2 * (s.pos[1] - c0y)];
+      return { tile: cell(s.tile, pos), pos: pos, face: s.face, pose: s.pose, h: s.h * 2, any: s.any };
+    }
+    var n = {}; for (var k in o) n[k] = o[k];
+    n.w = w; n.d = d; n.sc = 2;
+    if (o.res) { n.res = []; o.res.forEach(function (q) { cell(q).forEach(function (c) { if (!n.res.some(function (e) { return e[0] === c[0] && e[1] === c[1]; })) n.res.push(c); }); }); }
+    if (o.spots) { n.spots = {}; for (var s in o.spots) n.spots[s] = s === 'seats' || s === 'beds' ? o.spots[s].map(sp) : sp(o.spots[s]); }
+    return n;
+  }
   var ITEMS = {
-    reception:      { name: 'Accueil', cost: 400, w: 2, d: 1, where: ['hall'], res: [[0, -1], [1, -1], [0, 1], [1, 1]], spots: { staff: SP([0, -1], [0.5, -0.72], [0, 1]), patient: SP([0, 1], [0.5, 0.95], [0, -1]) }, blurb: 'Les patients s\'y enregistrent. Il faut quelqu\'un derrière.' },
-    bench:          { name: 'Banc', cost: 80, w: 1, d: 1, where: ['hall'], res: [[0, 1]], spots: { seats: [SP([0, 1], [0, 0.04], [0, 1], 'sit', 0.3)] }, blurb: 'Attendre assis rend l\'attente presque supportable.' },
-    drinks:         { name: 'Distributeur', cost: 600, w: 1, d: 1, where: ['hall'], res: [[0, 1]], spots: { use: SP([0, 1], [0, 0.92], [0, -1]) }, blurb: 'Rapporte 20 € par soda. Ne rend pas la monnaie.' },
-    plant:          { name: 'Plante verte', cost: 60, w: 1, d: 1, where: ['hall', '*'], blurb: 'Remonte le moral. En plastique, mais personne ne vérifie.' },
-    lamp:           { name: 'Lampadaire', cost: 90, w: 1, d: 1, where: ['hall', '*'], blurb: 'Une lumière douce qui cache très bien la poussière.' },
-    rug:            { name: 'Tapis', cost: 120, w: 2, d: 2, where: ['*'], flat: true, blurb: 'Donne du cachet. Les roues des brancards adorent.' },
-    gp_desk:        { name: 'Bureau du médecin', cost: 900, w: 2, d: 1, where: ['gp'], res: [[0, -1]], spots: { staff: SP([0, -1], [0, -0.78], [0, 1], 'sit', 0.3) }, blurb: 'Le médecin s\'assoit derrière, côté écran.' },
-    chair:          { name: 'Chaise du patient', cost: 150, w: 1, d: 1, where: ['gp'], faceStaff: true, spots: { patient: SP([0, 1], [0, 0.02], [0, 1], 'sit', 0.3, true) }, blurb: 'Inconfortable exprès : les consultations vont plus vite.' },
-    cabinet:        { name: 'Armoire à dossiers', cost: 350, w: 1, d: 1, where: ['gp'], blurb: 'Contient des dossiers classés par ordre d\'arrivée du rangement.' },
-    xray:           { name: 'Appareil de radio', cost: 3200, w: 2, d: 1, where: ['radio'], res: [[0, 1]], spots: { patient: SP([0, 1], [0.5, 0], [0, 1]) }, blurb: 'Ne pas respirer, ne pas bouger, ne pas poser de questions.' },
-    console:        { name: 'Pupitre de commande', cost: 1200, w: 1, d: 1, where: ['radio', 'deco'], res: [[0, 1]], spots: { staff: SP([0, 1], [0, 0.82], [0, -1]) }, blurb: 'Beaucoup de boutons. Deux servent vraiment.' },
-    couch:          { name: 'Divan', cost: 1100, w: 2, d: 1, where: ['psy'], res: [[0, 1]], spots: { patient: SP([0, 1], [0.5, 0], [1, 0], 'lie', 0.42) }, blurb: 'On s\'y allonge, on parle de sa mère.' },
-    armchair:       { name: 'Fauteuil du psy', cost: 500, w: 1, d: 1, where: ['psy'], res: [[0, 1]], spots: { staff: SP([0, 1], [0, 0.04], [0, 1], 'sit', 0.3) }, blurb: 'Pour dire « hm hm » dans de bonnes conditions.' },
-    bookcase:       { name: 'Bibliothèque', cost: 400, w: 1, d: 1, where: ['psy'], blurb: 'Des livres que personne n\'a ouverts, mais ça rassure.' },
-    pharma_counter: { name: 'Comptoir', cost: 1200, w: 1, d: 1, where: ['pharma'], res: [[0, -1], [0, 1]], spots: { staff: SP([0, -1], [0, -0.8], [0, 1]), patient: SP([0, 1], [0, 0.85], [0, -1]) }, blurb: 'Le soignant passe derrière, le patient devant.' },
-    pharma_shelf:   { name: 'Armoire à pharmacie', cost: 600, w: 1, d: 1, where: ['pharma'], blurb: 'Flacons de toutes les couleurs. Le rose est le plus demandé.' },
-    cage:           { name: 'Cage de déconnexion', cost: 2800, w: 2, d: 2, where: ['deco'], res: [[0, 2]], spots: { patient: SP([0, 2], [0.5, 0.5], [0, 1]) }, blurb: 'Zéro barre de réseau garanti.' },
-    guichet:        { name: 'Guichet', cost: 900, w: 2, d: 1, where: ['guichet'], res: [[0, -1], [0, 1]], spots: { staff: SP([0, -1], [0, -0.8], [0, 1]), patient: SP([0, 1], [0, 0.85], [0, -1]) }, blurb: 'Hygiaphone d\'époque. On n\'entend rien, c\'est voulu.' },
-    file_cabinet:   { name: 'Classeur à formulaires', cost: 300, w: 1, d: 1, where: ['guichet'], blurb: 'Rempli de Cerfa en trois exemplaires.' },
-    plaster_table:  { name: 'Table de plâtrage', cost: 1500, w: 2, d: 1, where: ['platre'], res: [[0, 1], [1, 1]], spots: { patient: SP([0, 1], [0.5, 0], [0, 1], 'sit', 0.45), staff: SP([1, 1], [1, 0.85], [0, -1]) }, blurb: 'Le patient s\'assoit, le soignant plâtre ce qui dépasse.' },
-    trolley:        { name: 'Chariot à bandes', cost: 600, w: 1, d: 1, where: ['platre'], blurb: 'Des kilomètres de bandes. On ne sait jamais.' },
-    sofa:           { name: 'Canapé', cost: 700, w: 2, d: 1, where: ['repos'], res: [[0, 1], [1, 1]], spots: { seats: [SP([0, 1], [0, 0.06], [0, 1], 'sit', 0.3), SP([1, 1], [1, 0.06], [0, 1], 'sit', 0.3)] }, blurb: 'Deux places. Trois si on est en bons termes.' },
-    coffee:         { name: 'Machine à café', cost: 500, w: 1, d: 1, where: ['repos'], blurb: 'Le personnel se repose 40 % plus vite. Le café y est pour peu.' },
-    toilet:         { name: 'Cabine', cost: 450, w: 1, d: 1, where: ['wc'], res: [[0, 1]], spots: { seats: [SP([0, 1], [0, -0.06], [0, 1], 'sit', 0.3)] }, blurb: 'Une cabine, une place, un loquet qui coince.' },
-    sink:           { name: 'Lavabo', cost: 250, w: 1, d: 1, where: ['wc'], blurb: 'Pour ceux qui se lavent les mains. Les autres, on les connaît.' }
+    reception:      X2({ name: 'Accueil', cost: 400, w: 2, d: 1, where: ['hall'], res: [[0, -1], [1, -1], [0, 1], [1, 1]], spots: { staff: SP([0, -1], [0.5, -0.72], [0, 1]), patient: SP([0, 1], [0.5, 0.95], [0, -1]) }, blurb: 'Les patients s\'y enregistrent. Il faut quelqu\'un derrière.' }),
+    bench:          { name: 'Banc', cost: 120, w: 2, d: 1, sc: 2, where: ['hall'], res: [[0, 1], [1, 1]], spots: { seats: [SP([0, 1], [0, 0.06], [0, 1], 'sit', 0.62), SP([1, 1], [1, 0.06], [0, 1], 'sit', 0.62)] }, blurb: 'Deux places. Attendre assis rend l\'attente presque supportable.' },
+    drinks:         { name: 'Distributeur', cost: 600, w: 2, d: 1, sc: [2, 2.3, 1.1], where: ['hall'], wall: true, res: [[0, 1], [1, 1]], spots: { use: SP([0, 1], [0.5, 1.05], [0, -1]) }, blurb: 'Rapporte 20 € par soda. Ne rend pas la monnaie.' },
+    plant:          { name: 'Plante verte', cost: 60, w: 1, d: 1, sc: 1.6, where: ['hall', '*'], plant: true, blurb: 'Remonte le moral, à condition qu\'on l\'arrose.' },
+    lamp:           { name: 'Lampadaire', cost: 90, w: 1, d: 1, sc: [1.6, 2.4, 1.6], where: ['hall', '*'], blurb: 'Une lumière douce qui cache très bien la poussière.' },
+    bin:            { name: 'Poubelle', cost: 60, w: 1, d: 1, sc: 1, where: ['hall', '*'], blurb: 'Les canettes y vont, en théorie. Un agent la vide quand elle déborde.' },
+    radiator:       { name: 'Radiateur', cost: 150, w: 2, d: 1, sc: 1, where: ['hall', '*'], wall: true, blurb: 'Chauffe quelques cases autour de lui. Réglez la puissance dans Gestion.' },
+    extinguisher:   { name: 'Extincteur', cost: 100, w: 1, d: 1, sc: 1, where: ['hall', '*'], wall: true, blurb: 'Dans une salle à machine, transforme une explosion en simple panne.' },
+    rug:            X2({ name: 'Tapis', cost: 120, w: 2, d: 2, where: ['*'], flat: true, blurb: 'Donne du cachet. Les roues des brancards adorent.' }),
+    gp_desk:        X2({ name: 'Bureau du médecin', cost: 900, w: 2, d: 1, where: ['gp'], res: [[0, -1]], spots: { staff: SP([0, -1], [0, -0.78], [0, 1], 'sit', 0.3) }, blurb: 'Le médecin s\'assoit derrière, côté écran.' }),
+    chair:          { name: 'Chaise du patient', cost: 150, w: 1, d: 1, sc: 1.7, where: ['gp'], faceStaff: true, spots: { patient: SP([0, 1], [0, 0.02], [0, 1], 'sit', 0.55, true) }, blurb: 'Inconfortable exprès : les consultations vont plus vite.' },
+    cabinet:        { name: 'Armoire à dossiers', cost: 350, w: 2, d: 1, sc: [2, 2, 1.8], where: ['gp'], wall: true, blurb: 'Contient des dossiers classés par ordre d\'arrivée du rangement.' },
+    xray:           X2({ name: 'Appareil de radio', cost: 3200, w: 2, d: 1, where: ['radio'], machine: true, res: [[0, 1]], spots: { patient: SP([0, 1], [0.5, 0], [0, 1]) }, blurb: 'Ne pas respirer, ne pas bouger, ne pas poser de questions.' }),
+    console:        { name: 'Pupitre de commande', cost: 1200, w: 2, d: 1, sc: [2, 2, 1.5], where: ['radio', 'deco', 'upscale', 'avion'], res: [[0, 1], [1, 1]], spots: { staff: SP([0, 1], [0.5, 1.05], [0, -1]) }, blurb: 'Beaucoup de boutons. Deux servent vraiment.' },
+    couch:          X2({ name: 'Divan', cost: 1100, w: 2, d: 1, where: ['psy'], res: [[0, 1]], spots: { patient: SP([0, 1], [0.5, 0], [1, 0], 'lie', 0.42) }, blurb: 'On s\'y allonge, on parle de sa mère.' }),
+    armchair:       X2({ name: 'Fauteuil du psy', cost: 500, w: 1, d: 1, where: ['psy'], res: [[0, 1]], spots: { staff: SP([0, 1], [0, 0.04], [0, 1], 'sit', 0.3) }, blurb: 'Pour dire « hm hm » dans de bonnes conditions.' }),
+    bookcase:       { name: 'Bibliothèque', cost: 400, w: 2, d: 1, sc: [2, 2.6, 1.8], where: ['psy'], wall: true, blurb: 'Des livres que personne n\'a ouverts, mais ça rassure.' },
+    pharma_counter: { name: 'Comptoir', cost: 1200, w: 2, d: 1, sc: [2, 2, 1.1], where: ['pharma'], res: [[0, -1], [1, -1], [0, 1], [1, 1]], spots: { staff: SP([0, -1], [0.5, -0.9], [0, 1]), patient: SP([0, 1], [0.5, 1.05], [0, -1]) }, blurb: 'Le soignant passe derrière, le patient devant.' },
+    pharma_shelf:   { name: 'Armoire à pharmacie', cost: 600, w: 2, d: 1, sc: [2, 2.4, 1.8], where: ['pharma'], wall: true, blurb: 'Flacons de toutes les couleurs. Le rose est le plus demandé.' },
+    cage:           X2({ name: 'Cage de déconnexion', cost: 2800, w: 2, d: 2, where: ['deco'], machine: true, res: [[0, 2]], spots: { patient: SP([0, 2], [0.5, 0.5], [0, 1]) }, blurb: 'Zéro barre de réseau garanti.' }),
+    upscaler:       { name: 'Upscaleur', cost: 5200, w: 4, d: 4, sc: 1, where: ['upscale'], machine: true, res: [[1, 4], [2, 4]], spots: { patient: SP([1, 4], [1.5, 1.4], [0, 1]) }, blurb: 'Cabine de remastérisation. Le patient y entre flou, il en sort net.' },
+    avion:          { name: 'Cabine Mode Avion', cost: 4800, w: 4, d: 4, sc: 1, where: ['avion'], machine: true, res: [[1, 4], [2, 4]], spots: { patient: SP([1, 4], [1.5, 1.6], [0, 1], 'sit', 0.9) }, blurb: 'Fuselage d\'avion monté sur vérins. Ne décolle pas, mais coupe vraiment le réseau.' },
+    guichet:        X2({ name: 'Guichet', cost: 900, w: 2, d: 1, where: ['guichet'], res: [[0, -1], [0, 1]], spots: { staff: SP([0, -1], [0, -0.8], [0, 1]), patient: SP([0, 1], [0, 0.85], [0, -1]) }, blurb: 'Hygiaphone d\'époque. On n\'entend rien, c\'est voulu.' }),
+    file_cabinet:   { name: 'Classeur à formulaires', cost: 300, w: 2, d: 1, sc: [2, 2, 1.8], where: ['guichet'], wall: true, blurb: 'Rempli de Cerfa en trois exemplaires.' },
+    plaster_table:  X2({ name: 'Table de plâtrage', cost: 1500, w: 2, d: 1, where: ['platre'], res: [[0, 1], [1, 1]], spots: { patient: SP([0, 1], [0.5, 0], [0, 1], 'sit', 0.45), staff: SP([1, 1], [1, 0.85], [0, -1]) }, blurb: 'Le patient s\'assoit, le soignant plâtre ce qui dépasse.' }),
+    trolley:        { name: 'Chariot à bandes', cost: 600, w: 1, d: 1, sc: 1.6, where: ['platre', 'bloc'], blurb: 'Des kilomètres de bandes. On ne sait jamais.' },
+    bed:            { name: 'Lit médicalisé', cost: 1500, w: 2, d: 4, sc: 1, where: ['lits'], res: [[2, 1]], spots: { beds: [SP([2, 1], [0.5, 1.7], [0, -1], 'lie', 0.95)] }, blurb: 'Un lit, un patient. Des draps changés une fois par semaine, qu\'on en ait besoin ou non.' },
+    nurse_station:  X2({ name: 'Poste de soins', cost: 500, w: 2, d: 1, where: ['lits'], res: [[0, -1]], spots: { staff: SP([0, -1], [0, -0.78], [0, 1], 'sit', 0.3) }, blurb: 'L\'infirmière y surveille tous les lits. Et les ragots.' }),
+    screen:         { name: 'Paravent', cost: 400, w: 2, d: 1, sc: 1, where: ['lits', 'bloc', 'psy'], blurb: 'Pour l\'intimité. Le reste de l\'étage entend quand même.' },
+    op_table:       { name: 'Table d\'opération', cost: 6000, w: 2, d: 4, sc: 1, where: ['bloc'], res: [[-1, 1], [-1, 2], [2, 1], [2, 2]], spots: { patient: SP([2, 1], [0.5, 1.7], [0, -1], 'lie', 1.0), staff: SP([-1, 2], [-0.72, 1.9], [1, 0]) }, blurb: 'Avec sa grande lampe ronde. Le chirurgien se tient à gauche, le patient arrive par la droite.' },
+    monitor:        { name: 'Moniteur d\'anesthésie', cost: 2500, w: 2, d: 1, sc: 1, where: ['bloc'], res: [[0, 1], [1, 1]], spots: { aide: SP([0, 1], [0.5, 1.05], [0, -1]) }, blurb: 'Fait « bip ». Tant qu\'il fait « bip », tout va bien.' },
+    scrub_sink:     { name: 'Lavabo chirurgical', cost: 500, w: 2, d: 1, sc: [2.2, 1.8, 1.8], where: ['bloc'], wall: true, blurb: 'On se lave les mains en chantant deux fois « Joyeux anniversaire ».' },
+    lectern:        { name: 'Pupitre de cours', cost: 600, w: 2, d: 1, sc: 1, where: ['formation'], res: [[0, -1], [1, -1]], spots: { staff: SP([0, -1], [0.5, -0.85], [0, 1]) }, blurb: 'Le consultant y lit ses diapositives à voix haute.' },
+    student_desk:   { name: 'Pupitre d\'élève', cost: 400, w: 2, d: 2, sc: 1, where: ['formation'], res: [[0, 2]], spots: { seats: [SP([0, 2], [0.5, 1.2], [0, -1], 'sit', 0.9)] }, blurb: 'Une place pour apprendre. Ou pour dormir au fond.' },
+    board:          { name: 'Tableau blanc', cost: 300, w: 4, d: 1, sc: 1, where: ['formation', 'recherche'], wall: true, blurb: 'Couvert de schémas que seul leur auteur comprend.' },
+    lab_bench:      { name: 'Paillasse', cost: 3000, w: 4, d: 2, sc: 1, where: ['recherche'], res: [[1, 2], [2, 2]], spots: { staff: SP([1, 2], [1.5, 2.05], [0, -1]) }, blurb: 'Des fioles qui bouillonnent. Ne rien boire.' },
+    lab_computer:   { name: 'Supercalculateur', cost: 1500, w: 2, d: 1, sc: 1, where: ['recherche'], wall: true, blurb: 'Fait tourner des simulations. Et un fond d\'écran de chat.' },
+    sofa:           X2({ name: 'Canapé', cost: 700, w: 2, d: 1, where: ['repos'], res: [[0, 1], [1, 1]], spots: { seats: [SP([0, 1], [0, 0.06], [0, 1], 'sit', 0.3), SP([1, 1], [1, 0.06], [0, 1], 'sit', 0.3)] }, blurb: 'Deux places. Trois si on est en bons termes.' }),
+    coffee:         { name: 'Machine à café', cost: 500, w: 2, d: 1, sc: [2, 2, 1.6], where: ['repos'], wall: true, blurb: 'Le personnel se repose 40 % plus vite. Le café y est pour peu.' },
+    toilet:         X2({ name: 'Cabine', cost: 450, w: 1, d: 1, where: ['wc'], res: [[0, 1]], spots: { seats: [SP([0, 1], [0, -0.06], [0, 1], 'sit', 0.3)] }, blurb: 'Une cabine, une place, un loquet qui coince.' }),
+    sink:           { name: 'Lavabo', cost: 250, w: 1, d: 1, sc: [1.5, 1.9, 1.8], where: ['wc'], wall: true, blurb: 'Pour ceux qui se lavent les mains. Les autres, on les connaît.' }
   };
   var DISEASES = [
     { id: 'ecranite', name: 'Écranite aiguë', cure: 'deco', diag: ['radio', 'psy'], diff: 0.2, eff: 92, price: 700,
       desc: 'Le pouce a fusionné avec le téléphone. Le patient like son propre dossier médical.' },
-    { id: 'influencite', name: 'Influençite', cure: 'deco', diag: ['psy', 'radio'], diff: 0.3, eff: 88, price: 800,
+    { id: 'influencite', name: 'Influençite', cure: 'deco', diag: ['psy', 'radio'], diff: 0.3, eff: 88, price: 800, cont: true,
       desc: 'S\'adresse à une caméra imaginaire. Demande au médecin de s\'abonner.' },
     { id: 'reunionite', name: 'Réunionite chronique', cure: 'psy', diag: ['psy'], diff: 0.25, eff: 90, price: 650,
       desc: 'A passé trop d\'heures en visio. Coupe son micro avant de tousser.' },
@@ -4236,14 +4292,24 @@
       desc: 'N\'a pas mis de pantalon depuis 2020. La partie haute reste présentable.' },
     { id: 'lundi', name: 'Allergie au lundi', cure: 'pharma', diag: ['radio'], diff: 0.1, eff: 95, price: 350,
       desc: 'Éruptions dès le dimanche soir. Rémission spontanée le vendredi à 17 h.' },
-    { id: 'rhume', name: 'Rhume de cerveau disponible', cure: 'pharma', diag: ['radio', 'psy'], diff: 0.15, eff: 95, price: 300,
+    { id: 'rhume', name: 'Rhume de cerveau disponible', cure: 'pharma', diag: ['radio', 'psy'], diff: 0.15, eff: 95, price: 300, cont: true,
       desc: 'Le nez coule, les idées aussi. Très contagieux en open space.' },
     { id: 'fauxlupus', name: 'Faux lupus', cure: 'pharma', diag: ['radio', 'psy'], diff: 0.7, eff: 80, price: 1200,
       desc: 'Tout le monde pense au lupus. Tout le monde a tort. Il faut trois examens pour l\'admettre.' },
     { id: 'phobie', name: 'Phobie administrative', cure: 'guichet', diag: ['psy'], diff: 0.2, eff: 90, price: 550,
       desc: 'N\'ouvre plus son courrier depuis trois ans. Tremble devant un Cerfa.' },
     { id: 'trottinette', name: 'Trottinettose', cure: 'platre', diag: ['radio'], diff: 0.1, eff: 96, price: 750,
-      desc: 'Fracture typique de la trottinette électrique. Le patient jure qu\'il avait la priorité.' }
+      desc: 'Fracture typique de la trottinette électrique. Le patient jure qu\'il avait la priorité.' },
+    { id: 'pixel', name: 'Pixellose', cure: 'upscale', diag: ['radio', 'lits'], diff: 0.3, eff: 90, price: 1100,
+      desc: 'La tête du patient s\'affiche en 144p. Ça rame quand il réfléchit, et il réfléchit beaucoup.' },
+    { id: 'notif', name: 'Notifite 99+', cure: 'avion', diag: ['psy'], diff: 0.25, eff: 90, price: 1000, cont: true,
+      desc: 'Une pastille rouge flotte au-dessus de sa tête et il vibre toutes les trente secondes. Se transmet par partage d\'écran.' },
+    { id: 'ego', name: 'Ego hypertrophié', cure: 'bloc', pre: 'lits', diag: ['psy', 'radio'], diff: 0.4, eff: 86, price: 2600,
+      desc: 'Sa tête ne passe plus les portes et il parle de lui à la troisième personne. Ablation chirurgicale, sous anesthésie de l\'ego.' },
+    { id: 'traceur', name: 'Traceur avalé', cure: 'bloc', pre: 'lits', diag: ['radio'], diff: 0.2, eff: 90, price: 2100,
+      desc: 'A avalé le traceur de ses clés. Son téléphone le localise à trois mètres près, quelque part dans le couloir.' },
+    { id: 'dimanche', name: 'Burn-out du dimanche soir', cure: 'lits', diag: ['psy'], diff: 0.2, eff: 93, price: 800,
+      desc: 'Il faut juste qu\'il dorme trois jours. Sans téléphone. Surtout sans téléphone.' }
   ];
   var DMAP = {}; DISEASES.forEach(function (d) { DMAP[d.id] = d; });
 
@@ -4291,7 +4357,11 @@
     angry: ['« Je veux parler au directeur. »', '« Trois heures pour un ticket ! »', '« Je mettrai une étoile. Une. »'],
     thirsty: ['« Je donnerais un rein pour un soda. Ça tombe bien, je suis au bon endroit. »'],
     wc: ['« C\'est par où, les toilettes ? C\'est assez urgent. »'],
-    lost: ['« On m\'a dit d\'aller dans une salle qui n\'existe pas. Classique. »']
+    lost: ['« On m\'a dit d\'aller dans une salle qui n\'existe pas. Classique. »'],
+    cold: ['« Il fait plus froid ici que dans ma voiture. »', '« Ils chauffent avec quoi, des bougies ? »'],
+    hot: ['« On se croirait en août dans un open space. »', '« Je fonds. Littéralement, j\'ai un problème. »'],
+    yuck: ['« Il y a… quelque chose par terre. »', '« Je crois que je vais être malade aussi. »'],
+    impatient: ['« Encore cinq minutes et je m\'en vais. »', '« J\'ai pris racine. »']
   };
   var ANNOUNCE = [
     'Les patients sont priés de ne pas mourir dans les couloirs. Ça fait désordre.',
@@ -4321,16 +4391,25 @@
     'Le lit de la chambre 9 est attendu. Son occupant est prié de guérir d\'ici demain.'
   ];
   var GOALS = { cured: 25, rep: 600, money: 20000 };
+  // Étoiles du niveau, comme dans Two Point Hospital : la première gagne le niveau, les suivantes se jouent en continu.
+  var STARS = [
+    { cured: 25, rep: 600, money: 20000 },
+    { cured: 90, rep: 720, money: 50000, rooms: ['lits', 'bloc'] },
+    { cured: 200, rep: 820, money: 100000, rooms: ['formation', 'recherche'] }
+  ];
+  var VIPS = ['le sous-secrétaire d\'État à la Simplification administrative', 'une influenceuse santé à 2 millions d\'abonnés', 'le président de la Fédération des mutuelles', 'un critique gastronomique égaré', 'la directrice régionale de la santé, en trottinette'];
+  var CANDIDATE_LINES = ['Recommandé par un ancien collègue, qui voulait surtout s\'en débarrasser.', 'A envoyé une lettre de motivation en alexandrins.', 'Disponible tout de suite. Trop vite, peut-être.', 'Vient de la clinique d\'en face, qui « restructure ».'];
 
   /* ---------- état ---------- */
   function grid(v) { var g = []; for (var y = 0; y < H; y++) { g.push([]); for (var x = 0; x < W; x++) g[y].push(v); } return g; }
   function newGame() {
     var S = {
-      v: 4, tick: 0, day: 0, money: 30000, rep: 500, cured: 0, deaths: 0, left: 0, treated: 0, priceMult: 1,
+      v: 5, tick: 0, day: 0, money: 30000, rep: 500, cured: 0, deaths: 0, left: 0, treated: 0, priceMult: 1,
       rm: grid(0), blk: grid(0), rooms: [], items: [], people: [], puddles: [], nextId: 1, log: [], pool: {}, spawnT: 120,
       emergency: null, offer: null, won: false, lost: false, freePlay: false, seen: {}, known: {}, fx: [], ev: null, nextEv: 45,
       month: { inc: 0, exp: 0 }, lastMonth: null, annT: 300, nextEmerg: 150
     };
+    ensure(S);
     refreshPool(S);
     say(S, 'Bienvenue à l\'hôpital Velpo. Budget serré, couloirs vides, ambitions démesurées.', 'info');
     return S;
@@ -4348,7 +4427,8 @@
   function item(S, id) { return byId(S.items, id); }
   function inB(x, y) { return x >= 0 && y >= 0 && x < W && y < H; }
   function free(S, x, y) { return inB(x, y) && !S.blk[y][x]; }
-  function price(S, base) { return Math.ceil(base * (S.rep >= 500 ? 1 + (S.rep - 500) / 800 : 1) * S.priceMult); }
+  function priceMul(S, type) { return S.priceMult * ((S.prices && S.prices[type]) || 1); }
+  function price(S, base, type) { return Math.ceil(base * (S.rep >= 500 ? 1 + (S.rep - 500) / 800 : 1) * priceMul(S, type)); }
   function same(a, b) { return a.x === b.x && a.y === b.y; }
 
   /* ---------- géométrie des objets ---------- */
@@ -4394,12 +4474,18 @@
   }
 
   /* ---------- personnel : profils ---------- */
-  function makeProfile(kind) {
+  function makeProfile(kind, spec, good) {
     var skill = clamp(0.15 + rnd() * 0.85, 0, 1);
-    return { kind: kind, name: (kind === 'doc' ? 'Dr ' : '') + pick(FIRST) + ' ' + pick(LAST), skill: skill, attn: rnd(), bio: pick(BIOS[kind]),
-      wage: Math.round(STAFF[kind].base + STAFF[kind].perSkill * skill), look: ri(0, 12) };
+    if (spec === undefined && kind === 'doc') { var r0 = rnd(); spec = r0 < 0.2 ? 'psy' : r0 < 0.34 ? 'chir' : r0 < 0.46 ? 'cherch' : null; }
+    if (spec) skill = Math.max(skill, 0.35 + rnd() * 0.5);
+    if (good) skill = 0.8 + rnd() * 0.17;
+    return { kind: kind, name: (kind === 'doc' ? 'Dr ' : '') + pick(FIRST) + ' ' + pick(LAST), skill: skill, attn: rnd(), bio: pick(BIOS[kind]), spec: kind === 'doc' ? spec || null : null,
+      wage: Math.round((STAFF[kind].base + STAFF[kind].perSkill * skill + (spec ? 220 : 0)) * (good ? 1.15 : 1)), look: ri(0, 12) };
   }
-  function refreshPool(S) { ['doc', 'nurse', 'recep', 'handy'].forEach(function (k) { S.pool[k] = [makeProfile(k), makeProfile(k), makeProfile(k)]; }); }
+  function refreshPool(S) {
+    ['doc', 'nurse', 'recep', 'handy'].forEach(function (k) { S.pool[k] = [makeProfile(k), makeProfile(k), makeProfile(k)]; });
+    S.pool.doc.push(makeProfile('doc', ['psy', 'chir', 'cherch'][Math.floor(S.day / 30) % 3]));   // toujours au moins un spécialiste à l'embauche
+  }
   function mkPerson(S, o) {
     o.id = S.nextId++; o.x = SPAWN.x + (rnd() - 0.5) * 0.5; o.y = H + 2.6 + rnd() * 0.8; o.at = { x: SPAWN.x, y: SPAWN.y };
     o.path = []; o.st = 'in'; o.pose = 'stand'; o.h = 0; o.face = Math.PI; o.inRoom = null; S.people.push(o); return o;
@@ -4408,7 +4494,7 @@
   function hire(S, kind, idx, inHand) {
     var pr = S.pool[kind][idx]; if (!pr) return null;
     S.pool[kind].splice(idx, 1); S.pool[kind].push(makeProfile(kind));
-    var p = mkPerson(S, { kind: kind, name: pr.name, skill: pr.skill, attn: pr.attn, bio: pr.bio, wage: pr.wage, look: pr.look, fatigue: 0, idleT: 0, pin: null });
+    var p = mkPerson(S, { kind: kind, name: pr.name, skill: pr.skill, attn: pr.attn, bio: pr.bio, wage: pr.wage, look: pr.look, fatigue: 0, idleT: 0, pin: null, spec: pr.spec || null, mood: 0.8 });
     if (inHand) { p.st = 'held'; p.heldFrom = null; }
     spend(S, pr.wage); fx(S, 'hire', SPAWN.x, SPAWN.y);
     say(S, p.name + ' rejoint l\'équipe (' + STAFF[kind].name + ').', 'good');
@@ -4422,7 +4508,8 @@
     say(S, p.name + ' quitte l\'hôpital avec ses cartons et un yucca.', 'warn');
   }
   function releaseStaff(S, p) {
-    S.rooms.forEach(function (r) { if (r.staffId === p.id) { r.staffId = null; r.staffIn = false; } if (r.fixer === p.id) r.fixer = null; unreserve(r, p); });
+    S.rooms.forEach(function (r) { if (r.staffId === p.id) { r.staffId = null; r.staffIn = false; } if (r.aideId === p.id) { r.aideId = null; r.aideIn = false; } if (r.fixer === p.id) r.fixer = null; unreserve(r, p); });
+    S.items.forEach(function (o) { if (o.carer === p.id) o.carer = null; }); S.people.forEach(function (q) { if (q.vaccBy === p.id) q.vaccBy = null; });
     S.items.forEach(function (o) { if (o.staffId === p.id) { o.staffId = null; o.staffIn = false; } });
     S.puddles.forEach(function (u) { if (u.cleaner === p.id) u.cleaner = null; });
     p.inRoom = null;
@@ -4436,7 +4523,9 @@
     if (a === b) return true;
     if (a && b) return false;
     r = room(S, a || b); if (!r) return false;
-    return a ? (r.door.x === cx && r.door.y === cy && r.front.x === nx && r.front.y === ny) : (r.door.x === nx && r.door.y === ny && r.front.x === cx && r.front.y === cy);
+    var d2 = r.door2 || r.door, f2 = r.front2 || r.front;
+    return a ? ((r.door.x === cx && r.door.y === cy && r.front.x === nx && r.front.y === ny) || (d2.x === cx && d2.y === cy && f2.x === nx && f2.y === ny))
+             : ((r.door.x === nx && r.door.y === ny && r.front.x === cx && r.front.y === cy) || (d2.x === nx && d2.y === ny && f2.x === cx && f2.y === cy));
   }
   var D4 = [[0, 1], [1, 0], [0, -1], [-1, 0]];
   function bfs(S, from, to) {
@@ -4472,7 +4561,7 @@
   function reachOK(S, skipId, extra) {
     if (S.blk[SPAWN.y][SPAWN.x]) return false;
     var seen = flood(S), ok = true, i, j, sp;
-    for (i = 0; i < S.rooms.length && ok; i++) { var r = S.rooms[i]; if (!seen[r.front.y * W + r.front.x] || !seen[r.door.y * W + r.door.x]) ok = false; }
+    for (i = 0; i < S.rooms.length && ok; i++) { var r = S.rooms[i]; if (!seen[r.front.y * W + r.front.x] || !seen[r.door.y * W + r.door.x]) ok = false; if (r.front2 && (!seen[r.front2.y * W + r.front2.x] || !seen[r.door2.y * W + r.door2.x])) ok = false; }
     for (i = 0; i < S.items.length && ok; i++) {
       if (S.items[i].id === skipId) continue; sp = itemSpots(S, S.items[i]);
       for (j = 0; j < sp.length; j++) if (!seen[sp[j].tile.y * W + sp[j].tile.x]) { ok = false; break; }
@@ -4480,8 +4569,8 @@
     for (i = 0; extra && i < extra.length && ok; i++) if (!inB(extra[i].x, extra[i].y) || !seen[extra[i].y * W + extra[i].x]) ok = false;
     return ok;
   }
-  function isFront(S, x, y) { return S.rooms.some(function (r) { return r.front.x === x && r.front.y === y; }); }
-  function isEntrance(x, y) { return x === SPAWN.x && y >= SPAWN.y - 1; }
+  function isFront(S, x, y) { return S.rooms.some(function (r) { return (r.front.x === x && r.front.y === y) || (r.front2 && r.front2.x === x && r.front2.y === y); }); }
+  function isEntrance(x, y) { return x >= SPAWN.x - 2 && x <= SPAWN.x + 1 && y >= SPAWN.y - 1; }
 
   /* ---------- objets ---------- */
   function canPlaceItem(S, type, x, y, rot, roomId, ignoreId, gratis) {
@@ -4496,7 +4585,7 @@
       c = f.cells[i];
       if (!inB(c.x, c.y) || S.rm[c.y][c.x] !== rid) return r ? 'Hors de la salle' : 'Hors du couloir';
       if (S.blk[c.y][c.x] && S.blk[c.y][c.x] !== ignoreId) return 'Emplacement occupé';
-      if (r && same(c, r.door)) return 'Laissez la porte dégagée';
+      if (r && (same(c, r.door) || (r.door2 && same(c, r.door2)))) return 'Laissez la porte dégagée';
       if (!r && isFront(S, c.x, c.y)) return 'Vous bloqueriez une porte';
       if (!r && isEntrance(c.x, c.y)) return 'Laissez l\'entrée dégagée';
     }
@@ -4574,18 +4663,21 @@
   }
 
   /* ---------- salles ---------- */
+  // La porte fait une case de large, soit deux cellules du mur (k et k + 1), avec deux cellules devant, côté couloir.
   function doorAt(x, y, w, h, rot, k) {
-    if (rot === 0) return { door: { x: x + k, y: y + h - 1 }, front: { x: x + k, y: y + h } };
-    if (rot === 1) return { door: { x: x + w - 1, y: y + k }, front: { x: x + w, y: y + k } };
-    if (rot === 2) return { door: { x: x + k, y: y }, front: { x: x + k, y: y - 1 } };
-    return { door: { x: x, y: y + k }, front: { x: x - 1, y: y + k } };
+    var a, o;
+    if (rot === 0) { a = { x: x + k, y: y + h - 1 }; o = [0, 1]; } else if (rot === 1) { a = { x: x + w - 1, y: y + k }; o = [1, 0]; }
+    else if (rot === 2) { a = { x: x + k, y: y }; o = [0, -1]; } else { a = { x: x, y: y + k }; o = [-1, 0]; }
+    var a2 = rot % 2 === 0 ? { x: a.x + 1, y: a.y } : { x: a.x, y: a.y + 1 };
+    return { door: a, front: { x: a.x + o[0], y: a.y + o[1] }, door2: a2, front2: { x: a2.x + o[0], y: a2.y + o[1] } };
   }
   function sizeOk(def, w, h) { var a = def.min[0], b = def.min[1]; return ((w >= a && h >= b) || (w >= b && h >= a)) && w <= 18 && h <= 18; }
   function roomCost(type, w, h) { var d = ROOMS[type]; return d.shell + Math.max(0, w * h - d.min[0] * d.min[1]) * 22; }
   function roomTotal(type) { var d = ROOMS[type], n = d.shell; d.need.forEach(function (t) { n += ITEMS[t].cost; }); return n; }
   function canPlaceRoom(S, type, x, y, w, h, rot, k, gratis) {
     var def = ROOMS[type], i, j; if (!def) return 'Salle inconnue';
-    if (!sizeOk(def, w, h)) return 'Taille minimale : ' + def.min[0] + ' × ' + def.min[1] + ' cases (maximum 9 × 9)';
+    if (x % 2 || y % 2 || w % 2 || h % 2) return 'Les salles suivent le quadrillage des cases';
+    if (!sizeOk(def, w, h)) return 'Taille minimale : ' + def.min[0] / 2 + ' × ' + def.min[1] / 2 + ' cases (maximum 9 × 9)';
     if (!gratis && S.money < roomCost(type, w, h)) return 'Pas assez d\'argent';
     for (j = y; j < y + h; j++) for (i = x; i < x + w; i++) {
       if (!inB(i, j)) return 'Hors du bâtiment';
@@ -4599,17 +4691,17 @@
       if (fp.res.concat(fp.cells).some(function (c) { return c.x >= x && c.x < x + w && c.y >= y && c.y < y + h; })) return 'Un objet du couloir a besoin de cette place';
     }
     if (rot === undefined || rot === null) return 'Aucun mur libre pour la porte';
-    var kmax = (rot % 2 === 0 ? w : h) - 1; if (k < 0 || k > kmax) return 'Porte hors du mur';
+    var kmax = (rot % 2 === 0 ? w : h) - 2; if (k < 0 || k > kmax || k % 2) return 'Porte hors du mur';
     var d = doorAt(x, y, w, h, rot, k);
-    if (!inB(d.front.x, d.front.y) || S.rm[d.front.y][d.front.x] !== 0 || S.blk[d.front.y][d.front.x]) return 'La porte doit donner sur un couloir libre';
+    for (i = 0; i < 2; i++) { var f0 = i ? d.front2 : d.front; if (!inB(f0.x, f0.y) || S.rm[f0.y][f0.x] !== 0 || S.blk[f0.y][f0.x] || isEntrance(f0.x, f0.y)) return 'La porte doit donner sur un couloir libre'; }
     for (j = y; j < y + h; j++) for (i = x; i < x + w; i++) S.rm[j][i] = -7;
-    var ok = reachOK(S, 0, [d.front]);
+    var ok = reachOK(S, 0, [d.front, d.front2]);
     for (j = y; j < y + h; j++) for (i = x; i < x + w; i++) S.rm[j][i] = 0;
     return ok ? null : 'Cette salle bloquerait un passage';
   }
   function newRoomRaw(S, type, x, y, w, h, rot, k) {
     var d = doorAt(x, y, w, h, rot, k);
-    var r = { id: S.nextId++, type: type, x: x, y: y, w: w, h: h, rot: rot, k: k, door: d.door, front: d.front, cost: roomCost(type, w, h), open: false, fresh: true,
+    var r = { id: S.nextId++, type: type, x: x, y: y, w: w, h: h, rot: rot, k: k, door: d.door, front: d.front, door2: d.door2, front2: d.front2, win: [], aideId: null, aideIn: false, cost: roomCost(type, w, h), open: false, fresh: true,
       queue: [], staffId: null, staffIn: false, patientId: null, t: 0, t0: 1, wear: 0, broken: false, fixer: null, uses: 0, occ: [], spots: { multi: [] }, cap: 0, prestige: 1 };
     for (var j = y; j < y + h; j++) for (var i = x; i < x + w; i++) S.rm[j][i] = r.id;
     S.rooms.push(r); return r;
@@ -4628,9 +4720,9 @@
   function autoDoor(S, type, x, y, w, h, quick) {
     var rots = [0, 1, 3, 2], first = null, tries = 0;
     for (var a = 0; a < 4; a++) {
-      var rot = rots[a], n = rot % 2 === 0 ? w : h, c = Math.floor(n / 2);
+      var rot = rots[a], n = Math.floor((rot % 2 === 0 ? w : h) / 2), c = Math.floor(n / 2);
       for (var o = 0; o < n; o++) {
-        var k = c + (o % 2 ? -1 : 1) * Math.ceil(o / 2); if (k < 0 || k >= n) continue;
+        var k = c + (o % 2 ? -1 : 1) * Math.ceil(o / 2); if (k < 0 || k >= n) continue; k *= 2;
         if (canPlaceRoom(S, type, x, y, w, h, rot, k)) continue;
         if (!first) first = { rot: rot, k: k };
         if (quick) return first;
@@ -4658,16 +4750,18 @@
       var d = ITEMS[it.type].spots || {};
       if (d.staff && !sp.staff) sp.staff = spotWorld(S, it, d.staff);
       if (d.patient && !sp.patient) sp.patient = spotWorld(S, it, d.patient);
-      (d.seats || []).forEach(function (s) { sp.multi.push(spotWorld(S, it, s)); });
+      if (d.aide && !sp.aide) sp.aide = spotWorld(S, it, d.aide);
+      (d.seats || []).concat(d.beds || []).forEach(function (s) { sp.multi.push(spotWorld(S, it, s)); });
       if (def.need.indexOf(it.type) < 0 || seenNeed[it.type]) extra++; seenNeed[it.type] = 1;
       if (it.type === 'coffee') coffee = true;
     });
-    r.spots = sp; r.cap = def.kind === 'service' ? sp.multi.length : 1; r.coffee = coffee;
+    r.spots = sp; r.cap = def.kind === 'service' || def.kind === 'ward' || def.kind === 'train' ? sp.multi.length : 1; r.coffee = coffee;
+    extra += (r.win || []).length;
     r.prestige = clamp(1 + Math.floor((extra * 1.2 + (r.w * r.h - def.min[0] * def.min[1]) * 0.22) / 1.4), 1, 5);
   }
   // Placement automatique de l'équipement manquant (recherche avec retour arrière, budget limité).
   function furnishRaw(S, r) {
-    var need = roomMissing(S, r), budget = { n: 700 }, door = r.door;
+    var need = roomMissing(S, r), budget = { n: 600 + r.w * r.h * 10 }, door = r.door;
     need.sort(function (a, b) { var A = ITEMS[a], B = ITEMS[b], sa = A.spots && A.spots.staff ? 2 : A.spots ? 1 : 0, sb = B.spots && B.spots.staff ? 2 : B.spots ? 1 : 0; return (sb * 10 + B.w * B.d) - (sa * 10 + A.w * A.d); });
     function rec(i) {
       if (i >= need.length) return true;
@@ -4726,11 +4820,11 @@
         if (p.leaving || p.st === 'dead') return;
         if (q.indexOf(p.id) >= 0 || p.id === pid || p.target === r.id) { freeSeat(S, p); p.inRoom = null; p.target = null; if (p.want) seek(S, p, p.want); else toReception(S, p); }
         else if (p.wcRoom === r.id) { p.inRoom = null; p.wcRoom = null; unreserve(r, p); backToQueue(S, p); }
-      } else if (r.staffId === p.id || r.fixer === p.id || p.goRoom === r.id || p.inRoom === r.id) {
+      } else if (r.staffId === p.id || r.aideId === p.id || r.fixer === p.id || p.goRoom === r.id || p.inRoom === r.id || p.train === r.id) {
         if (p.st !== 'held' && p.st !== 'away' && !p.leaving) { p.st = 'idle'; p.path = []; p.pose = 'stand'; p.h = 0; p.x = p.at.x; p.y = p.at.y; } p.inRoom = null; p.goRoom = null;
       }
     });
-    r.staffId = null; r.staffIn = false; r.fixer = null; r.occ = [];
+    r.staffId = null; r.staffIn = false; r.aideId = null; r.aideIn = false; r.fixer = null; r.occ = [];
   }
   function closeRoom(S, id) { var r = room(S, id); if (!r) return; r.open = false; evacuate(S, r); }
   function openRoom(S, id) {
@@ -4749,15 +4843,15 @@
   }
   function moveDoor(S, id, rot, k) {
     var r = room(S, id); if (!r) return 'Salle introuvable'; if (r.open) return 'Fermez d\'abord la salle';
-    var n = rot % 2 === 0 ? r.w : r.h; if (k < 0 || k >= n) return 'Porte hors du mur';
-    var d = doorAt(r.x, r.y, r.w, r.h, rot, k), old = { rot: r.rot, k: r.k, door: r.door, front: r.front };
-    if (!inB(d.front.x, d.front.y) || S.rm[d.front.y][d.front.x] !== 0 || S.blk[d.front.y][d.front.x] || isEntrance(d.front.x, d.front.y)) return 'La porte doit donner sur un couloir libre';
-    if (S.blk[d.door.y][d.door.x]) return 'Un objet est devant ce mur';
-    r.rot = rot; r.k = k; r.door = d.door; r.front = d.front;
-    if (!reachOK(S)) { r.rot = old.rot; r.k = old.k; r.door = old.door; r.front = old.front; return 'Cette porte couperait un accès'; }
+    var n = rot % 2 === 0 ? r.w : r.h; if (k < 0 || k > n - 2 || k % 2) return 'Porte hors du mur';
+    var d = doorAt(r.x, r.y, r.w, r.h, rot, k), old = { rot: r.rot, k: r.k, door: r.door, front: r.front, door2: r.door2, front2: r.front2 };
+    for (var i = 0; i < 2; i++) { var f = i ? d.front2 : d.front; if (!inB(f.x, f.y) || S.rm[f.y][f.x] !== 0 || S.blk[f.y][f.x] || isEntrance(f.x, f.y)) return 'La porte doit donner sur un couloir libre'; }
+    if (S.blk[d.door.y][d.door.x] || S.blk[d.door2.y][d.door2.x]) return 'Un objet est devant ce mur';
+    r.rot = rot; r.k = k; r.door = d.door; r.front = d.front; r.door2 = d.door2; r.front2 = d.front2;
+    if (!reachOK(S)) { for (var key in old) r[key] = old[key]; return 'Cette porte couperait un accès'; }
+    r.win = (r.win || []).filter(function (w) { return !(w.rot === rot && w.k === k); });
     settle(S); return null;
   }
-
   /* ---------- déplacements ---------- */
   function unstick(S, p, seen) {
     if (p.st === 'held' || p.st === 'in' || p.st === 'out' || p.st === 'away' || p.gone) return;
@@ -4806,7 +4900,7 @@
     var w = pull(path, 16); return w.length > 1 ? pull(w, 99) : w;
   }
   function walkSpeed(p) { return p.kind === 'patient' ? (p.emergency ? 0.16 : p.zombie ? 0.06 : 0.1) : 0.13; }
-  function isDoor(S, x, y) { return S.rooms.some(function (r) { return r.door.x === x && r.door.y === y; }); }
+  function isDoor(S, x, y) { return S.rooms.some(function (r) { return (r.door.x === x && r.door.y === y) || (r.door2 && r.door2.x === x && r.door2.y === y); }); }
   function moving(p) { return p.st === 'walk' || p.st === 'in' || p.st === 'out'; }
   // Croisements : chacun serre à droite, on double par la gauche, on contourne ceux qui attendent,
   // et à angle droit on laisse passer celui qui vient de droite. p.lat est le déport latéral (en cases).
@@ -4892,7 +4986,7 @@
     return mkPerson(S, { kind: 'patient', name: pick(FIRST) + ' ' + pick(LAST).charAt(0) + '.', disease: d.id, health: 0.5 + rnd() * 0.5, happy: 1, thirst: rnd() * 0.3, wc: rnd() * 0.3,
       diag: 0, diagnosed: !!emergency, diagLeft: d.diag.slice(), target: null, arrived: false, seat: null, emergency: !!emergency, look: ri(0, 12), tint: rnd(), born: S.day });
   }
-  function begin(S, p) { if (p.emergency) seek(S, p, DMAP[p.disease].cure); else toReception(S, p); }
+  function begin(S, p) { if (p.emergency) seekCure(S, p); else toReception(S, p); }
   function toReception(S, p) {
     var desks = S.items.filter(function (o) { return o.type === 'reception'; });
     if (!desks.length) { p.st = 'waitDesk'; p.t = 25; sayOnce(S, 'nodesk', 'Des patients tournent en rond : il n\'y a pas d\'accueil.', 'warn'); return; }
@@ -4932,7 +5026,9 @@
   }
   function leave(S, p, reason) {
     clearFrom(S, p); p.target = null; p.reason = reason;
-    if (reason === 'cured') { S.cured++; changeRep(S, 2.2 * clamp((1000 - S.rep) / 500, 0.15, 1.2)); fx(S, 'cure', p.x, p.y, 0, p.id); }
+    if (S.year) { if (reason === 'cured') S.year.cured++; else S.year.left++; }
+    if (p.cont && S.epi && S.epi.hidden) S.epi.escaped = (S.epi.escaped || 0) + 1;
+    if (reason === 'cured') { p.cured = true; S.cured++; changeRep(S, 2.2 * clamp((1000 - S.rep) / 500, 0.15, 1.2)); fx(S, 'cure', p.x, p.y, 0, p.id); }
     else if (reason === 'angry') { S.left++; changeRep(S, -4); fx(S, 'angry', p.x, p.y, 0, p.id); sayOnce(S, 'angry', 'Un patient part furieux. Il parle de « laisser un avis ».', 'warn'); }
     else if (reason === 'price') { S.left++; changeRep(S, -1); fx(S, 'angry', p.x, p.y, 0, p.id); sayOnce(S, 'price', 'Un patient trouve vos tarifs indécents et repart se soigner à la tisane.', 'warn'); }
     else if (reason === 'uncured') { S.left++; changeRep(S, -2); }
@@ -4942,7 +5038,7 @@
   }
   function die(S, p) {
     clearFrom(S, p); p.st = 'dead'; p.t = 80; p.path = []; p.pose = 'stand'; p.h = 0;
-    S.deaths++; changeRep(S, -8); fx(S, 'death', p.x, p.y, 0, p.id);
+    S.deaths++; if (S.year) S.year.deaths++; changeRep(S, -8); fx(S, 'death', p.x, p.y, 0, p.id);
     if (S.emergency && p.emergency) S.emergency.lost++;
     say(S, p.name + ' nous a quittés. La direction rappelle que ce n\'était pas prévu au planning.', 'bad');
   }
@@ -4953,18 +5049,19 @@
       mult = (staff.skill >= 0.9 ? ri(1, 5) : 1) * (1 - (staff.fatigue - 0.5));
       var div = ri(1, 3); bonus = (staff.attn / div + 0.4) * (staff.skill / div);
     }
-    p.diag = clamp(p.diag + base + bonus * mult, 0, 1);
+    p.diag = clamp(p.diag + (base + bonus * mult) * (1 + 0.08 * resLv(S, 'diag')), 0, 1);
   }
   // Adapté de Patient:agreesToPay (CorsixTH)
-  function agrees(S) { return S.priceMult <= 1 || rnd() <= Math.exp(-4 * (S.priceMult - 1)); }
+  function agrees(S, type) { var m = priceMul(S, type); return m <= 1 || rnd() <= Math.exp(-4 * (m - 1)); }
   // Adapté de GPRoom:dealtWithPatient (CorsixTH)
   function gpDone(S, r, p, staff) {
-    pay(S, r, price(S, ROOMS.gp.price)); diagStep(S, p, staff);
+    pay(S, r, price(S, ROOMS.gp.price, 'gp')); diagStep(S, p, staff);
     var built = openTypes(S), avail = p.diagLeft.filter(function (t) { return built[t]; });
-    if (p.diag >= 1 || (!avail.length && p.diag >= 0.55)) {
+    var pol = S.policy || { guess: 0.85, home: 0.45 };
+    if (p.diag >= Math.min(1, pol.guess) || (!avail.length && p.diag >= pol.home)) {
       p.diagnosed = true; fx(S, 'idea', p.x, p.y, 0, p.id);
       if (!S.known[p.disease]) { S.known[p.disease] = 1; say(S, 'Nouvelle maladie identifiée : ' + DMAP[p.disease].name + '. ' + DMAP[p.disease].desc, 'good'); }
-      if (agrees(S)) seek(S, p, DMAP[p.disease].cure); else leave(S, p, 'price');
+      if (agrees(S, DMAP[p.disease].cure)) seekCure(S, p); else leave(S, p, 'price');
     } else if (!avail.length) {
       var missing = p.diagLeft.filter(function (t) { return !built[t]; })[0];
       if (missing) {
@@ -4974,16 +5071,16 @@
       } else leave(S, p, 'nodiag');
     } else {
       var t = pick(avail); p.diagLeft.splice(p.diagLeft.indexOf(t), 1);
-      if (agrees(S)) seek(S, p, t); else leave(S, p, 'price');
+      if (agrees(S, t)) seek(S, p, t); else leave(S, p, 'price');
     }
   }
   // Adapté de Patient:isTreatmentEffective / treatDisease (CorsixTH)
   function treat(S, r, p, staff) {
     var d = DMAP[p.disease];
-    pay(S, r, price(S, d.price)); S.treated++;
+    pay(S, r, price(S, d.price, r.type)); S.treated++;
     var chance = d.eff * (p.forced ? p.diag : Math.max(p.diag, p.emergency ? 1 : 0.55));
     var quality = staff ? clamp(0.5 * staff.skill + 0.3 * (1 - staff.fatigue) + 0.2, 0, 1) : 0.5;
-    chance += Math.max(100 - chance, 20) * (quality - 0.5) * 0.2 + (r.prestige - 1) * 1.5;
+    chance += Math.max(100 - chance, 20) * (quality - 0.5) * 0.2 + (r.prestige - 1) * 1.5 + resLv(S, 'drugs') * 2.5;
     if (chance >= ri(1, 100)) leave(S, p, 'cured');
     else if (rnd() < 0.3 || p.health < 0.25) die(S, p);
     else {
@@ -4995,12 +5092,12 @@
   function roomFinished(S, r) {
     var p = person(S, r.patientId), staff = r.staffId ? person(S, r.staffId) : null, def = ROOMS[r.type];
     r.patientId = null; r.uses++;
-    if (def.machine) { r.wear++; if (r.wear >= 22) { r.broken = true; fx(S, 'alert', r.x, r.y); say(S, ROOMS[r.type].name + ' est en panne. Un agent d\'entretien, vite.', 'bad'); } }
+    if (def.machine && machineUse(S, r, p, staff) === 'boom') return;
     if (!p) return;
     p.inRoom = null; p.target = null;
     if (r.type === 'gp') return gpDone(S, r, p, staff);
     if (p.diagnosed && DMAP[p.disease].cure === r.type) return treat(S, r, p, staff);
-    pay(S, r, price(S, def.price || 150)); diagStep(S, p, staff); seek(S, p, 'gp');
+    pay(S, r, price(S, def.price || 150, r.type)); diagStep(S, p, staff); seek(S, p, 'gp');
   }
   function faceTo(p, t) { var dx = t.x - p.x, dy = t.y - p.y; if (dx || dy) p.face = Math.atan2(dx, dy); }
   function patientArrive(S, p) {
@@ -5022,6 +5119,7 @@
       r.t0 = r.t; return;
     }
     if (n === 'drink') { p.st = 'drinking'; p.t = 14; return; }
+    if (n === 'wardEnter') { r = room(S, p.target); if (!r || !r.open || r.occ.indexOf(p.id) < 0) return reseek(S, p); p.inRoom = r.id; p.st = 'inRoom'; p.t = ROOMS[r.type].dur * (DMAP[p.disease].cure === r.type ? 1.4 : 1); return; }
     if (n === 'wc') { r = room(S, p.wcRoom); if (!r || !r.open) { p.wcRoom = null; return backToQueue(S, p); } p.inRoom = r.id; p.st = 'wcUse'; p.t = 18; return; }
     p.st = 'roomQ';
   }
@@ -5036,9 +5134,10 @@
     if (p.health <= 0) { if (p.st !== 'inRoom') die(S, p); return; }
     if (p.emergency) return;
     p.thirst += 0.012 + rnd() * 0.008; p.wc += 0.008 + rnd() * 0.012;
+    patientDayExtra(S, p); if (p.leaving || p.st === 'dead') return;
     var queued = waitingInLine(p), waiting = queued || p.st === 'waitBuild' || p.st === 'recQ' || p.st === 'waitDesk';
     if (waiting) {
-      var plants = 0; S.items.forEach(function (o) { if (o.type === 'plant' && !o.room) plants++; });
+      var plants = 0; S.items.forEach(function (o) { if (o.type === 'plant' && !o.room && (o.water === undefined || o.water > 0.3)) plants++; });
       p.happy -= (p.seat ? 0.006 : 0.014) + (p.st === 'waitBuild' || p.st === 'waitDesk' ? 0.012 : 0) + Math.min(S.puddles.length, 5) * 0.006 - Math.min(plants, 8) * 0.0008;
       if (p.thirst > 0.7) p.happy -= 0.01;
     }
@@ -5065,7 +5164,7 @@
       return;
     }
     if (p.st === 'waitBuild' || p.st === 'waitDesk') { if (--p.t <= 0) { if (p.st === 'waitDesk') toReception(S, p); else seek(S, p, p.want); } return; }
-    if (p.st === 'drinking' && --p.t <= 0) { earn(S, 20); fx(S, 'cash', p.x, p.y, 20); p.thirst = 0; p.wc += 0.25; p.happy = clamp(p.happy + 0.05, 0, 1); backToQueue(S, p); return; }
+    if (p.st === 'drinking' && --p.t <= 0) { earn(S, 20); fx(S, 'cash', p.x, p.y, 20); afterDrink(S, p); p.thirst = 0; p.wc += 0.25; p.happy = clamp(p.happy + 0.05, 0, 1); backToQueue(S, p); return; }
     if (p.st === 'wcUse' && --p.t <= 0) { var r = room(S, p.wcRoom); p.inRoom = null; p.wc = 0; p.wcRoom = null; if (r) unreserve(r, p); backToQueue(S, p); }
   }
   // Range les patients en file devant chaque porte et devant l'accueil.
@@ -5112,32 +5211,36 @@
   }
   function staffIdle(S, p) {
     if (S.tick % 10 !== p.id % 10) return;
-    var r;
-    if (p.kind !== 'recep' && p.fatigue >= 0.7 && (r = restRoom(S)) && goRest(S, p, r)) return;
+    var r, pol = S.policy || { rest: 0.7 };
+    if (p.kind !== 'recep' && p.fatigue >= pol.rest && (r = restRoom(S)) && goRest(S, p, r)) return;
+    if (p.train) { r = room(S, p.train); if (r && r.open && startTraining(S, p, r)) return; p.train = null; }
     if (p.kind === 'doc' || p.kind === 'nurse') {
       if (p.pin) {
         r = room(S, p.pin);
-        if (!r || ROOMS[r.type].staff !== p.kind) p.pin = null;
-        else { if (r.open && r.spots.staff) { var o = r.staffId && r.staffId !== p.id ? person(S, r.staffId) : null; if (o && o.pin === r.id) p.pin = null; else { takeRoom(S, p, r); return; } } else return; }
+        if (!r || !(canStaff(p, r) || canAide(p, r))) p.pin = null;
+        else if (!r.open) return;
+        else if (canStaff(p, r) && r.spots.staff && (!r.staffId || r.staffId === p.id || !canAide(p, r))) {
+          var o = r.staffId && r.staffId !== p.id ? person(S, r.staffId) : null; if (o && o.pin === r.id) p.pin = null; else { takeRoom(S, p, r); return; }
+        } else if (canAide(p, r) && r.spots.aide) {
+          var o2 = r.aideId && r.aideId !== p.id ? person(S, r.aideId) : null; if (o2 && o2.pin === r.id) p.pin = null; else { takeAide(S, p, r); return; }
+        } else return;
       }
-      var list = S.rooms.filter(function (x) { return x.open && ROOMS[x.type].staff === p.kind && !x.staffId; });
-      if (!list.length) return;
-      list.sort(function (a, b) { return (b.queue.length + (b.type === 'gp' ? 0.5 : 0)) - (a.queue.length + (a.type === 'gp' ? 0.5 : 0)); });
-      takeRoom(S, p, list[0]);
+      var want = function (x) { var d = ROOMS[x.type]; return x.queue.length + (x.type === 'gp' ? 0.5 : 0) + (d.spec && d.spec === p.spec ? 3 : 0) - (d.kind === 'lab' ? 0.5 : 0) + (d.kind === 'train' ? x.occ.length : 0); };
+      var list = S.rooms.filter(function (x) { return x.open && canStaff(p, x) && !x.staffId && x.spots.staff && (ROOMS[x.type].kind !== 'train' || x.occ.length); });
+      if (list.length) { list.sort(function (a, b) { return want(b) - want(a); }); takeRoom(S, p, list[0]); return; }
+      var aides = S.rooms.filter(function (x) { return x.open && canAide(p, x) && !x.aideId && x.spots.aide; });
+      if (aides.length) { aides.sort(function (a, b) { return b.queue.length - a.queue.length; }); takeAide(S, p, aides[0]); }
     } else if (p.kind === 'recep') {
-      var d = S.items.filter(function (o) { return o.type === 'reception' && !o.staffId; })[0];
-      if (d) takeDesk(S, p, d);
-    } else if (p.kind === 'handy') {
-      var fix = S.rooms.filter(function (x) { return x.open && ROOMS[x.type].machine && !x.fixer && (x.broken || x.urgent || x.wear >= 12) && !x.patientId && x.spots.patient; });
-      fix.sort(function (a, b) { return (b.wear + (b.urgent ? 50 : 0)) - (a.wear + (a.urgent ? 50 : 0)); });
-      if (fix.length) { fix[0].fixer = p.id; p.goRoom = fix[0].id; goTo(S, p, fix[0].spots.patient.tile, 'repair'); return; }
-      var pu = S.puddles.filter(function (u) { return !u.cleaner; })[0];
-      if (pu) { pu.cleaner = p.id; p.goPuddle = pu.id; goTo(S, p, pu, 'clean'); }
-    }
+      var dk = S.items.filter(function (o) { return o.type === 'reception' && !o.staffId; })[0];
+      if (dk) takeDesk(S, p, dk);
+    } else if (p.kind === 'handy') handyIdle(S, p);
   }
   function staffArrive(S, p) {
     var n = p.next, r;
     if (n === 'exit') { p.st = 'out'; return; }
+    if (n === 'aideEnter') { r = room(S, p.goRoom); if (!r || r.aideId !== p.id || !r.open) { p.st = 'idle'; p.pose = 'stand'; p.h = 0; return; } p.inRoom = r.id; p.st = 'work'; p.idleT = 0; r.aideIn = true; return; }
+    if (n === 'learnSeat') { r = room(S, p.train); if (!r || !r.open || r.occ.indexOf(p.id) < 0) { p.train = null; p.st = 'idle'; p.pose = 'stand'; p.h = 0; return; } p.inRoom = r.id; p.st = 'learn'; return; }
+    if (taskArrive(S, p, n)) return;
     if (n === 'staffEnter') { r = room(S, p.goRoom); if (!r || r.staffId !== p.id || !r.open) { p.st = 'idle'; p.pose = 'stand'; p.h = 0; return; } p.inRoom = r.id; p.st = 'work'; p.idleT = 0; r.staffIn = true; return; }
     if (n === 'restArrive') { r = room(S, p.restRoom); if (!r || !r.open) { p.st = 'idle'; p.pose = 'stand'; p.h = 0; return; } p.inRoom = r.id; p.st = 'rest'; return; }
     if (n === 'deskArrive') { var d = item(S, p.goDesk); if (!d || d.staffId !== p.id) { p.st = 'idle'; return; } d.staffIn = true; p.st = 'work'; return; }
@@ -5149,19 +5252,23 @@
   function staffTick(S, p) {
     var r;
     if (p.st === 'held' || p.leaving) return;
-    if (p.st === 'away') { if (S.day >= p.back) { p.hidden = false; p.fatigue = 0; p.x = SPAWN.x; p.y = H + 3; p.at = { x: SPAWN.x, y: SPAWN.y }; p.st = 'in'; say(S, p.name + ' rentre de congrès, bronzé·e et sans aucune note.', 'info'); } return; }
+    if (p.st === 'away') { if (S.day >= p.back) { p.hidden = false; p.fatigue = 0; p.x = SPAWN.x; p.y = H + 3; p.at = { x: SPAWN.x, y: SPAWN.y }; p.st = 'in'; say(S, p.name + (p.awayWhy === 'boom' ? ' revient de l\'hôpital d\'en face, avec des sourcils en moins.' : ' rentre de congrès, bronzé·e et sans aucune note.'), 'info'); p.awayWhy = null; } return; }
+    if (p.st === 'learn') return learnTick(S, p);
+    if (taskTick(S, p)) return;
     if (p.st === 'idle') return staffIdle(S, p);
     if (p.st === 'work') {
       if (p.kind === 'recep') return;
-      r = room(S, p.inRoom); if (!r || r.staffId !== p.id) { p.st = 'idle'; p.inRoom = null; p.pose = 'stand'; p.h = 0; p.x = p.at.x; p.y = p.at.y; return; }
-      var pt = r.patientId ? person(S, r.patientId) : null, busy = pt && pt.st === 'inRoom';
+      r = room(S, p.inRoom); if (!r || (r.staffId !== p.id && r.aideId !== p.id)) { p.st = 'idle'; p.inRoom = null; p.pose = 'stand'; p.h = 0; p.x = p.at.x; p.y = p.at.y; return; }
+      var pt = r.patientId ? person(S, r.patientId) : null, rk = ROOMS[r.type].kind, busy = rk === 'ward' ? r.occ.length > 0 : rk === 'lab' || rk === 'train' ? true : pt && pt.st === 'inRoom';
       p.fatigue = clamp(p.fatigue + (busy ? 0.0009 : 0.00025) * (1 - 0.05 * (r.prestige - 1)), 0, 1);
       if (busy) { p.idleT = 0; return; }
       p.idleT++;
       var rest = null, leaveNow = false;
-      if (p.fatigue >= 0.7 && !r.patientId && (rest = restRoom(S))) leaveNow = true;
-      else if (!p.pin && p.idleT > 60 && !r.queue.length && !r.patientId && S.tick % 20 === 0) leaveNow = S.rooms.some(function (x) { return x !== r && x.open && ROOMS[x.type].staff === p.kind && !x.staffId && x.queue.length > 0; });
-      if (leaveNow) { r.staffId = null; r.staffIn = false; p.inRoom = null; p.st = 'idle'; if (rest) goRest(S, p, rest); else { p.pose = 'stand'; p.h = 0; p.x = p.at.x; p.y = p.at.y; } }
+      var pol = S.policy || { rest: 0.7, roam: true };
+      if (p.fatigue >= pol.rest && !r.patientId && (rk !== 'ward' || !r.occ.length) && (rest = restRoom(S))) leaveNow = true;
+      else if (rk === 'train' && !r.occ.length && S.tick % 20 === 0) leaveNow = true;
+      else if (pol.roam && !p.pin && p.idleT > 60 && !r.queue.length && !r.patientId && rk !== 'lab' && S.tick % 20 === 0) leaveNow = S.rooms.some(function (x) { return x !== r && x.open && canStaff(p, x) && !x.staffId && x.queue.length > 0; });
+      if (leaveNow) { if (r.staffId === p.id) { r.staffId = null; r.staffIn = false; } else { r.aideId = null; r.aideIn = false; } p.inRoom = null; p.st = 'idle'; if (rest) goRest(S, p, rest); else { p.pose = 'stand'; p.h = 0; p.x = p.at.x; p.y = p.at.y; } }
       return;
     }
     if (p.st === 'rest') {
@@ -5198,7 +5305,11 @@
     tx = dt.x; ty = dt.y;
     p.x = tx; p.y = ty; p.at = { x: tx, y: ty }; p.st = 'idle'; p.heldFrom = null; p.idleT = 0; p.path = [];
     var rid = S.rm[ty][tx], r = rid ? room(S, rid) : null;
-    if (r && r.open && ROOMS[r.type].staff === p.kind && r.spots.staff) { p.pin = r.id; takeRoom(S, p, r); }
+    var d2 = r ? ROOMS[r.type] : null;
+    if (r && r.open && d2.kind === 'train' && (p.kind === 'doc' || p.kind === 'nurse') && !(canStaff(p, r) && !r.staffId)) startTraining(S, p, r);
+    else if (r && r.open && canStaff(p, r) && r.spots.staff && (!r.staffId || r.staffId === p.id || !canAide(p, r))) { p.pin = r.id; takeRoom(S, p, r); }
+    else if (r && r.open && canAide(p, r) && r.spots.aide) { p.pin = r.id; takeAide(S, p, r); }
+    else if (r && r.open && d2.staff === p.kind && !canStaff(p, r)) { p.pin = null; S.note = d2.spec ? 'Cette salle demande un médecin spécialisé en ' + SPECS[d2.spec].toLowerCase() + '.' : 'Cette salle demande un consultant.'; }
     else if (r && r.open && r.type === 'repos' && p.kind !== 'recep') goRest(S, p, r);
     else if (p.kind === 'recep') {
       var best = null, bd = 3.5; S.items.forEach(function (o) { if (o.type !== 'reception') return; var s = spotWorld(S, o, ITEMS.reception.spots.staff), d = Math.abs(s.pos.x - tx) + Math.abs(s.pos.y - ty); if (d < bd) { bd = d; best = o; } });
@@ -5216,18 +5327,19 @@
   /* ---------- salles, accueil ---------- */
   function roomTick(S, r) {
     var def = ROOMS[r.type]; if (def.kind === 'service' || !r.open) return;
+    if (def.kind === 'ward') return wardTick(S, r); if (def.kind === 'train') return trainTick(S, r); if (def.kind === 'lab') return labTick(S, r);
     var staff = r.staffId && r.staffIn ? person(S, r.staffId) : null, docRoom = def.staff === 'doc', ev = S.ev ? S.ev.type : null;
     if (ev === 'lunch' && docRoom) return;
     if (r.patientId) {
       var p = person(S, r.patientId);
       if (!p) { r.patientId = null; return; }
-      if (p.st !== 'inRoom' || !staff || r.broken) return;
+      if (p.st !== 'inRoom' || !staff || r.broken || (def.aide && !r.aideIn)) return;
       r.t -= (staff.fatigue > 0.9 ? 0.6 : 1) * (ev === 'visite' && docRoom ? 0.55 : 1);
       if (r.t <= 0) roomFinished(S, r);
       return;
     }
     var fixer = r.fixer ? person(S, r.fixer) : null;
-    if (!staff || r.broken || (fixer && fixer.st === 'fix')) return;
+    if (!staff || r.broken || (def.aide && !r.aideIn) || (fixer && fixer.st === 'fix')) return;
     for (var i = 0; i < r.queue.length; i++) {
       var q = person(S, r.queue[i]);
       if (!q) { r.queue.splice(i--, 1); continue; }
@@ -5272,14 +5384,14 @@
       return;
     }
     if (p.fin) { if (!stepTo(p, p.fin.pos.x, p.fin.pos.y, sp)) return; p.face = p.fin.face; p.pose = p.fin.pose; p.h = p.fin.h || 0; }
-    if (p.kind === 'patient') patientArrive(S, p); else staffArrive(S, p);
+    if (p.kind === 'patient') patientArrive(S, p); else if (p.kind === 'vip') vipArrive(S, p); else staffArrive(S, p);
   }
   function tick(S) {
     if (S.lost) return;
     S.tick++;
     var i, p;
     steer(S);
-    for (i = 0; i < S.people.length; i++) { p = S.people[i]; moveTick(S, p); if (p.gone) continue; if (p.kind === 'patient') patientTick(S, p); else staffTick(S, p); }
+    for (i = 0; i < S.people.length; i++) { p = S.people[i]; moveTick(S, p); if (p.gone) continue; if (p.kind === 'patient') patientTick(S, p); else if (p.kind === 'vip') vipTick(S, p); else staffTick(S, p); }
     for (i = 0; i < S.rooms.length; i++) roomTick(S, S.rooms[i]);
     for (i = 0; i < S.items.length; i++) deskTick(S, S.items[i]);
     if (S.tick % 12 === 0) queueLines(S);
@@ -5301,10 +5413,11 @@
     if (!S.emergency && !S.offer && isOpen(S) && S.day >= S.nextEmerg) {
       S.nextEmerg = S.day + ri(70, 120);
       var built = openTypes(S), cand = DISEASES.filter(function (d) { return built[d.cure]; });
-      if (cand.length) { var d = pick(cand); S.offer = { disease: d.id, n: ri(4, 7), bonus: 500, days: 45, until: S.day + 8 }; }
+      if (cand.length) offerEmergency(S, pick(cand).id);
     }
     if (S.ev && S.day >= S.ev.until) { if (S.ev.type === 'lunch') say(S, 'Les médecins reviennent de déjeuner. Ils trouvent qu\'il y a du monde.', 'info'); S.ev = null; }
     if (!S.ev && isOpen(S) && S.day >= S.nextEv) startEvent(S);
+    dayExtra(S);
     if (S.day % 30 === 0) monthEnd(S);
     if (!S.won && !S.freePlay && S.cured >= GOALS.cured && S.rep >= GOALS.rep && S.money >= GOALS.money) { S.won = true; say(S, 'Objectifs atteints ! Le ministère vous félicite par courrier recommandé.', 'good'); }
     if (S.money < -15000) { S.lost = true; say(S, 'Faillite. L\'hôpital est racheté par une chaîne de salles de sport.', 'bad'); }
@@ -5312,7 +5425,7 @@
   function startEvent(S) {
     S.nextEv = S.day + ri(28, 50);
     var docs = S.people.filter(function (p) { return p.kind === 'doc' && p.st !== 'away' && p.st !== 'held' && p.st !== 'in' && !p.leaving; });
-    var types = ['subv', 'inspect']; if (docs.length) types.push('lunch', 'visite'); if (docs.length >= 2) types.push('congres');
+    var types = ['subv']; if (docs.length) types.push('lunch', 'visite'); if (docs.length >= 2) types.push('congres');
     var t = pick(types);
     if (t === 'lunch') { S.ev = { type: t, until: S.day + 2 }; fx(S, 'alert', SPAWN.x, SPAWN.y); say(S, 'Tous les médecins sont partis déjeuner en même temps. Retour annoncé « vers 14 h », donc après-demain. Les consultations sont suspendues.', 'warn'); }
     else if (t === 'visite') { S.ev = { type: t, until: S.day + 4 }; say(S, 'Grande visite du chef de service : les médecins se déplacent en troupeau, hochent la tête et repartent. Consultations ralenties pendant 4 jours.', 'warn'); }
@@ -5327,11 +5440,11 @@
     }
   }
   function monthEnd(S) {
-    var wages = 0; S.people.forEach(function (p) { if (p.kind !== 'patient' && !p.leaving) wages += p.wage; });
+    var wages = 0; S.people.forEach(function (p) { if (p.kind !== 'patient' && p.kind !== 'vip' && !p.leaving) wages += p.wage || 0; });
     var tiles = 0; S.rooms.forEach(function (r) { tiles += r.w * r.h; }); var charges = tiles * 10;
-    spend(S, wages + charges); if (S.money < 0) spend(S, Math.round(-S.money * 0.02));
-    S.lastMonth = { inc: S.month.inc, exp: S.month.exp, n: Math.floor(S.day / 30), wages: wages, charges: charges };
-    say(S, 'Bilan du mois ' + S.lastMonth.n + ' : +' + S.month.inc + ' € / −' + S.month.exp + ' € (dont ' + wages + ' € de salaires et ' + charges + ' € de charges).', S.month.inc >= S.month.exp ? 'good' : 'warn');
+    spend(S, wages + charges); var ex = monthExtra(S); if (S.money < 0) spend(S, Math.round(-S.money * 0.02));
+    S.lastMonth = { inc: S.month.inc, exp: S.month.exp, n: Math.floor(S.day / 30), wages: wages, charges: charges, heat: ex.heat, intr: ex.intr }; histPush(S);
+    say(S, 'Bilan du mois ' + S.lastMonth.n + ' : +' + S.month.inc + ' € / −' + S.month.exp + ' € (dont ' + wages + ' € de salaires, ' + charges + ' € de charges' + (ex.heat ? ', ' + ex.heat + ' € de chauffage' : '') + (ex.intr ? ', ' + ex.intr + ' € d\'intérêts' : '') + ').', S.month.inc >= S.month.exp ? 'good' : 'warn');
     S.month = { inc: 0, exp: 0 }; refreshPool(S);
   }
   function acceptEmergency(S, yes) {
@@ -5349,6 +5462,7 @@
     else { changeRep(S, -30); say(S, 'Urgence ratée : ' + e.cured + '/' + e.n + ' guéris. La presse locale s\'en donne à cœur joie.', 'bad'); }
   }
   function hint(S) {
+    var hx = hintExtra(S); if (hx) return hx;
     var has = function (k) { return S.people.some(function (p) { return p.kind === k && !p.leaving; }); }, b = openTypes(S);
     var hasItem = function (t) { return S.items.some(function (o) { return o.type === t; }); };
     if (!hasItem('reception')) return 'Posez un accueil (menu Objets) près de l\'entrée.';
@@ -5371,11 +5485,602 @@
   function canForce(S, p) { return p && p.kind === 'patient' && !p.diagnosed && !p.leaving && p.diag >= 0.35 && p.st !== 'dead' && p.st !== 'inRoom' && p.st !== 'in'; }
   function forceTreat(S, id) {
     var p = person(S, id); if (!canForce(S, p)) return false;
-    clearFrom(S, p); p.diagnosed = true; p.forced = true; if (!S.known[p.disease]) S.known[p.disease] = 1; seek(S, p, DMAP[p.disease].cure); return true;
+    clearFrom(S, p); p.diagnosed = true; p.forced = true; if (!S.known[p.disease]) S.known[p.disease] = 1; seekCure(S, p); return true;
   }
   function callRepair(S, id) { var r = room(S, id); if (r && ROOMS[r.type].machine) r.urgent = true; }
 
-  root.Velpo = { SCALE: KS, _goTo: goTo, _clear: clearWalk,
+
+  /* ======================= v5 : personnel, nouvelles salles, entretien, événements, gestion ======================= */
+  var HEATC = typeof WeakMap !== 'undefined' ? new WeakMap() : null;
+  function ensure(S) {
+    var d = { prices: {}, loan: 0, hist: [], policy: { guess: 0.85, home: 0.45, rest: 0.7, roam: true }, heat: 2, research: { pts: 0, lv: { drugs: 0, diag: 0, mach: 0 }, focus: 'drugs' },
+      mail: [], tpl: {}, stars: 0, year: { cured: 0, deaths: 0, left: 0, dirty: 0, days: 0, mood: 0, moodN: 0 }, epi: null, vip: null, quake: null, insp: null,
+      nextVip: 110, nextQuake: 190, nextEpi: 150, nextCand: 45, nextInsp: 80 };
+    for (var k in d) if (S[k] === undefined) S[k] = d[k];
+    return S;
+  }
+  function rankOf(p) { return p.skill >= 0.8 ? 2 : p.skill >= 0.45 ? 1 : 0; }
+  function canStaff(p, r) { var d = ROOMS[r.type]; return d.staff === p.kind && (!d.spec || p.spec === d.spec) && (!d.rank || (p.kind === 'doc' && rankOf(p) >= d.rank)); }
+  function canAide(p, r) { return !!ROOMS[r.type].aide && ROOMS[r.type].aide === p.kind; }
+  function resLv(S, k) { return S.research && S.research.lv ? S.research.lv[k] || 0 : 0; }
+  function seekCure(S, p) { var d = DMAP[p.disease]; if (d.pre && !p.preDone) seek(S, p, d.pre); else seek(S, p, d.cure); }
+  function dist(a, b) { return Math.abs(a.x - b.x) + Math.abs(a.y - b.y); }
+  function takeAide(S, p, r) {
+    if (r.aideId && r.aideId !== p.id) { var o = person(S, r.aideId); if (o) { if (o.pin === r.id) o.pin = null; if (o.st !== 'held') { o.st = 'idle'; o.path = []; o.pose = 'stand'; o.h = 0; o.x = o.at.x; o.y = o.at.y; } o.inRoom = null; } }
+    r.aideId = p.id; r.aideIn = false; p.goRoom = r.id; goTo(S, p, r.spots.aide, 'aideEnter');
+  }
+
+  /* ---------- service de lits ---------- */
+  function wardTick(S, r) {
+    var nurse = r.staffId && r.staffIn ? person(S, r.staffId) : null;
+    r.occ.slice().forEach(function (id) {
+      var p = person(S, id); if (!p) { var k = r.occ.indexOf(id); if (k >= 0) r.occ.splice(k, 1); return; }
+      if (p.st !== 'inRoom' || p.inRoom !== r.id) return;
+      if (nurse) p.t -= (nurse.fatigue > 0.9 ? 0.6 : 1) * (0.8 + 0.4 * nurse.skill);
+      if (p.t <= 0) wardDone(S, r, p, nurse);
+    });
+    if (!nurse || r.occ.length >= r.cap) return;
+    for (var i = 0; i < r.queue.length; i++) {
+      var q = person(S, r.queue[i]); if (!q) { r.queue.splice(i--, 1); continue; }
+      if (q.arrived && waitingInLine(q)) { var spot = reserve(S, r, q); if (!spot) return; r.queue.splice(i, 1); freeSeat(S, q); goTo(S, q, spot, 'wardEnter'); return; }
+    }
+  }
+  function wardDone(S, r, p, nurse) {
+    unreserve(r, p); p.inRoom = null; p.target = null; r.uses++;
+    var d = DMAP[p.disease];
+    if (p.diagnosed && d.cure === r.type) return treat(S, r, p, nurse);
+    pay(S, r, price(S, ROOMS.lits.price, 'lits'));
+    if (p.diagnosed && d.pre === r.type) { p.preDone = true; return seek(S, p, d.cure); }
+    diagStep(S, p, nurse); diagStep(S, p, null); seek(S, p, 'gp');
+  }
+
+  /* ---------- formation ---------- */
+  function startTraining(S, p, r) {
+    if (p.kind !== 'doc' && p.kind !== 'nurse') return false;
+    if (r.occ.indexOf(p.id) < 0 && r.occ.length >= r.cap) { S.note = 'La salle de formation est pleine.'; return false; }
+    releaseStaff(S, p); p.pin = null; var spot = reserve(S, r, p); if (!spot) return false;
+    p.train = r.id; p.inRoom = null; goTo(S, p, spot, 'learnSeat'); return true;
+  }
+  function endTraining(S, p, why) {
+    var r = room(S, p.train); if (r) unreserve(r, p);
+    p.train = null; p.inRoom = null; p.st = 'idle'; p.pose = 'stand'; p.h = 0; p.x = p.at.x; p.y = p.at.y;
+    if (why) say(S, p.name + ' ' + why, 'good');
+  }
+  function trainTick(S, r) {
+    var t = r.staffId && r.staffIn ? person(S, r.staffId) : null; if (!t) return;
+    r.occ.slice().forEach(function (id) {
+      var q = person(S, id); if (!q || q.st !== 'learn') return;
+      var rate = 0.0005 * (0.5 + t.skill) * (1 + 0.05 * (r.prestige - 1)), rk = rankOf(q);
+      if (q.learn) {
+        q.lp = (q.lp || 0) + rate * 2.2;
+        if (q.lp >= 1) { q.spec = q.learn; q.learn = null; q.lp = 0; fx(S, 'idea', q.x, q.y, 0, q.id); endTraining(S, q, 'est désormais spécialisé·e en ' + SPECS[q.spec].toLowerCase() + '.'); }
+      } else {
+        q.skill = clamp(q.skill + rate, 0, 1);
+        if (rankOf(q) > rk) { fx(S, 'idea', q.x, q.y, 0, q.id); say(S, q.name + ' passe ' + (q.kind === 'doc' ? RANKS[rankOf(q)].toLowerCase() : 'au niveau supérieur') + '. Et compte bien en parler à son prochain entretien de salaire.', 'good'); }
+        if (q.skill >= 0.99) endTraining(S, q, 'a fini sa formation : il n\'y a plus rien à lui apprendre.');
+      }
+    });
+  }
+  function learnTick(S, p) {
+    var r = room(S, p.train); if (!r || !r.open) return endTraining(S, p);
+    p.fatigue = clamp(p.fatigue + 0.0002, 0, 1);
+    var pol = S.policy || { rest: 0.7 }, rest;
+    if (p.fatigue >= pol.rest && (rest = restRoom(S))) { unreserve(r, p); p.inRoom = null; p.st = 'idle'; p.pose = 'stand'; p.h = 0; p.x = p.at.x; p.y = p.at.y; goRest(S, p, rest); }
+  }
+  function setLearn(S, id, spec) { var p = person(S, id); if (!p || p.kind !== 'doc') return; p.learn = spec && spec !== p.spec ? spec : null; p.lp = 0; }
+
+  /* ---------- recherche ---------- */
+  var RES_TXT = {
+    drugs: ['Nouvelle formule : les cachets ont meilleur goût, donc on les prend.', 'Les comprimés sont désormais sécables. Dans le bon sens.', 'Le labo découvre que l\'eau tiède ne soigne pas tout. Les traitements progressent.', 'Molécule miracle découverte, puis perdue, puis retrouvée dans une poche de blouse.', 'Les traitements atteignent leur meilleur niveau. Le labo réclame une prime.'],
+    diag: ['Les médecins apprennent à lire leurs propres ordonnances. Le diagnostic va plus vite.', 'Nouveau protocole : on écoute le patient jusqu\'au bout. Révolutionnaire.', 'Le stéthoscope est enfin branché dans le bon sens.', 'Un algorithme pose des diagnostics. Il hésite autant que nous, mais plus vite.', 'Le diagnostic est au sommet de l\'art. Le Dr House local est vexé.'],
+    mach: ['Les machines reçoivent une mise à jour. Elles redémarrent moins souvent pendant les soins.', 'On a trouvé le bouton « ne pas surchauffer ». Il était sous l\'autocollant.', 'Graissage préventif : les machines s\'usent moins vite.', 'Les machines sont désormais en garantie. Personne ne sait où est le ticket.', 'Les machines sont quasi inusables. L\'agent d\'entretien s\'ennuie.']
+  };
+  var RES_NAMES = { drugs: 'Traitements', diag: 'Diagnostic', mach: 'Machines' };
+  function resCost(lv) { return 60 * (lv + 1); }
+  function labTick(S, r) {
+    var doc = r.staffId && r.staffIn ? person(S, r.staffId) : null; if (!doc) return;
+    var R = S.research, f = R.focus;
+    if ((R.lv[f] || 0) >= 5) { f = ['drugs', 'diag', 'mach'].filter(function (k) { return (R.lv[k] || 0) < 5; })[0]; if (!f) return; R.focus = f; }
+    R.pts += 0.06 * (0.4 + doc.skill) * (1 - doc.fatigue * 0.5) * (1 + 0.06 * (r.prestige - 1));
+    var lv = R.lv[f] || 0, c = resCost(lv);
+    if (R.pts >= c) { R.pts -= c; R.lv[f] = lv + 1; fx(S, 'idea', r.x + (r.w - 1) / 2, r.y + (r.h - 1) / 2); say(S, 'Recherche · ' + RES_NAMES[f] + ' niveau ' + (lv + 1) + ' : ' + RES_TXT[f][lv], 'good'); }
+  }
+  function setFocus(S, f) { if (RES_NAMES[f]) S.research.focus = f; }
+
+  /* ---------- machines : usure, explosions, remplacement ---------- */
+  function machineUse(S, r, p, staff) {
+    r.wear += 1 - 0.12 * resLv(S, 'mach');
+    var cx = r.x + (r.w - 1) / 2, cy = r.y + (r.h - 1) / 2;
+    if (r.wear >= 15 && !r.warned) { r.warned = true; fx(S, 'alert', cx, cy); say(S, ROOMS[r.type].name + ' fume. Faites-la réviser avant que ça tourne mal.', 'warn'); }
+    if (r.wear >= 19 && rnd() < (r.wear - 18) * 0.08) return explode(S, r, p);
+    return null;
+  }
+  function explode(S, r, p) {
+    var its = roomItems(S, r), ext = its.some(function (it) { return it.type === 'extinguisher'; }), mac = its.filter(function (it) { return it.type === ROOMS[r.type].machine; })[0];
+    var cx = r.x + (r.w - 1) / 2, cy = r.y + (r.h - 1) / 2;
+    fx(S, 'boom', cx, cy, ext ? 0 : 1, r.id); S.booms = (S.booms || 0) + 1;
+    if (ext) { r.broken = true; r.wear = 22; say(S, 'Début d\'incendie en ' + ROOMS[r.type].name + ', éteint grâce à l\'extincteur. La machine est en panne.', 'warn'); return null; }
+    if (p && p.st !== 'dead') die(S, p);
+    [r.staffId, r.aideId].forEach(function (sid) {
+      var s = sid ? person(S, sid) : null; if (!s) return;
+      releaseStaff(S, s); s.pin = null; s.inRoom = null; s.st = 'idle'; s.pose = 'stand'; s.h = 0; s.x = s.at.x; s.y = s.at.y; s.awayWhy = 'boom'; s.back = S.day + 6; goTo(S, s, SPAWN, 'awayArrive');
+    });
+    r.open = false; evacuate(S, r);
+    if (mac) { itemUsers(S, mac); removeItemRaw(S, mac); }
+    r.wear = 0; r.broken = false; r.warned = false; r.burnt = S.day; refreshRoom(S, r); settle(S);
+    changeRep(S, -25);
+    say(S, ROOMS[r.type].name + ' a explosé. Sans extincteur, la machine est détruite : rachetez-la en modifiant la salle.', 'bad');
+    return 'boom';
+  }
+  function replaceMachine(S, id) {
+    var r = room(S, id); if (!r || !ROOMS[r.type].machine) return 'Pas de machine ici';
+    var c = Math.round(ITEMS[ROOMS[r.type].machine].cost * 0.6); if (S.money < c) return 'Pas assez d\'argent (' + c + ' €)';
+    spend(S, c); r.wear = 0; r.broken = false; r.warned = false; r.urgent = false; fx(S, 'build', r.x + (r.w - 1) / 2, r.y + (r.h - 1) / 2, -c); return null;
+  }
+
+  /* ---------- chauffage ---------- */
+  var MONTHS = ['janvier', 'février', 'mars', 'avril', 'mai', 'juin', 'juillet', 'août', 'septembre', 'octobre', 'novembre', 'décembre'];
+  function outsideTemp(S) { var m = Math.floor(S.day / 30) % 12; return 17.5 - 4.5 * Math.cos(2 * Math.PI * m / 12); }   // à l'intérieur, sans chauffage : 13 °C en janvier, 22 °C en juillet
+  function heatGrid(S) {
+    var key = S.day + '|' + S.items.length + '|' + (S.heat || 0) + '|' + S.rooms.length, c = HEATC ? HEATC.get(S) : S._heat;
+    if (c && c.key === key) return c.g;
+    var g = new Float32Array(W * H), base = outsideTemp(S), lvl = S.heat || 0, i, x, y;
+    for (i = 0; i < W * H; i++) g[i] = base;
+    for (y = 0; y < H; y++) for (x = 0; x < W; x++) if (S.rm[y][x]) g[y * W + x] += 1;
+    var cov = new Float32Array(W * H);
+    S.items.forEach(function (o) {
+      if (o.type !== 'radiator' || !lvl) return;
+      var cx = o.x + (o.fp.w - 1) / 2, cy = o.y + (o.fp.h - 1) / 2, R = 11, x0 = Math.max(0, Math.floor(cx - R)), x1 = Math.min(W - 1, Math.ceil(cx + R)), y0 = Math.max(0, Math.floor(cy - R)), y1 = Math.min(H - 1, Math.ceil(cy + R));
+      for (y = y0; y <= y1; y++) for (x = x0; x <= x1; x++) { var d = Math.sqrt((x - cx) * (x - cx) + (y - cy) * (y - cy)); if (d < R && (!o.room || S.rm[y][x] === o.room)) cov[y * W + x] += Math.min(1, 1.6 * (1 - d / R)); }
+    });
+    for (i = 0; i < W * H; i++) g[i] += lvl * 3.2 * Math.min(1.5, cov[i]);   // plusieurs radiateurs se chevauchent sans faire une étuve
+    for (i = 0; i < W * H; i++) g[i] = Math.min(g[i], base + 16);
+    var e = { key: key, g: g }; if (HEATC) HEATC.set(S, e); else Object.defineProperty(S, '_heat', { value: e, writable: true, enumerable: false, configurable: true });
+    return g;
+  }
+  function tempAt(S, x, y) { x = clamp(Math.round(x), 0, W - 1); y = clamp(Math.round(y), 0, H - 1); return heatGrid(S)[y * W + x]; }
+  function setHeat(S, n) { S.heat = clamp(n, 0, 3); }
+
+  /* ---------- patients : chaud, froid, dégoût, vomi, impatience, contagion ---------- */
+  function patientDayExtra(S, p) {
+    var t = tempAt(S, p.at.x, p.at.y), feel = null;
+    if (t < 16) { p.happy -= 0.008; feel = 'cold'; } else if (t > 27) { p.happy -= 0.006; p.thirst += 0.015; feel = 'hot'; }
+    var near = 0; S.puddles.forEach(function (u) { if (Math.abs(u.x - p.at.x) + Math.abs(u.y - p.at.y) <= 5) near++; });
+    if (near) { near = Math.min(near, 4); p.happy -= 0.005 * near; p.nausea = (p.nausea || 0) + 0.06 * near; feel = feel || 'yuck'; }
+    if ((p.nausea || 0) >= 1 && p.st !== 'inRoom' && rnd() < 0.5) vomit(S, p);
+    if (waitingInLine(p) || p.st === 'recQ' || p.st === 'waitBuild') {
+      p.waitD = (p.waitD || 0) + 1;
+      if (p.waitD > 5) { p.happy -= 0.005 * (p.waitD - 5); feel = feel || 'impatient'; }
+      if (p.waitD > 18 && p.happy < 0.3 && p.st !== 'inRoom') { leave(S, p, 'angry'); return; }
+    } else p.waitD = 0;
+    p.feel = feel;
+    if (p.cont && S.epi && rnd() < (S.epi.hidden ? 0.28 : 0.4)) {
+      var q = S.people.filter(function (o) { return o.kind === 'patient' && !o.cont && !o.vacc && !o.leaving && o.st !== 'dead' && dist(o.at, p.at) <= 4; })[0];
+      if (q) { q.cont = true; S.epi.n = (S.epi.n || 0) + 1; }
+    }
+  }
+  function vomit(S, p) {
+    if (S.puddles.length < 60) S.puddles.push({ id: S.nextId++, x: p.at.x, y: p.at.y, cleaner: null, kind: 'vomit' });
+    p.nausea = 0; p.happy = clamp(p.happy - 0.12, 0, 1); fx(S, 'vomit', p.x, p.y, 0, p.id);
+    S.people.forEach(function (o) { if (o !== p && o.kind === 'patient' && dist(o.at, p.at) <= 3) o.nausea = (o.nausea || 0) + 0.35; });
+    sayOnce(S, 'vomit', 'Un patient a rendu son petit-déjeuner dans le couloir. Ses voisins hésitent à suivre.', 'warn');
+  }
+  function afterDrink(S, p) {
+    var bin = null, bd = 9; S.items.forEach(function (o) { if (o.type === 'bin' && (o.fill || 0) < 12) { var d = dist(o, p.at); if (d < bd) { bd = d; bin = o; } } });
+    if (bin) bin.fill = (bin.fill || 0) + 1;
+    else if (S.puddles.length < 60 && rnd() < 0.7) { S.puddles.push({ id: S.nextId++, x: p.at.x, y: p.at.y, cleaner: null, kind: 'litter' }); sayOnce(S, 'litter', 'Des canettes traînent dans le couloir. Une poubelle ne serait pas de refus.', 'warn'); }
+  }
+  function queueFront(S, rid, pid) { var r = room(S, rid); if (!r) return; var i = r.queue.indexOf(pid); if (i > 0) { r.queue.splice(i, 1); r.queue.unshift(pid); } }
+
+  /* ---------- agents d'entretien : priorités et tâches ---------- */
+  function freeNextTo(S, o) {
+    var best = null, bd = 99, cells = o.fp ? o.fp.cells : [{ x: o.x, y: o.y }];
+    cells.forEach(function (c) { D4.forEach(function (d) { var x = c.x + d[0], y = c.y + d[1]; if (inB(x, y) && !S.blk[y][x] && S.rm[y][x] === (o.room || 0)) { var k = Math.abs(d[1]) * 0.1; if (k < bd) { bd = k; best = { x: x, y: y }; } } }); });
+    return best;
+  }
+  function handyIdle(S, p) {
+    var order = p.prio === 'clean' ? ['clean', 'fix', 'water', 'bin'] : p.prio === 'water' ? ['water', 'clean', 'fix', 'bin'] : ['fix', 'clean', 'water', 'bin'];
+    for (var i = 0; i < order.length; i++) if (handyTask(S, p, order[i])) return;
+  }
+  function handyTask(S, p, k) {
+    var c;
+    if (k === 'fix') {
+      var fix = S.rooms.filter(function (x) { return x.open && ROOMS[x.type].machine && !x.fixer && (x.broken || x.urgent || x.wear >= 12) && !x.patientId && x.spots.patient; });
+      if (!fix.length) return false;
+      fix.sort(function (a, b) { return (b.wear + (b.urgent ? 50 : 0)) - (a.wear + (a.urgent ? 50 : 0)); });
+      fix[0].fixer = p.id; p.goRoom = fix[0].id; goTo(S, p, fix[0].spots.patient.tile, 'repair'); return true;
+    }
+    if (k === 'clean') {
+      var pu = S.puddles.filter(function (u) { return !u.cleaner; }); if (!pu.length) return false;
+      pu.sort(function (a, b) { return dist(a, p.at) - dist(b, p.at); }); pu[0].cleaner = p.id; p.goPuddle = pu[0].id; goTo(S, p, pu[0], 'clean'); return true;
+    }
+    var list = S.items.filter(function (o) { return !o.carer && (k === 'water' ? o.type === 'plant' && (o.water === undefined ? 1 : o.water) < 0.5 : o.type === 'bin' && (o.fill || 0) >= 8); });
+    if (!list.length) return false;
+    list.sort(function (a, b) { return dist(a, p.at) - dist(b, p.at); });
+    for (var i = 0; i < list.length; i++) { c = freeNextTo(S, list[i]); if (c) { list[i].carer = p.id; p.goItem = list[i].id; goTo(S, p, c, k === 'water' ? 'water' : 'bin'); return true; } }
+    return false;
+  }
+  function setPrio(S, id, k) { var p = person(S, id); if (p && p.kind === 'handy') p.prio = k; }
+  function taskArrive(S, p, n) {
+    var o;
+    if (n === 'water' || n === 'bin') { o = item(S, p.goItem); if (!o || o.carer !== p.id) { p.st = 'idle'; return true; } p.st = n === 'water' ? 'watering' : 'emptying'; p.t = 14; faceTo(p, { x: o.x + (o.fp.w - 1) / 2, y: o.y + (o.fp.h - 1) / 2 }); return true; }
+    if (n === 'vacc') {
+      o = person(S, p.vaccFor);
+      if (!o || !o.cont || o.leaving || o.st === 'dead') { p.vaccFor = null; p.st = 'idle'; return true; }
+      if (dist(o.at, p.at) > 2 || Math.abs(o.x - p.x) + Math.abs(o.y - p.y) > 2.5) { if ((p.vaccTry = (p.vaccTry || 0) + 1) > 6) { o.vaccBy = null; p.vaccFor = null; p.st = 'idle'; } else goTo(S, p, o.at, 'vacc'); return true; }
+      p.st = 'vaccinating'; p.t = 16; faceTo(p, o); return true;
+    }
+    return false;
+  }
+  function taskTick(S, p) {
+    var o;
+    if (p.st === 'watering') { if (--p.t <= 0) { o = item(S, p.goItem); if (o) { o.water = 1; o.carer = null; } p.st = 'idle'; } return true; }
+    if (p.st === 'emptying') { if (--p.t <= 0) { o = item(S, p.goItem); if (o) { o.fill = 0; o.carer = null; } p.st = 'idle'; } return true; }
+    if (p.st === 'vaccinating') {
+      if (--p.t <= 0) { o = person(S, p.vaccFor); if (o && o.cont) { o.cont = false; o.vacc = true; o.vaccBy = null; spend(S, 50); fx(S, 'fixed', o.x, o.y, 0, o.id); } p.vaccFor = null; p.st = 'idle'; }
+      return true;
+    }
+    return false;
+  }
+
+  /* ---------- moral du personnel ---------- */
+  function expectedWage(p) { var s = STAFF[p.kind]; return s ? s.base + s.perSkill * p.skill + (p.spec ? 220 : 0) : 0; }
+  function staffDay(S) {
+    S.people.forEach(function (p) {
+      if (p.kind === 'patient' || p.kind === 'vip' || p.leaving || p.st === 'held' || p.st === 'away') return;
+      if (p.mood === undefined) p.mood = 0.8;
+      // le moral tend vers une cible : 0,85 moins ce qui pèse (fatigue, salaire en dessous du marché, froid, saleté)
+      var exp = expectedWage(p), gap = (exp - p.wage) / exp, t = tempAt(S, p.at.x, p.at.y), target = 0.85;
+      if (p.fatigue > 0.85) target -= 0.2;
+      if (gap > 0.04) target -= Math.min(0.4, gap * 1.6);
+      if (t < 15.5 || t > 27) target -= 0.12;
+      if (S.puddles.length > 6) target -= 0.1;
+      if (S.day - (p.lastBonus || -99) < 30) target += 0.1;
+      p.mood = clamp(p.mood + (target - p.mood) * 0.05, 0, 1); S.year.mood += p.mood; S.year.moodN++;
+      if (p.mood < 0.32 && !p.asked && S.day - (p.lastAsk || -99) > 20) {
+        var amt = Math.max(Math.round(exp - p.wage), Math.round(p.wage * 0.1)); amt = Math.ceil(amt / 10) * 10;
+        p.asked = true; p.lastAsk = S.day;
+        mail(S, 'raise', 'Demande d\'augmentation', p.name + ' (' + STAFF[p.kind].name.toLowerCase() + ') demande ' + amt + ' € de plus par mois. « Sinon, la clinique d\'en face recrute. »', [{ label: 'Accorder +' + amt + ' €', act: 'yes' }, { label: 'Refuser', act: 'no' }], { pid: p.id, amt: amt, until: S.day + 8 });
+      }
+      if (p.mood < 0.1) { p.quit = (p.quit || 0) + 1; if (p.quit > 4) { say(S, p.name + ' démissionne. « Je pars élever des chèvres. Elles, au moins, ne vomissent pas dans le couloir. »', 'bad'); fire(S, p.id); } }
+      else p.quit = 0;
+    });
+  }
+  function bonus(S, id) {
+    var p = person(S, id); if (!p || p.kind === 'patient') return 'Personne introuvable';
+    if (S.day - (p.lastBonus || -99) < 15) return 'Une prime tous les 15 jours au plus';
+    var c = Math.round(p.wage * 0.5); if (S.money < c) return 'Pas assez d\'argent';
+    spend(S, c); p.mood = clamp((p.mood === undefined ? 0.8 : p.mood) + 0.3, 0, 1); p.lastBonus = S.day; fx(S, 'cash', p.x, p.y, -c); return null;
+  }
+
+  /* ---------- courrier ---------- */
+  function mail(S, kind, title, text, opts, data) {
+    var m = { id: S.nextId++, kind: kind, title: title, text: text, opts: opts || [{ label: 'Compris', act: 'ok' }], data: data || {}, day: S.day, until: (data && data.until) || S.day + 15 };
+    S.mail.push(m); if (S.mail.length > 9) { var old = S.mail.shift(); mailDefault(S, old); }
+    fx(S, 'mail', SPAWN.x, SPAWN.y); return m;
+  }
+  function mailDefault(S, m) {
+    if (m.kind === 'epi') return mailRun(S, m, 'declare');
+    if (m.kind === 'raise') return mailRun(S, m, 'no');
+    if (m.kind === 'vip') return mailRun(S, m, 'no');
+  }
+  function mailAct(S, id, k) {
+    var m = byId(S.mail, id); if (!m) return;
+    S.mail.splice(S.mail.indexOf(m), 1);
+    var o = m.opts[k] || m.opts[0]; mailRun(S, m, o.act);
+  }
+  function mailRun(S, m, a) {
+    var D = m.data, p;
+    if (m.kind === 'emerg') { if (a === 'yes' && !S.emergency) { S.offer = D; acceptEmergency(S, true); fx(S, 'amb', SPAWN.x, SPAWN.y); } else if (a === 'no') say(S, 'Urgence refusée. Les ambulances font demi-tour en klaxonnant.', 'info'); }
+    else if (m.kind === 'raise') {
+      p = person(S, D.pid); if (!p || p.leaving) return;
+      p.asked = false;
+      if (a === 'yes') { p.wage += D.amt; p.mood = clamp(p.mood + 0.45, 0, 1); say(S, p.name + ' obtient son augmentation et promet de « s\'investir ». On verra.', 'info'); }
+      else { p.mood = clamp(p.mood - 0.12, 0, 1); say(S, p.name + ' n\'a pas eu son augmentation. L\'ambiance en salle de repos se refroidit.', 'warn'); }
+    } else if (m.kind === 'cand') {
+      if (a !== 'yes') return;
+      var pr = D.prof; if (S.money < pr.wage) { S.note = 'Pas assez d\'argent pour le premier salaire'; return; }
+      var np = mkPerson(S, { kind: pr.kind, name: pr.name, skill: pr.skill, attn: pr.attn, bio: pr.bio, wage: pr.wage, look: pr.look, fatigue: 0, idleT: 0, pin: null, spec: pr.spec || null, mood: 0.9 });
+      spend(S, pr.wage); fx(S, 'hire', SPAWN.x, SPAWN.y); say(S, np.name + ' rejoint l\'équipe. Il a apporté sa propre tasse.', 'good');
+    } else if (m.kind === 'epi') {
+      if (!S.epi) return;
+      if (a === 'hide') { S.epi.hidden = true; S.epi.until = S.day + 8; say(S, 'Épidémie : vous avez 8 jours pour vacciner tous les porteurs (bouton Vacciner sur leur fiche).', 'warn'); }
+      else { spend(S, 1500); changeRep(S, -20); S.people.forEach(function (q) { q.cont = false; }); S.epi = null; say(S, 'Épidémie déclarée. Amende de 1 500 €, la direction régionale s\'occupe des porteurs.', 'warn'); }
+    } else if (m.kind === 'vip') {
+      if (a === 'yes') { S.vip = { day: S.day + 2, name: D.name }; say(S, 'Visite confirmée : ' + D.name + ' passera dans deux jours. Sortez les serpillières.', 'info'); }
+      else { changeRep(S, -5); say(S, 'Visite déclinée. ' + D.name.charAt(0).toUpperCase() + D.name.slice(1) + ' se dit « déçu·e mais pas surpris·e ».', 'info'); }
+    }
+  }
+  function mailExpire(S) { S.mail.slice().forEach(function (m) { if (S.day >= m.until && m.kind !== 'info' && m.kind !== 'year') { S.mail.splice(S.mail.indexOf(m), 1); mailDefault(S, m); } else if (S.day >= m.until + 30) S.mail.splice(S.mail.indexOf(m), 1); }); }
+  function offerEmergency(S, did) {
+    var d = DMAP[did], n = ri(4, 7), data = { disease: did, n: n, bonus: 500, days: 45, until: S.day + 8 };
+    mail(S, 'emerg', 'Urgence : ' + n + ' cas de « ' + d.name + ' »', n + ' cas de « ' + d.name + ' » après un séminaire de cohésion d\'équipe. ' + data.days + ' jours pour en guérir les trois quarts : ' + data.bonus + ' € de prime par guéri, sinon la presse s\'en mêle.', [{ label: 'Accepter', act: 'yes' }, { label: 'Refuser', act: 'no' }], data);
+  }
+
+  /* ---------- événements : épidémie, VIP, séisme, inspection, candidats ---------- */
+  function present(S) { return S.people.filter(function (p) { return p.kind === 'patient' && !p.leaving && p.st !== 'dead' && p.st !== 'in' && p.st !== 'out'; }); }
+  function epiDay(S) {
+    var E = S.epi;
+    if (!E && isOpen(S) && S.day >= S.nextEpi) {
+      S.nextEpi = S.day + ri(90, 140);
+      var pts = present(S), conts = DISEASES.filter(function (d) { return d.cont; });
+      if (pts.length >= 8 && conts.length) {
+        var d = pick(conts); S.epi = { d: d.id, start: S.day, n: 0, told: false };
+        for (var i = 0; i < 3; i++) { var p = spawnPatient(S, d.id); p.cont = true; p.y += i * 0.6; }
+        S.epi.n = 3;
+      }
+      return;
+    }
+    if (!E) return;
+    var carriers = S.people.filter(function (p) { return p.kind === 'patient' && p.cont && !p.leaving && p.st !== 'dead'; });
+    if (!E.told && (carriers.length >= 4 || S.day - E.start >= 4)) {
+      E.told = true; var dn = DMAP[E.d].name;
+      mail(S, 'epi', 'Épidémie : ' + dn, carriers.length + ' patients sont porteurs de « ' + dn + ' ». Déclarer : amende de 1 500 € et −20 de réputation, l\'affaire est réglée. Étouffer : vaccinez tous les porteurs en 8 jours (50 € la dose). Réussi, prime de 2 000 € ; raté, amende de 6 000 € et scandale.', [{ label: 'Étouffer', act: 'hide' }, { label: 'Déclarer', act: 'declare' }], { until: S.day + 5 });
+    }
+    if (E.hidden && S.day >= E.until) {
+      var left = carriers.length, esc = E.escaped || 0;
+      S.people.forEach(function (q) { q.cont = false; }); S.epi = null;
+      if (left === 0 && esc <= 1) { earn(S, 2000); changeRep(S, 10); mail(S, 'info', 'Épidémie étouffée', 'Tous les porteurs sont vaccinés. La direction régionale n\'a rien vu, et vous verse même une prime de 2 000 € pour la « qualité de vos indicateurs ».'); }
+      else { spend(S, 6000); changeRep(S, -60); mail(S, 'info', 'Scandale sanitaire', left + ' porteur(s) encore dans l\'hôpital' + (esc ? ' et ' + esc + ' parti(s) dans la nature' : '') + '. Amende de 6 000 € et une une du journal local : « L\'hôpital qui éternue ».'); }
+    }
+  }
+  function vipDay(S) {
+    if (!S.vip && isOpen(S) && S.day >= S.nextVip) {
+      S.nextVip = S.day + ri(80, 130); var nm = pick(VIPS);
+      mail(S, 'vip', 'Demande de visite', nm.charAt(0).toUpperCase() + nm.slice(1) + ' souhaite visiter l\'hôpital après-demain. Une bonne visite rapporte de l\'argent et de la réputation ; une mauvaise fait des titres.', [{ label: 'Accepter', act: 'yes' }, { label: 'Refuser', act: 'no' }], { name: nm, until: S.day + 4 });
+      return;
+    }
+    if (S.vip && !S.vip.id && S.day >= S.vip.day) {
+      var v = mkPerson(S, { kind: 'vip', name: S.vip.name, look: ri(0, 12), score: 62, deaths0: S.deaths, stops: 0 });
+      var rooms = S.rooms.filter(function (r) { return r.open; }); rooms.sort(function () { return rnd() - 0.5; });
+      v.route = rooms.slice(0, 5).map(function (r) { return r.id; }); S.vip.id = v.id;
+      say(S, S.vip.name.charAt(0).toUpperCase() + S.vip.name.slice(1) + ' arrive. Tout le monde sourit très fort.', 'info');
+    }
+  }
+  function vipArrive(S, p) { if (p.next === 'exit') { p.st = 'out'; return; } if (p.next === 'vipStop') { p.st = 'vipLook'; p.t = 70; var r = room(S, p.stop); if (r) faceTo(p, r.door); return; } p.st = 'idle'; }
+  function vipTick(S, p) {
+    if (p.st === 'idle') {
+      var rid = p.route && p.route.shift();
+      while (rid && !room(S, rid)) rid = p.route.shift();
+      if (rid) { p.stop = rid; goTo(S, p, room(S, rid).front, 'vipStop'); return; }
+      vipEnd(S, p); p.leaving = true; goTo(S, p, SPAWN, 'exit'); return;
+    }
+    if (p.st === 'vipLook' && --p.t <= 0) {
+      var r = room(S, p.stop), s = 0;
+      if (r) {
+        s += (r.prestige - 1) * 3 + (r.staffId ? 2 : -5) + (r.broken ? -8 : 0) + (r.queue.length > 6 ? -5 : r.queue.length < 3 ? 2 : 0);
+        var mess = S.puddles.filter(function (u) { return dist(u, r.front) <= 8; }).length; s -= Math.min(10, mess * 3);
+        var t = tempAt(S, r.front.x, r.front.y); if (t < 16.5 || t > 26) s -= 4;
+        S.items.forEach(function (o) { if (o.type === 'plant' && dist(o, r.front) <= 8) s += (o.water === undefined || o.water > 0.3) ? 1 : -2; });
+      }
+      p.score += s; p.stops++; p.st = 'idle';
+    }
+  }
+  function vipEnd(S, p) {
+    if (p.done) return; p.done = true;
+    var sc = clamp(Math.round(p.score - (S.deaths - p.deaths0) * 15), 0, 100), nm = p.name.charAt(0).toUpperCase() + p.name.slice(1);
+    S.vip = null;
+    if (sc >= 75) { earn(S, 4000); changeRep(S, 40); fx(S, 'cash', SPAWN.x, SPAWN.y - 2, 4000); mail(S, 'info', 'Visite : ' + sc + '/100', nm + ' est ravi·e : « Un hôpital modèle, ou presque. » Don de 4 000 € et +40 de réputation.'); }
+    else if (sc >= 50) { earn(S, 1500); changeRep(S, 15); mail(S, 'info', 'Visite : ' + sc + '/100', nm + ' trouve l\'hôpital « correct, compte tenu des moyens ». Don de 1 500 € et +15 de réputation.'); }
+    else { changeRep(S, -25); mail(S, 'info', 'Visite : ' + sc + '/100', nm + ' a tout filmé. Surtout le couloir. −25 de réputation.'); }
+  }
+  function quakeDay(S) {
+    var Q = S.quake;
+    if (!Q && isOpen(S) && S.day >= S.nextQuake) { S.nextQuake = S.day + ri(150, 220); S.quake = { day: S.day + 3 }; mail(S, 'info', 'Alerte sismique', 'Les sismologues annoncent une secousse dans trois jours. Faites réviser les machines : elles vont en prendre un coup.'); return; }
+    if (Q && S.day >= Q.day) {
+      S.quake = null; fx(S, 'quake', SPAWN.x, SPAWN.y, 1);
+      var hit = 0; S.rooms.forEach(function (r) { if (ROOMS[r.type].machine) { r.wear += 3 + rnd() * 5; hit++; if (r.wear >= 22) r.broken = true; } });
+      S.people.forEach(function (p) { if ((p.kind === 'patient' || p.kind === 'doc' || p.kind === 'nurse') && rnd() < 0.3) fx(S, 'fall', p.x, p.y, 0, p.id); });
+      say(S, 'Tremblement de terre ! ' + (hit ? 'Les machines ont souffert.' : 'Rien de cassé, à part les nerfs.') + ' Le café a débordé dans toute la salle de repos.', 'bad');
+    }
+  }
+  function cleanScore(S) {
+    var s = 100 - S.puddles.length * 4, plants = S.items.filter(function (o) { return o.type === 'plant'; });
+    s -= S.rooms.filter(function (r) { return r.broken; }).length * 10;
+    s -= plants.filter(function (o) { return o.water !== undefined && o.water < 0.3; }).length * 3;
+    s -= S.items.filter(function (o) { return o.type === 'bin' && (o.fill || 0) >= 12; }).length * 5;
+    var cold = 0; S.rooms.forEach(function (r) { var t = tempAt(S, r.front.x, r.front.y); if (t < 16.5 || t > 26) cold++; }); s -= cold * 3;
+    return clamp(s, 0, 100);
+  }
+  function inspDay(S) {
+    if (!S.insp && isOpen(S) && S.day >= S.nextInsp) { S.nextInsp = S.day + ri(70, 100); S.insp = { day: S.day + 5 }; mail(S, 'info', 'Inspection annoncée', 'L\'inspection sanitaire passera dans cinq jours. Elle regarde la propreté, les machines, les plantes, les poubelles et le chauffage.'); return; }
+    if (S.insp && S.day >= S.insp.day) {
+      S.insp = null; var sc = cleanScore(S), dr = Math.round((sc - 60) / 2); changeRep(S, dr);
+      if (sc < 40) spend(S, 2000);
+      mail(S, 'info', 'Inspection : ' + sc + '/100', sc >= 80 ? 'Rien à signaler, ce qui a beaucoup déçu l\'inspecteur. +' + dr + ' de réputation.' : sc >= 40 ? 'Rapport « perfectible ». ' + (dr >= 0 ? '+' : '') + dr + ' de réputation.' : 'L\'inspecteur a glissé, s\'est relevé, a glissé encore. Amende de 2 000 € et ' + dr + ' de réputation.');
+    }
+  }
+  function candDay(S) {
+    if (S.day < S.nextCand || !isOpen(S)) return;
+    S.nextCand = S.day + ri(35, 55);
+    var kind = rnd() < 0.7 ? 'doc' : 'nurse', pr = makeProfile(kind, kind === 'doc' ? pick(['psy', 'chir', 'cherch', null]) : undefined, true);
+    var what = kind === 'doc' ? 'consultant' + (pr.spec ? ' en ' + SPECS[pr.spec].toLowerCase() : '') : 'infirmier·ère chevronné·e';
+    mail(S, 'cand', 'Candidature spontanée', pr.name + ', ' + what + ', demande ' + pr.wage + ' € par mois. ' + pick(CANDIDATE_LINES), [{ label: 'Embaucher', act: 'yes' }, { label: 'Décliner', act: 'no' }], { prof: pr, until: S.day + 10 });
+  }
+
+  /* ---------- étoiles, bilan annuel ---------- */
+  function starOk(S, g) { return S.cured >= g.cured && S.rep >= g.rep && S.money >= g.money && (g.rooms || []).every(function (t) { return S.rooms.some(function (r) { return r.type === t && r.open; }); }); }
+  function starsCheck(S) {
+    for (var k = S.stars || 0; k < STARS.length; k++) {
+      if (!starOk(S, STARS[k])) break;
+      S.stars = k + 1;
+      if (k > 0) { earn(S, 5000 * k); changeRep(S, 20); mail(S, 'info', (k + 1) + ' étoiles !', 'L\'hôpital décroche sa ' + (k + 1) + 'e étoile. Le ministère envoie ' + 5000 * k + ' € et un diplôme encadré, de travers.'); }
+    }
+  }
+  function yearReview(S) {
+    var Y = S.year, out = [], money = 0, rep = 0, tot = Y.cured + Y.deaths + Y.left, mood = Y.moodN ? Y.mood / Y.moodN : 0.7, dirty = Y.days ? Y.dirty / Y.days : 0;
+    if (dirty < 0.15) { out.push('Prix de l\'hôpital le plus propre (+2 000 €)'); money += 2000; rep += 15; }
+    if (Y.cured >= 60 && tot && Y.cured / tot >= 0.7) { out.push('Prix du meilleur taux de guérison (+3 000 €)'); money += 3000; rep += 20; }
+    if (Y.deaths === 0) { out.push('Prix « zéro décès » (+2 500 €)'); money += 2500; rep += 20; }
+    if (mood >= 0.7) { out.push('Prix de l\'équipe épanouie (+1 500 €)'); money += 1500; rep += 10; }
+    if (Y.deaths >= 10) { out.push('Corbillard d\'or : ' + Y.deaths + ' décès (−30 de réputation)'); rep -= 30; }
+    if (dirty > 0.5) { out.push('Serpillière d\'or : couloirs sales la moitié de l\'année (−15 de réputation)'); rep -= 15; }
+    if (money) earn(S, money); changeRep(S, rep);
+    mail(S, 'year', 'Bilan de l\'année ' + Math.round(S.day / 360), Y.cured + ' guérisons, ' + Y.deaths + ' décès, ' + Y.left + ' départs mécontents. ' + (out.length ? out.join(' · ') + '.' : 'Aucun prix cette année. Le jury « attend de voir ».'));
+    S.year = { cured: 0, deaths: 0, left: 0, dirty: 0, days: 0, mood: 0, moodN: 0 };
+  }
+  function levelStatus(S) {
+    return STARS.map(function (g, k) { return { n: k + 1, ok: (S.stars || 0) > k, goals: g }; });
+  }
+
+  /* ---------- gestion : tarifs, emprunts, politique, historique ---------- */
+  function setPrice(S, type, m) { S.prices[type] = Math.round(clamp(m, 0.5, 2) * 10) / 10; }
+  var LOAN_MAX = 60000;
+  function borrow(S, n) { n = Math.min(n, LOAN_MAX - S.loan); if (n <= 0) return 'Plafond d\'emprunt atteint (' + LOAN_MAX + ' €)'; S.loan += n; S.money += n; return null; }
+  function repay(S, n) { n = Math.min(n, S.loan, Math.max(0, Math.floor(S.money))); if (n <= 0) return 'Rien à rembourser ou pas assez d\'argent'; S.loan -= n; S.money -= n; return null; }
+  function setPolicy(S, k, v) { if (k === 'roam') S.policy.roam = !!v; else if (k in S.policy) S.policy[k] = clamp(v, k === 'rest' ? 0.4 : 0.2, k === 'home' ? 0.8 : 1); }
+  function monthExtra(S) {
+    var rad = S.items.filter(function (o) { return o.type === 'radiator'; }).length, heat = rad * (S.heat || 0) * 25, intr = Math.round((S.loan || 0) * 0.015);
+    if (heat) spend(S, heat); if (intr) spend(S, intr);
+    return { heat: heat, intr: intr };
+  }
+  function histPush(S) { var L = S.lastMonth; S.hist.push({ m: L.n, inc: L.inc, exp: L.exp, money: Math.round(S.money), rep: Math.round(S.rep), cured: S.cured }); if (S.hist.length > 24) S.hist.shift(); }
+
+  /* ---------- journée ---------- */
+  function dayExtra(S) {
+    ensure(S);
+    S.year.days++; if (S.puddles.length > 3) S.year.dirty++;
+    S.items.forEach(function (o) { if (o.type === 'plant') o.water = clamp((o.water === undefined ? 1 : o.water) - 0.03, 0, 1); });
+    staffDay(S); epiDay(S); vipDay(S); quakeDay(S); inspDay(S); candDay(S); mailExpire(S); starsCheck(S);
+    if (S.day % 360 === 0) yearReview(S);
+  }
+  function hintExtra(S) {
+    if (!isOpen(S)) return null;
+    var staff = function (f) { return S.people.some(function (p) { return !p.leaving && f(p); }); }, open = function (t) { return S.rooms.some(function (r) { return r.type === t && r.open; }); };
+    if (S.mail.some(function (m) { return m.kind !== 'info' && m.kind !== 'year'; })) return 'Du courrier attend une réponse : enveloppes à gauche de l\'écran.';
+    if (open('psy') && !staff(function (p) { return p.spec === 'psy'; })) return 'La psychiatrie demande un médecin psychiatre : voyez l\'onglet Médecins du menu Embaucher.';
+    if (open('bloc') && !staff(function (p) { return p.spec === 'chir'; })) return 'Le bloc demande un chirurgien et une infirmière.';
+    if (open('recherche') && !staff(function (p) { return p.spec === 'cherch'; })) return 'Le laboratoire demande un médecin chercheur.';
+    if (outsideTemp(S) < 13 && !S.items.some(function (o) { return o.type === 'radiator'; })) return 'Il fait froid : posez des radiateurs (menu Objets). La puissance se règle dans Gestion.';
+    if (S.puddles.length > 4 && !staff(function (p) { return p.kind === 'handy'; })) return 'Les couloirs sont sales : embauchez un agent d\'entretien.';
+    if (S.items.some(function (o) { return o.type === 'drinks'; }) && !S.items.some(function (o) { return o.type === 'bin'; })) return 'Les canettes finissent par terre : posez des poubelles près des distributeurs.';
+    return null;
+  }
+
+  /* ---------- épidémie : vaccination ---------- */
+  function vaccinate(S, pid) {
+    var q = person(S, pid); if (!q || !q.cont) return 'Ce patient n\'est pas porteur';
+    if (q.vaccBy) return 'Une infirmière est déjà en route';
+    var ns = S.people.filter(function (p) { return p.kind === 'nurse' && !p.leaving && p.st !== 'held' && p.st !== 'away' && p.st !== 'in' && p.st !== 'out' && !p.vaccFor; });
+    if (!ns.length) return 'Aucune infirmière disponible';
+    ns.sort(function (a, b) { return (a.st === 'idle' ? 0 : 20) + dist(a.at, q.at) - (b.st === 'idle' ? 0 : 20) - dist(b.at, q.at); });
+    var n = ns[0]; if (n.train) endTraining(S, n); releaseStaff(S, n); n.inRoom = null; n.st = 'idle'; n.pose = 'stand'; n.h = 0; n.x = n.at.x; n.y = n.at.y;
+    n.vaccFor = q.id; n.vaccTry = 0; q.vaccBy = n.id; goTo(S, n, q.at, 'vacc'); return null;
+  }
+
+  /* ---------- fenêtres, agrandissement ---------- */
+  var WIN_COST = 150;
+  function toggleWindow(S, id, rot, k) {
+    var r = room(S, id); if (!r) return 'Salle introuvable'; if (r.open) return 'Fermez d\'abord la salle';
+    var n = rot % 2 === 0 ? r.w : r.h; if (k < 0 || k > n - 2 || k % 2) return 'Hors du mur';
+    if (rot === r.rot && k === r.k) return 'C\'est la porte';
+    r.win = r.win || []; var i = -1; r.win.forEach(function (w, j) { if (w.rot === rot && w.k === k) i = j; });
+    if (i >= 0) { r.win.splice(i, 1); earn(S, Math.round(WIN_COST / 2)); }
+    else { if (S.money < WIN_COST) return 'Pas assez d\'argent'; r.win.push({ rot: rot, k: k }); spend(S, WIN_COST); }
+    refreshRoom(S, r); return null;
+  }
+  function resizeRoom(S, id, x, y, w, h) {
+    var r = room(S, id); if (!r) return 'Salle introuvable'; if (r.open) return 'Fermez d\'abord la salle';
+    var def = ROOMS[r.type], i, j;
+    if (x % 2 || y % 2 || w % 2 || h % 2) return 'Les salles suivent le quadrillage des cases';
+    if (!sizeOk(def, w, h)) return 'Taille minimale : ' + def.min[0] / 2 + ' × ' + def.min[1] / 2 + ' cases';
+    var inside = function (c) { return c.x >= x && c.x < x + w && c.y >= y && c.y < y + h; };
+    var its = roomItems(S, r);
+    for (i = 0; i < its.length; i++) if (!its[i].fp.cells.concat(its[i].fp.res).every(inside)) return 'Un objet dépasserait : ' + ITEMS[its[i].type].name;
+    for (j = y; j < y + h; j++) for (i = x; i < x + w; i++) {
+      if (!inB(i, j)) return 'Hors du bâtiment';
+      if (S.rm[j][i] === r.id) continue;
+      if (S.rm[j][i]) return 'Une salle est déjà là'; if (S.blk[j][i]) return 'Un objet est dans le passage';
+      if (isEntrance(i, j)) return 'Laissez l\'entrée dégagée';
+      if (S.rooms.some(function (o) { return o !== r && ((o.front.x === i && o.front.y === j) || (o.front2 && o.front2.x === i && o.front2.y === j)); })) return 'Vous bloqueriez une porte';
+    }
+    for (i = 0; i < S.items.length; i++) { var o = S.items[i]; if (o.room) continue; if (o.fp.res.some(inside)) return 'Un objet du couloir a besoin de cette place'; }
+    var cost = roomCost(r.type, w, h) - r.cost; if (cost > 0 && S.money < cost) return 'Pas assez d\'argent (' + cost + ' €)';
+    var old = { x: r.x, y: r.y, w: r.w, h: r.h, rot: r.rot, k: r.k, door: r.door, front: r.front, door2: r.door2, front2: r.front2, win: r.win, cost: r.cost };
+    var setRm = function (v, a) { for (var jj = a.y; jj < a.y + a.h; jj++) for (var ii = a.x; ii < a.x + a.w; ii++) S.rm[jj][ii] = v; };
+    var rot = r.rot, k = null;
+    if (rot === 0 && old.y + old.h === y + h) k = old.door.x - x; else if (rot === 2 && old.y === y) k = old.door.x - x; else if (rot === 1 && old.x + old.w === x + w) k = old.door.y - y; else if (rot === 3 && old.x === x) k = old.door.y - y;
+    setRm(0, old);
+    var okDoor = function (rt, kk) { if (kk === null || kk < 0 || kk > (rt % 2 === 0 ? w : h) - 2 || kk % 2) return false; var d = doorAt(x, y, w, h, rt, kk); return [d.front, d.front2].every(function (f) { return inB(f.x, f.y) && !S.rm[f.y][f.x] && !S.blk[f.y][f.x] && !isEntrance(f.x, f.y); }) && !S.blk[d.door.y][d.door.x] && !S.blk[d.door2.y][d.door2.x]; };
+    if (!okDoor(rot, k)) { var found = null; for (var a = 0; a < 4 && !found; a++) for (var kk = 0; kk <= (a % 2 === 0 ? w : h) - 2 && !found; kk += 2) if (okDoor(a, kk)) found = { rot: a, k: kk }; if (!found) { setRm(r.id, old); return 'Aucun mur libre pour la porte'; } rot = found.rot; k = found.k; }
+    var d = doorAt(x, y, w, h, rot, k);
+    r.x = x; r.y = y; r.w = w; r.h = h; r.rot = rot; r.k = k; r.door = d.door; r.front = d.front; r.door2 = d.door2; r.front2 = d.front2; r.cost = roomCost(r.type, w, h);
+    r.win = (r.win || []).filter(function (wn) { return wn.rot !== rot || wn.k !== k; }).filter(function (wn) { return wn.k <= (wn.rot % 2 === 0 ? w : h) - 2 && ((wn.rot === 0 && old.y + old.h === y + h) || (wn.rot === 2 && old.y === y) || (wn.rot === 1 && old.x + old.w === x + w) || (wn.rot === 3 && old.x === x)); }).map(function (wn) { var off = wn.rot % 2 === 0 ? old.x - x : old.y - y; return { rot: wn.rot, k: wn.k + off }; }).filter(function (wn) { return wn.k >= 0 && wn.k <= (wn.rot % 2 === 0 ? w : h) - 2 && !(wn.rot === rot && wn.k === k); });
+    setRm(r.id, r);
+    if (!reachOK(S)) { setRm(0, r); for (var key in old) r[key] = old[key]; setRm(r.id, r); return 'La salle bloquerait un passage'; }
+    if (cost > 0) spend(S, cost); else earn(S, Math.round(-cost * 0.5));
+    fx(S, cost > 0 ? 'build' : 'cash', x + (w - 1) / 2, y + (h - 1) / 2, cost > 0 ? -cost : Math.round(-cost * 0.5));
+    refreshRoom(S, r); settle(S); return null;
+  }
+
+  /* ---------- modèles de salles : copier, enregistrer, coller ---------- */
+  function roomTemplate(S, id) {
+    var r = room(S, id); if (!r) return null;
+    return { type: r.type, w: r.w, h: r.h, rot: r.rot, k: r.k, win: (r.win || []).map(function (o) { return { rot: o.rot, k: o.k }; }),
+      items: roomItems(S, r).map(function (it) { return { type: it.type, x: it.x - r.x, y: it.y - r.y, rot: it.rot }; }) };
+  }
+  // Un quart de tour dans le sens des aiguilles d'une montre : (x, y) → (h − 1 − y, x).
+  function tplTurn(t) {
+    var h = t.h, side = function (s, k) { return { rot: (s + 3) % 4, k: s === 1 || s === 3 ? h - 2 - k : k }; }, d = side(t.rot, t.k);
+    return { type: t.type, w: t.h, h: t.w, rot: d.rot, k: d.k, win: (t.win || []).map(function (o) { return side(o.rot, o.k); }),
+      items: t.items.map(function (it) { var D = ITEMS[it.type], fw = it.rot % 2 ? D.d : D.w, fh = it.rot % 2 ? D.w : D.d; return { type: it.type, x: h - it.y - fh, y: it.x, rot: (it.rot + 1) % 4 }; }) };
+  }
+  function tplRotate(t, q) { var o = t; q = ((q % 4) + 4) % 4; for (var i = 0; i < q; i++) o = tplTurn(o); return o; }
+  function tplCost(t) { var c = roomCost(t.type, t.w, t.h) + (t.win || []).length * WIN_COST; t.items.forEach(function (it) { c += ITEMS[it.type] ? ITEMS[it.type].cost : 0; }); return c; }
+  function canPaste(S, t, x, y) {
+    if (!t || !ROOMS[t.type]) return 'Modèle invalide';
+    var err = canPlaceRoom(S, t.type, x, y, t.w, t.h, t.rot, t.k, true); if (err) return err;
+    if (S.money < tplCost(t)) return 'Pas assez d\'argent (' + tplCost(t) + ' €)';
+    var id0 = S.nextId, r = newRoomRaw(S, t.type, x, y, t.w, t.h, t.rot, t.k), added = [], bad = null;
+    for (var i = 0; i < t.items.length && !bad; i++) { var it = t.items[i], e = canPlaceItem(S, it.type, x + it.x, y + it.y, it.rot, r.id, 0, true); if (e) bad = ITEMS[it.type].name + ' : ' + e; else added.push(addItemRaw(S, it.type, x + it.x, y + it.y, it.rot, r.id)); }
+    added.forEach(function (o) { removeItemRaw(S, o); }); removeRoomRaw(S, r); S.nextId = id0;
+    return bad;
+  }
+  function pasteTemplate(S, t, x, y) {
+    var err = canPaste(S, t, x, y); if (err) return err;
+    err = buildRoom(S, t.type, x, y, t.w, t.h, t.rot, t.k); if (err) return err;
+    var r = room(S, S.lastId);
+    t.items.forEach(function (it) { placeItem(S, it.type, x + it.x, y + it.y, it.rot, r.id); });
+    (t.win || []).forEach(function (wn) { if (!(wn.rot === r.rot && wn.k === r.k)) { r.win.push({ rot: wn.rot, k: wn.k }); spend(S, WIN_COST); } });
+    refreshRoom(S, r); if (!roomMissing(S, r).length) openRoom(S, r.id);
+    S.lastId = r.id; return null;
+  }
+
+  /* ---------- anciennes parties (v4) : portes d'une case, mobilier replacé ---------- */
+  function migrate(S) {
+    if (!S || S.v >= 5) return S;
+    ensure(S);
+    var olds = S.items.slice(); olds.forEach(function (it) { if (!ITEMS[it.type]) { S.items.splice(S.items.indexOf(it), 1); return; } removeItemRaw(S, it); });
+    S.people = S.people.filter(function (p) { return p.kind !== 'patient'; });
+    S.rooms.forEach(function (r) {
+      var n = r.rot % 2 === 0 ? r.w : r.h; r.k -= r.k % 2; if (r.k > n - 2) r.k = n - 2;
+      var d = doorAt(r.x, r.y, r.w, r.h, r.rot, r.k); r.door = d.door; r.front = d.front; r.door2 = d.door2; r.front2 = d.front2;
+      r.win = []; r.aideId = null; r.aideIn = false; r.queue = []; r.patientId = null; r.staffId = null; r.staffIn = false; r.occ = []; r.fixer = null;
+    });
+    S.rooms.forEach(function (r) { var was = r.open; r.open = false; var e = furnishRaw(S, r); refreshRoom(S, r); if (!e && was) { r.open = true; r.fresh = false; } });
+    olds.filter(function (it) { return !it.room && ITEMS[it.type]; }).forEach(function (it) {
+      var done = false;
+      for (var dd = 0; dd <= 3 && !done; dd++) for (var dy = -dd; dy <= dd && !done; dy++) for (var dx = -dd; dx <= dd && !done; dx++) {
+        if (!canPlaceItem(S, it.type, it.x + dx, it.y + dy, it.rot, 0, 0, true)) { addItemRaw(S, it.type, it.x + dx, it.y + dy, it.rot, 0); done = true; }
+      }
+      if (!done) S.money += ITEMS[it.type].cost;
+    });
+    var psy = S.rooms.some(function (r) { return r.type === 'psy'; });
+    S.people.forEach(function (p) {
+      if (p.st === 'held' || p.st === 'away') p.st = 'idle';
+      p.path = []; p.pose = 'stand'; p.h = 0; p.inRoom = null; p.goRoom = null; p.pin = null; p.spec = p.spec || null; if (p.mood === undefined) p.mood = 0.8;
+      p.x = p.at.x; p.y = p.at.y; if (p.st !== 'in') p.st = 'idle';
+    });
+    if (psy) { var d0 = S.people.filter(function (p) { return p.kind === 'doc' && !p.spec; })[0]; if (d0) d0.spec = 'psy'; }
+    S.items.forEach(function (o) { o.used = {}; o.staffId = null; o.staffIn = false; o.queue = []; o.cur = null; });
+    S.puddles = []; S.offer = null; S.v = 5; settle(S);
+    return S;
+  }
+  root.Velpo = { SCALE: KS, _goTo: goTo, _clear: clearWalk, SPECS: SPECS, RANKS: RANKS, STARS: STARS, MONTHS: MONTHS, RES_NAMES: RES_NAMES, LOAN_MAX: LOAN_MAX, WIN_COST: WIN_COST,
+    rankOf: rankOf, canStaff: canStaff, expectedWage: expectedWage, resCost: resCost, setFocus: setFocus, setLearn: setLearn, setPrio: setPrio, bonus: bonus, mailAct: mailAct,
+    setPrice: setPrice, priceMul: priceMul, borrow: borrow, repay: repay, setPolicy: setPolicy, setHeat: setHeat, tempAt: tempAt, heatGrid: heatGrid, outsideTemp: outsideTemp, cleanScore: cleanScore,
+    vaccinate: vaccinate, queueFront: queueFront, replaceMachine: replaceMachine, toggleWindow: toggleWindow, resizeRoom: resizeRoom, levelStatus: levelStatus,
+    roomTemplate: roomTemplate, tplRotate: tplRotate, tplCost: tplCost, canPaste: canPaste, pasteTemplate: pasteTemplate, migrate: migrate, ensure: ensure, endTraining: endTraining, startTraining: startTraining,
     W: W, H: H, SPAWN: SPAWN, DAY: DAY, ROOMS: ROOMS, ITEMS: ITEMS, DISEASES: DISEASES, DMAP: DMAP, STAFF: STAFF, GOALS: GOALS, THOUGHTS: THOUGHTS,
     newGame: newGame, tick: tick, canPlaceRoom: canPlaceRoom, autoDoor: autoDoor, doorAt: doorAt, roomCost: roomCost, roomTotal: roomTotal, sizeOk: sizeOk, canFurnish: canFurnish,
     buildRoom: buildRoom, autoFurnish: autoFurnish, openRoom: openRoom, closeRoom: closeRoom, demolishRoom: demolishRoom, moveDoor: moveDoor, roomMissing: roomMissing, roomItems: roomItems,
@@ -5459,7 +6164,7 @@
 
   /* ---------- personnages : couleurs par sommet tirées de la palette, tenues recolorées ---------- */
   var CIV = ['c_female-a', 'c_male-a', 'c_female-b', 'c_male-b', 'c_female-c', 'c_male-c', 'c_female-d', 'c_male-d', 'c_female-e', 'c_male-e', 'c_female-f', 'c_male-f', 'c_male-g'];
-  var OUTFIT = { doc: { top: [0.97, 0.98, 0.99], legs: [0.24, 0.42, 0.5] }, nurse: { top: [0.24, 0.72, 0.66], legs: [0.2, 0.6, 0.56] }, recep: { top: [0.6, 0.47, 0.86] }, handy: {} };
+  var OUTFIT = { vip: { top: [0.16, 0.18, 0.25], legs: [0.16, 0.18, 0.25] }, doc: { top: [0.97, 0.98, 0.99], legs: [0.24, 0.42, 0.5] }, nurse: { top: [0.24, 0.72, 0.66], legs: [0.2, 0.6, 0.56] }, recep: { top: [0.6, 0.47, 0.86] }, handy: {} };
   var geoCache = {}, skinCache = {}, charMat = null;
   function sample(u, v) { var x = Math.min(PAL.width - 1, Math.max(0, Math.floor(u * PAL.width))), y = Math.min(PAL.height - 1, Math.max(0, Math.floor(v * PAL.height))), i = (y * PAL.width + x) * 4; return [PAL.data[i] / 255, PAL.data[i + 1] / 255, PAL.data[i + 2] / 255]; }
   function s2l(c) { return c <= 0.04045 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4); }
@@ -5544,6 +6249,20 @@
       g = cone(0.06, 0.3, '#8a8f94', 0, 0, 0); g.rotation.x = -PI / 2 - 0.7; g.position.set(0, 0.06, -0.2); attach(model, 'torso', g); attach(model, 'head', sph(0.03, '#33505a', 0, 0.1, 0.168));
     }
     else if (d === 'phobie') { g = grp(box(0.17, 0.012, 0.22, '#ffffff', 0, 0, 0), box(0.17, 0.012, 0.22, '#f1ead9', 0.01, 0.014, 0.005), box(0.17, 0.012, 0.22, '#ffffff', -0.008, 0.028, -0.004), box(0.1, 0.004, 0.02, '#9bb4bb', 0, 0.04, 0.05), box(0.1, 0.004, 0.02, '#9bb4bb', 0, 0.04, 0.0)); g.position.set(0, 0.03, 0.2); attach(model, 'torso', g); hold = 'holding-both'; }
+    else if (d === 'pixel') {
+      var hm = model.getObjectByName('head-mesh'); if (hm) hm.visible = false;
+      var tx = canvasTex(8, 8, function (c) { var sk = ['#e8b48a', '#d9a07a', '#f0c49a', '#c98f6a', '#e0a882']; for (var yy = 0; yy < 8; yy++) for (var xx = 0; xx < 8; xx++) { c.fillStyle = sk[(xx * 7 + yy * 13) % 5]; c.fillRect(xx, yy, 1, 1); } c.fillStyle = '#5a3a22'; c.fillRect(0, 0, 8, 2); c.fillStyle = '#17323a'; c.fillRect(2, 3, 1, 1); c.fillRect(5, 3, 1, 1); c.fillStyle = '#8a3b2f'; c.fillRect(3, 5, 2, 1); });
+      tx.magFilter = T.NearestFilter; tx.minFilter = T.NearestFilter;
+      var cube = new T.Mesh(uBox, new T.MeshLambertMaterial({ map: tx })); cube.scale.set(0.42, 0.36, 0.42); cube.position.set(0, 0.17, 0.01); attach(model, 'head', cube);
+    }
+    else if (d === 'notif') {
+      var sp = new T.Sprite(new T.SpriteMaterial({ map: canvasTex(64, 64, function (c) { c.fillStyle = '#ff3b30'; c.beginPath(); c.arc(32, 32, 30, 0, 6.3); c.fill(); c.fillStyle = '#ffffff'; c.font = '800 24px sans-serif'; c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillText('99+', 32, 34); }) }));
+      sp.scale.setScalar(0.24); sp.position.set(0.12, 0.5, 0); sp.userData.bob = 1; attach(model, 'head', sp);
+      g = grp(box(0.018, 0.16, 0.09, '#17323a'), box(0.004, 0.135, 0.075, '#ff8a80', 0.011, 0.012, 0, { emissive: '#ff6b5e', ei: 0.9 })); g.position.set(-0.27, -0.02, 0); attach(model, 'arm-right', g); hold = 'holding-right';
+    }
+    else if (d === 'ego') { g = grp(cyl(0.13, 0.06, '#ffc94a', 0, 0, 0, { emissive: '#ffb000', ei: 0.4 }), cone(0.03, 0.08, '#ffc94a', 0.09, 0.05, 0), cone(0.03, 0.08, '#ffc94a', -0.09, 0.05, 0), cone(0.03, 0.08, '#ffc94a', 0, 0.05, 0.09), cone(0.03, 0.08, '#ffc94a', 0, 0.05, -0.09)); g.position.set(0, 0.34, 0); attach(model, 'head', g); }
+    else if (d === 'traceur') { g = sph(0.035, '#ff2a2a', 0, 0.08, 0.135, { emissive: '#ff2a2a', ei: 1.6, noShadow: true }); g.userData.blink = 1; attach(model, 'torso', g); }
+    else if (d === 'dimanche') { g = grp(cone(0.11, 0.24, '#9b8be0', 0, 0, 0), sph(0.04, '#ffffff', 0.05, 0.25, 0)); g.position.set(0, 0.26, -0.02); g.rotation.z = -0.35; attach(model, 'head', g); g = box(0.2, 0.08, 0.14, '#ffffff'); g.position.set(-0.27, -0.02, 0.05); attach(model, 'arm-right', g); hold = 'holding-right'; }
     else if (d === 'trottinette') { g = furnProp('p_crutch', 1.5); g.position.set(-0.2, 0, 0.06); model.add(g); }
     return hold;
   }
@@ -5571,7 +6290,7 @@
     g.add(furn('plantSmall1', 0.2, 0.32, 0.2, { x: 0.7, y: 0.68, z: 0.08 })); g.add(cyl(0.05, 0.03, '#ffc94a', 0.25, 0.68, 0.18)); g.add(sph(0.035, '#ffc94a', 0.25, 0.72, 0.18));
     g.add(box(0.5, 0.012, 0.3, '#ffffff', 0.1, 0.68, -0.05)); return { h: 0.75 };
   };
-  IV.bench = function (g) { g.add(furn('benchCushion', 0.94, 0.68, 0.5, { z: -0.14, cols: { carpet: '#7fcfb0' } })); return { h: 0.7 }; };
+  IV.bench = function (g) { g.add(furn('benchCushion', 0.94, 0.68, 0.5, { z: -0.04, cols: { carpet: '#7fcfb0' } })); return { h: 0.7 }; };
   IV.drinks = function (g) {
     g.add(box(0.82, 1.42, 0.56, '#ff5a4d', 0, 0, -0.08)); g.add(box(0.86, 0.08, 0.6, '#d94a3f', 0, 1.42, -0.08)); g.add(box(0.86, 0.06, 0.6, '#33505a', 0, 0, -0.08));
     var mat = new T.MeshBasicMaterial({ map: canvasTex(128, 224, function (c) {
@@ -5680,103 +6399,301 @@
     return { h: 1.3, busy: function (b, dt) { ang += ((b ? 0 : -1.5) - ang) * Math.min(1, dt * 6); piv.rotation.y = ang; lamp.material = b ? red : green; } };
   };
   IV.sink = function (g) { g.add(furn('bathroomSink', 0.62, 0.78, 0.44, { z: -0.22 })); g.add(furn('bathroomMirror', 0.42, 0.5, 0.1, { y: 0.92, z: -0.4 })); return { h: 1.2 }; };
+
+  /* ---------- objets dessinés directement à l'échelle Two Point (1 case = 2 cellules) ---------- */
+  IV.bin = function (g) {
+    g.add(cyl(0.24, 0.66, '#7d8b93')); g.add(cyl(0.27, 0.07, '#5f6b72', 0, 0.66, 0));
+    var pile = grp(cyl(0.06, 0.15, '#e94f4f', 0.09, 0.72, 0.05), cyl(0.06, 0.15, '#4f9be8', -0.08, 0.72, -0.05), box(0.16, 0.03, 0.12, '#ffffff', 0, 0.76, 0.11)); pile.visible = false; g.add(pile);
+    return { h: 0.8, pile: pile };
+  };
+  IV.radiator = function (g) {
+    for (var i = 0; i < 9; i++) g.add(box(0.13, 0.86, 0.15, '#f4f7f8', -0.8 + i * 0.2, 0.14, -0.36));
+    g.add(box(1.8, 0.06, 0.1, '#dfe6ea', 0, 0.16, -0.36)); g.add(box(1.8, 0.06, 0.1, '#dfe6ea', 0, 0.94, -0.36));
+    [-0.84, 0.84].forEach(function (x) { g.add(box(0.06, 0.16, 0.06, '#c3ccd2', x, 0, -0.36)); });
+    var glow = flat(1.9, 1.1, new T.MeshBasicMaterial({ color: C('#ff8a4a'), transparent: true, opacity: 0, depthWrite: false }), 0, 0.02, -0.05); g.add(glow);
+    return { h: 1.1, glow: glow };
+  };
+  IV.extinguisher = function (g) {
+    g.add(box(0.34, 0.5, 0.05, '#c3ccd2', 0, 0.62, -0.44)); g.add(cyl(0.13, 0.66, '#e2322a', 0, 0.4, -0.3)); g.add(sph(0.13, '#e2322a', 0, 1.06, -0.3));
+    g.add(box(0.06, 0.14, 0.06, '#2b2f36', 0, 1.12, -0.3)); g.add(box(0.2, 0.04, 0.04, '#2b2f36', 0.07, 1.24, -0.3)); g.add(cyl(0.025, 0.5, '#2b2f36', 0.16, 0.7, -0.24));
+    return { h: 1.3 };
+  };
+  IV.bed = function (g) {
+    var wood = '#d9e4ea', sheet = '#ffffff', blanket = '#7fb8e6';
+    [[-0.8, -1.7], [0.8, -1.7], [-0.8, 1.7], [0.8, 1.7]].forEach(function (p) { g.add(cyl(0.06, 0.32, '#9aa7b2', p[0], 0, p[1])); });
+    g.add(box(1.8, 0.24, 3.7, wood, 0, 0.32, 0)); g.add(box(1.7, 0.36, 3.5, sheet, 0, 0.56, 0.02)); g.add(box(1.74, 0.14, 2.2, blanket, 0, 0.84, 0.68));
+    g.add(box(1.0, 0.18, 0.55, '#ffffff', 0, 0.92, -1.35)); g.add(box(1.9, 1.5, 0.12, wood, 0, 0.3, -1.88)); g.add(box(1.9, 0.9, 0.1, wood, 0, 0.3, 1.88));
+    g.add(cyl(0.025, 2.2, '#9aa7b2', 1.05, 0, -1.4)); g.add(box(0.2, 0.32, 0.08, '#cfe9ff', 1.05, 1.95, -1.4, { opacity: 0.7 })); g.add(cyl(0.18, 0.04, '#9aa7b2', 1.05, 0, -1.4));
+    return { h: 1.1 };
+  };
+  IV.nurse_station = function (g) { return IV.gp_desk(g); };
+  IV.screen = function (g) {
+    var fr = '#cfd8dc', cl = '#bfe0f2';
+    [-0.6, 0, 0.6].forEach(function (x, i) { var p = new T.Group(); p.add(box(0.04, 1.9, 0.04, fr, -0.29, 0, 0)); p.add(box(0.04, 1.9, 0.04, fr, 0.29, 0, 0)); p.add(box(0.56, 1.5, 0.02, cl, 0, 0.3, 0, { opacity: 0.88 })); p.position.set(x, 0, i === 1 ? -0.12 : 0.05); p.rotation.y = (i - 1) * 0.35; g.add(p); });
+    return { h: 1.9 };
+  };
+  IV.op_table = function (g) {
+    g.add(cyl(0.3, 0.2, '#9aa7b2', 0, 0, 0)); g.add(cyl(0.12, 0.7, '#c3ccd2', 0, 0.2, 0)); g.add(box(0.9, 0.12, 3.4, '#e9eef1', 0, 0.86, 0)); g.add(box(0.84, 0.06, 3.3, '#4fb3a0', 0, 0.98, 0));
+    g.add(cyl(0.07, 3.3, '#c3ccd2', 0, 0, -2.05)); g.add(box(0.08, 0.08, 1.9, '#c3ccd2', 0, 3.25, -1.1));
+    var lampM = M('#f8fbff', { emissive: '#fff6c2', ei: 0.15 }), lamp = cyl(0.62, 0.16, lampM, 0, 3.0, -0.2); g.add(lamp); g.add(cyl(0.5, 0.02, '#fffdf0', 0, 2.99, -0.2, { emissive: '#fffbe0', ei: 0.4 }));
+    var spot = flat(1.1, 2.4, new T.MeshBasicMaterial({ color: C('#fff6c2'), transparent: true, opacity: 0, depthWrite: false }), 0, 1.03, -0.1); g.add(spot);
+    return { h: 1.1, update: function (on, prog, t) { lampM.emissiveIntensity = on ? 1.1 : 0.15; spot.material.opacity = on ? 0.35 + Math.sin(t * 3) * 0.04 : 0; } };
+  };
+  IV.monitor = function (g) {
+    g.add(box(1.2, 0.8, 0.7, '#e9eef1', 0, 0.15, -0.05)); [-0.5, 0.5].forEach(function (x) { g.add(cyl(0.07, 0.15, '#2b2f36', x, 0, 0.2)); g.add(cyl(0.07, 0.15, '#2b2f36', x, 0, -0.3)); });
+    g.add(cyl(0.04, 0.9, '#c3ccd2', 0, 0.95, -0.25));
+    var cv = document.createElement('canvas'); cv.width = 256; cv.height = 128; var cx = cv.getContext('2d'), tex = new T.CanvasTexture(cv);
+    var scr = plane(1.1, 0.6, new T.MeshBasicMaterial({ map: tex }), 0, 2.1, -0.18); g.add(box(1.2, 0.7, 0.08, '#2b2f36', 0, 1.75, -0.26)); g.add(scr);
+    var last = -1;
+    function draw(on, t) {
+      cx.fillStyle = '#0d2a24'; cx.fillRect(0, 0, 256, 128); cx.strokeStyle = on ? '#5dff9a' : '#2f7a55'; cx.lineWidth = 4; cx.beginPath();
+      for (var x = 0; x <= 256; x += 4) { var ph = (x / 256 * 3 + (on ? t * 1.6 : 0)) % 1, y = 70 - (ph > 0.42 && ph < 0.46 ? 50 : ph > 0.46 && ph < 0.5 ? -28 : Math.sin(ph * 40) * 3); if (x) cx.lineTo(x, y); else cx.moveTo(x, y); }
+      cx.stroke(); cx.fillStyle = '#5dff9a'; cx.font = '700 26px sans-serif'; cx.fillText(on ? '72' : '--', 200, 30); tex.needsUpdate = true;
+    }
+    draw(false, 0);
+    return { h: 2.4, update: function (on, prog, t) { var k = on ? Math.floor(t * 12) : -2; if (k !== last) { last = k; draw(on, t); } } };
+  };
+  IV.scrub_sink = function (g) { return IV.sink(g); };
+  IV.lectern = function (g) {
+    var w = '#b98b5a'; g.add(box(0.9, 1.5, 0.6, w, 0, 0, 0.1)); var top = box(1.0, 0.08, 0.7, '#a0764a', 0, 1.5, 0.12); top.rotation.x = 0.25; g.add(top);
+    g.add(box(0.5, 0.02, 0.36, '#ffffff', 0.05, 1.6, 0.12)); g.add(cyl(0.015, 0.3, '#2b2f36', -0.3, 1.55, 0.25)); g.add(sph(0.05, '#2b2f36', -0.3, 1.87, 0.3));
+    return { h: 1.7 };
+  };
+  IV.student_desk = function (g) {
+    var w = '#d9b98c';
+    g.add(box(1.7, 0.08, 0.8, w, 0, 1.2, -0.5)); [[-0.75, -0.8], [0.75, -0.8], [-0.75, -0.2], [0.75, -0.2]].forEach(function (p) { g.add(box(0.06, 1.2, 0.06, '#7d8b93', p[0], 0, p[1])); });
+    g.add(box(0.6, 0.03, 0.44, '#ffffff', -0.2, 1.28, -0.5)); g.add(box(0.3, 0.03, 0.2, '#4f9be8', 0.45, 1.28, -0.55));
+    g.add(box(0.8, 0.08, 0.7, '#4f9be8', 0, 0.82, 0.62)); g.add(box(0.8, 0.8, 0.08, '#4f9be8', 0, 0.9, 0.95)); [[-0.32, 0.35], [0.32, 0.35], [-0.32, 0.9], [0.32, 0.9]].forEach(function (p) { g.add(box(0.05, 0.82, 0.05, '#7d8b93', p[0], 0, p[1])); });
+    return { h: 1.4 };
+  };
+  IV.board = function (g) {
+    var tex = canvasTex(256, 112, function (c) { c.fillStyle = '#ffffff'; c.fillRect(0, 0, 256, 112); c.strokeStyle = '#2f6fc4'; c.lineWidth = 4; c.beginPath(); c.arc(50, 56, 26, 0, 6.3); c.stroke(); c.beginPath(); c.moveTo(90, 30); c.lineTo(150, 80); c.lineTo(200, 25); c.stroke(); c.fillStyle = '#d23b3b'; c.font = '700 22px sans-serif'; c.fillText('E = mc² ?', 140, 100); c.fillStyle = '#1f9d6b'; c.fillText('H₂O', 20, 105); });
+    g.add(box(3.7, 1.7, 0.08, '#c3ccd2', 0, 1.0, -0.4)); g.add(plane(3.5, 1.5, new T.MeshBasicMaterial({ map: tex }), 0, 1.85, -0.35));
+    [-1.7, 1.7].forEach(function (x) { g.add(box(0.06, 1.0, 0.06, '#7d8b93', x, 0, -0.4)); }); g.add(box(3.6, 0.06, 0.18, '#9aa7b2', 0, 0.98, -0.3));
+    return { h: 2.7 };
+  };
+  IV.lab_bench = function (g) {
+    g.add(box(3.8, 1.7, 1.5, '#e9eef1', 0, 0, -0.15)); g.add(box(3.9, 0.08, 1.6, '#2b2f36', 0, 1.7, -0.15));
+    var fl = [];
+    [['#5dff9a', -1.4], ['#ff7ad9', -0.9], ['#7fdcff', -0.4], ['#ffe15a', 1.0], ['#ff8a4a', 1.5]].forEach(function (f, i) { var m = M(f[0], { emissive: f[0], ei: 0.4, opacity: 0.85 }), b = sph(0.17, m, f[1], 1.95, -0.3 + (i % 2) * 0.3); g.add(b); g.add(cyl(0.05, 0.25, '#e9f6ff', f[1], 2.05, -0.3 + (i % 2) * 0.3, { opacity: 0.6 })); fl.push(b); });
+    g.add(box(0.3, 0.06, 0.4, '#2b2f36', 0.3, 1.78, -0.3)); g.add(cyl(0.05, 0.6, '#2b2f36', 0.3, 1.78, -0.45)); g.add(cyl(0.09, 0.2, '#33505a', 0.3, 2.3, -0.38));
+    return { h: 2.3, update: function (on, prog, t) { fl.forEach(function (b, i) { var s = 0.34 * (on ? 1 + Math.sin(t * 6 + i) * 0.12 : 1); b.scale.setScalar(s); }); } };
+  };
+  IV.lab_computer = function (g) {
+    g.add(box(1.7, 2.6, 0.8, '#2b2f36', 0, 0, -0.1)); var leds = [];
+    for (var i = 0; i < 10; i++) { var l = box(0.08, 0.05, 0.02, i % 3 ? '#5dff9a' : '#ffb84a', -0.6 + (i % 5) * 0.3, 0.5 + Math.floor(i / 5) * 0.3, 0.31, { emissive: i % 3 ? '#5dff9a' : '#ffb84a', ei: 1, noShadow: true }); g.add(l); leds.push(l); }
+    var tex = canvasTex(160, 100, function (c) { c.fillStyle = '#1b3a4b'; c.fillRect(0, 0, 160, 100); c.fillStyle = '#f2b36b'; c.beginPath(); c.arc(80, 58, 26, 0, 6.3); c.fill(); c.beginPath(); c.moveTo(58, 44); c.lineTo(62, 18); c.lineTo(74, 34); c.fill(); c.beginPath(); c.moveTo(102, 44); c.lineTo(98, 18); c.lineTo(86, 34); c.fill(); c.fillStyle = '#17323a'; c.fillRect(70, 52, 5, 5); c.fillRect(86, 52, 5, 5); });
+    g.add(plane(1.1, 0.7, new T.MeshBasicMaterial({ map: tex }), 0, 1.8, 0.31));
+    return { h: 2.6, update: function (on, prog, t) { leds.forEach(function (l, i) { l.visible = Math.sin(t * (3 + i) + i) > -0.3; }); } };
+  };
+  IV.upscaler = function (g) {
+    g.add(box(3.7, 0.3, 3.7, '#33505a', 0, 0, 0)); g.add(box(3.4, 0.02, 3.4, '#5dc9ff', 0, 0.3, 0, { emissive: '#5dc9ff', ei: 0.4 }));
+    var glass = M('#bfe8ff', { opacity: 0.28 });
+    g.add(box(3.6, 3.2, 0.06, glass, 0, 0.3, -1.8)); g.add(box(0.06, 3.2, 3.6, glass, -1.8, 0.3, 0)); g.add(box(0.06, 3.2, 3.6, glass, 1.8, 0.3, 0)); g.add(box(1.2, 3.2, 0.06, glass, -1.2, 0.3, 1.8)); g.add(box(1.2, 3.2, 0.06, glass, 1.2, 0.3, 1.8));
+    [[-1.8, -1.8], [1.8, -1.8], [-1.8, 1.8], [1.8, 1.8]].forEach(function (p) { g.add(box(0.14, 3.5, 0.14, '#2b2f36', p[0], 0, p[1])); });
+    g.add(box(3.8, 0.3, 3.8, '#2b2f36', 0, 3.5, 0));
+    var sgn = plane(1.2, 0.5, signMat('4K', '#5dc9ff', '#0d2a3a', 128, 54, 40), 0, 3.65, 1.92); g.add(sgn);
+    var scan = flat(3.3, 3.3, new T.MeshBasicMaterial({ color: C('#7fe3ff'), transparent: true, opacity: 0, depthWrite: false, side: T.DoubleSide }), 0, 0.5, 0); g.add(scan);
+    var px = []; for (var i = 0; i < 14; i++) { var q = box(0.16, 0.16, 0.16, ['#ff6b5e', '#5dff9a', '#5dc9ff', '#ffe15a'][i % 4], 0, 0, 0, { emissive: '#ffffff', ei: 0.3, noShadow: true }); q.visible = false; g.add(q); px.push(q); }
+    return { h: 3.8, update: function (on, prog, t) {
+      scan.material.opacity = on ? 0.45 : 0; scan.position.y = 0.4 + (Math.sin(t * 2.2) * 0.5 + 0.5) * 2.8;
+      px.forEach(function (q, i) { q.visible = on && prog < 0.8; if (q.visible) { var a = i * 0.9 + t * (0.6 + (i % 3) * 0.2); q.position.set(Math.cos(a) * 0.9, 0.8 + ((i * 0.37 + t * 0.5) % 1) * 2.2, Math.sin(a) * 0.9); } });
+    } };
+  };
+  IV.avion = function (g) {
+    var white = '#f6f8fa', blue = '#2f6fc4';
+    g.add(box(3.0, 0.4, 0.5, '#9aa7b2', 0, 0, -0.2)); [-1.2, 1.2].forEach(function (x) { g.add(cyl(0.12, 0.5, '#c3ccd2', x, 0.3, -0.2)); });
+    var body = mesh(uCyl, M(white, { opacity: 0.55 })); body.scale.set(1.9, 3.3, 1.9); body.rotation.z = PI / 2; body.position.set(0, 1.75, -0.1); g.add(body);
+    var nose = sph(0.95, white, 1.65, 1.75, -0.1); nose.scale.set(1.0, 1.9, 1.9); g.add(nose);
+    g.add(box(3.3, 0.18, 0.12, blue, 0, 1.15, 0.82)); g.add(box(0.9, 0.08, 3.9, white, -0.1, 1.55, -0.1)); var fin = box(0.6, 1.0, 0.1, blue, -1.6, 2.5, -0.1); g.add(fin);
+    g.add(box(0.5, 0.06, 1.4, white, -1.6, 2.4, -0.1));
+    var prop = new T.Group(); prop.add(box(0.06, 1.4, 0.1, '#2b2f36')); prop.add(box(0.06, 0.1, 1.4, '#2b2f36')); prop.position.set(2.62, 1.75, -0.1); g.add(prop); g.add(sph(0.12, '#ff6b5e', 2.6, 1.75, -0.1));
+    var sgn = plane(1.5, 0.45, signMat('MODE AVION', '#ffc94a', '#17323a', 220, 66, 34), 0, 3.15, 0.2); g.add(sgn);
+    return { h: 2.8, update: function (on, prog, t) { prop.rotation.x = on ? t * 22 : prop.rotation.x; body.position.y = 1.75 + (on ? Math.sin(t * 7) * 0.03 : 0); } };
+  };
   function buildItemGroup(type) { var g = new T.Group(), info = (IV[type] || function (gg) { gg.add(box(0.8, 0.6, 0.8, '#ff00ff')); return { h: 0.6 }; })(g); return { g: g, info: info || {} }; }
 
   /* ---------- décor fixe ---------- */
-  var SCALE = 1.45, KS = V.SCALE || 0.7, DH = 1.38 * KS, pickMat = new T.MeshBasicMaterial({ visible: false });
+  // Proportions Two Point : une case = 2 cellules. Personnages ≈ 2,4 cellules de haut et une cellule de large ;
+  // portes d'une case (2 cellules) et 3 de haut, murs de 3,4 coupés côté caméra comme dans Two Point Hospital.
+  var SCALE = 1.9, LEG = 3, LEG_SIT = 1.5, TOR = 2.3, CH = SCALE * (0.17625 * LEG + 0.167 * TOR + 0.33), WH = 3.4, LOW = 0.55, DHT = 3.0, KS = 1, pickMat = new T.MeshBasicMaterial({ visible: false });
   function shade(hex, f) { var c = new T.Color(hex); c.multiplyScalar(f); return '#' + c.getHexString(); }
   function tint(hex, k) { var c = new T.Color(hex); c.lerp(new T.Color('#ffffff'), k); return '#' + c.getHexString(); }
   function repeatPlane(w, d, tex, rx, ry) { var geo = new T.PlaneGeometry(w, d), uv = geo.attributes.uv; for (var i = 0; i < uv.count; i++) uv.setXY(i, uv.getX(i) * rx, uv.getY(i) * ry); var m = new T.Mesh(geo, new T.MeshLambertMaterial({ map: tex })); m.rotation.x = -PI / 2; m.receiveShadow = true; return m; }
   function tree(x, z, s) { var g = grp(cyl(0.16 * s, 1.1 * s, '#9c6b43', 0, 0, 0), sph(0.95 * s, '#4fae6d', 0, 1.7 * s, 0), sph(0.7 * s, '#63c080', 0.45 * s, 2.25 * s, 0.2 * s), sph(0.62 * s, '#45a063', -0.5 * s, 2.05 * s, -0.15 * s)); g.position.set(x, -0.1, z); return g; }
+  var outer = [], ambProto = null, ambRun = null, cars = [], walkers = [];
   function buildWorld() {
-    var g = new T.Group(), cx = (W - 1) / 2, cz = (H - 1) / 2, i;
-    var grass = canvasTex(128, 128, function (c) { c.fillStyle = '#93d19b'; c.fillRect(0, 0, 128, 128); for (var k = 0; k < 260; k++) { c.fillStyle = k % 3 ? 'rgba(120,196,132,.55)' : 'rgba(170,226,170,.5)'; c.fillRect((k * 53) % 128, (k * 97) % 128, 5, 3); } }); grass.wrapS = grass.wrapT = T.RepeatWrapping;
-    var gr = repeatPlane(300, 300, grass, 75, 75); gr.position.set(cx, -0.11, cz); g.add(gr);
-    g.add(box(W + 0.9, 0.22, H + 0.9, '#cfdad5', cx, -0.22, cz));
+    var g = new T.Group(), cx = (W - 1) / 2, cz = (H - 1) / 2, i, ex = V.SPAWN.x;
+    var grass = canvasTex(128, 128, function (c) { c.fillStyle = '#93d19b'; c.fillRect(0, 0, 128, 128); for (var k = 0; k < 220; k++) { c.fillStyle = k % 3 ? 'rgba(120,196,132,.35)' : 'rgba(170,226,170,.3)'; c.fillRect((k * 53) % 128, (k * 97) % 128, 4, 2); } }); grass.wrapS = grass.wrapT = T.RepeatWrapping;
+    var gr = repeatPlane(400, 400, grass, 60, 60); gr.position.set(cx, -0.11, cz); g.add(gr);
+    g.add(box(W + 1.2, 0.22, H + 1.2, '#cfdad5', cx, -0.22, cz));
     var hall = repeatPlane(W, H, tileTex('#e6ece9', '#d9e3df', '#bfd0c9'), W / 4, H / 4); hall.position.set(cx, 0.002, cz); g.add(hall);
-    // murs extérieurs, bas pour laisser voir l'intérieur
-    var wh = 0.85, th = 0.22, cap = '#7fcfb0', wc = '#fbfdfc', ex = V.SPAWN.x;
-    function wall(x0, z0, x1, z1) { var L = Math.abs(x1 - x0) + Math.abs(z1 - z0), alongX = z0 === z1, w = alongX ? L : th, d = alongX ? th : L; g.add(box(w, wh, d, wc, (x0 + x1) / 2, 0, (z0 + z1) / 2)); g.add(box(w + 0.06, 0.08, d + 0.06, cap, (x0 + x1) / 2, wh, (z0 + z1) / 2)); g.add(box(w + 0.02, 0.14, d + 0.02, '#b9c9c3', (x0 + x1) / 2, 0, (z0 + z1) / 2)); }
-    wall(-0.6, -0.61, W - 0.4, -0.61); wall(-0.61, -0.6, -0.61, H - 0.4); wall(W - 0.39, -0.6, W - 0.39, H - 0.4);
-    wall(-0.6, H - 0.39, ex - 2.5, H - 0.39); wall(ex + 1.5, H - 0.39, W - 0.4, H - 0.39);
-    // entrée : montants, portes vitrées ouvertes, paillasson
-    [-2.5, 1.5].forEach(function (s) { g.add(box(0.3, 1.5, 0.34, '#ff6b5e', ex + s, 0, H - 0.39)); g.add(box(1.0, 1.25, 0.05, '#bfe3ee', ex + s + (s > 0 ? 0.35 : -0.35), 0.05, H - 0.2, { opacity: 0.38 })); });
-    g.add(flat(3.4, 0.9, M('#ff6b5e'), ex - 0.5, 0.006, H - 0.38));
-    // parvis, allée, route, parking
-    g.add(flat(7, 3, M('#eee7d6'), ex, -0.095, H + 1.2)); g.add(flat(3.2, 8, M('#eee7d6'), ex, -0.094, H + 4.6)); g.add(flat(140, 5.2, M('#5b6570'), cx, -0.096, H + 11.2));
-    for (i = -9; i <= 9; i++) g.add(flat(2.2, 0.16, M('#f2f4f4'), cx + i * 6, -0.09, H + 11.2));
-    g.add(flat(9, 4.4, M('#6a747e'), ex + 9.5, -0.095, H + 6.3)); for (i = 0; i < 4; i++) g.add(flat(0.1, 3.6, M('#f2f4f4'), ex + 6 + i * 2.3, -0.09, H + 6.3));
+    // murs extérieurs : hauts, coupés côté caméra ; des fenêtres tout le long
+    var WO = WH + 0.4, th = 0.3, cap = '#7fcfb0', glassM = M('#bfe3ee', { opacity: 0.55 });
+    function wall(x0, z0, x1, z1, n) {
+      var L = Math.abs(x1 - x0) + Math.abs(z1 - z0), alongX = z0 === z1, w = alongX ? L : th, d = alongX ? th : L, side = { n: n, objs: [], cut: null };
+      var m = box(w, WO, d, '#fbfdfc', (x0 + x1) / 2, 0, (z0 + z1) / 2), c2 = box(w + 0.06, 0.1, d + 0.06, cap, (x0 + x1) / 2, WO, (z0 + z1) / 2);
+      g.add(m); g.add(c2); side.objs.push({ m: m, k: 'wall', h: WO }, { m: c2, k: 'cap', h: WO });
+      for (var t = 3; t < L - 2; t += 6) { var px = alongX ? Math.min(x0, x1) + t : x0, pz = alongX ? z0 : Math.min(z0, z1) + t; var gl = box(alongX ? 2.2 : th + 0.06, 1.5, alongX ? th + 0.06 : 2.2, glassM, px, 1.5, pz); g.add(gl); side.objs.push({ m: gl, k: 'hide' }); }
+      outer.push(side);
+    }
+    wall(-0.65, -0.65, W - 0.35, -0.65, [0, -1]); wall(-0.65, -0.65, -0.65, H - 0.35, [-1, 0]); wall(W - 0.35, -0.65, W - 0.35, H - 0.35, [1, 0]);
+    wall(-0.65, H - 0.35, ex - 2.5, H - 0.35, [0, 1]); wall(ex + 1.5, H - 0.35, W - 0.35, H - 0.35, [0, 1]);
+    // entrée : deux cases de large, portes vitrées
+    var ent = { n: [0, 1], objs: [], cut: null };
+    [-2.5, 1.5].forEach(function (s) { var p = box(0.36, 3.6, 0.4, '#ff6b5e', ex + s, 0, H - 0.35); g.add(p); ent.objs.push({ m: p, k: 'wall', h: 3.6 }); var d = box(1.6, 3.0, 0.05, '#bfe3ee', ex + s + (s > 0 ? 0.85 : -0.85), 0.05, H - 0.1, { opacity: 0.38 }); g.add(d); ent.objs.push({ m: d, k: 'hide' }); });
+    var lin = box(4.4, 0.5, 0.4, '#ff6b5e', ex - 0.5, 3.4, H - 0.35); g.add(lin); ent.objs.push({ m: lin, k: 'hide' }); outer.push(ent);
+    g.add(flat(4, 1.2, M('#ff6b5e'), ex - 0.5, 0.006, H - 0.4));
+    // parvis, allée, trottoir, route, parking
+    g.add(flat(12, 4, M('#eee7d6'), ex - 0.5, -0.095, H + 1.6)); g.add(flat(4.4, 6, M('#eee7d6'), ex - 0.5, -0.094, H + 6));
+    g.add(flat(400, 1.8, M('#d9d6cf'), cx, -0.093, H + 9)); g.add(flat(400, 7.6, M('#5b6570'), cx, -0.096, H + 13.8));
+    for (i = -30; i <= 30; i++) g.add(flat(3.2, 0.2, M('#f2f4f4'), cx + i * 8, -0.09, H + 13.8));
+    g.add(flat(18, 7, M('#6a747e'), ex + 14, -0.095, H + 4.4)); for (i = 0; i < 5; i++) g.add(flat(0.14, 5.6, M('#f2f4f4'), ex + 7 + i * 3.6, -0.09, H + 4.4));
     // totem d'enseigne
-    g.add(box(0.16, 2.3, 0.16, '#33505a', ex - 3.2, -0.1, H + 1.9)); g.add(box(0.16, 2.3, 0.16, '#33505a', ex - 6.3, -0.1, H + 1.9)); g.add(box(3.5, 0.95, 0.12, '#ffffff', ex - 4.75, 1.3, H + 1.9));
+    var tot = new T.Group();
+    tot.add(box(0.16, 2.3, 0.16, '#33505a', 1.55, -0.1, 0)); tot.add(box(0.16, 2.3, 0.16, '#33505a', -1.55, -0.1, 0)); tot.add(box(3.5, 0.95, 0.12, '#ffffff', 0, 1.3, 0));
     var sm = new T.MeshBasicMaterial({ map: canvasTex(512, 128, function (c) { c.fillStyle = '#ffffff'; c.fillRect(0, 0, 512, 128); c.fillStyle = '#ff5a4d'; rr(c, 14, 20, 88, 88, 18); c.fill(); c.fillStyle = '#fff'; c.fillRect(48, 34, 20, 60); c.fillRect(28, 54, 60, 20); c.fillStyle = '#17323a'; c.font = '800 44px "Baloo 2","Nunito",sans-serif'; c.textBaseline = 'middle'; c.fillText('HÔPITAL', 122, 44); c.fillStyle = '#ff5a4d'; c.fillText('VELPO', 122, 90); c.fillStyle = '#5d7a80'; c.font = '700 17px "Nunito",sans-serif'; c.fillText('urgences · sourires · factures', 284, 96); }) });
-    g.add(plane(3.4, 0.85, sm, ex - 4.75, 1.78, H + 1.965)); var back = plane(3.4, 0.85, sm, ex - 4.75, 1.78, H + 1.835); back.rotation.y = PI; g.add(back);
-    // ambulance garée
-    var a = new T.Group(); a.add(box(2.5, 1.15, 1.3, '#ffffff', 0, 0.3, 0)); a.add(box(0.9, 0.85, 1.26, '#ffffff', 1.65, 0.3, 0)); a.add(box(0.5, 0.42, 1.1, '#9fd3e6', 1.86, 0.7, 0)); a.add(box(2.52, 0.2, 1.32, '#ff5a4d', 0, 0.72, 0)); a.add(box(0.5, 0.14, 0.5, '#6fa8dc', 0.9, 1.45, 0, { emissive: '#6fa8dc', ei: 0.6 }));
+    tot.add(plane(3.4, 0.85, sm, 0, 1.78, 0.065)); var back = plane(3.4, 0.85, sm, 0, 1.78, -0.065); back.rotation.y = PI; tot.add(back);
+    tot.scale.setScalar(1.7); tot.position.set(ex - 10, 0, H + 3); g.add(tot);
+    // ambulance garée (et son modèle pour les urgences)
+    var a = new T.Group(); a.add(box(2.5, 1.15, 1.3, '#ffffff', 0, 0.3, 0)); a.add(box(0.9, 0.85, 1.26, '#ffffff', 1.65, 0.3, 0)); a.add(box(0.5, 0.42, 1.1, '#9fd3e6', 1.86, 0.7, 0)); a.add(box(2.52, 0.2, 1.32, '#ff5a4d', 0, 0.72, 0));
+    var lamp = box(0.5, 0.14, 0.5, '#6fa8dc', 0.9, 1.45, 0, { emissive: '#6fa8dc', ei: 0.6 }); a.add(lamp); a.userData.lamp = lamp;
     a.add(plane(0.5, 0.5, crossTex('#ffffff', '#ff5a4d'), -0.5, 1.0, 0.655)); var cb = plane(0.5, 0.5, crossTex('#ffffff', '#ff5a4d'), -0.5, 1.0, -0.655); cb.rotation.y = PI; a.add(cb);
     [[-0.75, 0.62], [1.35, 0.62], [-0.75, -0.62], [1.35, -0.62]].forEach(function (p) { var w = cyl(0.3, 0.22, '#2b2f36', p[0], 0, p[1]); w.rotation.x = PI / 2; w.position.y = 0.3; a.add(w); });
-    a.position.set(ex + 7.4, -0.1, H + 6.2); a.rotation.y = 0.0; g.add(a);
+    a.scale.setScalar(2); ambProto = a; var parked = a.clone(); parked.position.set(ex + 17, -0.1, H + 4.4); parked.rotation.y = PI / 2; g.add(parked);
     // arbres, buissons, lampadaires
-    [[-4, 3, 1.1], [-5, 11, 1.3], [-3.5, 19, 1], [W + 3, 2, 1.2], [W + 4.5, 10, 1], [W + 3, 18, 1.3], [4, -4, 1.2], [13, -5, 1], [22, -4, 1.3], [30, -5.5, 1.1], [3, H + 4, 1.1], [W - 2, H + 3.2, 1.2], [-6, H + 6, 1.3], [W + 6, H + 6, 1], [8, H + 6.5, 0.9], [-9, -6, 1.4], [W + 9, -5, 1.3]].forEach(function (t) { g.add(tree(t[0], t[1], t[2])); });
-    [[ex - 2.6, H + 0.6], [ex + 2.6, H + 0.6], [5, H + 0.7], [9, H + 0.7], [21, H + 0.7], [26, H + 0.7], [1, H + 0.7]].forEach(function (b, k) { var s = sph(0.55, k % 2 ? '#55b574' : '#48a566', b[0], 0.15, b[1]); s.scale.y = 0.75; g.add(s); });
-    [[ex - 2.1, H + 3.5], [ex + 2.1, H + 6.5]].forEach(function (l) { g.add(cyl(0.06, 2.4, '#33505a', l[0], -0.1, l[1])); g.add(sph(0.2, '#fff6c2', l[0], 2.4, l[1], { emissive: '#ffe680', ei: 0.9 })); });
+    [[-6, 4, 1.1], [-7, 16, 1.3], [-6, 30, 1], [W + 5, 3, 1.2], [W + 7, 18, 1], [W + 5, 34, 1.3], [6, -6, 1.2], [20, -7, 1], [36, -6, 1.3], [52, -7, 1.1], [4, H + 5, 1.1], [W - 4, H + 5.5, 1.2], [-10, H + 8, 1.3], [W + 10, H + 8, 1], [-14, -8, 1.4], [W + 14, -8, 1.3]].forEach(function (t) { g.add(tree(t[0], t[1], t[2] * 1.9)); });
+    [[ex - 4.5, H + 1], [ex + 3.5, H + 1], [8, H + 1.2], [16, H + 1.2], [44, H + 1.2], [52, H + 1.2]].forEach(function (b, k) { var s = sph(0.9, k % 2 ? '#55b574' : '#48a566', b[0], 0.2, b[1]); s.scale.y = 0.7; g.add(s); });
+    [[ex - 3.4, H + 5], [ex + 2.4, H + 7.8], [ex - 20, H + 7.8], [ex + 22, H + 7.8]].forEach(function (l) { g.add(cyl(0.09, 4.4, '#33505a', l[0], -0.1, l[1])); g.add(sph(0.32, '#fff6c2', l[0], 4.4, l[1], { emissive: '#ffe680', ei: 0.9 })); });
+    // voitures qui passent
+    [['#ff6b5e', 1], ['#4f9be8', -1], ['#ffc94a', 1], ['#7fcfb0', -1], ['#ffffff', 1]].forEach(function (cc, k) {
+      var car = new T.Group(); car.add(box(4.2, 1.1, 2.0, cc[0], 0, 0.45, 0)); car.add(box(2.3, 0.9, 1.8, cc[0], -0.3, 1.5, 0)); car.add(box(2.1, 0.7, 1.84, '#9fd3e6', -0.3, 1.58, 0, { opacity: 0.8 }));
+      [[-1.4, 0.95], [1.4, 0.95], [-1.4, -0.95], [1.4, -0.95]].forEach(function (p) { var w = cyl(0.45, 0.3, '#2b2f36', p[0], 0, p[1]); w.rotation.x = PI / 2; w.position.y = 0.45; car.add(w); });
+      car.userData = { dir: cc[1], sp: 5 + k * 1.1, x: -40 + k * 37 }; car.rotation.y = cc[1] > 0 ? 0 : PI; car.position.set(0, -0.1, H + (cc[1] > 0 ? 15.6 : 12)); g.add(car); cars.push(car);
+    });
+    // passants sur le trottoir
+    for (i = 0; i < 4; i++) { var wk = makeBody(CIV[(i * 3 + 1) % CIV.length], { hue: (i * 0.37) % 1 }); wk.dir = i % 2 ? -1 : 1; wk.x = -20 + i * 26; wk.z = H + 8.6 + (i % 2 ? 0.5 : -0.4); wk.root.rotation.y = wk.dir > 0 ? PI / 2 : -PI / 2; playBody(wk, 'walk'); g.add(wk.root); walkers.push(wk); }
     g.traverse(function (m) { if (m.isMesh && m.geometry === uPlane) m.castShadow = false; });
     return g;
   }
+  function animWorld(dt) {
+    cars.forEach(function (car) { var u = car.userData; u.x += u.dir * u.sp * dt; if (u.x > W + 60) u.x = -60; if (u.x < -60) u.x = W + 60; car.position.x = u.x; });
+    walkers.forEach(function (w) { w.x += w.dir * 1.25 * dt; if (w.x > W + 30) w.x = -30; if (w.x < -30) w.x = W + 30; w.root.position.set(w.x, 0, w.z); w.mixer.update(dt); shapeBody(w, LEG, 1); });
+    if (ambRun) {
+      var A = ambRun, t = (A.t += dt), ex = V.SPAWN.x, o = A.o, lane = H + 15.6, stop = { x: ex - 0.5, z: H + 5.2 }, p, r;
+      if (t < 4) { p = { x: -40 + (ex - 6 + 40) * t / 4, z: lane }; r = 0; }
+      else if (t < 6) { var k = (t - 4) / 2; p = { x: ex - 6 + (stop.x - ex + 6) * k, z: lane + (stop.z - lane) * k }; r = -k * PI / 2; }
+      else if (t < 12) { p = stop; r = -PI / 2; }
+      else if (t < 14) { var k2 = (t - 12) / 2; p = { x: stop.x + 6 * k2, z: stop.z + (lane - stop.z) * k2 }; r = -PI / 2 + k2 * PI / 2; }
+      else if (t < 19) { p = { x: ex + 6 + (t - 14) * 12, z: lane }; r = 0; }
+      else { scene.remove(o); ambRun = null; return; }
+      o.position.set(p.x, -0.1, p.z); o.rotation.y = r; if (o.userData.lamp) o.userData.lamp.material = Math.floor(t * 6) % 2 ? M('#3d7fff', { emissive: '#3d7fff', ei: 1.5 }) : M('#ff3d3d', { emissive: '#ff3d3d', ei: 1.5 });
+    }
+  }
+  function startAmbulance() { if (!ambProto || ambRun) return; var o = ambProto.clone(); o.traverse(function (m) { if (m.isMesh && m.material && m.material.emissive) m.material = m.material.clone(); }); o.userData.lamp = o.children[4]; scene.add(o); ambRun = { t: 0, o: o }; }
 
   /* ---------- salles ---------- */
   var floorMats = {}, signMats = {}, stripeMat = null;
   function floorMat(col) { return floorMats[col] || (floorMats[col] = new T.MeshLambertMaterial({ map: tileTex(tint(col, 0.52), tint(col, 0.3), tint(col, 0.05)) })); }
-  function roomKey(r) { return [r.type, r.x, r.y, r.w, r.h, r.rot, r.k, r.open ? 1 : 0].join(','); }
+  function roomKey(r) { return [r.type, r.x, r.y, r.w, r.h, r.rot, r.k, r.open ? 1 : 0, (r.win || []).map(function (w) { return w.rot + ':' + w.k; }).join('|')].join(','); }
   function buildRoomView(r) {
-    var def = V.ROOMS[r.type], g = new T.Group(), col = def.color, th = 0.12, wh = 0.62, cap = shade(col, 0.82), v = { g: g, key: roomKey(r), ang: 0, leaf: null, inS: 1 };
-    var geo = new T.PlaneGeometry(r.w, r.h), uv = geo.attributes.uv, i; for (i = 0; i < uv.count; i++) uv.setXY(i, (uv.getX(i) * r.w + (r.x % 2)) / 4, (uv.getY(i) * r.h - ((r.y + r.h) % 2)) / 4);
+    var def = V.ROOMS[r.type], g = new T.Group(), col = def.color, th = 0.14, cap = shade(col, 0.82), v = { g: g, key: roomKey(r), ang: 0, leaf: null, inS: 1, sides: [] };
+    var geo = new T.PlaneGeometry(r.w, r.h), uv = geo.attributes.uv, i;
+    for (i = 0; i < uv.count; i++) uv.setXY(i, (uv.getX(i) * r.w + (r.x % 2)) / 4, (uv.getY(i) * r.h - ((r.y + r.h) % 2)) / 4);
     var fl = new T.Mesh(geo, floorMat(col)); fl.rotation.x = -PI / 2; fl.position.set(r.x + (r.w - 1) / 2, 0.012, r.y + (r.h - 1) / 2); fl.receiveShadow = true; g.add(fl);
     if (!r.open) {
       if (!stripeMat) { var st = canvasTex(64, 64, function (c) { c.clearRect(0, 0, 64, 64); c.strokeStyle = 'rgba(255,201,74,.75)'; c.lineWidth = 11; for (var k = -64; k < 128; k += 32) { c.beginPath(); c.moveTo(k, 64); c.lineTo(k + 64, 0); c.stroke(); } }); st.wrapS = st.wrapT = T.RepeatWrapping; stripeMat = new T.MeshBasicMaterial({ map: st, transparent: true, depthWrite: false }); }
-      var sg0 = new T.PlaneGeometry(r.w, r.h), u2 = sg0.attributes.uv; for (i = 0; i < u2.count; i++) u2.setXY(i, u2.getX(i) * r.w, u2.getY(i) * r.h);
+      var sg0 = new T.PlaneGeometry(r.w, r.h), u2 = sg0.attributes.uv; for (i = 0; i < u2.count; i++) u2.setXY(i, u2.getX(i) * r.w / 2, u2.getY(i) * r.h / 2);
       var sp = new T.Mesh(sg0, stripeMat); sp.rotation.x = -PI / 2; sp.position.set(r.x + (r.w - 1) / 2, 0.02, r.y + (r.h - 1) / 2); g.add(sp);
     }
-    var sides = [{ rot: 0, ox: r.x - 0.5, oz: r.y + r.h - 0.5 - th / 2, len: r.w, ry: 0, inS: -1 }, { rot: 2, ox: r.x - 0.5, oz: r.y - 0.5 + th / 2, len: r.w, ry: 0, inS: 1 },
-      { rot: 1, ox: r.x + r.w - 0.5 - th / 2, oz: r.y - 0.5, len: r.h, ry: -PI / 2, inS: 1 }, { rot: 3, ox: r.x - 0.5 + th / 2, oz: r.y - 0.5, len: r.h, ry: -PI / 2, inS: -1 }];
+    var sides = [{ rot: 0, ox: r.x - 0.5, oz: r.y + r.h - 0.5 - th / 2, len: r.w, ry: 0, inS: -1, n: [0, 1] }, { rot: 2, ox: r.x - 0.5, oz: r.y - 0.5 + th / 2, len: r.w, ry: 0, inS: 1, n: [0, -1] },
+      { rot: 1, ox: r.x + r.w - 0.5 - th / 2, oz: r.y - 0.5, len: r.h, ry: -PI / 2, inS: 1, n: [1, 0] }, { rot: 3, ox: r.x - 0.5 + th / 2, oz: r.y - 0.5, len: r.h, ry: -PI / 2, inS: -1, n: [-1, 0] }];
+    var glassM = M('#cfeefa', { opacity: 0.45 }), white = '#fbfdfc';
     sides.forEach(function (s) {
-      var sg = new T.Group(); sg.position.set(s.ox, 0, s.oz); sg.rotation.y = s.ry; g.add(sg);
-      var segs = [[0, s.len]];
-      if (s.rot === r.rot) {
-        var a = r.k + 0.06, b = r.k + 0.94; segs = [[0, a], [b, s.len]];
-        sg.add(box(0.1, DH, 0.18, cap, a, 0, 0)); sg.add(box(0.1, DH, 0.18, cap, b, 0, 0)); sg.add(box(b - a + 0.1, 0.1, 0.18, cap, (a + b) / 2, DH, 0));
-        var sm = signMats[r.type] || (signMats[r.type] = signMat(def.short, col, '#17323a', 256, 80, 38));
-        var s1 = plane(0.98, 0.31, sm, (a + b) / 2, DH + 0.3, 0.02), s2 = plane(0.98, 0.31, sm, (a + b) / 2, DH + 0.3, -0.02); s2.rotation.y = PI; sg.add(box(1.04, 0.37, 0.03, '#17323a', (a + b) / 2, DH + 0.115, 0)); sg.add(s1); sg.add(s2);
-        var piv = new T.Group(); piv.position.set(a + 0.05, 0, 0); piv.add(box(b - a - 0.1, DH - 0.1, 0.05, '#ffffff', (b - a - 0.1) / 2, 0.04, 0)); piv.add(box(0.2, 0.34, 0.06, '#bfe3ee', (b - a - 0.1) / 2, 0.72, 0)); piv.add(sph(0.045, '#ffc94a', b - a - 0.22, 0.6, 0.05)); sg.add(piv);
-        v.leaf = piv; v.inS = s.inS;
-      }
-      segs.forEach(function (q) { var L = q[1] - q[0]; if (L <= 0.02) return; sg.add(box(L, wh, th, '#fbfdfc', q[0] + L / 2, 0, 0)); sg.add(box(L + 0.02, 0.06, th + 0.05, cap, q[0] + L / 2, wh, 0)); });
+      var sg = new T.Group(), side = { n: s.n, objs: [], cut: null }; sg.position.set(s.ox, 0, s.oz); sg.rotation.y = s.ry; g.add(sg); v.sides.push(side);
+      function add(m, k, h) { sg.add(m); side.objs.push({ m: m, k: k, h: h }); return m; }
+      function piece(a, b, h0, h1) { var L = b - a; if (L <= 0.02) return; add(box(L, h1 - h0, th, white, a + L / 2, h0, 0), h0 ? 'hide' : 'wall', h1); if (!h0) add(box(L + 0.02, 0.06, th + 0.05, cap, a + L / 2, h1, 0), 'cap', h1); }
+      var gaps = [];
+      if (s.rot === r.rot) gaps.push({ a: r.k + 0.06, b: r.k + 1.94, door: true });
+      (r.win || []).forEach(function (w) { if (w.rot === s.rot) gaps.push({ a: w.k + 0.25, b: w.k + 1.75 }); });
+      gaps.sort(function (p, q) { return p.a - q.a; });
+      var x0 = 0;
+      gaps.forEach(function (gp) {
+        piece(x0, gp.a, 0, WH); x0 = gp.b; var a = gp.a, b = gp.b, L = b - a;
+        if (gp.door) {
+          add(box(0.12, DHT, 0.2, cap, a, 0, 0), 'wall', DHT); add(box(0.12, DHT, 0.2, cap, b, 0, 0), 'wall', DHT);
+          add(box(L + 0.12, 0.12, 0.2, cap, (a + b) / 2, DHT, 0), 'hide'); add(box(L, WH - DHT, th, white, (a + b) / 2, DHT, 0), 'hide');
+          var sm = signMats[r.type] || (signMats[r.type] = signMat(def.short, col, '#17323a', 256, 80, 38));
+          var sgn = new T.Group(); sgn.add(box(1.7, 0.56, 0.04, '#17323a', 0, -0.28, 0)); var s1 = plane(1.6, 0.5, sm, 0, 0, 0.026), s2 = plane(1.6, 0.5, sm, 0, 0, -0.026); s2.rotation.y = PI; sgn.add(s1); sgn.add(s2);
+          sgn.position.set((a + b) / 2, DHT + 0.45, 0); add(sgn, 'sign');
+          var piv = new T.Group(); piv.position.set(a + 0.06, 0, 0); piv.add(box(L - 0.12, DHT - 0.12, 0.06, '#ffffff', (L - 0.12) / 2, 0.04, 0)); piv.add(box(0.3, 0.5, 0.07, '#bfe3ee', (L - 0.12) / 2, 1.8, 0)); piv.add(sph(0.06, '#ffc94a', L - 0.3, 1.3, 0.06)); add(piv, 'hide');
+          v.leaf = piv; v.inS = s.inS;
+        } else {
+          piece(a, b, 0, 1.2); add(box(L, 1.5, 0.05, glassM, (a + b) / 2, 1.2, 0), 'hide'); add(box(L, 0.08, th + 0.04, cap, (a + b) / 2, 2.7, 0), 'hide'); add(box(L, WH - 2.78, th, white, (a + b) / 2, 2.78, 0), 'hide');
+          [a + 0.03, b - 0.03].forEach(function (x) { add(box(0.06, 1.5, th + 0.02, cap, x, 1.2, 0), 'hide'); });
+        }
+      });
+      piece(x0, s.len, 0, WH);
     });
     scene.add(g); return v;
+  }
+  // Murs coupés : ceux qui font face à la caméra descendent à hauteur de plinthe (comme dans Two Point Hospital).
+  function setCut(side, cut) {
+    if (side.cut === cut) return; side.cut = cut;
+    side.objs.forEach(function (o) {
+      if (o.k === 'wall') { var h = cut ? Math.min(LOW, o.h) : o.h; o.m.scale.y = h; o.m.position.y = h / 2; }
+      else if (o.k === 'cap') o.m.position.y = (cut ? Math.min(LOW, o.h) : o.h) + 0.03;
+      else if (o.k === 'hide') o.m.visible = !cut;
+      else if (o.k === 'sign') o.m.position.y = cut ? LOW + 0.4 : DHT + 0.45;
+    });
+  }
+  function updateCut(ui) {
+    var cy = Math.sin(cam.yaw), cz = Math.cos(cam.yaw), mode = ui && ui.walls || 'cut';
+    var f = function (side) { setCut(side, mode === 'low' ? true : mode === 'high' ? false : side.n[0] * cy + side.n[1] * cz > 0.2); };
+    for (var id in roomV) roomV[id].sides.forEach(f);
+    outer.forEach(f);
   }
   function killView(v) { scene.remove(v.g || v.root); if (v.proxy) { var i = pickables.indexOf(v.proxy); if (i >= 0) pickables.splice(i, 1); } if (v.ghost) scene.remove(v.ghost); }
 
   /* ---------- objets ---------- */
   function buildItemView(it) {
-    var b = buildItemGroup(it.type), def = V.ITEMS[it.type], v = { g: b.g, key: it.type, info: b.info, sig: '' }; b.g.scale.setScalar(KS);
-    var px = new T.Mesh(uBox, pickMat); px.scale.set(def.w * 0.92 / KS, Math.max(0.25, b.info.h || 0.8), def.d * 0.92 / KS); px.position.y = Math.max(0.25, b.info.h || 0.8) / 2; px.userData = { t: 'i', id: it.id }; b.g.add(px); v.proxy = px; pickables.push(px);
+    var b = buildItemGroup(it.type), def = V.ITEMS[it.type], v = { g: b.g, key: it.type, info: b.info, sig: '' }, s = scOf(it.type); b.g.scale.set(s[0], s[1], s[2]);
+    var px = new T.Mesh(uBox, pickMat); px.scale.set(def.w * 0.92 / s[0], Math.max(0.25, b.info.h || 0.8), def.d * 0.92 / s[2]); px.position.y = Math.max(0.25, b.info.h || 0.8) / 2; px.userData = { t: 'i', id: it.id }; b.g.add(px); v.proxy = px; pickables.push(px);
     scene.add(b.g); return v;
   }
+  function scOf(type) { var s = V.ITEMS[type].sc || 1; return typeof s === 'number' ? [s, s, s] : s; }
   function placeItemView(g, type, x, y, rot) { var fw = rot % 2 ? V.ITEMS[type].d : V.ITEMS[type].w, fh = rot % 2 ? V.ITEMS[type].w : V.ITEMS[type].d; g.position.set(x + (fw - 1) / 2, 0, y + (fh - 1) / 2); g.rotation.y = -rot * PI / 2; }
 
   /* ---------- personnages ---------- */
-  function actorKey(p) { return p.kind + '|' + (p.zombie ? 'z' : '') + (p.disease || '') + '|' + p.look + '|' + (p.tint === undefined ? '' : Math.floor(p.tint * 5)); }
+  function actorKey(p) { return p.kind + '|' + (p.zombie ? 'z' : '') + (p.disease || '') + (p.cured ? '+' : '') + '|' + p.look + '|' + (p.tint === undefined ? '' : Math.floor(p.tint * 5)); }
+  function makeBody(base, st) {
+    var model = buildChar(base, st), root = new T.Group(), tilt = new T.Group(); model.scale.setScalar(SCALE); tilt.add(model); root.add(tilt);
+    var b = { ll: model.getObjectByName('leg-left'), lr: model.getObjectByName('leg-right'), to: model.getObjectByName('torso'), he: model.getObjectByName('head') };
+    return { root: root, tilt: tilt, model: model, mixer: new T.AnimationMixer(model), acts: {}, cur: null, curAct: null, hold: null, bs: b, headMul: 1, head: b.he };
+  }
+  // Les modèles Kenney ont une grosse tête : on allonge jambes et buste par les os, la tête garde sa taille.
+  function shapeBody(a, leg, hm) {
+    var b = a.bs; if (!b || !b.to) return; hm = hm || 1;
+    if (b.ll) b.ll.scale.set(1, leg, 1); if (b.lr) b.lr.scale.set(1, leg, 1);
+    b.to.scale.set(1, TOR, 1); if (b.he) b.he.scale.set(0.9 * hm, hm / TOR, 0.9 * hm);
+    a.model.position.y = 0.17625 * (leg - 1) * SCALE;
+  }
+  function playBody(a, name) { play(a, name); }
   function makeActor(p) {
-    var base, st = {}, hold = null;
+    var base, st = {}, hold = null, cured = p.kind === 'patient' && p.cured;
     if (p.kind === 'patient') {
-      if (p.zombie) base = 'c_zombie'; else if (p.disease === 'quete') base = 'c_knight';
-      else { base = CIV[p.look % CIV.length]; st = { hue: Math.floor(p.tint * 5) / 5 }; if (p.disease === 'pyjama') st = { pale: 1 }; if (p.disease === 'trottinette') st.cast = 1; }
-    } else if (p.kind === 'handy') base = 'c_worker'; else { base = CIV[p.look % CIV.length]; st = OUTFIT[p.kind]; }
-    var model = buildChar(base, st), root = new T.Group(), tilt = new T.Group(); model.scale.setScalar(SCALE); tilt.add(model); root.add(tilt); root.scale.setScalar(KS);
-    if (p.zombie) hold = 'holding-both'; else if (p.kind === 'patient') hold = diseaseProps(model, p.disease); else staffProps(model, p.kind);
-    var proxy = new T.Mesh(uCyl, pickMat); proxy.scale.set(0.82, 1.3, 0.82); proxy.position.y = 0.65; proxy.userData = { t: 'p', id: p.id }; root.add(proxy); pickables.push(proxy);
-    var bobs = []; model.traverse(function (o) { if (o.userData && o.userData.bob) bobs.push(o); });
+      if (p.zombie) base = 'c_zombie'; else if (p.disease === 'quete' && !cured) base = 'c_knight';
+      else { base = CIV[p.look % CIV.length]; st = { hue: Math.floor(p.tint * 5) / 5 }; if (!cured && (p.disease === 'pyjama' || p.disease === 'dimanche')) st = { pale: 1 }; if (!cured && p.disease === 'trottinette') st.cast = 1; }
+    } else if (p.kind === 'handy') base = 'c_worker'; else if (p.kind === 'vip') { base = 'c_male-c'; st = OUTFIT.vip; } else { base = CIV[p.look % CIV.length]; st = OUTFIT[p.kind]; }
+    var a = makeBody(base, st), model = a.model, root = a.root;
+    if (p.zombie) hold = 'holding-both'; else if (p.kind === 'patient') { if (!cured) hold = diseaseProps(model, p.disease); } else if (p.kind !== 'vip') staffProps(model, p.kind);
+    if (p.kind === 'patient' && p.disease === 'ego' && !cured) a.headMul = 1.55;
+    var proxy = new T.Mesh(uCyl, pickMat); proxy.scale.set(0.95, CH, 0.95); proxy.position.y = CH / 2; proxy.userData = { t: 'p', id: p.id }; root.add(proxy); pickables.push(proxy);
+    var bobs = [], blinks = []; model.traverse(function (o) { if (o.userData && o.userData.bob) bobs.push(o); if (o.userData && o.userData.blink) blinks.push(o); });
     root.position.set(p.x, 0, p.y); scene.add(root);
-    return { key: actorKey(p), root: root, tilt: tilt, model: model, mixer: new T.AnimationMixer(model), acts: {}, cur: null, curAct: null, hold: hold, x: p.x, z: p.y, y: 0, ry: p.face || 0, proxy: proxy, bobs: bobs, fxName: null, fxUntil: 0, ghost: null, head: model.getObjectByName('head') || null, look: 0, spd: 0, mov: false, gaze: null };
+    if (cured) sparkle(p.x, p.y);
+    a.key = actorKey(p); a.hold = hold; a.x = p.x; a.z = p.y; a.y = 0; a.ry = p.face || 0; a.proxy = proxy; a.bobs = bobs; a.blinks = blinks; a.fxName = null; a.fxUntil = 0; a.ghost = null; a.look = 0; a.spd = 0; a.mov = false; a.gaze = null;
+    return a;
   }
   function play(a, name) {
     if (a.cur === name) return;
@@ -5806,13 +6723,14 @@
       r = p.inRoom ? V.room(S, p.inRoom) : null; var q = r && r.patientId ? V.person(S, r.patientId) : null;
       return q && q.st === 'inRoom' ? 'interact-right' : 'idle';
     }
-    if (st === 'fix') return 'interact-left'; if (st === 'mop') return 'pick-up';
+    if (st === 'fix') return 'interact-left'; if (st === 'mop' || st === 'emptying') return 'pick-up'; if (st === 'watering' || st === 'vaccinating') return 'interact-right'; if (st === 'learn') return 'sit';
+    if (st === 'vipLook') return Math.floor(time * 0.7 + p.id) % 3 === 0 ? 'emote-yes' : 'idle';
     return 'idle';
   }
   function makeGhost() {
     var m = new T.MeshLambertMaterial({ color: C('#f4fbff'), transparent: true, opacity: 0.85, emissive: C('#bfe3ee'), emissiveIntensity: 0.5 });
     var g = new T.Group(), a = new T.Mesh(uSph, m), b = new T.Mesh(uCyl, m), h = new T.Mesh(new T.TorusGeometry(0.2, 0.03, 6, 14), new T.MeshBasicMaterial({ color: C('#ffc94a'), transparent: true }));
-    a.scale.setScalar(0.62); a.position.y = 0.55; b.scale.set(0.62, 0.55, 0.62); b.position.y = 0.28; h.rotation.x = PI / 2; h.position.y = 1.02;
+    a.scale.setScalar(0.62); a.position.y = 0.55; b.scale.set(0.62, 0.55, 0.62); b.position.y = 0.28; g.scale.setScalar(2); h.rotation.x = PI / 2; h.position.y = 1.02;
     g.add(a); g.add(b); g.add(h); [-0.11, 0.11].forEach(function (x) { var e = new T.Mesh(uSph, new T.MeshBasicMaterial({ color: 0x17323a, transparent: true })); e.scale.setScalar(0.09); e.position.set(x, 0.6, 0.27); g.add(e); });
     g.userData.mats = [m, h.material]; return g;
   }
@@ -5820,14 +6738,14 @@
     var tx = p.x, tz = p.y, ty = 0, moving = p.st === 'walk' || p.st === 'in' || p.st === 'out', lie = p.pose === 'lie' && !moving, held = p.st === 'held';
     if (!moving && (p.pose === 'sit' || lie)) ty = p.h || 0;
     if (p.lat && !held) { tx -= Math.cos(a.ry) * p.lat; tz += Math.sin(a.ry) * p.lat; }      // on marche sur sa droite
-    if (held && ui.carry) { tx = ui.carry.x; tz = ui.carry.z; ty = 1.05 + Math.sin(time * 6) * 0.06; }
+    if (held && ui.carry) { tx = ui.carry.x; tz = ui.carry.z; ty = 1.4 + Math.sin(time * 6) * 0.08; }
     var ox = a.x, oz = a.z; a.mov = moving;
     var far = Math.abs(tx - a.x) + Math.abs(tz - a.z) > 3, k = far ? 1 : 1 - Math.exp(-dt * (held ? 22 : 13));
     a.x += (tx - a.x) * k; a.z += (tz - a.z) * k; a.y += (ty - a.y) * (far ? 1 : 1 - Math.exp(-dt * 10));
     a.root.position.set(a.x, a.y, a.z); a.root.visible = !p.hidden;
     var mv = dt > 0 && !far ? Math.sqrt((a.x - ox) * (a.x - ox) + (a.z - oz) * (a.z - oz)) / dt : 0; a.spd += (mv - a.spd) * Math.min(1, dt * 9);
     a.ry = far ? (p.face || 0) : lerpAngle(a.ry, held ? a.ry + dt * 2.5 : (p.face || 0), 1 - Math.exp(-dt * (moving ? 8.5 : 11))); a.root.rotation.y = a.ry;
-    if (lie) { a.tilt.rotation.x = -PI / 2; a.tilt.position.set(0, 0.17, 0.52); } else { a.tilt.rotation.x = 0; a.tilt.position.set(0, 0, 0); }
+    if (lie) { a.tilt.rotation.x = -PI / 2; a.tilt.position.set(0, 0.2, CH / 2 - 0.15); } else { a.tilt.rotation.x = 0; a.tilt.position.set(0, 0, 0); }
     a.root.rotation.z = held ? Math.sin(time * 5) * 0.18 : 0;
     play(a, animFor(p, S, a));
     // le pas suit la vitesse réelle : ni patinage, ni jambes qui moulinent
@@ -5835,6 +6753,9 @@
     if (moving && !held && adt > 0 && !p.stuck) rate = dt * Math.max(0.5, Math.min(3.2, a.spd / (p.emergency ? 2.9 : 1.9)));
     if (a.head && a.look) a.head.rotation.y -= a.look;
     a.mixer.update(rate);
+    shapeBody(a, p.pose === 'sit' && !moving ? LEG_SIT : LEG, a.headMul);
+    for (var bl = 0; bl < a.blinks.length; bl++) a.blinks[bl].visible = Math.floor(time * 3) % 2 === 0;
+    if (p.cont && S.epi && S.epi.told) { if (!a.cring) { a.cring = new T.Mesh(new T.TorusGeometry(0.5, 0.05, 6, 24), new T.MeshBasicMaterial({ color: C('#3fd16b') })); a.cring.rotation.x = PI / 2; a.cring.position.y = 0.06; a.root.add(a.cring); } a.cring.visible = true; a.cring.scale.setScalar(1 + Math.sin(time * 6) * 0.12); } else if (a.cring) a.cring.visible = false;
     // un regard vers la personne que l'on croise
     var lk = 0; if (a.gaze && !held && !lie && p.st !== 'dead') { var ga = Math.atan2(a.gaze.x - a.x, a.gaze.z - a.z) - a.ry; while (ga > PI) ga -= 2 * PI; while (ga < -PI) ga += 2 * PI; if (Math.abs(ga) < 1.9) lk = Math.max(-0.9, Math.min(0.9, ga)); }
     a.look += (lk - a.look) * Math.min(1, dt * 6); if (Math.abs(a.look) < 0.004) a.look = 0;
@@ -5866,13 +6787,16 @@
     psy: function (p, t) { return ['bla bla', 'et ma mère…', 'bla', 'depuis tout petit', 'bla bla bla'][Math.floor(t / 1.6) % 5]; },
     guichet: function (p) { return ['formulaire B-12 ?', 'en 3 exemplaires', 'il manque une pièce', 'revenez mardi', 'TAMPON !'][Math.min(4, Math.floor(p * 5))]; },
     deco: function (p) { return p < 0.5 ? 'nooon !' : p < 0.85 ? '…' : 'je respire'; },
-    platre: function (p) { return p < 0.5 ? null : 'aïe'; }, radio: function () { return null; }, pharma: function (p) { return p > 0.6 ? 'glou glou' : null; }
+    platre: function (p) { return p < 0.5 ? null : 'aïe'; }, bloc: function (p) { return p < 0.3 ? 'bistouri.' : p < 0.7 ? '…' : 'on referme'; }, upscale: function (p) { return p < 0.5 ? 'chargement…' : p < 0.9 ? Math.round(p * 100) + ' %' : '4K !'; }, avion: function (p) { return p < 0.2 ? 'décollage' : p < 0.9 ? 'zéro réseau' : 'atterrissage'; }, radio: function () { return null; }, pharma: function (p) { return p > 0.6 ? 'glou glou' : null; }
   };
-  function personBubble(p) {
+  function personBubble(p, S) {
     if (p.hidden || p.st === 'dead' || p.st === 'out') return null;
+    if (p.kind === 'vip') return ['VIP', 'w'];
     if (p.kind === 'patient') {
       if (p.zombie) return ['grr', 'c'];
       if (p.emergency) return ['urgence !', 'r'];
+      if (p.cont && S && S.epi && S.epi.told && Math.floor(time / 2 + p.id) % 3 === 0) return ['atchoum', 'g'];
+      if (p.feel === 'cold') return ['brr', 'b']; if (p.feel === 'hot') return ['chaud', 'r']; if (p.feel === 'yuck') return ['beurk', 'c']; if (p.feel === 'impatient' && p.happy < 0.6) return ['grrr…', 'q'];
       if (p.happy < 0.3) return ['#@!%', 'r'];
       if (p.st === 'waitBuild' || p.st === 'waitDesk') return ['?', 'q'];
       if (p.wc > 0.8) return ['WC !', 'w'];
@@ -5880,6 +6804,8 @@
       return null;
     }
     if (p.st === 'rest') return ['café', 'c'];
+    if (p.st === 'learn') return ['j\'apprends', 'b'];
+    if (p.mood !== undefined && p.mood < 0.3) return ['grr', 'r'];
     if (p.fatigue >= 0.7) return ['zzz', 'c'];
     return null;
   }
@@ -5895,9 +6821,12 @@
     syncMap(S.rooms, roomV, roomKey, buildRoomView, null);
     syncMap(S.items, itemV, function (it) { return it.type; }, buildItemView, function (v, it) {
       var sig = it.x + ',' + it.y + ',' + it.rot; if (v.sig !== sig) { placeItemView(v.g, it.type, it.x, it.y, it.rot); v.sig = sig; }
+      if (it.type === 'plant') { var wt = it.water === undefined ? 1 : it.water, wk = Math.round(wt * 10); if (v.wk !== wk && v.g.children[0]) { v.wk = wk; v.g.children[0].scale.y = 0.55 + 0.45 * wt; v.g.children[0].rotation.z = (1 - wt) * 0.3; } }
+      else if (it.type === 'bin' && v.info.pile) v.info.pile.visible = (it.fill || 0) >= 9;
+      else if (it.type === 'radiator' && v.info.glow) v.info.glow.material.opacity = (S.heat || 0) * 0.08;
       v.g.visible = !(ui.ghost && ui.ghost.k === 'item' && ui.ghost.moveId === it.id);
     });
-    syncMap(S.puddles, puddleV, function () { return 'p'; }, function (u) { var m = new T.Mesh(new T.CircleGeometry(0.42, 16), M('#d8c84a', { opacity: 0.7 })); m.rotation.x = -PI / 2; m.position.set(u.x, 0.02, u.y); m.scale.set(1, 0.7, 1); scene.add(m); return { g: m }; }, null);
+    syncMap(S.puddles, puddleV, function (u) { return u.kind || 'p'; }, makePuddle, null);
     if (frames % 4 === 0) {
       var ids = Object.keys(actorV), gi, gj, A, B, gd, g2, gb;
       for (gi = 0; gi < ids.length; gi++) {
@@ -5906,25 +6835,25 @@
         A.gaze = gb;
       }
     }
-    syncMap(S.people, actorV, actorKey, makeActor, function (a, p) { updateActor(a, p, S, ui, dt, adt); var b = personBubble(p); if (b) label('p' + p.id, b[0], 'pb ' + b[1], a.x, a.y + 1.42, a.z); });
+    syncMap(S.people, actorV, actorKey, makeActor, function (a, p) { updateActor(a, p, S, ui, dt, adt); var b = personBubble(p, S); if (b) label('p' + p.id, b[0], 'pb ' + b[1], a.x, a.y + CH + 0.35, a.z); });
     // portes, effets de soin, cabines
     var near = {};
-    S.people.forEach(function (p) { if (p.hidden || p.st === 'held') return; var rid = null; S.rooms.forEach(function (r) { var mx = (r.door.x + r.front.x) / 2, my = (r.door.y + r.front.y) / 2; if (Math.abs(p.x - mx) + Math.abs(p.y - my) < 1.05) near[r.id] = 1; }); });
+    S.people.forEach(function (p) { if (p.hidden || p.st === 'held') return; var rid = null; S.rooms.forEach(function (r) { var d2 = r.door2 || r.door, f2 = r.front2 || r.front, mx = (r.door.x + r.front.x + d2.x + f2.x) / 4, my = (r.door.y + r.front.y + d2.y + f2.y) / 4; if (Math.abs(p.x - mx) + Math.abs(p.y - my) < 1.6) near[r.id] = 1; }); });
     S.rooms.forEach(function (r) {
       var v = roomV[r.id], def = V.ROOMS[r.type]; if (!v) return;
       if (v.leaf) { v.ang += ((near[r.id] ? 1.75 : 0) - v.ang) * Math.min(1, dt * 7); v.leaf.rotation.y = -v.inS * v.ang; }
-      var pt = r.patientId ? V.person(S, r.patientId) : null, on = !!(pt && pt.st === 'inRoom' && r.staffIn && !r.broken), prog = on ? Math.max(0, Math.min(1, 1 - r.t / (r.t0 || 1))) : 0;
+      var pt = r.patientId ? V.person(S, r.patientId) : null, kd = def.kind, on = kd === 'ward' ? r.staffIn && r.occ.length > 0 : kd === 'lab' || kd === 'train' ? !!r.staffIn : !!(pt && pt.st === 'inRoom' && r.staffIn && !r.broken), prog = on ? Math.max(0, Math.min(1, 1 - r.t / (r.t0 || 1))) : 0;
       S.items.forEach(function (it) { if (it.room !== r.id) return; var iv = itemV[it.id]; if (!iv) return; if (iv.info.update) iv.info.update(on, prog, time); if (iv.info.busy) { var b = false; r.occ.forEach(function (id) { var q = V.person(S, id); if (q && q.st === 'wcUse' && Math.abs(q.x - it.x) + Math.abs(q.y - it.y) < 0.4) b = true; }); iv.info.busy(b, dt); } });
       // étiquette de la salle
       var cx = r.x + (r.w - 1) / 2, cz = r.y + (r.h - 1) / 2, warn = null;
-      if (!r.open) warn = 'En travaux'; else if (r.broken) warn = 'En panne'; else if (def.staff && !r.staffId) warn = def.staff === 'doc' ? 'Pas de médecin' : 'Pas d\'infirmier';
-      if (warn) label('rw' + r.id, warn, 'rw' + (r.broken ? ' bad' : ''), cx, 1.5, cz);
-      else if (r.queue.length) label('rq' + r.id, r.queue.length + ' en attente', 'rq', cx, 1.3, cz);
+      if (!r.open) warn = 'En travaux'; else if (r.broken) warn = 'En panne'; else if (def.kind === 'train' && !r.occ.length) warn = null; else if (def.staff && !r.staffId) warn = def.spec ? 'Pas de ' + ({ psy: 'psychiatre', chir: 'chirurgien', cherch: 'chercheur' })[def.spec] : def.rank ? 'Pas de consultant' : def.staff === 'doc' ? 'Pas de médecin' : 'Pas d\'infirmier'; else if (def.aide && !r.aideId) warn = 'Pas d\'infirmier en appui'; else if (r.wear >= 15 && def.machine) warn = 'Fume !';
+      if (warn) label('rw' + r.id, warn, 'rw' + (r.broken ? ' bad' : ''), cx, 2.4, cz);
+      else if (r.queue.length) label('rq' + r.id, r.queue.length + ' en attente', 'rq', cx, 2.2, cz);
       if (on && BUB[r.type]) {
         var tx = BUB[r.type](prog, time), who = (r.type === 'gp') ? V.person(S, r.staffId) : pt;
-        if (tx && who) label('rb' + r.id, tx, 'pb t', who.x, (who.h || 0) + 1.38, who.y);
-        if (r.type === 'psy' && Math.floor(time / 2.4) % 3 === 2) { var doc = V.person(S, r.staffId); if (doc) label('rd' + r.id, 'hm hm.', 'pb c', doc.x, (doc.h || 0) + 1.5, doc.y); }
-        if (r.type === 'platre' && Math.floor(time / 2) % 2 === 0) { var nu = V.person(S, r.staffId); if (nu) label('rd' + r.id, 'c\'était laquelle ?', 'pb c', nu.x, 1.5, nu.y); }
+        if (tx && who) label('rb' + r.id, tx, 'pb t', who.x, (who.h || 0) + CH + 0.3, who.y);
+        if (r.type === 'psy' && Math.floor(time / 2.4) % 3 === 2) { var doc = V.person(S, r.staffId); if (doc) label('rd' + r.id, 'hm hm.', 'pb c', doc.x, (doc.h || 0) + CH + 0.45, doc.y); }
+        if (r.type === 'platre' && Math.floor(time / 2) % 2 === 0) { var nu = V.person(S, r.staffId); if (nu) label('rd' + r.id, 'c\'était laquelle ?', 'pb c', nu.x, CH + 0.45, nu.y); }
       }
     });
   }
@@ -5948,17 +6877,22 @@
         var p = plane(gh.w, gh.h, mat, cx, 0.035, cz); p.rotation.x = -PI / 2; ghostG.add(p);
         frameRect(ghostG, gh.x, gh.y, gh.w, gh.h, new T.MeshBasicMaterial({ color: C(gh.ok ? '#2f6fc4' : '#d23b3b') }), 0.1, 0.08);
         for (var j = 0; j < gh.h; j++) for (var i = 0; i < gh.w; i++) ghostG.add(tileFlat(gh.x + i, gh.y + j, cellRes, 0.1, 0.045));
-        if (gh.door) { ghostG.add(tileFlat(gh.door.door.x, gh.door.door.y, new T.MeshBasicMaterial({ color: C('#ffc94a'), transparent: true, opacity: 0.9, depthWrite: false }), 0.9, 0.05)); var dx = gh.door.front.x - gh.door.door.x, dz = gh.door.front.y - gh.door.door.y; var dm = box(dx ? 0.14 : 0.86, 1.3, dz ? 0.14 : 0.86, M('#ffc94a', { opacity: 0.85 }), gh.door.door.x + dx * 0.5, 0, gh.door.door.y + dz * 0.5); ghostG.add(dm); ghostG.add(tileFlat(gh.door.front.x, gh.door.front.y, cellRes, 0.5, 0.05)); }
+        if (gh.door) { var ym = new T.MeshBasicMaterial({ color: C('#ffc94a'), transparent: true, opacity: 0.9, depthWrite: false }); ghostG.add(tileFlat(gh.door.door.x, gh.door.door.y, ym, 0.9, 0.05)); if (gh.door.door2) ghostG.add(tileFlat(gh.door.door2.x, gh.door.door2.y, ym, 0.9, 0.05)); var dx = gh.door.front.x - gh.door.door.x, dz = gh.door.front.y - gh.door.door.y; var dm = box(dx ? 0.14 : 0.86, 1.3, dz ? 0.14 : 0.86, M('#ffc94a', { opacity: 0.85 }), gh.door.door.x + dx * 0.5, 0, gh.door.door.y + dz * 0.5); ghostG.add(dm); ghostG.add(tileFlat(gh.door.front.x, gh.door.front.y, cellRes, 0.5, 0.05)); }
       } else if (gh && gh.k === 'item') {
         var gi = ghostItems[gh.type + (gh.ok ? '1' : '0')];
-        if (!gi) { gi = buildItemGroup(gh.type).g; gi.scale.setScalar(KS); var gm = gh.ok ? gMatOk : gMatBad; gi.traverse(function (m) { if (m.isMesh) { m.material = gm; m.castShadow = false; } }); ghostItems[gh.type + (gh.ok ? '1' : '0')] = gi; }
+        if (!gi) { gi = buildItemGroup(gh.type).g; var gs = scOf(gh.type); gi.scale.set(gs[0], gs[1], gs[2]); var gm = gh.ok ? gMatOk : gMatBad; gi.traverse(function (m) { if (m.isMesh) { m.material = gm; m.castShadow = false; } }); ghostItems[gh.type + (gh.ok ? '1' : '0')] = gi; }
         placeItemView(gi, gh.type, gh.x, gh.y, gh.rot); ghostG.add(gi);
         var fp = V.footprint(gh.type, gh.x, gh.y, gh.rot);
         fp.cells.forEach(function (c) { ghostG.add(tileFlat(c.x, c.y, gh.ok ? cellOk : cellBad)); });
         fp.res.forEach(function (c) { ghostG.add(tileFlat(c.x, c.y, cellRes, 0.62, 0.032)); ghostG.add(tileFlat(c.x, c.y, gh.ok ? cellOk : cellBad, 0.22, 0.036)); });
       } else if (gh && gh.k === 'walls') {
         // choix du mur pour la porte : on surligne les cases de mur possibles
-        gh.cands.forEach(function (c) { var dx = c.front.x - c.door.x, dz = c.front.y - c.door.y; ghostG.add(box(dx ? 0.16 : 0.8, 0.7, dz ? 0.16 : 0.8, M(c.cur ? '#ffc94a' : '#4f9be8', { opacity: c.cur ? 0.95 : 0.5 }), c.door.x + dx * 0.5, 0, c.door.y + dz * 0.5)); });
+        gh.cands.forEach(function (c) { var dx = c.front.x - c.door.x, dz = c.front.y - c.door.y, d2 = c.door2 || c.door, mx = (c.door.x + d2.x) / 2, mz = (c.door.y + d2.y) / 2; ghostG.add(box(dx ? 0.18 : 1.8, 1.2, dz ? 0.18 : 1.8, M(c.cur ? '#ffc94a' : c.win ? '#7fe3ff' : '#4f9be8', { opacity: c.cur || c.win ? 0.95 : 0.5 }), mx + dx * 0.5, 0, mz + dz * 0.5)); });
+      } else if (gh && gh.k === 'tpl') {
+        var t = gh.t, okm = new T.MeshBasicMaterial({ color: C(gh.ok ? '#4f9be8' : '#d23b3b'), transparent: true, opacity: 0.35, depthWrite: false }), pl = plane(t.w, t.h, okm, gh.x + (t.w - 1) / 2, 0.035, gh.y + (t.h - 1) / 2); pl.rotation.x = -PI / 2; ghostG.add(pl);
+        frameRect(ghostG, gh.x, gh.y, t.w, t.h, new T.MeshBasicMaterial({ color: C(gh.ok ? '#2f6fc4' : '#d23b3b') }), 0.1, 0.08);
+        var dd = V.doorAt(gh.x, gh.y, t.w, t.h, t.rot, t.k), ym2 = new T.MeshBasicMaterial({ color: C('#ffc94a'), transparent: true, opacity: 0.9, depthWrite: false }); ghostG.add(tileFlat(dd.door.x, dd.door.y, ym2, 0.9, 0.05)); ghostG.add(tileFlat(dd.door2.x, dd.door2.y, ym2, 0.9, 0.05));
+        t.items.forEach(function (it) { var gi2 = buildItemGroup(it.type).g, s2 = scOf(it.type); gi2.scale.set(s2[0], s2[1], s2[2]); gi2.traverse(function (m) { if (m.isMesh) { m.material = gh.ok ? gMatOk : gMatBad; m.castShadow = false; } }); placeItemView(gi2, it.type, gh.x + it.x, gh.y + it.y, it.rot); ghostG.add(gi2); });
       }
     }
     // sélection
@@ -5988,9 +6922,9 @@
   /* ---------- caméra ---------- */
   function applyCam() {
     var cp = Math.cos(cam.pitch), sp = Math.sin(cam.pitch);
-    camera.position.set(cam.tx + Math.sin(cam.yaw) * cp * cam.dist, sp * cam.dist, cam.tz + Math.cos(cam.yaw) * cp * cam.dist); camera.lookAt(cam.tx, 0.4, cam.tz); camera.updateMatrixWorld();
+    camera.position.set(cam.tx + Math.sin(cam.yaw) * cp * cam.dist, sp * cam.dist, cam.tz + Math.cos(cam.yaw) * cp * cam.dist); camera.lookAt(cam.tx, 1.0, cam.tz); camera.updateMatrixWorld();
   }
-  function clampGoal() { goal.tx = Math.max(-4, Math.min(W + 3, goal.tx)); goal.tz = Math.max(-4, Math.min(H + 7, goal.tz)); goal.dist = Math.max(8, Math.min(96, goal.dist)); goal.pitch = Math.max(0.5, Math.min(1.35, goal.pitch)); }
+  function clampGoal() { goal.tx = Math.max(-4, Math.min(W + 3, goal.tx)); goal.tz = Math.max(-4, Math.min(H + 7, goal.tz)); goal.dist = Math.max(9, Math.min(110, goal.dist)); goal.pitch = Math.max(0.5, Math.min(1.35, goal.pitch)); }
   function stepCam(dt) { clampGoal(); var k = 1 - Math.exp(-dt * 12); cam.tx += (goal.tx - cam.tx) * k; cam.tz += (goal.tz - cam.tz) * k; cam.dist += (goal.dist - cam.dist) * k; cam.pitch += (goal.pitch - cam.pitch) * k; cam.yaw += (goal.yaw - cam.yaw) * k; applyCam(); }
   function setRay(sx, sy) { ray.setFromCamera({ x: sx / vw * 2 - 1, y: -(sy / vh) * 2 + 1 }, camera); }
   var hitV = new T.Vector3();
@@ -6023,11 +6957,11 @@
     labelsEl = labels;
     renderer = new T.WebGLRenderer({ canvas: canvas, antialias: true, powerPreference: 'high-performance' });
     renderer.outputEncoding = T.sRGBEncoding; renderer.shadowMap.enabled = true; renderer.shadowMap.type = T.PCFSoftShadowMap; renderer.setPixelRatio(quality.ratio);
-    scene = new T.Scene(); scene.background = C('#a9dcd2'); scene.fog = new T.Fog(C('#a9dcd2'), 80, 190);
+    scene = new T.Scene(); scene.background = C('#a9dcd2'); scene.fog = new T.Fog(C('#a9dcd2'), 150, 320);
     camera = new T.PerspectiveCamera(32, 1, 0.5, 400);
     scene.add(new T.HemisphereLight(0xfafffd, 0x9fc4b8, 0.46)); scene.add(new T.AmbientLight(0xffffff, 0.05));
-    sun = new T.DirectionalLight(0xfff0d2, 0.7); sun.position.set(W / 2 - 13, 30, H / 2 + 17); sun.target.position.set(W / 2, 0, H / 2); sun.castShadow = true; sun.shadow.mapSize.set(2048, 2048); sun.shadow.bias = -0.0005; sun.shadow.normalBias = 0.02;
-    var sc = sun.shadow.camera; sc.left = -27; sc.right = 27; sc.top = 24; sc.bottom = -24; sc.near = 2; sc.far = 90; scene.add(sun); scene.add(sun.target);
+    sun = new T.DirectionalLight(0xfff0d2, 0.7); sun.position.set(W / 2 - 20, 46, H / 2 + 26); sun.target.position.set(W / 2, 0, H / 2); sun.castShadow = true; sun.shadow.mapSize.set(2048, 2048); sun.shadow.bias = -0.0005; sun.shadow.normalBias = 0.02;
+    var sc = sun.shadow.camera; sc.left = -44; sc.right = 44; sc.top = 36; sc.bottom = -36; sc.near = 2; sc.far = 140; scene.add(sun); scene.add(sun.target);
     ghostG = new T.Group(); selG = new T.Group(); hovG = new T.Group(); scene.add(ghostG); scene.add(selG); scene.add(hovG);
     carryRing = new T.Mesh(new T.RingGeometry(0.3, 0.48, 24), new T.MeshBasicMaterial()); carryRing.rotation.x = -PI / 2; carryRing.visible = false; scene.add(carryRing);
     loadAssets(function () { scene.add(buildWorld()); applyCam(); done(); }, progress);
@@ -6037,17 +6971,56 @@
     time += dt; frames++;
     stepCam(dt);
     var adt = speed ? dt * Math.min(1.7, 0.75 + 0.3 * speed) : 0;
-    sync(S, ui, dt, adt); updateGhost(S, ui); sweepLabels();
+    if (shakeT > 0) { shakeT -= dt; camera.position.x += (Math.random() - 0.5) * shakeK; camera.position.y += (Math.random() - 0.5) * shakeK * 0.5; camera.position.z += (Math.random() - 0.5) * shakeK; camera.updateMatrixWorld(); }
+    sync(S, ui, dt, adt); updateGhost(S, ui); updateCut(ui); animWorld(dt); fxTick(dt); heatOverlay(S, ui.heat, dt); sweepLabels();
     renderer.render(scene, camera);
     // qualité adaptative : si l'appareil peine, on allège (résolution, puis ombres)
     if (dt > 0.045) slow++; else if (slow > 0) slow -= 0.5;
     if (slow > 90) { slow = 0; if (quality.ratio > 1.25) { quality.ratio = Math.max(1, quality.ratio - 0.5); renderer.setPixelRatio(quality.ratio); renderer.setSize(vw, vh, false); } else if (quality.shadows) { quality.shadows = false; sun.castShadow = false; } }
   }
+  /* ---------- effets : explosions, séisme, étincelles, chaleur ---------- */
+  var fxs = [], shakeT = 0, shakeK = 0, heatMesh = null, heatT = 0;
+  var hovG = null;
+  function makePuddle(u) {
+    var g = new T.Group(), k = u.kind || 'p';
+    if (k === 'vomit') [[0, 0, 0.42], [0.28, 0.18, 0.22], [-0.24, -0.14, 0.2]].forEach(function (q) { var m = new T.Mesh(new T.CircleGeometry(q[2], 14), M('#a3a04a', { opacity: 0.85 })); m.rotation.x = -PI / 2; m.position.set(q[0], 0.021, q[1]); g.add(m); });
+    else if (k === 'litter') { var can = cyl(0.07, 0.24, '#e94f4f', 0.1, 0.07, 0); can.rotation.z = PI / 2; g.add(can); g.add(sph(0.09, '#ffffff', -0.15, 0.08, 0.1)); g.add(box(0.2, 0.02, 0.13, '#d9c7a0', -0.05, 0.005, -0.16)); }
+    else { var m = new T.Mesh(new T.CircleGeometry(0.42, 16), M('#d8c84a', { opacity: 0.7 })); m.rotation.x = -PI / 2; m.position.y = 0.02; m.scale.set(1, 0.7, 1); g.add(m); }
+    g.position.set(u.x, 0, u.y); scene.add(g); return { g: g };
+  }
+  function addFx(o, d, u) { scene.add(o); fxs.push({ o: o, t: 0, d: d, u: u }); }
+  function fxTick(dt) { for (var i = fxs.length - 1; i >= 0; i--) { var f = fxs[i]; f.t += dt; var k = Math.min(1, f.t / f.d); f.u(k); if (k >= 1) { scene.remove(f.o); fxs.splice(i, 1); } } }
+  function sparkle(x, z) { for (var i = 0; i < 8; i++) (function (a) { var s = sph(0.1, '#ffe15a', x, 1, z, { emissive: '#ffe15a', ei: 1.2, noShadow: true }); addFx(s, 1.3, function (k) { s.position.set(x + Math.cos(a) * k * 1.1, 0.9 + k * 2.4, z + Math.sin(a) * k * 1.1); s.scale.setScalar(0.22 * (1 - k) + 0.01); }); })(i / 8 * PI * 2); }
+  function splash(x, z) { for (var i = 0; i < 5; i++) (function (a) { var s = sph(0.07, '#a3a04a', x, 1.6, z); addFx(s, 0.6, function (k) { s.position.set(x + Math.cos(a) * k * 0.6, 1.6 - k * 1.5 + Math.sin(k * PI) * 0.3, z + Math.sin(a) * k * 0.6); }); })(i * 1.3); }
+  function dust(x, z) { var s = sph(0.6, '#d9d2c3', x, 0.4, z, { opacity: 0.6, noShadow: true }); addFx(s, 2.2, function (k) { s.scale.setScalar(1.2 + k * 2.4); s.position.y = 0.4 + k * 1.2; s.visible = k < 0.95; }); }
+  function boom(x, z, big) {
+    var fl = sph(0.5, '#ffb347', x, 1.4, z, { emissive: '#ff7a2a', ei: 1.6, noShadow: true }); addFx(fl, 0.7, function (k) { fl.scale.setScalar(1 + k * (big ? 7 : 4)); fl.visible = k < 0.9; });
+    for (var i = 0; i < 9; i++) (function (a, r) { var s = sph(0.45, '#5f6468', x, 1, z, { opacity: 0.75, noShadow: true }); addFx(s, 3 + r, function (k) { s.position.set(x + Math.cos(a) * k * 1.6, 1 + k * 4.5, z + Math.sin(a) * k * 1.6); s.scale.setScalar(1 + k * 2.2); s.visible = k < 0.96; }); })(i / 9 * PI * 2, (i % 3) * 0.4);
+    if (big) { var sc = new T.Mesh(new T.CircleGeometry(1.8, 20), M('#2b2f36', { opacity: 0.55 })); sc.rotation.x = -PI / 2; sc.position.set(x, 0.03, z); addFx(sc, 40, function (k) { sc.material.opacity = 0.55; sc.visible = k < 0.99; }); }
+  }
+  function heatOverlay(S, on, dt) {
+    if (!on) { if (heatMesh) heatMesh.visible = false; return; }
+    if (!heatMesh) {
+      var cv = document.createElement('canvas'); cv.width = W; cv.height = H; var tx = new T.CanvasTexture(cv);
+      heatMesh = plane(W, H, new T.MeshBasicMaterial({ map: tx, transparent: true, opacity: 0.6, depthWrite: false }), (W - 1) / 2, 0.09, (H - 1) / 2); heatMesh.rotation.x = -PI / 2; heatMesh.userData.cv = cv; scene.add(heatMesh); heatT = 0;
+    }
+    heatMesh.visible = true; if ((heatT -= dt) > 0) return; heatT = 1;
+    var g = V.heatGrid(S), cx = heatMesh.userData.cv.getContext('2d'), img = cx.createImageData(W, H), x, y;
+    for (y = 0; y < H; y++) for (x = 0; x < W; x++) {
+      var t = g[y * W + x], i = (y * W + x) * 4, q = t < 16 ? [60, 130, 255, 210] : t < 18.5 ? [130, 200, 255, 150] : t <= 25 ? [80, 215, 130, 70] : t <= 27 ? [255, 185, 80, 160] : [255, 80, 50, 210];
+      img.data[i] = q[0]; img.data[i + 1] = q[1]; img.data[i + 2] = q[2]; img.data[i + 3] = q[3];
+    }
+    cx.putImageData(img, 0, 0); heatMesh.material.map.needsUpdate = true;
+  }
   function event(e) {
     var a = e.id ? actorV[e.id] : null;
     if (a && e.n === 'cure') { a.fxName = 'jump'; a.fxUntil = time + 0.9; } else if (a && e.n === 'angry') { a.fxName = 'emote-no'; a.fxUntil = time + 1.2; } else if (a && e.n === 'idea') { a.fxName = 'emote-yes'; a.fxUntil = time + 0.9; }
+    else if (a && e.n === 'fall') { a.fxName = 'fall'; a.fxUntil = time + 1.4; }
+    if (e.n === 'boom') { boom(e.x, e.y, e.v); shakeT = 0.9; shakeK = 0.35; }
+    else if (e.n === 'quake') { shakeT = 3.2; shakeK = 0.5; for (var i = 0; i < 12; i++) dust(Math.random() * W, Math.random() * H); }
+    else if (e.n === 'amb') startAmbulance();
+    else if (e.n === 'vomit') splash(e.x, e.y);
   }
-  var hovG = null;
   function setShadows(on) { quality.shadows = !!on; if (sun) sun.castShadow = !!on; }
   window.VelpoView = { setShadows: setShadows, init: init, resize: resize, frame: frame, pick: pick, hit: hit, cam: Cam, float: floatText, event: event, reset: reset, project: project, quality: quality };
 })();
@@ -6065,6 +7038,11 @@
   /* ---------- icônes (dessinées à la main, trait épais) ---------- */
   var IC = {
     copy: '<rect x="8" y="8" width="12" height="12" rx="2.500"/><path d="M16 8V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h2"/>',
+    copy2: '',
+    mail: '<rect x="3" y="5" width="18" height="14" rx="2.500"/><path d="M3.500 6.500 12 13l8.500-6.500"/>',
+    fire: '<path d="M12 3c1 4 5 5 5 10a5 5 0 0 1-10 0c0-3 2-4 2-7 1 1 2 2 3 1z"/>',
+    temp: '<path d="M14 14.500V5a2 2 0 0 0-4 0v9.500a4 4 0 1 0 4 0z"/>',
+    walls: '<path d="M3 20h18M5 20V9h5v11M14 20v-6h5v6"/>',
     rooms: '<path d="M4 21V6a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v15"/><path d="M2.500 21h19"/><path d="M9.500 21v-6h5v6"/><path d="M12 7v4M10 9h4"/>',
     items: '<path d="M6.500 11V8a3 3 0 0 1 3-3h5a3 3 0 0 1 3 3v3"/><path d="M4 12.500a2 2 0 0 1 4 0V15h8v-2.500a2 2 0 0 1 4 0V18H4z"/><path d="M6.500 18v2M17.500 18v2"/>',
     hire: '<circle cx="9.500" cy="8" r="3.500"/><path d="M3 20a6.500 6.500 0 0 1 13 0"/><path d="M19 7v6M16 10h6"/>',
@@ -6122,17 +7100,49 @@
     else if (n === 'pick') tone(520, t, 0.08, 'sine', 0.2, null, 880);
     else if (n === 'drop') tone(700, t, 0.1, 'sine', 0.22, null, 300);
     else if (n === 'rot') tone(900, t, 0.04, 'triangle', 0.12);
+    else if (n === 'mail') { tone(1047, t, 0.12, 'sine', 0.22); tone(1568, t + 0.12, 0.22, 'sine', 0.18); }
+    else if (n === 'boom') { noise(t, 1.2, 0.9, 900); tone(80, t, 0.9, 'sine', 0.6, null, 30); }
+    else if (n === 'quake') { noise(t, 3, 0.6, 180); tone(45, t, 3, 'sine', 0.5, null, 30); }
+    else if (n === 'vomit') { tone(160, t, 0.35, 'sawtooth', 0.08, null, 70); noise(t + 0.15, 0.3, 0.2, 500); }
+    else if (n === 'amb') [0, 1, 2, 3, 4, 5].forEach(function (i) { tone(i % 2 ? 740 : 988, t + i * 0.35, 0.33, 'triangle', 0.1); });
+    else if (n === 'fall') tone(500, t, 0.3, 'sine', 0.15, null, 120);
+    else if (ROOMFX[n]) ROOMFX[n](t, arguments[1] === undefined ? 1 : arguments[1]);
   }
-  var CH = [[262, 330, 392, 523, 587], [220, 262, 330, 440, 523], [175, 262, 349, 440, 523], [196, 247, 294, 392, 494]], mNext = 0, mStep = 0, mLast = 2;
+  var NB = null;
+  function noise(t, d, vol, cut) {
+    if (!NB) { NB = AC.createBuffer(1, AC.sampleRate * 2, AC.sampleRate); var ch = NB.getChannelData(0); for (var i = 0; i < ch.length; i++) ch[i] = Math.random() * 2 - 1; }
+    var s = AC.createBufferSource(), f = AC.createBiquadFilter(), g = AC.createGain(); s.buffer = NB; f.type = 'lowpass'; f.frequency.value = cut; g.gain.setValueAtTime(vol, t); g.gain.exponentialRampToValueAtTime(0.001, t + d);
+    s.connect(f); f.connect(g); g.connect(master); s.start(t); s.stop(t + d + 0.05);
+  }
+  // un petit son par salle en activité, plus fort quand la caméra est proche
+  var ROOMFX = {
+    rf_deco: function (t, v) { noise(t, 0.18, 0.25 * v, 3000); tone(1800, t, 0.06, 'square', 0.04 * v); },
+    rf_radio: function (t, v) { tone(1320, t, 0.08, 'sine', 0.12 * v); },
+    rf_bloc: function (t, v) { tone(880, t, 0.07, 'sine', 0.12 * v); },
+    rf_guichet: function (t, v) { tone(120, t, 0.06, 'square', 0.18 * v); noise(t, 0.05, 0.2 * v, 1200); },
+    rf_pharma: function (t, v) { tone(600 + Math.random() * 300, t, 0.05, 'sine', 0.08 * v); tone(900 + Math.random() * 300, t + 0.07, 0.05, 'sine', 0.06 * v); },
+    rf_upscale: function (t, v) { tone(400, t, 0.4, 'sawtooth', 0.04 * v, null, 1600); },
+    rf_avion: function (t, v) { noise(t, 0.6, 0.12 * v, 700); },
+    rf_recherche: function (t, v) { tone(700 + Math.random() * 500, t, 0.04, 'sine', 0.07 * v); },
+    rf_gp: function (t, v) { [0, 1, 2].forEach(function (i) { tone(1500 + Math.random() * 400, t + i * 0.06, 0.02, 'square', 0.03 * v); }); },
+    rf_platre: function (t, v) { noise(t, 0.12, 0.12 * v, 2500); }
+  };
+  var TRACKS = [
+    { n: 'Salle d\'attente', ch: [[262, 330, 392, 523, 587], [220, 262, 330, 440, 523], [175, 262, 349, 440, 523], [196, 247, 294, 392, 494]], step: 0.3, w: 'sine' },
+    { n: 'Couloir en fête', ch: [[294, 370, 440, 587, 659], [247, 294, 370, 494, 587], [196, 247, 294, 392, 494], [220, 277, 330, 440, 554]], step: 0.22, w: 'triangle' },
+    { n: 'Garde de nuit', ch: [[220, 262, 330, 440, 494], [175, 220, 262, 349, 440], [196, 233, 294, 392, 466], [165, 208, 247, 330, 415]], step: 0.38, w: 'sine' }
+  ], mTrack = 0, CH = TRACKS[0].ch, mNext = 0, mStep = 0, mLast = 2;
+  function nextSong() { mTrack = (mTrack + 1) % TRACKS.length; CH = TRACKS[mTrack].ch; mStep = 0; toast('Musique : « ' + TRACKS[mTrack].n + ' »'); }
   function musicTick() {
     if (!AC || AC.state !== 'running' || !opt.music || opt.mute || document.hidden) { mNext = 0; return; }
     var t = AC.currentTime; if (mNext < t) mNext = t + 0.05;
     while (mNext < t + 0.35) {
       var ch = CH[Math.floor(mStep / 8) % 4], st = mStep % 8;
+      if (mStep > 0 && mStep % 512 === 0) nextSong();
       if (st === 0 || st === 5) tone(ch[0] / 2, mNext, 0.5, 'sine', 0.5, mus);
-      if (st % 2 === 0 || Math.random() < 0.45) { mLast = Math.max(0, Math.min(4, mLast + Math.floor(Math.random() * 3) - 1)); var f = ch[mLast] * (Math.random() < 0.25 ? 2 : 1); tone(f, mNext, 0.3, 'sine', 0.42, mus); tone(f * 4, mNext, 0.06, 'sine', 0.06, mus); }
+      if (st % 2 === 0 || Math.random() < 0.45) { mLast = Math.max(0, Math.min(4, mLast + Math.floor(Math.random() * 3) - 1)); var f = ch[mLast] * (Math.random() < 0.25 ? 2 : 1); tone(f, mNext, TRACKS[mTrack].step, TRACKS[mTrack].w, 0.42, mus); tone(f * 4, mNext, 0.06, 'sine', 0.06, mus); }
       if (st === 2 || st === 6) { tone(ch[1], mNext, 0.22, 'triangle', 0.1, mus); tone(ch[2], mNext, 0.22, 'triangle', 0.1, mus); }
-      mNext += 0.3; mStep++;
+      mNext += TRACKS[mTrack].step; mStep++;
     }
   }
   var tts = null, speaking = false;
@@ -6140,11 +7150,18 @@
     if (!t) return; tts = t;
     t.onState(function (e) { speaking = e.state !== 'idle'; $('ttsStop').style.display = speaking ? '' : 'none'; if (e.reason === 'not_granted' || e.reason === 'unavailable') { tts = null; $('ttsStop').style.display = 'none'; } });
   }).catch(function () {});
-  function speak(text) { if (!tts || !opt.voice || opt.mute || speaking || !speed || modalKind) return; tts.speak(text, { voice: 'airy', language: 'fr' }).catch(function (e) { if (e && e.code === 'not_granted') tts = null; }); }
-  function stopVoice() { if (tts && speaking) tts.stop().catch(function () {}); }
+  var SY = typeof window !== 'undefined' && window.speechSynthesis ? window.speechSynthesis : null;
+  function canSpeak() { return !!tts || !!SY; }
+  function speak(text) {
+    if (!opt.voice || opt.mute || speaking || !speed || modalKind) return;
+    if (tts) { tts.speak(text, { voice: 'airy', language: 'fr' }).catch(function (e) { if (e && e.code === 'not_granted') tts = null; }); return; }
+    if (!SY || SY.speaking) return;
+    try { var u = new SpeechSynthesisUtterance(text), vs = SY.getVoices().filter(function (v) { return /^fr/i.test(v.lang); }); u.lang = 'fr-FR'; u.rate = 1.04; if (vs.length) u.voice = vs[0]; SY.speak(u); } catch (e) {}
+  }
+  function stopVoice() { if (tts && speaking) tts.stop().catch(function () {}); if (SY) try { SY.cancel(); } catch (e) {} }
 
   /* ---------- sauvegarde ---------- */
-  function okSave(d) { return d && d.json && d.json.indexOf('{"v":4') === 0 ? d : null; }
+  function okSave(d) { return d && d.json && /^\{"v":[45]\b/.test(d.json) ? d : null; }
   function localLoad() { try { return okSave(JSON.parse(localStorage.getItem(LS))); } catch (e) { return null; } }
   function save(manual) {
     if (!S || S.lost) return;
@@ -6175,7 +7192,7 @@
   function setHTML(el, h) { if (el._h !== h) { el.innerHTML = h; el._h = h; } }
   function show(el, on) { var d = on ? (el.id === 'panel' || el.id === 'modal' || el.id === 'hint' ? 'flex' : 'block') : 'none'; if (el.style.display !== d) el.style.display = d; }
   function act(ev) { var t = ev.target.closest ? ev.target.closest('[data-a]') : null; return t && !t.disabled ? t.getAttribute('data-a').split(':') : null; }
-  function staffState(p) { return ({ idle: 'Disponible', walk: 'En déplacement', work: 'Au travail', rest: 'En pause', fix: 'Répare', mop: 'Nettoie', away: 'En congrès', held: 'En main', 'in': 'Arrive' })[p.st] || ''; }
+  function staffState(p) { return ({ learn: 'En formation', watering: 'Arrose', emptying: 'Vide une poubelle', vaccinating: 'Vaccine', idle: 'Disponible', walk: 'En déplacement', work: 'Au travail', rest: 'En pause', fix: 'Répare', mop: 'Nettoie', away: p.awayWhy === 'boom' ? 'Soigné·e en face' : 'En congrès', held: 'En main', 'in': 'Arrive' })[p.st] || ''; }
   function stars(n) { var s = ''; for (var i = 0; i < 5; i++) s += '<span style="color:' + (i < n ? '#e0a100' : '#d3e4dd') + '">' + ic('star', 16) + '</span>'; return '<span style="display:inline-flex;gap:1px;vertical-align:middle">' + s + '</span>'; }
   function costOfRoomItems(type) { return V.roomTotal(type); }
 
@@ -6186,7 +7203,7 @@
     setHTML($('sCured'), '<span style="color:#ff6b5e">' + ic('heart', 20) + '</span><span>' + S.cured + (S.freePlay ? '' : '/' + V.GOALS.cured) + '</span>');
     setHTML($('sDate'), ic('cal', 20) + '<span>J' + (S.day % 30 + 1) + '<span class="lbl"> · mois ' + (Math.floor(S.day / 30) + 1) + '</span></span>');
     var done = (S.cured >= V.GOALS.cured ? 1 : 0) + (S.rep >= V.GOALS.rep ? 1 : 0) + (S.money >= V.GOALS.money ? 1 : 0);
-    $('goalText').textContent = S.freePlay ? 'Mode libre' : 'Niveau 1 · ' + done + '/3 objectifs';
+    $('goalText').textContent = (S.stars ? '★★★'.slice(0, S.stars) + '☆☆☆'.slice(0, 3 - S.stars) + ' · ' : '') + (S.won ? 'niveau réussi' : 'Niveau 1 · ' + done + '/3 objectifs');
     var l = S.log[S.log.length - 1];
     if (l && l !== shownLog) { var first = shownLog === null; shownLog = l; $('tickText').textContent = l.t; $('ticker').className = l.k; if (l.k === 'ann' && !first) speak(l.t); }
     var showHint = mode.k === 'idle' && !sel && !panel && !S.offer;
@@ -6211,7 +7228,7 @@
       if (a[1] === 'rl') View.cam.rotate(-Math.PI / 4); else if (a[1] === 'rr') View.cam.rotate(Math.PI / 4); else if (a[1] === 'zi') View.cam.zoom(1 / 1.25); else if (a[1] === 'zo') View.cam.zoom(1.25);
       else if (a[1] === 'mute') { opt.mute = !opt.mute; saveOpt(); } else if (a[1] === 'help') helpModal();
     };
-    $('goals').onclick = function () { tab.manage = 'goals'; openPanel('manage'); };
+    $('goals').onclick = function () { levelModal(); };
     $('ticker').onclick = function (ev) { if (ev.target.id === 'ttsStop') { stopVoice(); return; } tab.manage = 'log'; openPanel('manage'); };
     $('panelClose').onclick = closePanel;
     document.addEventListener('click', function (ev) { if (ev.target.closest && ev.target.closest('button')) { audioInit(); sfx('click'); } }, true);
@@ -6220,7 +7237,22 @@
   /* ---------- volets : salles, objets, embauche, équipe, gestion ---------- */
   function closePanel() { panel = null; show($('panel'), false); navState(); }
   function navState() { Array.prototype.forEach.call($('menu').children, function (b) { b.setAttribute('aria-pressed', String(b.getAttribute('data-a') === 'menu:' + panel)); }); }
-  var KIND = { diag: 'Diagnostic', cure: 'Soin', both: 'Diagnostic et soin', service: 'Service' }, WHO = { doc: 'Médecin', nurse: 'Infirmier·ère' };
+  var KIND = { diag: 'Diagnostic', cure: 'Soin', both: 'Diagnostic et soin', service: 'Service', ward: 'Diagnostic, soin, préparation', train: 'Formation', lab: 'Recherche' }, WHO = { doc: 'Médecin', nurse: 'Infirmier·ère' };
+  function whoNeeded(d) { var s = d.spec ? ({ psy: 'Psychiatre', chir: 'Chirurgien', cherch: 'Chercheur' })[d.spec] : d.rank ? 'Consultant' : d.staff ? WHO[d.staff] : 'Sans personnel'; return d.aide ? s + ' + ' + WHO[d.aide].toLowerCase() : s; }
+  function docTags(c) { return (c.kind === 'doc' ? '<span class="tag">' + V.RANKS[V.rankOf(c)] + '</span>' : '') + (c.spec ? '<span class="tag b">' + V.SPECS[c.spec] + '</span>' : ''); }
+  function chart(hist) {
+    if (!hist || hist.length < 2) return '<p style="color:var(--muted);margin:0">Le graphique apparaît après deux mois.</p>';
+    var w = 400, h = 150, n = hist.length, mx = 1, mn = 0, bw = w / n;
+    hist.forEach(function (q) { mx = Math.max(mx, q.inc, q.exp, q.money); mn = Math.min(mn, q.money); });
+    var sy = function (v) { return h - 18 - (v - mn) / (mx - mn) * (h - 30); }, s = '<svg viewBox="0 0 ' + w + ' ' + h + '" class="chart" role="img" aria-label="Recettes, dépenses et caisse par mois">';
+    s += '<line x1="0" x2="' + w + '" y1="' + sy(0) + '" y2="' + sy(0) + '" stroke="#c9d6d0"/>';
+    hist.forEach(function (q, i) { var x = i * bw; s += '<rect x="' + (x + bw * 0.12) + '" y="' + sy(q.inc) + '" width="' + bw * 0.36 + '" height="' + Math.max(1, sy(0) - sy(q.inc)) + '" fill="#2fb380" rx="2"/><rect x="' + (x + bw * 0.5) + '" y="' + sy(q.exp) + '" width="' + bw * 0.36 + '" height="' + Math.max(1, sy(0) - sy(q.exp)) + '" fill="#ff6b5e" rx="2"/><text x="' + (x + bw / 2) + '" y="' + (h - 3) + '" font-size="11" text-anchor="middle" fill="#5d7a80">' + q.m + '</text>'; });
+    s += '<polyline fill="none" stroke="#17323a" stroke-width="2.5" points="' + hist.map(function (q, i) { return (i * bw + bw / 2) + ',' + sy(q.money); }).join(' ') + '"/></svg>';
+    return s + '<p class="legend"><i style="background:#2fb380"></i>Recettes <i style="background:#ff6b5e"></i>Dépenses <i style="background:#17323a"></i>Caisse</p>';
+  }
+  function starsHTML() {
+    return V.levelStatus(S).map(function (st) { var g = st.goals; return '<div class="item"><h4>' + '★'.repeat(st.n) + (st.ok ? ' <span class="tag g">obtenue</span>' : '') + '</h4><div class="kv"><span>Patients guéris</span>' + bar(S.cured / g.cured) + '<span>' + S.cured + '/' + g.cured + '</span><span>Réputation</span>' + bar(S.rep / g.rep) + '<span>' + Math.round(S.rep) + '/' + g.rep + '</span><span>Caisse</span>' + bar(S.money / g.money) + '<span>' + euro(Math.max(0, S.money)) + '</span></div>' + (g.rooms ? '<p>Salles demandées : ' + g.rooms.map(function (t) { var ok = S.rooms.some(function (r) { return r.type === t && r.open; }); return (ok ? '✓ ' : '') + V.ROOMS[t].name; }).join(', ') + '.</p>' : '') + '</div>'; }).join('');
+  }
   function openPanel(name) {
     var keep = panel === name ? $('panelBody').scrollTop : 0; panel = name; sel = null; ui.sel = null; navState();
     var h = '', title = '', tabs = null, t;
@@ -6228,37 +7260,61 @@
       title = 'Construire une salle';
       Object.keys(V.ROOMS).forEach(function (k) {
         var d = V.ROOMS[k], tot = V.roomTotal(k);
-        h += '<button class="item" data-a="room:' + k + '"' + (S.money < tot ? ' disabled style="opacity:.5"' : '') + '><h4>' + d.name + '<em>≈ ' + euro(tot) + '</em></h4><p>' + d.blurb + '</p><span class="row"><span class="tag">' + KIND[d.kind] + '</span><span class="tag">' + (d.staff ? WHO[d.staff] : 'Sans personnel') + '</span><span class="tag">min. ' + d.min[0] + ' × ' + d.min[1] + '</span></span></button>';
+        var tp = getTpl(k);
+        h += '<div class="item"><button class="itembtn" data-a="room:' + k + '"' + (S.money < tot ? ' disabled style="opacity:.5"' : '') + '><h4>' + d.name + '<em>≈ ' + euro(tot) + '</em></h4><p>' + d.blurb + '</p><span class="row"><span class="tag">' + KIND[d.kind] + '</span><span class="tag">' + whoNeeded(d) + '</span><span class="tag">min. ' + d.min[0] / 2 + ' × ' + d.min[1] / 2 + ' cases</span></span></button>' + (tp ? '<div class="row" style="margin-top:6px"><button class="btn sm" data-a="tpl:' + k + '">' + ic('copy', 18) + 'Construire mon modèle</button><span class="tag">' + tp.w / 2 + ' × ' + tp.h / 2 + ' cases · ' + tp.items.length + ' objets · ' + euro(V.tplCost(tp)) + '</span></div>' : '') + '</div>';
       });
     } else if (name === 'items') {
       title = 'Objets de couloir';
       Object.keys(V.ITEMS).forEach(function (k) { var d = V.ITEMS[k]; if (d.where.indexOf('hall') < 0) return; h += '<button class="item" data-a="item:' + k + '"' + (S.money < d.cost ? ' disabled style="opacity:.5"' : '') + '><h4>' + d.name + '<em>' + euro(d.cost) + '</em></h4><p>' + d.blurb + '</p></button>'; });
     } else if (name === 'hire') {
       title = 'Embaucher'; t = tab.hire || 'doc'; tabs = [['doc', 'Médecins'], ['nurse', 'Infirmiers'], ['recep', 'Accueil'], ['handy', 'Entretien']];
-      S.pool[t].forEach(function (c, i) { h += '<div class="item"><h4>' + c.name + '<em>' + euro(c.wage) + ' / mois</em></h4><p>' + c.bio + '</p><div class="kv"><span>Talent</span>' + bar(c.skill) + '<span></span></div><div class="row"><button class="btn sm" style="margin-left:auto" data-a="hire:' + t + ':' + i + '">' + ic('hand', 20) + 'Embaucher</button></div></div>'; });
+      S.pool[t].forEach(function (c, i) { h += '<div class="item"><h4>' + c.name + '<em>' + euro(c.wage) + ' / mois</em></h4><span class="row">' + docTags(c) + '</span><p>' + c.bio + '</p><div class="kv"><span>Talent</span>' + bar(c.skill) + '<span></span></div><div class="row"><button class="btn sm" style="margin-left:auto" data-a="hire:' + t + ':' + i + '">' + ic('hand', 20) + 'Embaucher</button></div></div>'; });
       h += '<p style="margin:0;color:var(--muted);font-size:15px">La recrue arrive dans votre main : déposez-la où vous voulez, ou clic droit pour la laisser entrer seule. Nouveaux candidats chaque mois.</p>';
     } else if (name === 'team') {
-      title = 'Votre équipe'; var staff = S.people.filter(function (p) { return p.kind !== 'patient' && !p.leaving; });
+      title = 'Votre équipe'; var staff = S.people.filter(function (p) { return p.kind !== 'patient' && p.kind !== 'vip' && !p.leaving; });
       if (!staff.length) h += '<p style="margin:0;color:var(--muted)">Personne. L\'hôpital est très calme, et très inutile.</p>';
       staff.forEach(function (p) {
-        h += '<button class="item" data-a="who:' + p.id + '"><h4>' + p.name + '<em>' + euro(p.wage) + '</em></h4><span class="row"><span class="tag">' + V.STAFF[p.kind].name + '</span><span class="tag">' + staffState(p) + '</span>' + (p.pin ? '<span class="tag g">Affecté·e</span>' : '') + '</span><span class="kv"><span>Fatigue</span>' + bar(p.fatigue, p.fatigue > 0.7 ? 'b' : p.fatigue > 0.4 ? 'w' : '') + '<span></span></span></button>';
+        h += '<button class="item" data-a="who:' + p.id + '"><h4>' + p.name + '<em>' + euro(p.wage) + '</em></h4><span class="row"><span class="tag">' + V.STAFF[p.kind].name + '</span>' + docTags(p) + (p.mood !== undefined && p.mood < 0.35 ? '<span class="tag r">Moral en berne</span>' : '') + '<span class="tag">' + staffState(p) + '</span>' + (p.pin ? '<span class="tag g">Affecté·e</span>' : '') + '</span><span class="kv"><span>Fatigue</span>' + bar(p.fatigue, p.fatigue > 0.7 ? 'b' : p.fatigue > 0.4 ? 'w' : '') + '<span></span></span></button>';
       });
     } else {
-      title = 'Gestion'; t = tab.manage || 'goals'; tabs = [['goals', 'Objectifs'], ['money', 'Finances'], ['ill', 'Maladies'], ['log', 'Journal'], ['opt', 'Options']];
+      title = 'Gestion'; t = tab.manage || 'goals'; tabs = [['goals', 'Étoiles'], ['money', 'Finances'], ['prices', 'Tarifs'], ['policy', 'Politique'], ['research', 'Recherche'], ['ill', 'Maladies'], ['log', 'Journal'], ['opt', 'Options']];
       var G = V.GOALS;
-      if (t === 'goals') h += '<div class="item"><h4>Niveau 1</h4><div class="kv"><span>Patients guéris</span>' + bar(S.cured / G.cured) + '<span>' + S.cured + '/' + G.cured + '</span><span>Réputation</span>' + bar(S.rep / G.rep) + '<span>' + Math.round(S.rep) + '/' + G.rep + '</span><span>Caisse</span>' + bar(S.money / G.money) + '<span>' + euro(Math.max(0, S.money)) + '</span></div><p>' + S.deaths + ' décès, ' + S.left + ' départs mécontents. Faillite si la caisse passe sous −15 000 €.</p></div><div class="item"><h4>Conseil du moment</h4><p>' + V.hint(S) + '</p></div>';
+      if (t === 'goals') h += '<p style="margin:0 0 8px;color:var(--muted)">' + S.deaths + ' décès, ' + S.left + ' patients partis mécontents. La première étoile gagne le niveau ; les suivantes se jouent en continuant.</p>' + starsHTML();
       else if (t === 'money') {
-        h += '<div class="item"><h4>Tarifs<em id="pmv">' + Math.round(S.priceMult * 100) + ' %</em></h4><input type="range" id="pm" min="50" max="200" step="10" value="' + Math.round(S.priceMult * 100) + '" aria-label="Niveau des tarifs"><p>Au-dessus de 100 %, des patients refusent de payer et repartent. Une bonne réputation fait monter les prix toute seule.</p></div>';
+        h += '<div class="item"><h4>Recettes et dépenses</h4>' + chart(S.hist) + '</div>';
+        h += '<div class="item"><h4>Banque<em>' + euro(S.loan) + ' empruntés</em></h4><p>Intérêts : 1,5 % par mois. Plafond : ' + euro(V.LOAN_MAX) + '.</p><div class="row"><button class="btn sm" data-a="loan:+">Emprunter 5 000 €</button><button class="btn alt sm" data-a="loan:-"' + (S.loan ? '' : ' disabled') + '>Rembourser 5 000 €</button></div></div>';
         h += '<div class="item"><h4>Mois en cours</h4><p>Recettes ' + euro(S.month.inc) + ' · dépenses ' + euro(S.month.exp) + '</p></div>';
-        if (S.lastMonth) h += '<div class="item"><h4>Mois ' + S.lastMonth.n + '</h4><p>Recettes ' + euro(S.lastMonth.inc) + ' · dépenses ' + euro(S.lastMonth.exp) + '<br>dont salaires ' + euro(S.lastMonth.wages || 0) + ' et charges ' + euro(S.lastMonth.charges || 0) + '</p></div>';
+        if (S.lastMonth) h += '<div class="item"><h4>Mois ' + S.lastMonth.n + '</h4><p>Recettes ' + euro(S.lastMonth.inc) + ' · dépenses ' + euro(S.lastMonth.exp) + '<br>dont salaires ' + euro(S.lastMonth.wages || 0) + ', charges ' + euro(S.lastMonth.charges || 0) + (S.lastMonth.heat ? ', chauffage ' + euro(S.lastMonth.heat) : '') + (S.lastMonth.intr ? ', intérêts ' + euro(S.lastMonth.intr) : '') + '</p></div>';
+      } else if (t === 'prices') {
+        h += '<div class="item"><h4>Coefficient général<em id="pmv">' + Math.round(S.priceMult * 100) + ' %</em></h4><input type="range" id="pm" min="50" max="200" step="10" value="' + Math.round(S.priceMult * 100) + '" aria-label="Coefficient général des tarifs"><p>Au-dessus de 100 %, des patients refusent de payer et repartent. Une bonne réputation fait monter les prix toute seule.</p></div>';
+        Object.keys(V.ROOMS).forEach(function (k) {
+          var d = V.ROOMS[k]; if (d.kind === 'service' || d.kind === 'train' || d.kind === 'lab') return;
+          var m = (S.prices[k] || 1), ex = d.price ? d.price : (V.DISEASES.filter(function (x) { return x.cure === k; })[0] || {}).price || 0, built = S.rooms.some(function (r) { return r.type === k; });
+          h += '<div class="item' + (built ? '' : ' dim') + '"><h4>' + d.name + '<em>' + Math.round(m * 100) + ' %</em></h4><div class="row"><button class="btn alt sm sq" data-a="pr:' + k + ':-" aria-label="Baisser">−</button><button class="btn alt sm sq" data-a="pr:' + k + ':+" aria-label="Augmenter">+</button><span class="tag">' + (ex ? 'Exemple : ' + euro(V.price(S, ex, k)) : '') + '</span></div></div>';
+        });
+      } else if (t === 'policy') {
+        var P = S.policy, sl = function (k, lab, mn, mx, txt) { return '<div class="item"><h4>' + lab + '<em id="pv_' + k + '">' + Math.round(P[k] * 100) + ' %</em></h4><input type="range" data-pol="' + k + '" min="' + mn + '" max="' + mx + '" step="5" value="' + Math.round(P[k] * 100) + '" aria-label="' + lab + '"><p>' + txt + '</p></div>'; };
+        h += sl('guess', 'Tenter le soin dès', 50, 100, 'Niveau de diagnostic à partir duquel on soigne sans attendre d\'en être sûr. Plus bas : plus rapide, plus d\'échecs.');
+        h += sl('home', 'Renvoyer chez lui sous', 20, 80, 'Quand plus aucun examen n\'est possible, un patient diagnostiqué en dessous de ce niveau rentre chez lui.');
+        h += sl('rest', 'Pause du personnel à', 40, 95, 'Niveau de fatigue qui envoie le personnel en salle de repos.');
+        h += '<div class="item"><h4>Personnel mobile</h4><p>Un soignant peut quitter une salle vide pour une salle où l\'on attend.</p><button class="btn alt sm" data-a="pol:roam" aria-pressed="' + P.roam + '">' + (P.roam ? 'Oui' : 'Non') + '</button></div>';
+        var rad = S.items.filter(function (o) { return o.type === 'radiator'; }).length;
+        h += '<div class="item"><h4>Chauffage<em>' + Math.round(V.outsideTemp(S)) + ' °C sans chauffage</em></h4><div class="row">' + ['Coupé', 'Doux', 'Normal', 'Fort'].map(function (l, i) { return '<button class="btn alt sm" data-a="heat:' + i + '" aria-pressed="' + (S.heat === i) + '">' + l + '</button>'; }).join('') + '</div><p>' + rad + ' radiateur(s), ' + euro(rad * S.heat * 25) + ' par mois. On est bien entre 18 et 25 °C. Nous sommes en ' + V.MONTHS[Math.floor(S.day / 30) % 12] + '.</p><button class="btn alt sm" data-a="heatmap" aria-pressed="' + !!ui.heat + '">Voir les températures</button></div>';
+      } else if (t === 'research') {
+        var R = S.research, lab = S.rooms.some(function (r) { return r.type === 'recherche' && r.open; });
+        h += '<p style="margin:0 0 8px;color:var(--muted)">' + (lab ? 'Points de recherche : ' + Math.floor(R.pts) + '. Choisissez la priorité du laboratoire.' : 'Construisez un laboratoire de recherche et embauchez un médecin chercheur.') + '</p>';
+        Object.keys(V.RES_NAMES).forEach(function (k) {
+          var lv = R.lv[k] || 0, txt = { drugs: '+2,5 % de réussite des soins par niveau', diag: '+8 % de vitesse de diagnostic par niveau', mach: '−12 % d\'usure des machines par niveau' }[k];
+          h += '<div class="item"><h4>' + V.RES_NAMES[k] + '<em>niveau ' + lv + '/5</em></h4>' + bar(lv / 5) + '<p>' + txt + (lv < 5 ? ' · prochain niveau : ' + V.resCost(lv) + ' points' : ' · terminé') + '</p><button class="btn alt sm" data-a="focus:' + k + '" aria-pressed="' + (R.focus === k) + '"' + (lv >= 5 ? ' disabled' : '') + '>' + (R.focus === k ? 'En cours' : 'Prioriser') + '</button></div>';
+        });
       } else if (t === 'ill') {
         var known = V.DISEASES.filter(function (d) { return S.known[d.id]; });
         h += '<p style="margin:0;color:var(--muted)">' + known.length + ' maladie(s) identifiée(s) sur ' + V.DISEASES.length + '.</p>';
-        known.forEach(function (d) { h += '<div class="item"><h4>' + d.name + '<em>' + euro(V.price(S, d.price)) + '</em></h4><p>' + d.desc + '</p><div class="row"><span class="tag">Soin : ' + V.ROOMS[d.cure].short + '</span></div></div>'; });
+        known.forEach(function (d) { h += '<div class="item"><h4>' + d.name + '<em>' + euro(V.price(S, d.price, d.cure)) + '</em></h4><p>' + d.desc + '</p><div class="row"><span class="tag">Soin : ' + V.ROOMS[d.cure].short + '</span></div></div>'; });
       } else if (t === 'log') { h += '<ul class="log">'; S.log.slice(-18).reverse().forEach(function (l) { h += '<li class="' + l.k + '">' + l.t + '</li>'; }); h += '</ul>'; }
       else {
         var tg = function (k, lab) { return '<button class="btn alt sm" data-a="opt:' + k + '" aria-pressed="' + opt[k] + '">' + lab + ' : ' + (opt[k] ? 'oui' : 'non') + '</button>'; };
-        h += '<div class="item"><h4>Son et image</h4><div class="row">' + tg('music', 'Musique') + tg('sfx', 'Bruitages') + (tts ? tg('voice', 'Voix des annonces') : '') + tg('shadows', 'Ombres') + '</div><p>' + (tts ? 'Les annonces de l\'accueil sont lues à voix haute.' : 'La lecture des annonces à voix haute n\'est pas disponible ici.') + ' Coupez les ombres si l\'image saccade.</p></div>';
+        h += '<div class="item"><h4>Son et image</h4><div class="row">' + tg('music', 'Musique') + tg('sfx', 'Bruitages') + (canSpeak() ? tg('voice', 'Voix des annonces') : '') + tg('shadows', 'Ombres') + '</div><p>' + (canSpeak() ? 'Les annonces de l\'accueil sont lues à voix haute.' : 'La lecture des annonces à voix haute n\'est pas disponible ici.') + ' Touche <kbd>.</kbd> : musique suivante.' + ' Coupez les ombres si l\'image saccade.</p></div>';
         h += '<div class="item"><h4>Partie</h4><p>' + saveNote + '. Sauvegarde automatique chaque mois.</p><div class="row"><button class="btn sm" data-a="save">Sauvegarder</button><button class="btn alt sm" data-a="new">Nouvelle partie</button></div></div>';
         h += '<div class="item"><h4>Aide</h4><div class="row"><button class="btn alt sm" data-a="help">' + ic('help', 20) + 'Commandes</button><button class="btn alt sm" data-a="credits">Crédits</button></div></div>';
       }
@@ -6267,6 +7323,7 @@
     $('tabs').innerHTML = tabs ? tabs.map(function (x) { return '<button data-a="tab:' + x[0] + '" aria-pressed="' + (x[0] === t) + '">' + x[1] + '</button>'; }).join('') : ''; show($('tabs'), !!tabs);
     $('panelBody').innerHTML = h; show($('panel'), true); $('panelBody').scrollTop = keep;
     var pm = $('pm'); if (pm) pm.oninput = function () { S.priceMult = pm.value / 100; $('pmv').textContent = pm.value + ' %'; };
+    Array.prototype.forEach.call($('panelBody').querySelectorAll('[data-pol]'), function (inp) { inp.oninput = function () { var k = inp.getAttribute('data-pol'); V.setPolicy(S, k, inp.value / 100); $('pv_' + k).textContent = inp.value + ' %'; }; });
   }
   $('panel').onclick = function (ev) {
     var a = act(ev); if (!a) return;
@@ -6276,41 +7333,67 @@
     else if (a[0] === 'hire') { var p = V.hire(S, a[1], +a[2], true); if (p) { closePanel(); startCarry(p.id); toast('Déposez ' + p.name + ' où vous voulez'); } }
     else if (a[0] === 'who') { var q = V.person(S, +a[1]); if (q) { select({ t: 'p', id: q.id }); View.cam.focus(q.x, q.y, 18); if (vw < 760) closePanel(); else closePanel(); } }
     else if (a[0] === 'opt') { opt[a[1]] = !opt[a[1]]; saveOpt(); if (a[1] === 'shadows') View.setShadows(opt.shadows); openPanel('manage'); }
+    else if (a[0] === 'tpl') { var tp = getTpl(a[1]); if (tp) startPaste(tp); }
+    else if (a[0] === 'loan') { var e = a[1] === '+' ? V.borrow(S, 5000) : V.repay(S, 5000); if (e) toast(e); else sfx('cash'); openPanel('manage'); }
+    else if (a[0] === 'pr') { V.setPrice(S, a[1], (S.prices[a[1]] || 1) + (a[2] === '+' ? 0.1 : -0.1)); openPanel('manage'); }
+    else if (a[0] === 'pol') { V.setPolicy(S, 'roam', !S.policy.roam); openPanel('manage'); }
+    else if (a[0] === 'heat') { V.setHeat(S, +a[1]); openPanel('manage'); }
+    else if (a[0] === 'heatmap') { ui.heat = !ui.heat; openPanel('manage'); }
+    else if (a[0] === 'focus') { V.setFocus(S, a[1]); openPanel('manage'); }
     else if (a[0] === 'save') save(true); else if (a[0] === 'new') confirmNew(); else if (a[0] === 'help') helpModal(); else if (a[0] === 'credits') credits();
   };
 
   /* ---------- fiche de sélection ---------- */
   function select(s) { sel = s; ui.sel = s; if (s) show($('hint'), false); dock(); }
+  function cap1(s) { return s.charAt(0).toUpperCase() + s.slice(1); }
   function inspectorHTML() {
-    var p, r, it, h;
+    var p, r, it, h, k;
     if (sel.t === 'p') {
-      p = V.person(S, sel.id); if (!p || (p.leaving && p.kind !== 'patient')) return null;
+      p = V.person(S, sel.id); if (!p || (p.leaving && p.kind !== 'patient' && p.kind !== 'vip')) return null;
+      if (p.kind === 'vip') return '<h3>' + cap1(p.name) + ' <span class="tag w">Visite officielle</span></h3><p>Note provisoire : <b>' + Math.round(p.score) + '/100</b> après ' + p.stops + ' salle(s). Les flaques, les files et le froid sur son chemin coûtent cher.</p><div class="row">' + followBtn(p) + '</div>';
       if (p.kind === 'patient') {
-        var d = V.DMAP[p.disease], th = V.THOUGHTS, mood = p.happy < 0.3 ? th.angry : p.st === 'waitBuild' ? th.lost : p.wc > 0.8 ? th.wc : p.thirst > 0.7 ? th.thirsty : p.happy > 0.8 ? th.happy : th.queue;
-        var where = p.zombie ? 'Officiellement décédé, repart quand même' : p.leaving ? 'Rentre chez lui' : p.st === 'dead' ? 'Ne se plaint plus' : p.st === 'inRoom' ? 'En consultation' : p.st === 'recQ' ? 'Attend à l\'accueil' : p.st === 'waitBuild' ? 'Cherche : ' + V.ROOMS[p.want].name : p.want ? 'Direction : ' + V.ROOMS[p.want].name : 'Arrive';
-        h = '<h3>' + p.name + (p.emergency ? ' <span class="tag b">Urgence</span>' : '') + '</h3><p>' + (p.diagnosed ? '<b style="color:var(--ink)">' + d.name + '.</b> ' + d.desc : 'Diagnostic en cours : ' + Math.round(p.diag * 100) + ' %') + '</p>' +
+        var d = V.DMAP[p.disease], th = V.THOUGHTS, mood = p.feel && th[p.feel] ? th[p.feel] : p.happy < 0.3 ? th.angry : p.st === 'waitBuild' ? th.lost : p.wc > 0.8 ? th.wc : p.thirst > 0.7 ? th.thirsty : p.happy > 0.8 ? th.happy : th.queue;
+        var rr0 = p.inRoom ? V.room(S, p.inRoom) : null;
+        var where = p.zombie ? 'Officiellement décédé, repart quand même' : p.cured && p.leaving ? 'Guéri, rentre chez lui' : p.leaving ? 'Rentre chez lui' : p.st === 'dead' ? 'Ne se plaint plus' : p.st === 'inRoom' ? (rr0 && V.ROOMS[rr0.type].kind === 'ward' ? 'Alité·e en ' + V.ROOMS[rr0.type].short.toLowerCase() : 'En consultation') : p.st === 'recQ' ? 'Attend à l\'accueil' : p.st === 'waitBuild' ? 'Cherche : ' + V.ROOMS[p.want].name : p.want ? 'Direction : ' + V.ROOMS[p.want].name : 'Arrive';
+        var porteur = p.cont && S.epi && S.epi.told;
+        h = '<h3>' + p.name + (p.emergency ? ' <span class="tag b">Urgence</span>' : '') + (porteur ? ' <span class="tag g">Porteur</span>' : '') + (p.vacc ? ' <span class="tag">Vacciné·e</span>' : '') + '</h3><p>' + (p.diagnosed ? '<b style="color:var(--ink)">' + d.name + '.</b> ' + d.desc : 'Diagnostic en cours : ' + Math.round(p.diag * 100) + ' %') + '</p>' +
+          (p.diagnosed && !p.leaving ? '<p>Soin : ' + V.ROOMS[d.cure].name + (d.pre && !p.preDone ? ', après un passage en ' + V.ROOMS[d.pre].name.toLowerCase() : '') + '.</p>' : '') +
           '<div class="kv"><span>Santé</span>' + bar(p.health, lvl(p.health)) + '<span></span><span>Moral</span>' + bar(p.happy, lvl(p.happy)) + '<span></span></div><p>' + where + '. ' + mood[p.id % mood.length] + '</p><div class="row">' +
           (V.canForce(S, p) ? '<button class="btn sm" data-a="force">' + ic('cure', 20) + 'Soigner tout de suite (risqué)</button>' : '') +
+          (porteur && S.epi.hidden ? '<button class="btn sm" data-a="vacc"' + (p.vaccBy ? ' disabled' : '') + '>' + (p.vaccBy ? 'Infirmière en route' : 'Vacciner (50 €)') + '</button>' : '') +
           followBtn(p) + (p.leaving || p.st === 'dead' || p.st === 'inRoom' || p.st === 'in' ? '' : '<button class="btn alt sm" data-a="home">' + ic('home', 20) + 'Renvoyer chez lui</button>') + '</div>';
       } else {
-        h = '<h3>' + p.name + ' <span class="tag">' + V.STAFF[p.kind].name + '</span>' + (p.pin ? '<span class="tag g">Affecté·e</span>' : '') + '</h3><p>' + p.bio + '</p><div class="kv"><span>Talent</span>' + bar(p.skill) + '<span></span><span>Fatigue</span>' + bar(p.fatigue, p.fatigue > 0.7 ? 'b' : p.fatigue > 0.4 ? 'w' : '') + '<span></span></div>' +
-          '<div class="row"><span class="tag">' + staffState(p) + '</span><span class="tag">' + euro(p.wage) + ' / mois</span></div><div class="row" style="margin-top:8px">' +
-          (p.st === 'away' || p.st === 'in' ? '' : '<button class="btn sm" data-a="take">' + ic('hand', 20) + 'Prendre</button>') + followBtn(p) + '<button class="btn alt sm" data-a="fire">' + (sel.ask === 'fire' ? 'Confirmer le renvoi ?' : 'Renvoyer') + '</button></div>';
+        var mo = p.mood === undefined ? 0.8 : p.mood, low = V.expectedWage(p) > p.wage * 1.05;
+        h = '<h3>' + p.name + ' <span class="tag">' + (p.kind === 'doc' ? V.RANKS[V.rankOf(p)] : V.STAFF[p.kind].name) + '</span>' + (p.spec ? '<span class="tag b">' + V.SPECS[p.spec] + '</span>' : '') + (p.pin ? '<span class="tag g">Affecté·e</span>' : '') + '</h3><p>' + p.bio + '</p>' +
+          '<div class="kv"><span>Talent</span>' + bar(p.skill) + '<span></span><span>Fatigue</span>' + bar(p.fatigue, p.fatigue > 0.7 ? 'b' : p.fatigue > 0.4 ? 'w' : '') + '<span></span><span>Moral</span>' + bar(mo, lvl(mo)) + '<span></span></div>' +
+          '<div class="row"><span class="tag">' + staffState(p) + '</span><span class="tag' + (low ? ' w' : '') + '">' + euro(p.wage) + ' / mois' + (low ? ' · sous le marché' : '') + '</span></div>';
+        if (p.train && p.kind === 'doc') h += '<p style="margin-top:8px">En formation. Spécialité visée :</p><div class="row">' + ['', 'psy', 'chir', 'cherch'].map(function (s) { return '<button class="btn alt sm" data-a="learn:' + s + '" aria-pressed="' + ((p.learn || '') === s) + '"' + (s && s === p.spec ? ' disabled' : '') + '>' + (s ? V.SPECS[s] : 'Talent seulement') + '</button>'; }).join('') + '</div>' + (p.learn ? bar(p.lp || 0) : '');
+        else if (p.train) h += '<p style="margin-top:8px">En formation : son talent progresse.</p>';
+        if (p.kind === 'handy') h += '<p style="margin-top:8px">Priorité :</p><div class="row">' + [['fix', 'Réparer'], ['clean', 'Nettoyer'], ['water', 'Arroser']].map(function (q) { return '<button class="btn alt sm" data-a="prio:' + q[0] + '" aria-pressed="' + ((p.prio || 'fix') === q[0]) + '">' + q[1] + '</button>'; }).join('') + '</div>';
+        h += '<div class="row" style="margin-top:8px">' + (p.st === 'away' || p.st === 'in' ? '' : '<button class="btn sm" data-a="take">' + ic('hand', 20) + 'Prendre</button>') + followBtn(p) +
+          '<button class="btn alt sm" data-a="bonus">Prime (' + euro(Math.round(p.wage * 0.5)) + ')</button>' + (p.train ? '<button class="btn alt sm" data-a="untrain">Arrêter la formation</button>' : '') + '<button class="btn alt sm" data-a="fire">' + (sel.ask === 'fire' ? 'Confirmer le renvoi ?' : 'Renvoyer') + '</button></div>';
       }
       return h;
     }
     if (sel.t === 'r') {
-      r = V.room(S, sel.id); if (!r) return null; var def = V.ROOMS[r.type], st = r.staffId ? V.person(S, r.staffId) : null;
-      h = '<h3>' + def.name + ' ' + stars(r.prestige) + '</h3><p>' + def.blurb + '</p><div class="row" style="margin-bottom:10px">' +
-        (!r.open ? '<span class="tag w">En travaux</span>' : '') + (def.staff ? '<span class="tag' + (st ? '' : ' w') + '">' + (st ? st.name + (r.staffIn ? '' : ' (en route)') : 'Personne en poste') + '</span>' : '') +
-        (def.kind !== 'service' ? '<span class="tag">File : ' + r.queue.length + '</span><span class="tag">Patients vus : ' + r.uses + '</span>' : '<span class="tag">Places : ' + r.occ.length + '/' + r.cap + '</span>') +
-        (def.machine ? '<span class="tag' + (r.broken ? ' b' : r.wear >= 12 ? ' w' : '') + '">Usure : ' + Math.round(r.wear / 22 * 100) + ' %</span>' : '') + '</div><div class="row">' +
-        '<button class="btn sm" data-a="edit">' + ic('edit', 20) + 'Modifier</button><button class="btn alt sm" data-a="copy">' + ic('copy', 20) + 'Copier</button>' + (def.machine && r.open ? '<button class="btn alt sm" data-a="fix">' + ic('wrench', 20) + 'Réparer</button>' : '') +
+      r = V.room(S, sel.id); if (!r) return null; var def = V.ROOMS[r.type], st = r.staffId ? V.person(S, r.staffId) : null, ai = r.aideId ? V.person(S, r.aideId) : null;
+      var kt = def.kind === 'ward' ? 'Lits : ' + r.occ.length + '/' + r.cap : def.kind === 'train' ? 'Élèves : ' + r.occ.length + '/' + r.cap : def.kind === 'lab' ? V.RES_NAMES[S.research.focus] + ' : niveau ' + (S.research.lv[S.research.focus] || 0) + ' · ' + Math.floor(S.research.pts) + ' pts' : def.kind === 'service' ? 'Places : ' + r.occ.length + '/' + r.cap : 'File : ' + r.queue.length + ' · patients vus : ' + r.uses;
+      h = '<h3>' + def.name + ' ' + stars(r.prestige) + '</h3><p>' + def.blurb + '</p><div class="row" style="margin-bottom:8px">' + (!r.open ? '<span class="tag w">En travaux</span>' : '') +
+        (def.staff ? '<span class="tag' + (st ? '' : ' w') + '">' + (st ? st.name + (r.staffIn ? '' : ' (en route)') : 'Manque : ' + whoNeeded(def).split(' + ')[0].toLowerCase()) + '</span>' : '') +
+        (def.aide ? '<span class="tag' + (ai ? '' : ' w') + '">' + (ai ? ai.name + ' en appui' : 'Manque : infirmier·ère en appui') + '</span>' : '') + '<span class="tag">' + kt + '</span>' +
+        (def.machine ? '<span class="tag' + (r.broken ? ' b' : r.wear >= 15 ? ' w' : '') + '">Usure : ' + Math.min(100, Math.round(r.wear / 22 * 100)) + ' %</span>' : '') + ((r.win || []).length ? '<span class="tag">' + r.win.length + ' fenêtre(s)</span>' : '') + '</div>';
+      if (r.queue.length > 1 && def.kind !== 'service') h += '<p style="margin:0 0 6px">File d\'attente : touchez un nom pour le faire passer devant.</p><div class="chips">' + r.queue.slice(0, 6).map(function (pid, n) { var q = V.person(S, pid); return q ? '<button class="chip" data-a="qf:' + pid + '"' + (n === 0 ? ' disabled' : '') + '><span>' + (n + 1) + '. ' + q.name + '<small>' + (q.happy < 0.35 ? 'à bout' : q.emergency ? 'urgence' : 'attend') + '</small></span></button>' : ''; }).join('') + '</div>';
+      h += '<div class="row"><button class="btn sm" data-a="edit">' + ic('edit', 20) + 'Modifier</button><button class="btn alt sm" data-a="copy">' + ic('copy', 20) + 'Copier</button><button class="btn alt sm" data-a="tplsave">Enregistrer le modèle</button>' +
+        (def.machine && r.open ? '<button class="btn alt sm" data-a="fix">' + ic('wrench', 20) + 'Réparer</button><button class="btn alt sm" data-a="replace">Remplacer (' + euro(Math.round(V.ITEMS[def.machine].cost * 0.6)) + ')</button>' : '') +
         '<button class="btn alt sm" data-a="demo">' + ic('trash', 20) + (sel.ask === 'demo' ? 'Confirmer ?' : 'Démolir') + '</button></div>';
       return h;
     }
-    it = V.item(S, sel.id); if (!it) return null; var od = V.ITEMS[it.type];
-    return '<h3>' + od.name + '</h3><p>' + od.blurb + '</p><div class="row">' + (it.type === 'reception' ? '<span class="tag' + (it.staffId ? '' : ' w') + '">' + (it.staffId ? 'Tenu' : 'Personne derrière') + ' · file ' + it.queue.length + '</span>' : '') +
+    it = V.item(S, sel.id); if (!it) return null; var od = V.ITEMS[it.type], extra = '';
+    if (it.type === 'plant') extra = '<span class="tag' + ((it.water === undefined ? 1 : it.water) < 0.3 ? ' w' : '') + '">Arrosée à ' + Math.round((it.water === undefined ? 1 : it.water) * 100) + ' %</span>';
+    else if (it.type === 'bin') extra = '<span class="tag' + ((it.fill || 0) >= 9 ? ' w' : '') + '">Remplie à ' + Math.round((it.fill || 0) / 12 * 100) + ' %</span>';
+    else if (it.type === 'radiator') extra = '<span class="tag">Chauffage : ' + ['coupé', 'doux', 'normal', 'fort'][S.heat] + '</span>';
+    else if (it.type === 'reception') extra = '<span class="tag' + (it.staffId ? '' : ' w') + '">' + (it.staffId ? 'Tenu' : 'Personne derrière') + ' · file ' + it.queue.length + '</span>';
+    return '<h3>' + od.name + '</h3><p>' + od.blurb + '</p><div class="row">' + extra +
       '<button class="btn sm" data-a="mv">' + ic('move', 20) + 'Déplacer</button><button class="btn alt sm" data-a="sell">' + ic('trash', 20) + 'Vendre (+' + euro(od.cost / 2) + ')</button></div>';
   }
   var follow = 0;
@@ -6330,7 +7413,15 @@
     var a = act(ev); if (!a || !sel) return; var k = a[0], id = sel.id, it;
     if (k === 'close') select(null);
     else if (k === 'follow') { var fp = V.person(S, id); follow = follow === id || !fp ? 0 : id; if (follow) View.cam.focus(fp.x, fp.y, Math.min(View.cam.get().dist, 20)); }
-    else if (k === 'copy') { var cr = V.room(S, id); if (cr) startBlueprint(cr.type, { w: cr.w, h: cr.h, copy: true }); return; }
+    else if (k === 'copy') { var tp = V.roomTemplate(S, id); if (tp) startPaste(tp); return; }
+    else if (k === 'tplsave') { var tp2 = V.roomTemplate(S, id); if (tp2) { saveTpl(tp2); toast('Modèle enregistré pour « ' + V.ROOMS[tp2.type].name + ' » : il est proposé dans le menu Salles.'); } }
+    else if (k === 'replace') { var er = V.replaceMachine(S, id); toast(er || 'Machine remplacée : usure remise à zéro'); }
+    else if (k === 'qf') V.queueFront(S, id, +a[1]);
+    else if (k === 'vacc') { var ev = V.vaccinate(S, id); toast(ev || 'Une infirmière arrive avec la seringue'); }
+    else if (k === 'bonus') { var eb = V.bonus(S, id); toast(eb || 'Prime versée : le moral remonte'); if (!eb) sfx('cash'); }
+    else if (k === 'learn') V.setLearn(S, id, a[1] || null);
+    else if (k === 'untrain') { var tq = V.person(S, id); if (tq) V.endTraining(S, tq); }
+    else if (k === 'prio') V.setPrio(S, id, a[1]);
     else if (k === 'home') V.sendHome(S, id);
     else if (k === 'force') { if (V.forceTreat(S, id)) toast('Soigné sans attendre le diagnostic : croisons les doigts'); }
     else if (k === 'take') { if (V.pickUp(S, id)) startCarry(id); }
@@ -6352,13 +7443,37 @@
   function hideOffer() { var e = $('offer'); e._on = false; show(e, false); }
   $('offer').onclick = function (ev) { var a = act(ev); if (a) { V.acceptEmergency(S, a[0] === 'y'); hideOffer(); } };
 
+  /* ---------- modèles de salles : un par type, gardés sur cet appareil et dans la partie ---------- */
+  var TPL = {}; try { TPL = JSON.parse(localStorage.getItem('velpo-modeles')) || {}; } catch (e) { TPL = {}; }
+  function saveTpl(t) { TPL[t.type] = t; if (S.tpl) S.tpl[t.type] = t; try { localStorage.setItem('velpo-modeles', JSON.stringify(TPL)); } catch (e) {} }
+  function getTpl(type) { return (S && S.tpl && S.tpl[type]) || TPL[type] || null; }
+  function startPaste(t) {
+    cancelAll(); closePanel(); select(null);
+    mode = { k: 'paste', t: t, q: 0, x: null, y: null, err: null, lq: -1 };
+    pasteAt(ptr.in && !ptr.touch ? tileAt(ptr) : tileAt({ x: vw / 2, y: vh / 2 })); dock();
+  }
+  function pasteTpl() { return V.tplRotate(mode.t, mode.q); }
+  function pasteAt(a) {
+    var t = pasteTpl(), x = cl(a.x - Math.floor(t.w / 2), 0, V.W - t.w), y = cl(a.y - Math.floor(t.h / 2), 0, V.H - t.h); x -= x % 2; y -= y % 2; mode.tile = a;
+    if (mode.x === x && mode.y === y && mode.lq === mode.q) return;
+    mode.x = x; mode.y = y; mode.lq = mode.q; mode.err = V.canPaste(S, t, x, y); dock();
+  }
+  function pasteRotate(d) { if (mode.k !== 'paste') return; mode.q = (mode.q + d + 4) % 4; mode.lq = -1; pasteAt(mode.tile || { x: mode.x + 2, y: mode.y + 2 }); sfx('rot'); }
+  function pasteNow() {
+    var t = pasteTpl(), e = V.pasteTemplate(S, t, mode.x, mode.y); if (e) { toast(e); sfx('angry'); return; }
+    sfx('build'); var r = V.room(S, S.lastId); toast(r && r.open ? 'Salle copiée et ouverte' : 'Salle copiée : il manque du personnel ou un objet'); mode.lq = -1; mode.err = V.canPaste(S, t, mode.x, mode.y); dock();
+  }
   /* ---------- construire : tracer, porte, équiper ---------- */
   function cl(v, a, b) { return v < a ? a : v > b ? b : v; }
   function tileAt(p) { var h = View.hit(p.x, p.y); return h ? { x: Math.round(h.x), y: Math.round(h.z) } : { x: -99, y: -99 }; }
   function idle() { mode = { k: 'idle' }; ui.carry = null; }
   function startBlueprint(type, preset) {
-    cancelAll(); closePanel(); select(null); mode = { k: 'blueprint', phase: 'trace', type: type, preset: preset || null, x: null, y: 0, w: 0, h: 0, rot: null, dk: 0, err: null };
-    if (ptr.in && !ptr.touch) { var r = rectAround(tileAt(ptr)); setRect(r[0], r[1]); } dock();
+    var rs = preset && preset.resize;
+    if (!rs) { cancelAll(); select(null); } closePanel();
+    mode = { k: 'blueprint', phase: 'trace', type: type, preset: preset || null, x: null, y: 0, w: 0, h: 0, rot: null, dk: 0, err: null };
+    if (rs) { var r0 = V.room(S, rs); mode.x = r0.x; mode.y = r0.y; mode.w = r0.w; mode.h = r0.h; }
+    else if (ptr.in && !ptr.touch) { var r = rectAround(tileAt(ptr)); setRect(r[0], r[1]); }
+    dock();
   }
   // la salle « de base » (taille minimale, ou taille de la salle copiée) centrée sur une case
   function rectAround(a) { var mn = V.ROOMS[mode.type].min, s = mode.preset || { w: mn[1], h: mn[0] }, x = cl(a.x - Math.floor(s.w / 2), 0, V.W - s.w), y = cl(a.y - Math.floor(s.h / 2), 0, V.H - s.h); x -= x % 2; y -= y % 2; return [{ x: x, y: y }, { x: x + s.w - 1, y: y + s.h - 1 }]; }
@@ -6368,11 +7483,13 @@
     if (x1 - x0 > 17) { if (b.x < a.x) x0 = x1 - 17; else x1 = x0 + 17; } if (y1 - y0 > 17) { if (b.y < a.y) y0 = y1 - 17; else y1 = y0 + 17; }
     var w = x1 - x0 + 1, h = y1 - y0 + 1; if (!full && m.x === x0 && m.y === y0 && m.w === w && m.h === h) return;
     m.x = x0; m.y = y0; m.w = w; m.h = h;
+    if (m.preset && m.preset.resize) { m.err = null; return; }
     var d = V.autoDoor(S, m.type, x0, y0, w, h, !full);
     if (d) { m.rot = d.rot; m.dk = d.k; m.err = null; } else { m.rot = null; m.err = V.canPlaceRoom(S, m.type, x0, y0, w, h, null, 0); }
   }
   function finishTrace(moved, a) {
     var m = mode, mn = V.ROOMS[m.type].min;
+    if (m.preset && m.preset.resize) { if (moved) { m.phase = 'resize'; sfx('drop'); } dock(); return; }
     if (!moved) { var ra = rectAround(a); setRect(ra[0], ra[1], true); }
     else if (m.x !== null) setRect({ x: m.x, y: m.y }, { x: m.x + m.w - 1, y: m.y + m.h - 1 }, true);
     if (m.x !== null && !m.err) { m.phase = 'door'; sfx('drop'); } else if (m.x !== null) sfx('angry');
@@ -6380,8 +7497,8 @@
   }
   function pickDoor(t) {
     var m = mode, best = null, rot, k, n, d;
-    for (rot = 0; rot < 4; rot++) { n = rot % 2 === 0 ? m.w : m.h; for (k = 0; k < n; k++) {
-      d = V.doorAt(m.x, m.y, m.w, m.h, rot, k); var onF = d.front.x === t.x && d.front.y === t.y, onD = d.door.x === t.x && d.door.y === t.y;
+    for (rot = 0; rot < 4; rot++) { n = rot % 2 === 0 ? m.w : m.h; for (k = 0; k <= n - 2; k += 2) {
+      d = V.doorAt(m.x, m.y, m.w, m.h, rot, k); var hit = function (c) { return c.x === t.x && c.y === t.y; }, onF = hit(d.front) || hit(d.front2), onD = hit(d.door) || hit(d.door2);
       if ((onF || onD) && !V.canPlaceRoom(S, m.type, m.x, m.y, m.w, m.h, rot, k) && (!best || onF)) best = { rot: rot, k: k };
     } }
     if (best) { m.rot = best.rot; m.dk = best.k; sfx('rot'); } else toast('Touchez un mur qui donne sur un couloir libre');
@@ -6390,6 +7507,11 @@
     var m = mode, err = V.buildRoom(S, m.type, m.x, m.y, m.w, m.h, m.rot, m.dk); if (err) { toast(err); return; }
     var r = V.room(S, S.lastId), copy = m.preset && m.preset.copy; if (copy) V.autoFurnish(S, r.id);
     mode = { k: 'furnish', roomId: r.id }; sel = { t: 'r', id: r.id }; ui.sel = sel; sfx('drop'); lookAt(r); nextNeeded(); dock();
+  }
+  function confirmResize() {
+    var m = mode, id = m.preset.resize, e = V.resizeRoom(S, id, m.x, m.y, m.w, m.h);
+    if (e) { toast(e); sfx('angry'); return; }
+    sfx('build'); mode = { k: 'furnish', roomId: id, edit: true }; sel = { t: 'r', id: id }; ui.sel = sel; toast('Nouvelle taille enregistrée'); dock();
   }
   function nextNeeded() { var r = V.room(S, mode.roomId), miss = r ? V.roomMissing(S, r) : []; if (miss.length) startPlace(miss[0], r.id, null, 'furnish'); }
   function editRoom(id) { cancelAll(); V.closeRoom(S, id); mode = { k: 'furnish', roomId: id, edit: true }; sel = { t: 'r', id: id }; ui.sel = sel; lookAt(V.room(S, id)); toast('Salle fermée pour travaux'); dock(); }
@@ -6443,15 +7565,26 @@
     if (modalKind) return; var m = mode;
     if (m.k === 'place') { exitPlace(); return; }
     if (m.k === 'carry') { V.cancelHold(S, m.id); idle(); dock(); return; }
+    if (m.k === 'paste') { idle(); dock(); return; }
+    if (m.k === 'blueprint' && m.preset && m.preset.resize) { var rid = m.preset.resize; mode = { k: 'furnish', roomId: rid, edit: true }; dock(); return; }
     if (m.k === 'blueprint') { if (m.phase === 'door') { m.phase = 'trace'; m.x = null; m.err = null; } else idle(); dock(); return; }
-    if (m.k === 'furnish') { if (m.door) { m.door = false; dock(); } else toast('Terminez avec « Ouvrir la salle »'); return; }
+    if (m.k === 'furnish') { if (m.door || m.win) { m.door = false; m.win = false; dock(); } else toast('Terminez avec « Ouvrir la salle »'); return; }
     if (panel) { closePanel(); return; }
     if (sel) select(null);
   }
-  function cancelAll() { var g = 0; while (mode.k !== 'idle' && g++ < 4) { if (mode.k === 'furnish') cancelFurnish(); else if (mode.k === 'blueprint') idle(); else cancel(); } }
+  function cancelAll() { var g = 0; while (mode.k !== 'idle' && g++ < 5) { if (mode.k === 'furnish') cancelFurnish(); else if (mode.k === 'blueprint' && !(mode.preset && mode.preset.resize)) idle(); else cancel(); } }
   function stepsHTML(n) { return '<div class="steps">' + ['1 · Tracer', '2 · Porte', '3 · Équiper'].map(function (s, i) { return '<span class="' + (i + 1 < n ? 'done' : i + 1 === n ? 'on' : '') + '">' + s + '</span>'; }).join('') + '</div>'; }
   function buildBarHTML() {
     var m = mode, h = '', def, r;
+    if (m.k === 'paste') {
+      var tp = pasteTpl(), cost = V.tplCost(tp);
+      return '<h3>Copie : ' + V.ROOMS[tp.type].name + ' <span class="tag">' + tp.w / 2 + ' × ' + tp.h / 2 + ' cases · ' + euro(cost) + '</span></h3><p class="' + (m.err ? 'err' : '') + '">' + (m.err || (ptr.touch ? 'Touchez le sol pour placer la copie, puis « Construire ».' : 'Clic gauche pour construire, clic droit (ou <kbd>W</kbd> <kbd>X</kbd>) pour tourner, <kbd>Échap</kbd> pour arrêter.') + ' Salle, porte, fenêtres et mobilier sont reproduits à l\'identique.') + '</p><div class="row">' +
+        '<button class="btn alt sq" data-a="rl" aria-label="Tourner à gauche">' + ic('rotl', 22) + '</button><button class="btn alt sq" data-a="rr" aria-label="Tourner à droite">' + ic('rotr', 22) + '</button><button class="btn ok" data-a="put"' + (m.err ? ' disabled' : '') + '>' + ic('check', 20) + 'Construire</button><button class="btn alt" data-a="back">' + ic('close', 20) + 'Terminer</button></div>';
+    }
+    if (m.k === 'blueprint' && m.preset && m.preset.resize) {
+      def = V.ROOMS[m.type]; var rr1 = V.room(S, m.preset.resize), dc = rr1 ? V.roomCost(m.type, m.w, m.h) - rr1.cost : 0;
+      return '<h3>' + def.name + ' : nouvelle taille <span class="tag">' + m.w / 2 + ' × ' + m.h / 2 + ' cases</span></h3><p>' + (m.phase === 'resize' ? (dc > 0 ? 'Coût : ' + euro(dc) + '.' : dc < 0 ? 'Remboursement : ' + euro(-dc / 2) + '.' : 'Même surface.') + ' Le mobilier reste en place ; la porte aussi si son mur ne bouge pas.' : (ptr.touch ? 'Glissez le doigt' : 'Cliquez-glissez') + ' d\'un coin à l\'autre pour tracer la nouvelle taille (minimum ' + def.min[0] / 2 + ' × ' + def.min[1] / 2 + ' cases).') + '</p><div class="row">' + (m.phase === 'resize' ? '<button class="btn ok" data-a="rsok">' + ic('check', 20) + 'Valider</button>' : '') + '<button class="btn alt" data-a="no">' + ic('close', 20) + 'Annuler</button></div>';
+    }
     if (m.k === 'blueprint') {
       def = V.ROOMS[m.type]; var size = m.x === null ? '' : m.w / 2 + ' × ' + m.h / 2 + ' cases · ' + euro(V.roomCost(m.type, m.w, m.h));
       if (m.phase === 'trace') h = '<h3>' + def.name + '</h3>' + stepsHTML(1) + '<p class="' + (m.err ? 'err' : '') + '">' + (m.err ? size + '. ' + m.err : (ptr.touch ? 'Glissez le doigt' : 'Cliquez-glissez') + ' sur le sol pour tracer la salle (minimum ' + def.min[0] / 2 + ' × ' + def.min[1] / 2 + ' cases).' + (ptr.touch ? ' Deux doigts pour bouger la vue.' : ' Clic droit pour annuler.')) + '</p><div class="row"><button class="btn alt" data-a="no">' + ic('close', 20) + 'Annuler</button></div>';
@@ -6460,9 +7593,9 @@
       r = V.room(S, m.roomId); if (!r) return ''; def = V.ROOMS[r.type]; var miss = V.roomMissing(S, r), need = def.need, left = miss.slice(), chips = '';
       need.forEach(function (t) { var i = left.indexOf(t), done = i < 0; if (!done) left.splice(i, 1); chips += '<button class="chip ' + (done ? 'done' : 'need') + '" data-a="take:' + t + '"' + (done ? ' disabled' : '') + '>' + (done ? ic('check', 18) : '') + '<span>' + V.ITEMS[t].name + '<small>' + (done ? 'posé' : euro(V.ITEMS[t].cost)) + '</small></span></button>'; });
       Object.keys(V.ITEMS).forEach(function (t) { var d = V.ITEMS[t]; if ((d.where.indexOf(r.type) >= 0 && (need.indexOf(t) < 0 || t === 'sofa' || t === 'toilet')) || d.where.indexOf('*') >= 0) chips += '<button class="chip" data-a="take:' + t + '"><span>' + (need.indexOf(t) >= 0 ? d.name + ' (en plus)' : d.name) + '<small>' + euro(d.cost) + '</small></span></button>'; });
-      h = '<h3>' + def.name + ' ' + stars(r.prestige) + '</h3>' + (m.edit ? '' : stepsHTML(3)) + '<p>' + (m.door ? 'Touchez le mur où mettre la porte.' : miss.length ? 'Il manque ' + miss.length + ' équipement(s) obligatoire(s), en jaune. Les autres embellissent la salle.' : 'Tout y est. Touchez un objet posé pour le déplacer, ou ajoutez de la décoration.') + '</p><div class="chips">' + chips + '</div><div class="row">' +
+      h = '<h3>' + def.name + ' ' + stars(r.prestige) + '</h3>' + (m.edit ? '' : stepsHTML(3)) + '<p>' + (m.door ? 'Touchez le mur où mettre la porte (une case de large).' : m.win ? 'Touchez un mur pour ajouter ou retirer une fenêtre. Chaque fenêtre embellit la salle.' : miss.length ? 'Il manque ' + miss.length + ' équipement(s) obligatoire(s), en jaune. Les autres embellissent la salle.' : 'Tout y est. Touchez un objet posé pour le déplacer, ou ajoutez de la décoration.') + '</p><div class="chips">' + chips + '</div><div class="row">' +
         '<button class="btn ok" data-a="open"' + (miss.length ? ' disabled' : '') + '>' + ic('check', 20) + 'Ouvrir la salle</button>' + (miss.length ? '<button class="btn" data-a="auto">' + ic('wand', 20) + 'Tout placer</button>' : '') +
-        '<button class="btn alt" data-a="door" aria-pressed="' + !!m.door + '">' + ic('door', 20) + 'Porte</button>' + (r.fresh ? '<button class="btn alt" data-a="no">' + ic('close', 20) + 'Annuler</button>' : '<button class="btn alt" data-a="demo">' + ic('trash', 20) + (m.ask ? 'Confirmer ?' : 'Démolir') + '</button>') + '</div>';
+        '<button class="btn alt" data-a="door" aria-pressed="' + !!m.door + '">' + ic('door', 20) + 'Porte</button><button class="btn alt" data-a="win" aria-pressed="' + !!m.win + '">Fenêtres (' + euro(V.WIN_COST) + ')</button><button class="btn alt" data-a="size">Taille</button><button class="btn alt" data-a="tplsave">Modèle</button>' + (r.fresh ? '<button class="btn alt" data-a="no">' + ic('close', 20) + 'Annuler</button>' : '<button class="btn alt" data-a="demo">' + ic('trash', 20) + (m.ask ? 'Confirmer ?' : 'Démolir') + '</button>') + '</div>';
     } else if (m.k === 'place') {
       def = V.ITEMS[m.type];
       h = '<h3>' + def.name + (m.moveId ? '' : ' <span class="tag">' + euro(def.cost) + '</span>') + '</h3><p class="' + (m.err ? 'err' : '') + '">' + (m.err || (ptr.touch ? 'Glissez l\'objet sur le sol, tournez-le, puis posez.' : 'Clic gauche pour poser, clic droit pour tourner (ou ' + keyLabel('KeyZ', 'W') + ' ' + keyLabel('KeyX', 'X') + '). <kbd>Échap</kbd> pour annuler.')) + '</p><div class="row">' +
@@ -6476,11 +7609,15 @@
   }
   $('buildbar').onclick = function (ev) {
     var a = act(ev); if (!a) return; var k = a[0], m = mode;
-    if (m.k === 'blueprint') { if (k === 'no') idle(); else if (k === 're') { m.phase = 'trace'; m.x = null; m.err = null; } else if (k === 'ok') confirmRoom(); }
+    if (m.k === 'paste') { if (k === 'rl') pasteRotate(-1); else if (k === 'rr') pasteRotate(1); else if (k === 'put') pasteNow(); else if (k === 'back') { idle(); } }
+    else if (m.k === 'blueprint' && m.preset && m.preset.resize) { if (k === 'rsok') confirmResize(); else if (k === 'no') cancel(); }
+    else if (m.k === 'blueprint') { if (k === 'no') idle(); else if (k === 're') { m.phase = 'trace'; m.x = null; m.err = null; } else if (k === 'ok') confirmRoom(); }
     else if (m.k === 'furnish') {
       if (k === 'take') { m.door = false; startPlace(a[1], m.roomId, null, 'furnish'); }
       else if (k === 'auto') { var e = V.autoFurnish(S, m.roomId); if (e) toast(e); else sfx('drop'); }
-      else if (k === 'open') finishFurnish(); else if (k === 'door') m.door = !m.door; else if (k === 'no') cancelFurnish();
+      else if (k === 'open') finishFurnish(); else if (k === 'door') { m.door = !m.door; m.win = false; } else if (k === 'win') { m.win = !m.win; m.door = false; } else if (k === 'no') cancelFurnish();
+      else if (k === 'size') { var rz = V.room(S, m.roomId); if (rz) { startBlueprint(rz.type, { resize: rz.id }); return; } }
+      else if (k === 'tplsave') { var tp3 = V.roomTemplate(S, m.roomId); if (tp3) { saveTpl(tp3); toast('Modèle enregistré : il sera proposé dans le menu Salles.'); } }
       else if (k === 'demo') { if (m.ask) { V.demolishRoom(S, m.roomId); idle(); select(null); } else m.ask = true; }
     } else if (m.k === 'place') { if (k === 'rl') rotateItem(-1); else if (k === 'rr') rotateItem(1); else if (k === 'put') placeNow(); else if (k === 'sell') sellInHand(); else if (k === 'back') exitPlace(); }
     else if (m.k === 'carry') { if (k === 'back') cancel(); }
@@ -6490,7 +7627,14 @@
     var m = mode, r; ui.sel = sel; ui.ghost = null;
     if (m.k === 'blueprint' && m.x !== null) ui.ghost = { k: 'rect', x: m.x, y: m.y, w: m.w, h: m.h, ok: !m.err, door: m.phase === 'door' && m.rot !== null ? V.doorAt(m.x, m.y, m.w, m.h, m.rot, m.dk) : null };
     else if (m.k === 'place' && m.x !== null) ui.ghost = { k: 'item', type: m.type, x: m.x, y: m.y, rot: m.rot, ok: !m.err, moveId: m.moveId };
-    else if (m.k === 'furnish' && m.door && (r = V.room(S, m.roomId))) { var c = []; for (var rot = 0; rot < 4; rot++) for (var k = 0; k < (rot % 2 ? r.h : r.w); k++) { var d = V.doorAt(r.x, r.y, r.w, r.h, rot, k); d.cur = rot === r.rot && k === r.k; d.rot = rot; d.k = k; c.push(d); } ui.ghost = { k: 'walls', cands: c }; }
+    else if (m.k === 'furnish' && (m.door || m.win) && (r = V.room(S, m.roomId))) {
+      var c = []; for (var rot = 0; rot < 4; rot++) for (var k = 0; k <= (rot % 2 ? r.h : r.w) - 2; k += 2) {
+        var d = V.doorAt(r.x, r.y, r.w, r.h, rot, k); d.rot = rot; d.k = k; d.cur = rot === r.rot && k === r.k; d.win = (r.win || []).some(function (w) { return w.rot === rot && w.k === k; });
+        if (m.win && d.cur) continue; c.push(d);
+      }
+      ui.ghost = { k: 'walls', cands: c };
+    }
+    else if (m.k === 'paste' && m.x !== null) ui.ghost = { k: 'tpl', t: pasteTpl(), x: m.x, y: m.y, ok: !m.err };
     if (m.k !== 'carry') ui.carry = null;
   }
 
@@ -6545,7 +7689,7 @@
     var q = P[ev.pointerId]; if (!q) return; delete P[ev.pointerId]; clearTimeout(holdT); var g = gest, n = count(), up = ev.type === 'pointerup', p = { x: q.x, y: q.y };
     if (g && g.k === 'pinch') { if (n === 1) { var k = Object.keys(P)[0]; P[k].moved = true; gest = { k: 'pan', dead: true }; View.cam.grab(P[k].x, P[k].y); } else if (n === 0) gest = null; return; }
     if (n > 0) return; gest = null; if (!g || !up) return;
-    if (g.k === 'pan') { if (!q.moved && !g.dead) { if (!g.right) click(p); else if (mode.k === 'place') rotateItem(1); else cancel(); } return; }
+    if (g.k === 'pan') { if (!q.moved && !g.dead) { if (!g.right) click(p); else if (mode.k === 'place') rotateItem(1); else if (mode.k === 'paste') pasteRotate(1); else cancel(); } return; }
     if (g.k === 'trace') { finishTrace(q.moved, g.a); return; }
     if (g.k === 'press') { if (!g.turned) placeNow(); return; }
     if (g.k === 'gdrag') { if (g.held) { if (q.moved) placeNow(); } else if (!q.moved) { ghostTo(tileAt(p)); dock(); } return; }
@@ -6557,9 +7701,10 @@
   function hover(p) {
     if (mode.k === 'place') { var e0 = mode.err, x0 = mode.x, y0 = mode.y; ghostTo(tileAt(p)); if (e0 !== mode.err) dock(); cv.style.cursor = 'grabbing'; return; }
     if (mode.k === 'carry') { moveCarry(p); cv.style.cursor = 'grabbing'; return; }
+    if (mode.k === 'paste') { pasteAt(tileAt(p)); cv.style.cursor = 'copy'; return; }
     if (mode.k === 'blueprint') {
       cv.style.cursor = 'crosshair'; ui.hover = null;
-      if (mode.phase === 'trace') { var r = rectAround(tileAt(p)), e1 = mode.err, x1 = mode.x; setRect(r[0], r[1]); if (e1 !== mode.err || x1 === null) dock(); }
+      if (mode.phase === 'trace' && !(mode.preset && mode.preset.resize)) { var r = rectAround(tileAt(p)), e1 = mode.err, x1 = mode.x; setRect(r[0], r[1]); if (e1 !== mode.err || x1 === null) dock(); }
       return;
     }
     hovDirty = true;
@@ -6577,10 +7722,19 @@
   function click(p) {
     var m = mode, pk = View.pick(p.x, p.y, S), it;
     if (m.k === 'carry') { moveCarry(p); dropCarry(); return; }
+    if (m.k === 'paste') { if (ptr.touch) { var tt = tileAt(p); if (mode.x === null || Math.abs(tt.x - (mode.x + pasteTpl().w / 2)) > 2 || Math.abs(tt.y - (mode.y + pasteTpl().h / 2)) > 2) { pasteAt(tt); return; } } if (!m.err) pasteNow(); else { toast(m.err); sfx('angry'); } return; }
     if (m.k === 'blueprint') { if (m.phase === 'door' && pk.tile) { pickDoor(pk.tile); dock(); } return; }
     if (m.k === 'furnish') {
       var r = V.room(S, m.roomId); if (!r) { idle(); return; }
-      if (m.door) { var t = pk.tile, done = false; if (t) (ui.ghost && ui.ghost.cands || []).forEach(function (c) { if (done) return; if ((c.door.x === t.x && c.door.y === t.y) || (c.front.x === t.x && c.front.y === t.y)) { var e = V.moveDoor(S, r.id, c.rot, c.k); if (!e) { done = true; sfx('drop'); m.door = false; } else if (c.front.x === t.x && c.front.y === t.y) toast(e); } }); dock(); return; }
+      if (m.door || m.win) {
+        var t = pk.tile, done = false, on = function (q) { return q && q.x === t.x && q.y === t.y; };
+        if (t) (ui.ghost && ui.ghost.cands || []).forEach(function (c) {
+          if (done || !(on(c.door) || on(c.door2) || on(c.front) || on(c.front2))) return;
+          var e = m.door ? V.moveDoor(S, r.id, c.rot, c.k) : V.toggleWindow(S, r.id, c.rot, c.k);
+          if (!e) { done = true; sfx('drop'); if (m.door) m.door = false; } else toast(e);
+        });
+        dock(); return;
+      }
       it = pk.item ? V.item(S, pk.item) : pk.itemAtTile ? V.item(S, pk.itemAtTile) : null;
       if (it && it.room === r.id) startPlace(it.type, r.id, it.id, 'furnish');
       return;
@@ -6600,7 +7754,8 @@
     if (!S || ev.target.tagName === 'INPUT' || ev.ctrlKey || ev.metaKey || ev.altKey) return; var c = ev.code; keys[c] = true;
     if (c === 'Space') { ev.preventDefault(); if (!ev.repeat) setSpeed(speed ? 0 : lastSpeed); }
     else if (c === 'Escape' || c === 'Backspace') { if (modalKind && modalKind !== 'intro' && modalKind !== 'win' && modalKind !== 'lose') { ev.preventDefault(); closeModal(); } else if (mode.k !== 'idle' || panel || sel) { ev.preventDefault(); cancel(); } }
-    else if (c === 'KeyZ') rotateItem(1); else if (c === 'KeyX') rotateItem(-1);
+    else if (c === 'KeyZ') { if (mode.k === 'paste') pasteRotate(1); else rotateItem(1); } else if (c === 'KeyX') { if (mode.k === 'paste') pasteRotate(-1); else rotateItem(-1); }
+    else if (c === 'Period' || c === 'NumpadDecimal') nextSong();
     else if (c === 'Delete') { if (mode.k === 'place' && mode.moveId) sellInHand(); else if (mode.k === 'idle' && sel && sel.t === 'i') { V.sellItem(S, sel.id); select(null); } }
     else if (c === 'Enter' && mode.k === 'place') placeNow();
     else if (c === 'Digit1' || c === 'Numpad1') setSpeed(1); else if (c === 'Digit2' || c === 'Numpad2') setSpeed(2); else if (c === 'Digit3' || c === 'Numpad3') setSpeed(3);
@@ -6619,15 +7774,31 @@
     if (k.KeyR) c.tilt(0.8 * dt); if (k.KeyF) c.tilt(-0.8 * dt);
   }
 
+  /* ---------- courrier (enveloppes à gauche, comme dans Two Point Hospital) ---------- */
+  var MAILC = { emerg: 'r', raise: 'w', cand: 'g', epi: 'r', vip: 'b', info: '', year: 'g' };
+  function mailbox() {
+    var box = $('mailbox'), list = S.mail || [], sig = list.map(function (m) { return m.id; }).join(',');
+    if (box._sig === sig) return; box._sig = sig;
+    box.innerHTML = list.slice(-6).map(function (m) { return '<button class="mail ' + (MAILC[m.kind] || '') + '" data-a="mail:' + m.id + '" title="' + m.title.replace(/"/g, '&quot;') + '">' + ic('mail', 22) + '<span>' + m.title + '</span></button>'; }).join('');
+    if (list.length && list[list.length - 1].day >= S.day - 1 && box._last !== list[list.length - 1].id) { box._last = list[list.length - 1].id; sfx('mail'); }
+  }
+  $('mailbox').onclick = function (ev) { var a = act(ev); if (!a) return; var m = (S.mail || []).filter(function (x) { return x.id === +a[1]; })[0]; if (m) letterModal(m); };
+  function letterModal(m) {
+    modal('mail', '<h2>' + m.title + '</h2><p>' + m.text + '</p><div class="row">' + m.opts.map(function (o, k) { return '<button class="btn' + (k ? ' alt' : '') + '" data-a="mailact:' + m.id + ':' + k + '">' + o.label + '</button>'; }).join('') + (m.opts.length > 1 ? '<button class="btn alt" data-a="close">Plus tard</button>' : '') + '</div>');
+  }
+  function levelModal() {
+    modal('level', '<h2>État du niveau</h2><p>Mois ' + (Math.floor(S.day / 30) + 1) + ' · ' + S.cured + ' guérisons · ' + S.deaths + ' décès · ' + S.left + ' départs mécontents · réputation ' + Math.round(S.rep) + ' · ' + euro(S.money) + (S.loan ? ' (dont ' + euro(S.loan) + ' empruntés)' : '') + '.</p>' + starsHTML() + '<div class="row"><button class="btn" data-a="close">Fermer</button></div>');
+  }
   /* ---------- fenêtres ---------- */
   function modal(kind, html) { modalKind = kind; $('modalBody').innerHTML = html; show($('modal'), !!kind); }
   function closeModal() { modal(null, ''); }
   $('modal').onclick = function (ev) {
     var a = act(ev); if (!a) return; a = a[0];
-    if (a === 'new') { S = V.newGame(); afterLoad(); closeModal(); }
-    else if (a === 'cont') { var b = bestSave(); try { S = JSON.parse(b.json); S.fx = []; } catch (e) { S = V.newGame(); toast('Sauvegarde illisible : nouvelle partie'); } afterLoad(); closeModal(); }
+    if (a === 'new') { S = V.newGame(); if (Object.keys(TPL).length) S.tpl = JSON.parse(JSON.stringify(TPL)); afterLoad(); closeModal(); }
+    else if (a === 'cont') { var b = bestSave(), old = false; try { S = JSON.parse(b.json); S.fx = []; old = S.v < 5; V.migrate(S); V.ensure(S); } catch (e) { S = V.newGame(); toast('Sauvegarde illisible : nouvelle partie'); } afterLoad(); closeModal(); if (old) toast('Partie convertie : portes d\'une case, mobilier replacé'); }
     else if (a === 'free') { S.freePlay = true; closeModal(); setSpeed(lastSpeed); }
     else if (a === 'close') closeModal(); else if (a === 'help') helpModal(true);
+    else if (a === 'mailact') { var parts = act(ev); V.mailAct(S, +parts[1], +parts[2]); closeModal(); hud(); }
   };
   function afterLoad() { idle(); sel = null; ui.sel = null; closePanel(); hideOffer(); shownLog = null; View.reset(); follow = 0; ui.hover = null; View.cam.set({ tx: V.SPAWN.x, tz: V.H - 11, yaw: 0.6, pitch: 0.92, dist: vw < 760 ? 34 : 30 }); View.cam.snap(); setSpeed(1); lastMonth = Math.floor(S.day / 30); hud(); }
   function intro() {
@@ -6637,11 +7808,11 @@
   }
   function helpModal(fromIntro) {
     var K = keyLabel, rows = [
-      ['Clic gauche', 'Sélectionner, poser, valider'], ['Clic gauche maintenu', 'Prendre un employé ou un objet du couloir'], ['Double-clic sur quelqu\'un', 'Le suivre à la caméra'], ['Clic droit', 'Tourner l\'objet en main · sinon annuler, fermer'], ['Clic droit maintenu', 'Déplacer la vue'], ['Clic molette maintenu', 'Tourner et incliner la vue'], ['Molette', 'Zoom'],
+      ['Clic gauche', 'Sélectionner, poser, valider'], ['Clic gauche maintenu', 'Prendre un employé ou un objet du couloir'], ['Double-clic sur quelqu\'un', 'Le suivre à la caméra'], ['Clic droit', 'Tourner l\'objet ou la copie en main · sinon annuler'], ['Clic droit maintenu', 'Déplacer la vue'], ['Clic molette maintenu', 'Tourner et incliner la vue'], ['Molette', 'Zoom'],
       [K('KeyW', 'Z') + K('KeyA', 'Q') + K('KeyS', 'S') + K('KeyD', 'D'), 'Déplacer la vue'], [K('KeyQ', 'A') + K('KeyE', 'E') + ' ou <kbd>←</kbd><kbd>→</kbd>', 'Tourner la vue'], ['<kbd>↑</kbd><kbd>↓</kbd>', 'Zoom'], [K('KeyR', 'R') + K('KeyF', 'F'), 'Incliner la vue'],
-      [K('KeyZ', 'W') + K('KeyX', 'X') + ' ou clic maintenu + glisser', 'Tourner l\'objet en main'], ['<kbd>Suppr</kbd>', 'Vendre l\'objet en main'], ['<kbd>Échap</kbd>', 'Annuler, reposer'], ['<kbd>Espace</kbd>', 'Pause'], ['<kbd>1</kbd><kbd>2</kbd><kbd>3</kbd>', 'Vitesse du jeu'], ['<kbd>F6</kbd>', 'Sauvegarde rapide']
+      [K('KeyZ', 'W') + K('KeyX', 'X') + ' ou clic maintenu + glisser', 'Tourner l\'objet en main'], ['<kbd>Suppr</kbd>', 'Vendre l\'objet en main'], ['<kbd>Échap</kbd>', 'Annuler, reposer'], ['<kbd>Espace</kbd>', 'Pause'], ['<kbd>1</kbd><kbd>2</kbd><kbd>3</kbd>', 'Vitesse du jeu'], ['<kbd>F6</kbd>', 'Sauvegarde rapide'], ['<kbd>.</kbd>', 'Musique suivante']
     ];
-    modal(fromIntro === true ? 'intro2' : 'help', '<h2>Commandes</h2><p>Comme dans Two Point Hospital.</p><div class="keys">' + rows.map(function (r) { return '<span>' + r[0] + '</span><span style="color:var(--muted)">' + r[1] + '</span>'; }).join('') + '</div><p style="margin-top:14px"><b>Au doigt :</b> un doigt déplace la vue, deux doigts zooment et tournent, un appui sélectionne. Les boutons à droite tournent et zooment aussi.</p><p><b>Salles :</b> un clic pose la taille minimale, un cliquer-glisser trace plus grand. « Modifier » ferme la salle pour la réaménager, « Copier » la reproduit toute équipée.</p><p><b>Personnel :</b> appui maintenu (ou « Prendre ») pour le soulever ; déposez-le dans une salle pour l\'y affecter.</p><div class="row"><button class="btn" data-a="' + (fromIntro === true ? 'back' : 'close') + '">Compris</button></div>');
+    modal(fromIntro === true ? 'intro2' : 'help', '<h2>Commandes</h2><p>Comme dans Two Point Hospital.</p><div class="keys">' + rows.map(function (r) { return '<span>' + r[0] + '</span><span style="color:var(--muted)">' + r[1] + '</span>'; }).join('') + '</div><p style="margin-top:14px"><b>Au doigt :</b> un doigt déplace la vue, deux doigts zooment et tournent, un appui sélectionne. Les boutons à droite tournent et zooment aussi.</p><p><b>Salles :</b> un clic pose la taille minimale, un cliquer-glisser trace plus grand. « Modifier » ferme la salle pour la réaménager, « Copier » la reproduit à l\'identique (mobilier, porte, fenêtres) ; « Enregistrer le modèle » la garde pour la reconstruire depuis le menu Salles.</p><p><b>Courrier :</b> les enveloppes à gauche demandent une réponse (urgences, augmentations, visites, épidémies).</p><p><b>Personnel :</b> appui maintenu (ou « Prendre ») pour le soulever ; déposez-le dans une salle pour l\'y affecter.</p><div class="row"><button class="btn" data-a="' + (fromIntro === true ? 'back' : 'close') + '">Compris</button></div>');
     if (fromIntro === true) $('modalBody').querySelector('[data-a=back]').onclick = function (e) { e.stopPropagation(); intro(); };
   }
   function confirmNew() { closePanel(); modal('confirm', '<h2>Tout recommencer ?</h2><p>La partie en cours sera remplacée à la prochaine sauvegarde.</p><div class="row"><button class="btn" data-a="new">Nouvelle partie</button><button class="btn alt" data-a="close">Annuler</button></div>'); }
@@ -6651,7 +7822,14 @@
 
   /* ---------- boucle ---------- */
   var acc = 0, last = 0, lastMonth = 0;
-  var FXT = { cure: ['Guéri !', 'ok'], angry: ['Scandaleux !', 'neg'], idea: ['Diagnostic !', 'w'], fixed: ['Réparé', 'ok'], zombie: ['Remboursez…', 'neg'] };
+  var FXT = { cure: ['Guéri !', 'ok'], angry: ['Scandaleux !', 'neg'], idea: ['Diagnostic !', 'w'], fixed: ['Réparé', 'ok'], zombie: ['Remboursez…', 'neg'], boom: ['BOUM', 'neg'], vomit: ['Beurk', 'w'] };
+  var rfT = 0;
+  function roomSounds(dt) {
+    if ((rfT -= dt) > 0 || !speed) return; rfT = 0.9;
+    var c = View.cam.get(); if (c.dist > 45) return; var best = null, bd = 18;
+    S.rooms.forEach(function (r) { if (!r.open || !r.staffIn) return; var pt = r.patientId ? V.person(S, r.patientId) : null, busy = V.ROOMS[r.type].kind === 'lab' || (pt && pt.st === 'inRoom'); if (!busy) return; var d = Math.abs(r.x + r.w / 2 - c.tx) + Math.abs(r.y + r.h / 2 - c.tz); if (d < bd) { bd = d; best = r; } });
+    if (best) sfx('rf_' + best.type, Math.max(0.2, 1 - bd / 18) * Math.max(0.3, 1 - c.dist / 45));
+  }
   var FL = {};
   function floatAt(x, y, text, cls, hgt) { var k = Math.round(x / 2) + ',' + Math.round(y / 2), now = Date.now(), f = FL[k]; if (f && now - f.t < 800) f.n = (f.n + 1) % 4; else f = FL[k] = { n: 0 }; f.t = now; View.float(x, y, text, cls, hgt + f.n * 0.6); }
   function resize() { var r = $('app').getBoundingClientRect(); vw = r.width; vh = r.height; View.resize(vw, vh); }
@@ -6663,20 +7841,33 @@
       S.fx.forEach(function (e) { sfx(e.n); View.event(e); if (e.v) floatAt(e.x, e.y, (e.v > 0 ? '+' : '−') + euro(Math.abs(e.v)), e.v > 0 ? '' : 'neg', 1.3); else if (FXT[e.n]) floatAt(e.x, e.y, FXT[e.n][0], FXT[e.n][1], 1.7); });
       S.fx.length = 0;
     }
+    if (S.note) { toast(S.note); S.note = null; }
+    roomSounds(dt);
     var mth = Math.floor(S.day / 30); if (mth !== lastMonth) { lastMonth = mth; if (mth > 0 && mode.k !== 'carry') save(); }
     if (follow) { var fo = sel && sel.t === 'p' && sel.id === follow ? V.person(S, follow) : null; if (fo && fo.st !== 'held' && !fo.hidden) View.cam.focus(fo.x, fo.y); else follow = 0; }
     if (hovDirty) hoverPick(); else if (ui.hover && (mode.k !== 'idle' && mode.k !== 'furnish')) ui.hover = null;
     syncGhost(); View.frame(dt, S, ui, modalKind ? 0 : SPD[speed]);
-    if (frames % 10 === 0) hud();
+    if (frames % 10 === 0) { hud(); mailbox(); }
   }
   function demo() {
-    S.money = 60000;
-    var room = function (t, x, y, w, h) { x *= 2; y *= 2; w *= 2; h *= 2; var d = V.autoDoor(S, t, x, y, w, h); if (!d || V.buildRoom(S, t, x, y, w, h, d.rot, d.k)) return; var r = V.room(S, S.lastId); V.autoFurnish(S, r.id); V.openRoom(S, r.id); };
+    S.money = 150000;
+    var room = function (t, x, y, w, h, win) { x *= 2; y *= 2; w *= 2; h *= 2; var d = V.autoDoor(S, t, x, y, w, h); if (!d || V.buildRoom(S, t, x, y, w, h, d.rot, d.k)) return; var r = V.room(S, S.lastId); V.autoFurnish(S, r.id); (win || []).forEach(function (q) { V.toggleWindow(S, r.id, q[0], q[1]); }); V.openRoom(S, r.id); };
     V.placeItem(S, 'reception', 29, 35, 2, 0); V.hire(S, 'recep', 0);
-    room('gp', 10, 12, 3, 3); room('gp', 6, 13, 3, 3); room('pharma', 18, 12, 3, 3); room('psy', 10, 6, 4, 4); room('radio', 16, 6, 4, 3); room('repos', 22, 6, 4, 3); room('wc', 22, 11, 3, 2); room('deco', 22, 14, 4, 4); room('guichet', 2, 17, 4, 3); room('platre', 4, 8, 4, 3);
-    ['doc', 'doc', 'doc', 'doc', 'doc', 'nurse', 'nurse', 'nurse', 'handy'].forEach(function (k) { V.hire(S, k, 0); });
-    for (var i = 0; i < 8; i++) V.placeItem(S, 'bench', 28 + i, 20, 0, 0); V.placeItem(S, 'drinks', 38, 32, 0, 0); V.placeItem(S, 'plant', 24, 32, 0, 0); V.placeItem(S, 'plant', 25, 32, 0, 0); V.placeItem(S, 'bench', 16, 22, 3, 0); V.placeItem(S, 'bench', 16, 23, 3, 0);
-    for (i = 0; i < 4000; i++) { V.tick(S); S.fx.length = 0; if (S.offer) V.acceptEmergency(S, true); }
+    room('gp', 10, 12, 3, 3, [[2, 2]]); room('gp', 6, 13, 3, 3); room('pharma', 18, 12, 3, 3, [[2, 2]]); room('psy', 10, 6, 4, 4, [[2, 2], [2, 4]]); room('radio', 16, 6, 4, 3); room('repos', 22, 6, 4, 3, [[2, 4]]); room('wc', 22, 11, 3, 3); room('deco', 22, 15, 4, 4);
+    room('guichet', 2, 17, 4, 3); room('platre', 4, 8, 4, 3); room('lits', 2, 2, 3, 4, [[2, 2]]); room('bloc', 6, 2, 3, 4); room('formation', 16, 1, 3, 3); room('recherche', 20, 1, 3, 3); room('upscale', 26, 6, 3, 4); room('avion', 26, 11, 3, 4);
+    var hs = function (sp) { var k = S.pool.doc.findIndex(function (q) { return q.spec === sp; }); if (k < 0) { k = 0; S.pool.doc[0].spec = sp; } V.hire(S, 'doc', k); };
+    ['doc', 'doc', 'doc', 'doc', 'doc', 'nurse', 'nurse', 'nurse', 'nurse', 'nurse', 'nurse', 'nurse', 'nurse', 'nurse', 'handy', 'handy'].forEach(function (k) { V.hire(S, k, 0); }); hs('psy'); hs('chir'); hs('cherch');
+    var t = S.people.filter(function (q) { return q.kind === 'doc'; })[0]; if (t) t.skill = 0.9;
+    for (var i = 0; i < 4; i++) V.placeItem(S, 'bench', 28 + 2 * i, 20, 0, 0);
+    V.placeItem(S, 'drinks', 38, 32, 0, 0); V.placeItem(S, 'bin', 40, 32, 0, 0); V.placeItem(S, 'plant', 24, 32, 0, 0); V.placeItem(S, 'plant', 25, 32, 0, 0); V.placeItem(S, 'bench', 16, 22, 3, 0); V.placeItem(S, 'bench', 16, 24, 3, 0);
+    V.setHeat(S, 2);
+    for (var ry = 3; ry < V.H - 3; ry += 6) for (var rx = 3; rx < V.W - 3; rx += 6) {
+      if (V.tempAt(S, rx, ry) >= 17.5) continue;
+      for (var k = 0, done = false; k < 16 && !done; k++) done = !V.placeItem(S, 'radiator', rx + (k % 4), ry + ((k / 4) | 0), k % 4 ? 0 : 0, 0);
+    }
+    S.rooms.forEach(function (r) { if (V.tempAt(S, r.x + r.w / 2, r.y + r.h / 2) >= 17) return;
+      for (var yy = r.y + 1, done = false; yy < r.y + r.h - 1 && !done; yy++) for (var xx = r.x + 1; xx < r.x + r.w - 1 && !done; xx++) done = !V.placeItem(S, 'radiator', xx, yy, 0, r.id); });
+    for (i = 0; i < 4000; i++) { V.tick(S); S.fx.length = 0; S.mail.slice().forEach(function (m) { V.mailAct(S, m.id, 0); }); }
   }
   function start() {
     buildChrome(); resize(); window.addEventListener('resize', resize); if (window.ResizeObserver) new ResizeObserver(resize).observe($('app'));
@@ -6686,7 +7877,7 @@
         show($('loading'), false); S = V.newGame(); ready = true; applyOpt(); View.setShadows(opt.shadows); afterLoad();
         if (location.hash === '#demo') { demo(); afterLoad(); } else intro();
       }, function (f) { $('loadBar').style.width = Math.round(4 + f * 96) + '%'; });
-    } catch (e) { $('loadText').innerHTML = 'Ce navigateur n\'affiche pas la 3D (WebGL indisponible). Essayez Chrome, Edge, Firefox ou Safari récents.' + (document.querySelector('base') ? ' <a href="classique.html" style="color:inherit">Jouer à la version 2D</a>' : ''); $('loadBar').parentNode.style.display = 'none'; return; }
+    } catch (e) { if (window.console) console.error('Velpo init', e && e.stack || e); $('loadText').innerHTML = 'Ce navigateur n\'affiche pas la 3D (WebGL indisponible). Essayez Chrome, Edge, Firefox ou Safari récents.' + (document.querySelector('base') ? ' <a href="classique.html" style="color:inherit">Jouer à la version 2D</a>' : ''); $('loadBar').parentNode.style.display = 'none'; return; }
     requestAnimationFrame(loop);
   }
   window.addEventListener('error', function (e) { if (!ready) $('loadText').textContent = 'Le chargement a échoué (' + (e.message || 'erreur') + '). Rechargez la page.'; });

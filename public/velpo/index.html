@@ -28,7 +28,7 @@ svg{display:block}
 .lb{position:absolute;left:0;top:0;white-space:nowrap;font-weight:800;font-size:15px;line-height:1;padding:5px 10px;border-radius:99px;background:#fff;color:var(--ink);box-shadow:0 2px 0 rgba(16,48,59,.22);will-change:transform}
 .lb.hv{background:var(--night);color:#fff;font-size:15.5px;z-index:3}
 .lb.rw{background:var(--sun);color:#4a3200}.lb.rw.bad{background:var(--bad);color:#fff}.lb.rq{background:rgba(16,48,59,.88);color:#fff}
-.lb.pb{font-size:14px;padding:4px 9px}.lb.pb.r{color:var(--bad)}.lb.pb.b{color:#1d6fa5}.lb.pb.w{color:#7a4bb5}.lb.pb.t{background:#fff8dc}.lb.pb.c{color:var(--muted)}
+.lb.pb{font-size:14px;padding:4px 9px}.lb.pb.g{color:#13834f}.lb.pb.q{color:#b26b00}.lb.pb.r{color:var(--bad)}.lb.pb.b{color:#1d6fa5}.lb.pb.w{color:#7a4bb5}.lb.pb.t{background:#fff8dc}.lb.pb.c{color:var(--muted)}
 .ft{position:absolute;transform:translate(-50%,-50%);font-family:var(--display);font-weight:800;font-size:22px;color:var(--sun);text-shadow:0 2px 0 var(--night),0 0 6px rgba(16,48,59,.6);animation:ft 1.6s ease-out forwards;white-space:nowrap}
 .ft.neg{color:#ffb1a8}.ft.ok{color:#b9f5d2}.ft.w{color:#fff}
 @keyframes ft{from{opacity:1;margin-top:0}70%{opacity:1}to{opacity:0;margin-top:-64px}}
@@ -78,7 +78,16 @@ svg{display:block}
 .card p{margin:3px 0 8px;font-size:16.5px;line-height:1.35;color:var(--muted)}
 .card p.err{color:var(--bad)}
 .tag{display:inline-flex;align-items:center;gap:5px;font-family:var(--body);font-size:14.5px;font-weight:800;border-radius:99px;padding:3px 10px;background:var(--soft);color:var(--ink);white-space:nowrap}
-.tag.w{background:#ffe9b0;color:#5a3d00}.tag.b{background:#ffd9d5;color:#7a1d15}.tag.g{background:#cdf1dd;color:#0d4a31}
+.tag.w{background:#ffe9b0;color:#5a3d00}.tag.b{background:#d7e8ff;color:#123d73}.tag.g{background:#cdf1dd;color:#0d4a31}.tag.r{background:#ffd9d5;color:#7a1d15}
+#mailbox{position:absolute;left:12px;top:86px;display:grid;gap:8px;z-index:4;max-width:min(300px,calc(100% - 110px))}
+.mail{display:flex;align-items:center;gap:8px;padding:8px 12px 8px 9px;border-radius:14px;background:var(--panel);box-shadow:var(--shadow);font-size:15px;font-weight:800;text-align:left;color:var(--ink);border-left:6px solid var(--mint);animation:mailIn .35s ease-out}
+.mail span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.mail svg{flex:none;color:var(--teal)}
+.mail.r{border-left-color:#ff6b5e}.mail.w{border-left-color:#ffc94a}.mail.b{border-left-color:#4f9be8}.mail.g{border-left-color:#2fb380}
+@keyframes mailIn{from{transform:translateX(-30px);opacity:0}to{transform:none;opacity:1}}
+.itembtn{display:grid;gap:5px;text-align:left;width:100%;padding:0;background:none;border:0;color:inherit;font:inherit;cursor:pointer}
+.item.dim{opacity:.6}
+.chart{width:100%;height:auto;display:block}.legend{display:flex;gap:12px;align-items:center;font-size:14px;margin:4px 0 0;color:var(--muted)}.legend i{display:inline-block;width:12px;height:12px;border-radius:3px;margin-right:4px}
+.item input[type=range]{width:100%}
 .row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
 .btn{display:inline-flex;align-items:center;gap:7px;background:var(--coral);color:#fff;font-family:var(--display);font-size:18px;line-height:1;border-radius:13px;padding:11px 15px;box-shadow:0 3px 0 var(--coral-d)}
 .btn svg{width:20px;height:20px}
@@ -137,6 +146,7 @@ input[type=range]{width:100%;accent-color:var(--coral);height:28px}
 @media (max-width:760px){
   body{font-size:16.5px}
   #top{flex-wrap:wrap;gap:6px;padding:8px}
+  #mailbox{top:132px;left:8px}.mail span{max-width:150px}
   #goals{order:1;padding:5px}#goals>span:last-child{display:none}#goals .logo{width:36px;height:36px}
   #stats{order:2;flex:1;flex-direction:row;flex-wrap:wrap;justify-content:flex-end;gap:6px}#stats .row{gap:6px}
   .stat{font-size:18px;padding:7px 9px;gap:5px}.stat.money{font-size:20px;padding:8px 11px}
@@ -170,6 +180,7 @@ input[type=range]{width:100%;accent-color:var(--coral);height:28px}
     </div>
   </div>
   <div id="hint" class="pill"><span class="av" id="hintIc"></span><span id="hintText"></span></div>
+  <div id="mailbox" aria-label="Courrier"></div>
   <div id="camctl"></div>
   <div id="panel" class="pill"><header><h2 id="panelTitle"></h2><button class="x" id="panelClose" aria-label="Fermer"></button></header><div id="tabs"></div><div id="panelBody"></div></div>
   <div id="dock"><div id="offer" class="card pill"></div><div id="inspector" class="card pill"></div><div id="buildbar" class="card pill"></div></div>
