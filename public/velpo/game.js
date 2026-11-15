@@ -4166,7 +4166,7 @@
  */
 (function (root) {
   'use strict';
-  var W = 30, H = 22, SPAWN = { x: 15, y: 21 }, DAY = 62;
+  var W = 60, H = 44, SPAWN = { x: 30, y: 43 }, DAY = 80;
   var rnd = Math.random;
   function ri(a, b) { return a + Math.floor(rnd() * (b - a + 1)); }
   function pick(a) { return a[Math.floor(rnd() * a.length)]; }
@@ -4174,23 +4174,23 @@
 
   /* Salles : la coque (murs, sol, porte) a un prix, l'équipement obligatoire s'achète et se pose à part. */
   var ROOMS = {
-    gp:      { name: 'Cabinet de généraliste', short: 'Généraliste', min: [3, 3], shell: 800, staff: 'doc', kind: 'diag', price: 100, dur: 0, color: '#9fdcc2', need: ['gp_desk', 'chair', 'cabinet'],
+    gp:      { name: 'Cabinet de généraliste', short: 'Généraliste', min: [6, 6], shell: 800, staff: 'doc', kind: 'diag', price: 100, dur: 0, color: '#9fdcc2', need: ['gp_desk', 'chair', 'cabinet'],
                blurb: 'Tout commence ici. Et souvent, tout y revient.' },
-    radio:   { name: 'Radiologie approximative', short: 'Radiologie', min: [3, 4], shell: 1500, staff: 'doc', kind: 'diag', price: 260, dur: 34, machine: true, color: '#a9bdf0', need: ['xray', 'console'],
+    radio:   { name: 'Radiologie approximative', short: 'Radiologie', min: [6, 8], shell: 1500, staff: 'doc', kind: 'diag', price: 260, dur: 34, machine: true, color: '#a9bdf0', need: ['xray', 'console'],
                blurb: 'On voit à travers le patient. Pas toujours à travers son dossier.' },
-    psy:     { name: 'Psychiatrie', short: 'Psychiatrie', min: [3, 3], shell: 900, staff: 'doc', kind: 'both', price: 160, dur: 42, color: '#d3b6ee', need: ['couch', 'armchair', 'bookcase'],
+    psy:     { name: 'Psychiatrie', short: 'Psychiatrie', min: [6, 6], shell: 900, staff: 'doc', kind: 'both', price: 160, dur: 42, color: '#d3b6ee', need: ['couch', 'armchair', 'bookcase'],
                blurb: 'Un divan, un médecin, et « on en reparle la semaine prochaine ».' },
-    pharma:  { name: 'Pharmacie', short: 'Pharmacie', min: [3, 3], shell: 800, staff: 'nurse', kind: 'cure', dur: 26, color: '#f5d48f', need: ['pharma_counter', 'pharma_shelf'],
+    pharma:  { name: 'Pharmacie', short: 'Pharmacie', min: [6, 6], shell: 800, staff: 'nurse', kind: 'cure', dur: 26, color: '#f5d48f', need: ['pharma_counter', 'pharma_shelf'],
                blurb: 'Des cachets pour tout. Les notices sont offertes, personne ne les lit.' },
-    deco:    { name: 'Déconnecteur', short: 'Déconnecteur', min: [3, 4], shell: 1200, staff: 'doc', kind: 'cure', dur: 40, machine: true, color: '#f3aaa2', need: ['cage', 'console'],
+    deco:    { name: 'Déconnecteur', short: 'Déconnecteur', min: [6, 8], shell: 1200, staff: 'doc', kind: 'cure', dur: 40, machine: true, color: '#f3aaa2', need: ['cage', 'console'],
                blurb: 'Cage sans réseau, sans wifi, sans notifications. Les patients hurlent, puis guérissent.' },
-    guichet: { name: 'Guichet n° 12', short: 'Guichet 12', min: [3, 4], shell: 700, staff: 'nurse', kind: 'cure', dur: 46, color: '#c9d2bb', need: ['guichet', 'file_cabinet'],
+    guichet: { name: 'Guichet n° 12', short: 'Guichet 12', min: [6, 8], shell: 700, staff: 'nurse', kind: 'cure', dur: 46, color: '#c9d2bb', need: ['guichet', 'file_cabinet'],
                blurb: 'Thérapie par exposition au formulaire. Il manque toujours une pièce.' },
-    platre:  { name: 'Atelier plâtre', short: 'Plâtre', min: [3, 3], shell: 900, staff: 'nurse', kind: 'cure', dur: 36, color: '#efe3c8', need: ['plaster_table', 'trolley'],
+    platre:  { name: 'Atelier plâtre', short: 'Plâtre', min: [6, 6], shell: 900, staff: 'nurse', kind: 'cure', dur: 36, color: '#efe3c8', need: ['plaster_table', 'trolley'],
                blurb: 'On plâtre large. Les amis signeront dessus.' },
-    repos:   { name: 'Salle de repos', short: 'Repos', min: [3, 3], shell: 600, staff: null, kind: 'service', color: '#a8d8ea', need: ['sofa'],
+    repos:   { name: 'Salle de repos', short: 'Repos', min: [6, 6], shell: 600, staff: null, kind: 'service', color: '#a8d8ea', need: ['sofa'],
                blurb: 'Canapé, machine à café, ragots. Sans elle, l\'équipe craque.' },
-    wc:      { name: 'Toilettes', short: 'Toilettes', min: [2, 3], shell: 500, staff: null, kind: 'service', color: '#bcd9ef', need: ['toilet'],
+    wc:      { name: 'Toilettes', short: 'Toilettes', min: [4, 6], shell: 500, staff: null, kind: 'service', color: '#bcd9ef', need: ['toilet'],
                blurb: 'À construire avant le distributeur de boissons. Faites-nous confiance.' }
   };
   /* Objets. Repère local : w cases en largeur (x), d en profondeur (y), l'avant de l'objet regarde vers +y.
@@ -4198,7 +4198,7 @@
   function SP(tile, pos, face, pose, h, any) { return { tile: tile, pos: pos || tile, face: face || [0, 1], pose: pose || 'stand', h: h || 0, any: !!any }; }
   var ITEMS = {
     reception:      { name: 'Accueil', cost: 400, w: 2, d: 1, where: ['hall'], res: [[0, -1], [1, -1], [0, 1], [1, 1]], spots: { staff: SP([0, -1], [0.5, -0.72], [0, 1]), patient: SP([0, 1], [0.5, 0.95], [0, -1]) }, blurb: 'Les patients s\'y enregistrent. Il faut quelqu\'un derrière.' },
-    bench:          { name: 'Banc', cost: 80, w: 1, d: 1, where: ['hall'], res: [[0, 1]], spots: { seats: [SP([0, 1], [-0.37, 0.04], [0, 1], 'sit', 0.3), SP([0, 1], [0.37, 0.04], [0, 1], 'sit', 0.3)] }, blurb: 'Deux places. Attendre assis rend l\'attente presque supportable.' },
+    bench:          { name: 'Banc', cost: 80, w: 1, d: 1, where: ['hall'], res: [[0, 1]], spots: { seats: [SP([0, 1], [0, 0.04], [0, 1], 'sit', 0.3)] }, blurb: 'Attendre assis rend l\'attente presque supportable.' },
     drinks:         { name: 'Distributeur', cost: 600, w: 1, d: 1, where: ['hall'], res: [[0, 1]], spots: { use: SP([0, 1], [0, 0.92], [0, -1]) }, blurb: 'Rapporte 20 € par soda. Ne rend pas la monnaie.' },
     plant:          { name: 'Plante verte', cost: 60, w: 1, d: 1, where: ['hall', '*'], blurb: 'Remonte le moral. En plastique, mais personne ne vérifie.' },
     lamp:           { name: 'Lampadaire', cost: 90, w: 1, d: 1, where: ['hall', '*'], blurb: 'Une lumière douce qui cache très bien la poussière.' },
@@ -4326,7 +4326,7 @@
   function grid(v) { var g = []; for (var y = 0; y < H; y++) { g.push([]); for (var x = 0; x < W; x++) g[y].push(v); } return g; }
   function newGame() {
     var S = {
-      v: 3, tick: 0, day: 0, money: 30000, rep: 500, cured: 0, deaths: 0, left: 0, treated: 0, priceMult: 1,
+      v: 4, tick: 0, day: 0, money: 30000, rep: 500, cured: 0, deaths: 0, left: 0, treated: 0, priceMult: 1,
       rm: grid(0), blk: grid(0), rooms: [], items: [], people: [], puddles: [], nextId: 1, log: [], pool: {}, spawnT: 120,
       emergency: null, offer: null, won: false, lost: false, freePlay: false, seen: {}, known: {}, fx: [], ev: null, nextEv: 45,
       month: { inc: 0, exp: 0 }, lastMonth: null, annT: 300, nextEmerg: 150
@@ -4365,9 +4365,9 @@
     (def.res || []).forEach(function (q) { c = rotCell(def, rot, q[0], q[1]); res.push({ x: x + c[0], y: y + c[1] }); });
     return { cells: cells, res: res, w: rot % 2 ? def.d : def.w, h: rot % 2 ? def.w : def.d };
   }
-  // Un personnage occupe environ un quart de case (0,46 de large) : deux personnes se croisent dans une case.
-  // Le mobilier est à la même échelle, donc les places (sièges, guichets) se resserrent autour du centre de l'objet.
-  var KS = 0.7;
+  // Proportions de Two Point Hospital : une case du jeu vaut 2 x 2 cellules de cette grille. Un personnage ou un petit objet
+  // occupe une cellule, soit un quart de case ; KS règle l'échelle des personnages et du mobilier par rapport à la cellule.
+  var KS = 1;
   function spotWorld(S, it, sp) {
     var def = ITEMS[it.type], t = rotCell(def, it.rot, sp.tile[0], sp.tile[1]), p = rotCell(def, it.rot, sp.pos[0], sp.pos[1]), f = rotDir(it.rot, sp.face[0], sp.face[1]);
     var tile = { x: it.x + t[0], y: it.y + t[1] };
@@ -4580,8 +4580,8 @@
     if (rot === 2) return { door: { x: x + k, y: y }, front: { x: x + k, y: y - 1 } };
     return { door: { x: x, y: y + k }, front: { x: x - 1, y: y + k } };
   }
-  function sizeOk(def, w, h) { var a = def.min[0], b = def.min[1]; return ((w >= a && h >= b) || (w >= b && h >= a)) && w <= 9 && h <= 9; }
-  function roomCost(type, w, h) { var d = ROOMS[type]; return d.shell + Math.max(0, w * h - d.min[0] * d.min[1]) * 90; }
+  function sizeOk(def, w, h) { var a = def.min[0], b = def.min[1]; return ((w >= a && h >= b) || (w >= b && h >= a)) && w <= 18 && h <= 18; }
+  function roomCost(type, w, h) { var d = ROOMS[type]; return d.shell + Math.max(0, w * h - d.min[0] * d.min[1]) * 22; }
   function roomTotal(type) { var d = ROOMS[type], n = d.shell; d.need.forEach(function (t) { n += ITEMS[t].cost; }); return n; }
   function canPlaceRoom(S, type, x, y, w, h, rot, k, gratis) {
     var def = ROOMS[type], i, j; if (!def) return 'Salle inconnue';
@@ -4787,7 +4787,7 @@
     var zx = Math.round(ax), zy = Math.round(ay); if (!inB(zx, zy)) return false;
     var dx = bx - ax, dy = by - ay, d = Math.sqrt(dx * dx + dy * dy), zone = S.rm[zy][zx];
     if (d < 0.01) return !S.blk[zy][zx];
-    var n = Math.ceil(d / 0.2), px = -dy / d * 0.3, py = dx / d * 0.3, i, k, tx, ty;
+    var n = Math.ceil(d / 0.2), mg = Math.min(0.42, 0.3 * KS / 0.7), px = -dy / d * mg, py = dx / d * mg, i, k, tx, ty;
     for (i = 0; i <= n; i++) for (k = -1; k <= 1; k++) {
       tx = Math.round(ax + dx * i / n + px * k); ty = Math.round(ay + dy * i / n + py * k);
       if (!inB(tx, ty) || S.blk[ty][tx] || S.rm[ty][tx] !== zone) return false;
@@ -4805,38 +4805,38 @@
     }
     var w = pull(path, 16); return w.length > 1 ? pull(w, 99) : w;
   }
-  function walkSpeed(p) { return p.kind === 'patient' ? (p.emergency ? 0.125 : p.zombie ? 0.047 : 0.08) : 0.1; }
+  function walkSpeed(p) { return p.kind === 'patient' ? (p.emergency ? 0.16 : p.zombie ? 0.06 : 0.1) : 0.13; }
   function isDoor(S, x, y) { return S.rooms.some(function (r) { return r.door.x === x && r.door.y === y; }); }
   function moving(p) { return p.st === 'walk' || p.st === 'in' || p.st === 'out'; }
   // Croisements : chacun serre à droite, on double par la gauche, on contourne ceux qui attendent,
   // et à angle droit on laisse passer celui qui vient de droite. p.lat est le déport latéral (en cases).
   function steer(S) {
-    var P = S.people, n = P.length, i, j, p, o;
+    var P = S.people, n = P.length, i, j, p, o, B = KS / 0.7;
     for (i = 0; i < n; i++) {
       p = P[i];
       if (!moving(p)) { p.v = 0; p.slow = 1; p.hold = false; if (p.lat) p.lat = Math.abs(p.lat) < 0.02 ? 0 : p.lat * 0.55; continue; }
       p.v = Math.min(1, (p.v || 0) + 0.2);
       var fx = Math.sin(p.face), fy = Math.cos(p.face), rx = -fy, ry = fx, lat = p.lat || 0, px = p.x + rx * lat, py = p.y + ry * lat;
-      var my = walkSpeed(p), want = p.st === 'walk' && !p.path.length ? 0 : 0.1, slow = 1, needR = 0, needL = 0, hold = false;
-      var tx = Math.round(p.x), ty = Math.round(p.y), inside = inB(tx, ty), zone = inside ? S.rm[ty][tx] : 0, gR = 0.45, gL = 0.45;
+      var my = walkSpeed(p), want = p.st === 'walk' && !p.path.length ? 0 : 0.1 * B, slow = 1, needR = 0, needL = 0, hold = false;
+      var tx = Math.round(p.x), ty = Math.round(p.y), inside = inB(tx, ty), zone = inside ? S.rm[ty][tx] : 0, gR = 0.45 * B, gL = 0.45 * B;
       // la place libre de chaque côté, ici et un demi-pas plus loin : jamais dans un mur ni dans un meuble
       if (inside) {
-        var cds = (zone ? isDoor(S, tx, ty) : isFront(S, tx, ty)) ? [0.2, 0.12] : [0.45, 0.36, 0.26, 0.14];
-        var gap = function (dir, ax, ay) { for (var q = 0, qx, qy; q < cds.length; q++) { qx = Math.round(ax + rx * dir * (cds[q] + 0.21)); qy = Math.round(ay + ry * dir * (cds[q] + 0.21)); if (inB(qx, qy) && !S.blk[qy][qx] && S.rm[qy][qx] === zone) return cds[q]; } return 0; };
+        var cds = (zone ? isDoor(S, tx, ty) : isFront(S, tx, ty)) ? [0.12, 0.06] : [0.45 * B, 0.36 * B, 0.26 * B, 0.14 * B];
+        var gap = function (dir, ax, ay) { for (var q = 0, qx, qy; q < cds.length; q++) { qx = Math.round(ax + rx * dir * (cds[q] + 0.21 * B)); qy = Math.round(ay + ry * dir * (cds[q] + 0.21 * B)); if (inB(qx, qy) && !S.blk[qy][qx] && S.rm[qy][qx] === zone) return cds[q]; } return 0; };
         gR = gap(1, p.x, p.y); gL = gap(-1, p.x, p.y);
         if (lat > gR) lat = gR; else if (lat < -gL) lat = -gL;
-        gR = Math.min(gR, gap(1, p.x + fx * 0.45, p.y + fy * 0.45)); gL = Math.min(gL, gap(-1, p.x + fx * 0.45, p.y + fy * 0.45));
+        gR = Math.min(gR, gap(1, p.x + fx * 0.5, p.y + fy * 0.5)); gL = Math.min(gL, gap(-1, p.x + fx * 0.5, p.y + fy * 0.5));
       }
       for (j = 0; j < n; j++) {
         o = P[j]; if (o === p || o.hidden || o.gone || o.st === 'held' || o.st === 'away' || o.st === 'dead') continue;
-        var d0 = o.x - p.x, d1 = o.y - p.y; if (d0 > 1.8 || d0 < -1.8 || d1 > 1.8 || d1 < -1.8) continue;
+        var d0 = o.x - p.x, d1 = o.y - p.y; if (d0 > 2.5 || d0 < -2.5 || d1 > 2.5 || d1 < -2.5) continue;
         var ol = o.lat || 0, ofx = Math.sin(o.face), ofy = Math.cos(o.face), dx = o.x - ofy * ol - px, dy = o.y + ofx * ol - py;
-        var ahead = dx * fx + dy * fy, side = dx * rx + dy * ry;
+        var ahead = (dx * fx + dy * fy) / B, side = (dx * rx + dy * ry) / B;      // en « carrures » : les règles ci-dessous valent pour toute échelle
         if (ahead < -0.6 || ahead > 1.3 || side > 0.8 || side < -0.8) continue;
         if (!moving(o) || o.hold) {
           // quelqu'un d'immobile sur la route : on le contourne par le côté où il y a la place
           if (o.pose === 'stand' && ahead > 0.05 && ahead < 0.95 && side > -0.46 && side < 0.46) {
-            var goL = 0.5 - side, goR = 0.5 + side, canL = goL - lat <= gL + 0.03, canR = goR + lat <= gR + 0.03;
+            var goL = (0.5 - side) * B, goR = (0.5 + side) * B, canL = goL - lat <= gL + 0.03, canR = goR + lat <= gR + 0.03;
             if ((goL <= goR && canL) || !canR) needL = Math.max(needL, goL); else needR = Math.max(needR, goR);
           }
           continue;
@@ -4844,10 +4844,10 @@
         var c = fx * ofx + fy * ofy, os = walkSpeed(o) * (o.v === undefined ? 1 : o.v) * (o.slow === undefined ? 1 : o.slow);
         if (c < -0.75) {
           // on se croise : chacun serre à droite, juste ce qu'il faut — sauf si l'on est déjà nettement décalés de l'autre côté
-          if (ahead > 0.05 && side > -0.5 && side < 0.7) { if (side < 0.12) needR = Math.max(needR, side + 0.5); else needL = Math.max(needL, 0.5 - side); }
+          if (ahead > 0.05 && side > -0.5 && side < 0.7) { if (side < 0.12) needR = Math.max(needR, (side + 0.5) * B); else needL = Math.max(needL, (0.5 - side) * B); }
         } else if (c > 0.5) {
           if (os < my * 0.85) {                                                                                      // plus lent : on double par la gauche et on ne se rabat qu'une fois passé
-            if (ahead > -0.55 && ahead < 0.9 && side > -0.2 && side < 0.6) { needL = Math.max(needL, 0.5 - side); if (ahead > 0.06 && ahead < 0.5 && side < 0.36) slow = Math.min(slow, Math.max(0.3, os / my)); }
+            if (ahead > -0.55 && ahead < 0.9 && side > -0.2 && side < 0.6) { needL = Math.max(needL, (0.5 - side) * B); if (ahead > 0.06 && ahead < 0.5 && side < 0.36) slow = Math.min(slow, Math.max(0.3, os / my)); }
           } else if (side > -0.36 && side < 0.36) {
             if (ahead > -0.06 && ahead < 0.06) { if (p.id > o.id) slow = Math.min(slow, 0.6); }                       // au même endroit : l'un des deux laisse filer l'autre
             else if (ahead > 0 && ahead < 0.55) slow = Math.min(slow, clamp(os / my * 0.8, 0.25, 0.8));              // même allure : on garde ses distances
@@ -4857,7 +4857,7 @@
       }
       if (needR > 0 && needL > 0) { want = lat; slow = Math.min(slow, 0.5); } else if (needR > 0) want = lat + needR; else if (needL > 0) want = lat - needL;
       want = clamp(want, -gL, gR);
-      p.lat = lat + clamp(want - lat, -0.05, 0.05); p.slow = slow; p.hold = hold;
+      p.lat = lat + clamp(want - lat, -0.05 * B, 0.05 * B); p.slow = slow; p.hold = hold;
     }
   }
   // ralentir dans les virages serrés
@@ -4923,11 +4923,11 @@
   function findSeat(S, p, near) {
     var best = null, bd = 99;
     S.items.forEach(function (o) {
-      if (o.type !== 'bench' || (o.used[0] && o.used[1])) return;
+      if (o.type !== 'bench' || ITEMS.bench.spots.seats.every(function (s, k) { return o.used[k]; })) return;
       var d = Math.abs(o.x - near.x) + Math.abs(o.y - near.y); if (d < bd && d <= 9) { bd = d; best = o; }
     });
     if (!best) return false;
-    var si = best.used[0] ? 1 : 0;
+    var si = 0; while (best.used[si]) si++;
     best.used[si] = p.id; p.seat = { item: best.id, idx: si }; goTo(S, p, spotWorld(S, best, ITEMS.bench.spots.seats[si]), 'sit'); return true;
   }
   function leave(S, p, reason) {
@@ -5079,10 +5079,10 @@
       if (s && (S.blk[s.y][s.x] || S.rm[s.y][s.x])) { delete taken[sk(s)]; q.spot = s = null; }
       if (!s) {
         c = lineSpots(S, start, 40);
-        for (i = 0; i < c.length && !s; i++) for (k = 0; k < 2 && !s; k++) if (!taken[c[i].x + ',' + c[i].y + ',' + k]) { s = q.spot = { x: c[i].x, y: c[i].y, k: k }; taken[sk(s)] = q.id; }
+        for (i = 0; i < c.length && !s; i++) for (k = 0; k < 1 && !s; k++) if (!taken[c[i].x + ',' + c[i].y + ',' + k]) { s = q.spot = { x: c[i].x, y: c[i].y, k: k }; taken[sk(s)] = q.id; }
       }
       if (!s) return;
-      var px = s.x + (s.k ? 0.24 : -0.24) + ((q.id * 7) % 5 - 2) * 0.02, py = s.y + (s.k ? 0.13 : -0.13) + ((q.id * 3) % 5 - 2) * 0.02;
+      var px = s.x + ((q.id * 7) % 5 - 2) * 0.06, py = s.y + ((q.id * 3) % 5 - 2) * 0.06;
       moveIf(S, q, { tile: { x: s.x, y: s.y }, pos: { x: px, y: py }, face: Math.atan2(start.x - px, start.y - py), pose: 'stand', h: 0 }, next);
     }
     S.rooms.forEach(function (r) {
@@ -5328,7 +5328,7 @@
   }
   function monthEnd(S) {
     var wages = 0; S.people.forEach(function (p) { if (p.kind !== 'patient' && !p.leaving) wages += p.wage; });
-    var tiles = 0; S.rooms.forEach(function (r) { tiles += r.w * r.h; }); var charges = tiles * 40;
+    var tiles = 0; S.rooms.forEach(function (r) { tiles += r.w * r.h; }); var charges = tiles * 10;
     spend(S, wages + charges); if (S.money < 0) spend(S, Math.round(-S.money * 0.02));
     S.lastMonth = { inc: S.month.inc, exp: S.month.exp, n: Math.floor(S.day / 30), wages: wages, charges: charges };
     say(S, 'Bilan du mois ' + S.lastMonth.n + ' : +' + S.month.inc + ' € / −' + S.month.exp + ' € (dont ' + wages + ' € de salaires et ' + charges + ' € de charges).', S.month.inc >= S.month.exp ? 'good' : 'warn');
@@ -5571,7 +5571,7 @@
     g.add(furn('plantSmall1', 0.2, 0.32, 0.2, { x: 0.7, y: 0.68, z: 0.08 })); g.add(cyl(0.05, 0.03, '#ffc94a', 0.25, 0.68, 0.18)); g.add(sph(0.035, '#ffc94a', 0.25, 0.72, 0.18));
     g.add(box(0.5, 0.012, 0.3, '#ffffff', 0.1, 0.68, -0.05)); return { h: 0.75 };
   };
-  IV.bench = function (g) { g.add(furn('benchCushion', 1.38, 0.68, 0.5, { z: -0.14, cols: { carpet: '#7fcfb0' } })); return { h: 0.7 }; };
+  IV.bench = function (g) { g.add(furn('benchCushion', 0.94, 0.68, 0.5, { z: -0.14, cols: { carpet: '#7fcfb0' } })); return { h: 0.7 }; };
   IV.drinks = function (g) {
     g.add(box(0.82, 1.42, 0.56, '#ff5a4d', 0, 0, -0.08)); g.add(box(0.86, 0.08, 0.6, '#d94a3f', 0, 1.42, -0.08)); g.add(box(0.86, 0.06, 0.6, '#33505a', 0, 0, -0.08));
     var mat = new T.MeshBasicMaterial({ map: canvasTex(128, 224, function (c) {
@@ -5693,15 +5693,15 @@
     var grass = canvasTex(128, 128, function (c) { c.fillStyle = '#93d19b'; c.fillRect(0, 0, 128, 128); for (var k = 0; k < 260; k++) { c.fillStyle = k % 3 ? 'rgba(120,196,132,.55)' : 'rgba(170,226,170,.5)'; c.fillRect((k * 53) % 128, (k * 97) % 128, 5, 3); } }); grass.wrapS = grass.wrapT = T.RepeatWrapping;
     var gr = repeatPlane(300, 300, grass, 75, 75); gr.position.set(cx, -0.11, cz); g.add(gr);
     g.add(box(W + 0.9, 0.22, H + 0.9, '#cfdad5', cx, -0.22, cz));
-    var hall = repeatPlane(W, H, tileTex('#e6ece9', '#d9e3df', '#bfd0c9'), W / 2, H / 2); hall.position.set(cx, 0.002, cz); g.add(hall);
+    var hall = repeatPlane(W, H, tileTex('#e6ece9', '#d9e3df', '#bfd0c9'), W / 4, H / 4); hall.position.set(cx, 0.002, cz); g.add(hall);
     // murs extérieurs, bas pour laisser voir l'intérieur
-    var wh = 0.62, th = 0.22, cap = '#7fcfb0', wc = '#fbfdfc', ex = V.SPAWN.x;
+    var wh = 0.85, th = 0.22, cap = '#7fcfb0', wc = '#fbfdfc', ex = V.SPAWN.x;
     function wall(x0, z0, x1, z1) { var L = Math.abs(x1 - x0) + Math.abs(z1 - z0), alongX = z0 === z1, w = alongX ? L : th, d = alongX ? th : L; g.add(box(w, wh, d, wc, (x0 + x1) / 2, 0, (z0 + z1) / 2)); g.add(box(w + 0.06, 0.08, d + 0.06, cap, (x0 + x1) / 2, wh, (z0 + z1) / 2)); g.add(box(w + 0.02, 0.14, d + 0.02, '#b9c9c3', (x0 + x1) / 2, 0, (z0 + z1) / 2)); }
     wall(-0.6, -0.61, W - 0.4, -0.61); wall(-0.61, -0.6, -0.61, H - 0.4); wall(W - 0.39, -0.6, W - 0.39, H - 0.4);
-    wall(-0.6, H - 0.39, ex - 1.5, H - 0.39); wall(ex + 1.5, H - 0.39, W - 0.4, H - 0.39);
+    wall(-0.6, H - 0.39, ex - 2.5, H - 0.39); wall(ex + 1.5, H - 0.39, W - 0.4, H - 0.39);
     // entrée : montants, portes vitrées ouvertes, paillasson
-    [-1.5, 1.5].forEach(function (s) { g.add(box(0.3, 1.12, 0.34, '#ff6b5e', ex + s, 0, H - 0.39)); g.add(box(1.0, 0.92, 0.05, '#bfe3ee', ex + s * 1.0 + (s > 0 ? 0.35 : -0.35), 0.05, H - 0.2, { opacity: 0.38 })); });
-    g.add(flat(2.2, 0.9, M('#ff6b5e'), ex, 0.006, H - 0.38));
+    [-2.5, 1.5].forEach(function (s) { g.add(box(0.3, 1.5, 0.34, '#ff6b5e', ex + s, 0, H - 0.39)); g.add(box(1.0, 1.25, 0.05, '#bfe3ee', ex + s + (s > 0 ? 0.35 : -0.35), 0.05, H - 0.2, { opacity: 0.38 })); });
+    g.add(flat(3.4, 0.9, M('#ff6b5e'), ex - 0.5, 0.006, H - 0.38));
     // parvis, allée, route, parking
     g.add(flat(7, 3, M('#eee7d6'), ex, -0.095, H + 1.2)); g.add(flat(3.2, 8, M('#eee7d6'), ex, -0.094, H + 4.6)); g.add(flat(140, 5.2, M('#5b6570'), cx, -0.096, H + 11.2));
     for (i = -9; i <= 9; i++) g.add(flat(2.2, 0.16, M('#f2f4f4'), cx + i * 6, -0.09, H + 11.2));
@@ -5714,7 +5714,7 @@
     var a = new T.Group(); a.add(box(2.5, 1.15, 1.3, '#ffffff', 0, 0.3, 0)); a.add(box(0.9, 0.85, 1.26, '#ffffff', 1.65, 0.3, 0)); a.add(box(0.5, 0.42, 1.1, '#9fd3e6', 1.86, 0.7, 0)); a.add(box(2.52, 0.2, 1.32, '#ff5a4d', 0, 0.72, 0)); a.add(box(0.5, 0.14, 0.5, '#6fa8dc', 0.9, 1.45, 0, { emissive: '#6fa8dc', ei: 0.6 }));
     a.add(plane(0.5, 0.5, crossTex('#ffffff', '#ff5a4d'), -0.5, 1.0, 0.655)); var cb = plane(0.5, 0.5, crossTex('#ffffff', '#ff5a4d'), -0.5, 1.0, -0.655); cb.rotation.y = PI; a.add(cb);
     [[-0.75, 0.62], [1.35, 0.62], [-0.75, -0.62], [1.35, -0.62]].forEach(function (p) { var w = cyl(0.3, 0.22, '#2b2f36', p[0], 0, p[1]); w.rotation.x = PI / 2; w.position.y = 0.3; a.add(w); });
-    a.position.set(ex + 7.4, -0.1, H + 6.2); a.rotation.y = 0.0; a.scale.setScalar(0.8); g.add(a);
+    a.position.set(ex + 7.4, -0.1, H + 6.2); a.rotation.y = 0.0; g.add(a);
     // arbres, buissons, lampadaires
     [[-4, 3, 1.1], [-5, 11, 1.3], [-3.5, 19, 1], [W + 3, 2, 1.2], [W + 4.5, 10, 1], [W + 3, 18, 1.3], [4, -4, 1.2], [13, -5, 1], [22, -4, 1.3], [30, -5.5, 1.1], [3, H + 4, 1.1], [W - 2, H + 3.2, 1.2], [-6, H + 6, 1.3], [W + 6, H + 6, 1], [8, H + 6.5, 0.9], [-9, -6, 1.4], [W + 9, -5, 1.3]].forEach(function (t) { g.add(tree(t[0], t[1], t[2])); });
     [[ex - 2.6, H + 0.6], [ex + 2.6, H + 0.6], [5, H + 0.7], [9, H + 0.7], [21, H + 0.7], [26, H + 0.7], [1, H + 0.7]].forEach(function (b, k) { var s = sph(0.55, k % 2 ? '#55b574' : '#48a566', b[0], 0.15, b[1]); s.scale.y = 0.75; g.add(s); });
@@ -5728,8 +5728,8 @@
   function floorMat(col) { return floorMats[col] || (floorMats[col] = new T.MeshLambertMaterial({ map: tileTex(tint(col, 0.52), tint(col, 0.3), tint(col, 0.05)) })); }
   function roomKey(r) { return [r.type, r.x, r.y, r.w, r.h, r.rot, r.k, r.open ? 1 : 0].join(','); }
   function buildRoomView(r) {
-    var def = V.ROOMS[r.type], g = new T.Group(), col = def.color, th = 0.12, wh = 0.46, cap = shade(col, 0.82), v = { g: g, key: roomKey(r), ang: 0, leaf: null, inS: 1 };
-    var geo = new T.PlaneGeometry(r.w, r.h), uv = geo.attributes.uv, i; for (i = 0; i < uv.count; i++) uv.setXY(i, uv.getX(i) * r.w / 2, uv.getY(i) * r.h / 2);
+    var def = V.ROOMS[r.type], g = new T.Group(), col = def.color, th = 0.12, wh = 0.62, cap = shade(col, 0.82), v = { g: g, key: roomKey(r), ang: 0, leaf: null, inS: 1 };
+    var geo = new T.PlaneGeometry(r.w, r.h), uv = geo.attributes.uv, i; for (i = 0; i < uv.count; i++) uv.setXY(i, (uv.getX(i) * r.w + (r.x % 2)) / 4, (uv.getY(i) * r.h - ((r.y + r.h) % 2)) / 4);
     var fl = new T.Mesh(geo, floorMat(col)); fl.rotation.x = -PI / 2; fl.position.set(r.x + (r.w - 1) / 2, 0.012, r.y + (r.h - 1) / 2); fl.receiveShadow = true; g.add(fl);
     if (!r.open) {
       if (!stripeMat) { var st = canvasTex(64, 64, function (c) { c.clearRect(0, 0, 64, 64); c.strokeStyle = 'rgba(255,201,74,.75)'; c.lineWidth = 11; for (var k = -64; k < 128; k += 32) { c.beginPath(); c.moveTo(k, 64); c.lineTo(k + 64, 0); c.stroke(); } }); st.wrapS = st.wrapT = T.RepeatWrapping; stripeMat = new T.MeshBasicMaterial({ map: st, transparent: true, depthWrite: false }); }
@@ -5746,7 +5746,7 @@
         sg.add(box(0.1, DH, 0.18, cap, a, 0, 0)); sg.add(box(0.1, DH, 0.18, cap, b, 0, 0)); sg.add(box(b - a + 0.1, 0.1, 0.18, cap, (a + b) / 2, DH, 0));
         var sm = signMats[r.type] || (signMats[r.type] = signMat(def.short, col, '#17323a', 256, 80, 38));
         var s1 = plane(0.98, 0.31, sm, (a + b) / 2, DH + 0.3, 0.02), s2 = plane(0.98, 0.31, sm, (a + b) / 2, DH + 0.3, -0.02); s2.rotation.y = PI; sg.add(box(1.04, 0.37, 0.03, '#17323a', (a + b) / 2, DH + 0.115, 0)); sg.add(s1); sg.add(s2);
-        var piv = new T.Group(); piv.position.set(a + 0.05, 0, 0); piv.add(box(b - a - 0.1, DH - 0.1, 0.05, '#ffffff', (b - a - 0.1) / 2, 0.04, 0)); piv.add(box(0.2, 0.24, 0.06, '#bfe3ee', (b - a - 0.1) / 2, 0.5, 0)); piv.add(sph(0.04, '#ffc94a', b - a - 0.22, 0.42, 0.05)); sg.add(piv);
+        var piv = new T.Group(); piv.position.set(a + 0.05, 0, 0); piv.add(box(b - a - 0.1, DH - 0.1, 0.05, '#ffffff', (b - a - 0.1) / 2, 0.04, 0)); piv.add(box(0.2, 0.34, 0.06, '#bfe3ee', (b - a - 0.1) / 2, 0.72, 0)); piv.add(sph(0.045, '#ffc94a', b - a - 0.22, 0.6, 0.05)); sg.add(piv);
         v.leaf = piv; v.inS = s.inS;
       }
       segs.forEach(function (q) { var L = q[1] - q[0]; if (L <= 0.02) return; sg.add(box(L, wh, th, '#fbfdfc', q[0] + L / 2, 0, 0)); sg.add(box(L + 0.02, 0.06, th + 0.05, cap, q[0] + L / 2, wh, 0)); });
@@ -5820,7 +5820,7 @@
     var tx = p.x, tz = p.y, ty = 0, moving = p.st === 'walk' || p.st === 'in' || p.st === 'out', lie = p.pose === 'lie' && !moving, held = p.st === 'held';
     if (!moving && (p.pose === 'sit' || lie)) ty = p.h || 0;
     if (p.lat && !held) { tx -= Math.cos(a.ry) * p.lat; tz += Math.sin(a.ry) * p.lat; }      // on marche sur sa droite
-    if (held && ui.carry) { tx = ui.carry.x; tz = ui.carry.z; ty = 0.8 + Math.sin(time * 6) * 0.05; }
+    if (held && ui.carry) { tx = ui.carry.x; tz = ui.carry.z; ty = 1.05 + Math.sin(time * 6) * 0.06; }
     var ox = a.x, oz = a.z; a.mov = moving;
     var far = Math.abs(tx - a.x) + Math.abs(tz - a.z) > 3, k = far ? 1 : 1 - Math.exp(-dt * (held ? 22 : 13));
     a.x += (tx - a.x) * k; a.z += (tz - a.z) * k; a.y += (ty - a.y) * (far ? 1 : 1 - Math.exp(-dt * 10));
@@ -5832,7 +5832,7 @@
     play(a, animFor(p, S, a));
     // le pas suit la vitesse réelle : ni patinage, ni jambes qui moulinent
     var rate = held ? dt : adt * (p.zombie ? 0.5 : 1);
-    if (moving && !held && adt > 0 && !p.stuck) rate = dt * Math.max(0.5, Math.min(3.2, a.spd / (p.emergency ? 2.0 : 1.3)));
+    if (moving && !held && adt > 0 && !p.stuck) rate = dt * Math.max(0.5, Math.min(3.2, a.spd / (p.emergency ? 2.9 : 1.9)));
     if (a.head && a.look) a.head.rotation.y -= a.look;
     a.mixer.update(rate);
     // un regard vers la personne que l'on croise
@@ -5906,7 +5906,7 @@
         A.gaze = gb;
       }
     }
-    syncMap(S.people, actorV, actorKey, makeActor, function (a, p) { updateActor(a, p, S, ui, dt, adt); var b = personBubble(p); if (b) label('p' + p.id, b[0], 'pb ' + b[1], a.x, a.y + 1.08, a.z); });
+    syncMap(S.people, actorV, actorKey, makeActor, function (a, p) { updateActor(a, p, S, ui, dt, adt); var b = personBubble(p); if (b) label('p' + p.id, b[0], 'pb ' + b[1], a.x, a.y + 1.42, a.z); });
     // portes, effets de soin, cabines
     var near = {};
     S.people.forEach(function (p) { if (p.hidden || p.st === 'held') return; var rid = null; S.rooms.forEach(function (r) { var mx = (r.door.x + r.front.x) / 2, my = (r.door.y + r.front.y) / 2; if (Math.abs(p.x - mx) + Math.abs(p.y - my) < 1.05) near[r.id] = 1; }); });
@@ -5918,13 +5918,13 @@
       // étiquette de la salle
       var cx = r.x + (r.w - 1) / 2, cz = r.y + (r.h - 1) / 2, warn = null;
       if (!r.open) warn = 'En travaux'; else if (r.broken) warn = 'En panne'; else if (def.staff && !r.staffId) warn = def.staff === 'doc' ? 'Pas de médecin' : 'Pas d\'infirmier';
-      if (warn) label('rw' + r.id, warn, 'rw' + (r.broken ? ' bad' : ''), cx, 1.2, cz);
-      else if (r.queue.length) label('rq' + r.id, r.queue.length + ' en attente', 'rq', cx, 1.05, cz);
+      if (warn) label('rw' + r.id, warn, 'rw' + (r.broken ? ' bad' : ''), cx, 1.5, cz);
+      else if (r.queue.length) label('rq' + r.id, r.queue.length + ' en attente', 'rq', cx, 1.3, cz);
       if (on && BUB[r.type]) {
         var tx = BUB[r.type](prog, time), who = (r.type === 'gp') ? V.person(S, r.staffId) : pt;
-        if (tx && who) label('rb' + r.id, tx, 'pb t', who.x, (who.h || 0) + 1.05, who.y);
-        if (r.type === 'psy' && Math.floor(time / 2.4) % 3 === 2) { var doc = V.person(S, r.staffId); if (doc) label('rd' + r.id, 'hm hm.', 'pb c', doc.x, (doc.h || 0) + 1.12, doc.y); }
-        if (r.type === 'platre' && Math.floor(time / 2) % 2 === 0) { var nu = V.person(S, r.staffId); if (nu) label('rd' + r.id, 'c\'était laquelle ?', 'pb c', nu.x, 1.12, nu.y); }
+        if (tx && who) label('rb' + r.id, tx, 'pb t', who.x, (who.h || 0) + 1.38, who.y);
+        if (r.type === 'psy' && Math.floor(time / 2.4) % 3 === 2) { var doc = V.person(S, r.staffId); if (doc) label('rd' + r.id, 'hm hm.', 'pb c', doc.x, (doc.h || 0) + 1.5, doc.y); }
+        if (r.type === 'platre' && Math.floor(time / 2) % 2 === 0) { var nu = V.person(S, r.staffId); if (nu) label('rd' + r.id, 'c\'était laquelle ?', 'pb c', nu.x, 1.5, nu.y); }
       }
     });
   }
@@ -5965,7 +5965,7 @@
     var sk = ui.sel ? ui.sel.t + ui.sel.id : '', sel = ui.sel;
     if (selG.userData.k !== sk) {
       selG.userData.k = sk; clearGroup(selG); var coral = new T.MeshBasicMaterial({ color: C('#ff6b5e') });
-      if (sel && sel.t === 'p') { var tr = new T.Mesh(new T.TorusGeometry(0.34, 0.04, 6, 28), coral); tr.rotation.x = PI / 2; selG.add(tr); }
+      if (sel && sel.t === 'p') { var tr = new T.Mesh(new T.TorusGeometry(0.46, 0.05, 6, 28), coral); tr.rotation.x = PI / 2; selG.add(tr); }
       else if (sel && sel.t === 'r') { var r = V.room(S, sel.id); if (r) frameRect(selG, r.x, r.y, r.w, r.h, coral, 0.12, 0.7); }
       else if (sel && sel.t === 'i') { var it = V.item(S, sel.id); if (it) it.fp.cells.forEach(function (c) { selG.add(tileFlat(c.x, c.y, new T.MeshBasicMaterial({ color: C('#ff6b5e'), transparent: true, opacity: 0.55, depthWrite: false }), 0.96, 0.035)); }); }
     }
@@ -5976,13 +5976,13 @@
     var hv = ui.hover, hk = hv ? hv.t + hv.id : '';
     if (hovG.userData.k !== hk) {
       hovG.userData.k = hk; clearGroup(hovG); var white = new T.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.85, depthWrite: false });
-      if (hv && hv.t === 'p') { var hr = new T.Mesh(new T.TorusGeometry(0.33, 0.028, 6, 28), white); hr.rotation.x = PI / 2; hovG.add(hr); }
+      if (hv && hv.t === 'p') { var hr = new T.Mesh(new T.TorusGeometry(0.44, 0.035, 6, 28), white); hr.rotation.x = PI / 2; hovG.add(hr); }
       else if (hv && hv.t === 'r') { var r2 = V.room(S, hv.id); if (r2) frameRect(hovG, r2.x, r2.y, r2.w, r2.h, white, 0.07, 0.71); }
       else if (hv && hv.t === 'i') { var it2 = V.item(S, hv.id); if (it2) it2.fp.cells.forEach(function (q) { hovG.add(tileFlat(q.x, q.y, white, 0.96, 0.034)); }); }
     }
     hovG.position.set(0, 0, 0); hovG.visible = true;
-    if (hv && hv.t === 'p') { var ha = actorV[hv.id]; hovG.visible = !!ha; if (ha) { hovG.position.set(ha.x, 0.05, ha.z); if (hv.name) label('hov', hv.name, 'hv', ha.x, 1.12, ha.z); } }
-    else if (hv && hv.t === 'i' && hv.name) { var it3 = V.item(S, hv.id); if (it3) { var hx = 0, hz = 0; it3.fp.cells.forEach(function (q) { hx += q.x; hz += q.y; }); label('hov', hv.name, 'hv', hx / it3.fp.cells.length, 1.2, hz / it3.fp.cells.length); } }
+    if (hv && hv.t === 'p') { var ha = actorV[hv.id]; hovG.visible = !!ha; if (ha) { hovG.position.set(ha.x, 0.05, ha.z); if (hv.name) label('hov', hv.name, 'hv', ha.x, 1.5, ha.z); } }
+    else if (hv && hv.t === 'i' && hv.name) { var it3 = V.item(S, hv.id); if (it3) { var hx = 0, hz = 0; it3.fp.cells.forEach(function (q) { hx += q.x; hz += q.y; }); label('hov', hv.name, 'hv', hx / it3.fp.cells.length, 1.55, hz / it3.fp.cells.length); } }
   }
 
   /* ---------- caméra ---------- */
@@ -5990,7 +5990,7 @@
     var cp = Math.cos(cam.pitch), sp = Math.sin(cam.pitch);
     camera.position.set(cam.tx + Math.sin(cam.yaw) * cp * cam.dist, sp * cam.dist, cam.tz + Math.cos(cam.yaw) * cp * cam.dist); camera.lookAt(cam.tx, 0.4, cam.tz); camera.updateMatrixWorld();
   }
-  function clampGoal() { goal.tx = Math.max(-4, Math.min(W + 3, goal.tx)); goal.tz = Math.max(-4, Math.min(H + 7, goal.tz)); goal.dist = Math.max(6.5, Math.min(64, goal.dist)); goal.pitch = Math.max(0.5, Math.min(1.35, goal.pitch)); }
+  function clampGoal() { goal.tx = Math.max(-4, Math.min(W + 3, goal.tx)); goal.tz = Math.max(-4, Math.min(H + 7, goal.tz)); goal.dist = Math.max(8, Math.min(96, goal.dist)); goal.pitch = Math.max(0.5, Math.min(1.35, goal.pitch)); }
   function stepCam(dt) { clampGoal(); var k = 1 - Math.exp(-dt * 12); cam.tx += (goal.tx - cam.tx) * k; cam.tz += (goal.tz - cam.tz) * k; cam.dist += (goal.dist - cam.dist) * k; cam.pitch += (goal.pitch - cam.pitch) * k; cam.yaw += (goal.yaw - cam.yaw) * k; applyCam(); }
   function setRay(sx, sy) { ray.setFromCamera({ x: sx / vw * 2 - 1, y: -(sy / vh) * 2 + 1 }, camera); }
   var hitV = new T.Vector3();
@@ -6029,7 +6029,7 @@
     sun = new T.DirectionalLight(0xfff0d2, 0.7); sun.position.set(W / 2 - 13, 30, H / 2 + 17); sun.target.position.set(W / 2, 0, H / 2); sun.castShadow = true; sun.shadow.mapSize.set(2048, 2048); sun.shadow.bias = -0.0005; sun.shadow.normalBias = 0.02;
     var sc = sun.shadow.camera; sc.left = -27; sc.right = 27; sc.top = 24; sc.bottom = -24; sc.near = 2; sc.far = 90; scene.add(sun); scene.add(sun.target);
     ghostG = new T.Group(); selG = new T.Group(); hovG = new T.Group(); scene.add(ghostG); scene.add(selG); scene.add(hovG);
-    carryRing = new T.Mesh(new T.RingGeometry(0.22, 0.37, 24), new T.MeshBasicMaterial()); carryRing.rotation.x = -PI / 2; carryRing.visible = false; scene.add(carryRing);
+    carryRing = new T.Mesh(new T.RingGeometry(0.3, 0.48, 24), new T.MeshBasicMaterial()); carryRing.rotation.x = -PI / 2; carryRing.visible = false; scene.add(carryRing);
     loadAssets(function () { scene.add(buildWorld()); applyCam(); done(); }, progress);
   }
   function resize(w, h) { vw = w; vh = h; if (!renderer) return; renderer.setSize(w, h, false); camera.aspect = w / h; camera.fov = w < h ? 40 : 32; camera.updateProjectionMatrix(); }
@@ -6059,7 +6059,7 @@
   var V = window.Velpo, View = window.VelpoView, $ = function (id) { return document.getElementById(id); };
   var cv = $('cv'), S = null, speed = 1, lastSpeed = 1, mode = { k: 'idle' }, sel = null, panel = null, tab = {}, modalKind = null, frames = 0, shownLog = null, ready = false;
   var ui = { sel: null, ghost: null, carry: null }, ptr = { x: 0, y: 0, touch: false }, keys = {}, vw = 1, vh = 1;
-  var LS = 'velpo-save-v3', store = null, cloud = null, saving = false, saveNote = 'Sauvegarde sur cet appareil';
+  var LS = 'velpo-save-v4', store = null, cloud = null, saving = false, saveNote = 'Sauvegarde sur cet appareil';
   var SPD = [0, 1, 2, 4];
 
   /* ---------- icônes (dessinées à la main, trait épais) ---------- */
@@ -6144,7 +6144,7 @@
   function stopVoice() { if (tts && speaking) tts.stop().catch(function () {}); }
 
   /* ---------- sauvegarde ---------- */
-  function okSave(d) { return d && d.json && d.json.indexOf('{"v":3') === 0 ? d : null; }
+  function okSave(d) { return d && d.json && d.json.indexOf('{"v":4') === 0 ? d : null; }
   function localLoad() { try { return okSave(JSON.parse(localStorage.getItem(LS))); } catch (e) { return null; } }
   function save(manual) {
     if (!S || S.lost) return;
@@ -6329,7 +6329,7 @@
   $('inspector').onclick = function (ev) {
     var a = act(ev); if (!a || !sel) return; var k = a[0], id = sel.id, it;
     if (k === 'close') select(null);
-    else if (k === 'follow') { var fp = V.person(S, id); follow = follow === id || !fp ? 0 : id; if (follow) View.cam.focus(fp.x, fp.y, Math.min(View.cam.get().dist, 15)); }
+    else if (k === 'follow') { var fp = V.person(S, id); follow = follow === id || !fp ? 0 : id; if (follow) View.cam.focus(fp.x, fp.y, Math.min(View.cam.get().dist, 20)); }
     else if (k === 'copy') { var cr = V.room(S, id); if (cr) startBlueprint(cr.type, { w: cr.w, h: cr.h, copy: true }); return; }
     else if (k === 'home') V.sendHome(S, id);
     else if (k === 'force') { if (V.forceTreat(S, id)) toast('Soigné sans attendre le diagnostic : croisons les doigts'); }
@@ -6361,10 +6361,11 @@
     if (ptr.in && !ptr.touch) { var r = rectAround(tileAt(ptr)); setRect(r[0], r[1]); } dock();
   }
   // la salle « de base » (taille minimale, ou taille de la salle copiée) centrée sur une case
-  function rectAround(a) { var mn = V.ROOMS[mode.type].min, s = mode.preset || { w: mn[1], h: mn[0] }, x = cl(a.x - Math.floor(s.w / 2), 0, V.W - s.w), y = cl(a.y - Math.floor(s.h / 2), 0, V.H - s.h); return [{ x: x, y: y }, { x: x + s.w - 1, y: y + s.h - 1 }]; }
+  function rectAround(a) { var mn = V.ROOMS[mode.type].min, s = mode.preset || { w: mn[1], h: mn[0] }, x = cl(a.x - Math.floor(s.w / 2), 0, V.W - s.w), y = cl(a.y - Math.floor(s.h / 2), 0, V.H - s.h); x -= x % 2; y -= y % 2; return [{ x: x, y: y }, { x: x + s.w - 1, y: y + s.h - 1 }]; }
   function setRect(a, b, full) {
     var m = mode, x0 = cl(Math.min(a.x, b.x), 0, V.W - 1), x1 = cl(Math.max(a.x, b.x), 0, V.W - 1), y0 = cl(Math.min(a.y, b.y), 0, V.H - 1), y1 = cl(Math.max(a.y, b.y), 0, V.H - 1);
-    if (x1 - x0 > 8) { if (b.x < a.x) x0 = x1 - 8; else x1 = x0 + 8; } if (y1 - y0 > 8) { if (b.y < a.y) y0 = y1 - 8; else y1 = y0 + 8; }
+    x0 -= x0 % 2; y0 -= y0 % 2; x1 += 1 - x1 % 2; y1 += 1 - y1 % 2;                                      // les murs suivent les grandes cases
+    if (x1 - x0 > 17) { if (b.x < a.x) x0 = x1 - 17; else x1 = x0 + 17; } if (y1 - y0 > 17) { if (b.y < a.y) y0 = y1 - 17; else y1 = y0 + 17; }
     var w = x1 - x0 + 1, h = y1 - y0 + 1; if (!full && m.x === x0 && m.y === y0 && m.w === w && m.h === h) return;
     m.x = x0; m.y = y0; m.w = w; m.h = h;
     var d = V.autoDoor(S, m.type, x0, y0, w, h, !full);
@@ -6452,8 +6453,8 @@
   function buildBarHTML() {
     var m = mode, h = '', def, r;
     if (m.k === 'blueprint') {
-      def = V.ROOMS[m.type]; var size = m.x === null ? '' : m.w + ' × ' + m.h + ' cases · ' + euro(V.roomCost(m.type, m.w, m.h));
-      if (m.phase === 'trace') h = '<h3>' + def.name + '</h3>' + stepsHTML(1) + '<p class="' + (m.err ? 'err' : '') + '">' + (m.err ? size + '. ' + m.err : (ptr.touch ? 'Glissez le doigt' : 'Cliquez-glissez') + ' sur le sol pour tracer la salle (minimum ' + def.min[0] + ' × ' + def.min[1] + ').' + (ptr.touch ? ' Deux doigts pour bouger la vue.' : ' Clic droit pour annuler.')) + '</p><div class="row"><button class="btn alt" data-a="no">' + ic('close', 20) + 'Annuler</button></div>';
+      def = V.ROOMS[m.type]; var size = m.x === null ? '' : m.w / 2 + ' × ' + m.h / 2 + ' cases · ' + euro(V.roomCost(m.type, m.w, m.h));
+      if (m.phase === 'trace') h = '<h3>' + def.name + '</h3>' + stepsHTML(1) + '<p class="' + (m.err ? 'err' : '') + '">' + (m.err ? size + '. ' + m.err : (ptr.touch ? 'Glissez le doigt' : 'Cliquez-glissez') + ' sur le sol pour tracer la salle (minimum ' + def.min[0] / 2 + ' × ' + def.min[1] / 2 + ' cases).' + (ptr.touch ? ' Deux doigts pour bouger la vue.' : ' Clic droit pour annuler.')) + '</p><div class="row"><button class="btn alt" data-a="no">' + ic('close', 20) + 'Annuler</button></div>';
       else h = '<h3>' + def.name + ' <span class="tag">' + size + '</span></h3>' + stepsHTML(2) + '<p>La porte est en jaune. ' + (ptr.touch ? 'Touchez' : 'Cliquez') + ' un autre mur pour la déplacer.</p><div class="row"><button class="btn ok" data-a="ok">' + ic('check', 20) + 'Construire</button><button class="btn alt" data-a="re">Retracer</button><button class="btn alt" data-a="no">' + ic('close', 20) + 'Annuler</button></div>';
     } else if (m.k === 'furnish') {
       r = V.room(S, m.roomId); if (!r) return ''; def = V.ROOMS[r.type]; var miss = V.roomMissing(S, r), need = def.need, left = miss.slice(), chips = '';
@@ -6464,7 +6465,7 @@
         '<button class="btn alt" data-a="door" aria-pressed="' + !!m.door + '">' + ic('door', 20) + 'Porte</button>' + (r.fresh ? '<button class="btn alt" data-a="no">' + ic('close', 20) + 'Annuler</button>' : '<button class="btn alt" data-a="demo">' + ic('trash', 20) + (m.ask ? 'Confirmer ?' : 'Démolir') + '</button>') + '</div>';
     } else if (m.k === 'place') {
       def = V.ITEMS[m.type];
-      h = '<h3>' + def.name + (m.moveId ? '' : ' <span class="tag">' + euro(def.cost) + '</span>') + '</h3><p class="' + (m.err ? 'err' : '') + '">' + (m.err || (ptr.touch ? 'Glissez l\'objet sur le sol, tournez-le, puis posez.' : 'Clic pour poser. Maintenez le clic et glissez, ou touches ' + keyLabel('KeyZ', 'W') + ' ' + keyLabel('KeyX', 'X') + ', pour tourner.')) + '</p><div class="row">' +
+      h = '<h3>' + def.name + (m.moveId ? '' : ' <span class="tag">' + euro(def.cost) + '</span>') + '</h3><p class="' + (m.err ? 'err' : '') + '">' + (m.err || (ptr.touch ? 'Glissez l\'objet sur le sol, tournez-le, puis posez.' : 'Clic gauche pour poser, clic droit pour tourner (ou ' + keyLabel('KeyZ', 'W') + ' ' + keyLabel('KeyX', 'X') + '). <kbd>Échap</kbd> pour annuler.')) + '</p><div class="row">' +
         '<button class="btn alt sq" data-a="rl" aria-label="Tourner à gauche">' + ic('rotl', 22) + '</button><button class="btn alt sq" data-a="rr" aria-label="Tourner à droite">' + ic('rotr', 22) + '</button><button class="btn ok" data-a="put"' + (m.err ? ' disabled' : '') + '>' + ic('check', 20) + 'Poser</button>' +
         (m.moveId ? '<button class="btn alt" data-a="sell">' + ic('trash', 20) + 'Vendre</button>' : '') + '<button class="btn alt" data-a="back">' + ic('close', 20) + (m.n ? 'Terminer' : 'Annuler') + '</button></div>';
     } else if (m.k === 'carry') {
@@ -6544,7 +6545,7 @@
     var q = P[ev.pointerId]; if (!q) return; delete P[ev.pointerId]; clearTimeout(holdT); var g = gest, n = count(), up = ev.type === 'pointerup', p = { x: q.x, y: q.y };
     if (g && g.k === 'pinch') { if (n === 1) { var k = Object.keys(P)[0]; P[k].moved = true; gest = { k: 'pan', dead: true }; View.cam.grab(P[k].x, P[k].y); } else if (n === 0) gest = null; return; }
     if (n > 0) return; gest = null; if (!g || !up) return;
-    if (g.k === 'pan') { if (!q.moved && !g.dead) { if (g.right) cancel(); else click(p); } return; }
+    if (g.k === 'pan') { if (!q.moved && !g.dead) { if (!g.right) click(p); else if (mode.k === 'place') rotateItem(1); else cancel(); } return; }
     if (g.k === 'trace') { finishTrace(q.moved, g.a); return; }
     if (g.k === 'press') { if (!g.turned) placeNow(); return; }
     if (g.k === 'gdrag') { if (g.held) { if (q.moved) placeNow(); } else if (!q.moved) { ghostTo(tileAt(p)); dock(); } return; }
@@ -6586,7 +6587,7 @@
     }
     if (m.k !== 'idle') return;
     if (panel) closePanel();
-    if (pk.person) { var now = Date.now(), again = sel && sel.t === 'p' && sel.id === pk.person && now - lastClick < 420; lastClick = now; if (again) { var fp = V.person(S, pk.person); follow = pk.person; if (fp) View.cam.focus(fp.x, fp.y, Math.min(View.cam.get().dist, 15)); dock(); } else { select({ t: 'p', id: pk.person }); sfx('pick'); } return; }
+    if (pk.person) { var now = Date.now(), again = sel && sel.t === 'p' && sel.id === pk.person && now - lastClick < 420; lastClick = now; if (again) { var fp = V.person(S, pk.person); follow = pk.person; if (fp) View.cam.focus(fp.x, fp.y, Math.min(View.cam.get().dist, 20)); dock(); } else { select({ t: 'p', id: pk.person }); sfx('pick'); } return; }
     it = pk.item ? V.item(S, pk.item) : null;
     if (it && !it.room) { select({ t: 'i', id: it.id }); return; }
     var rid = it ? it.room : pk.room; if (rid && V.room(S, rid)) { select({ t: 'r', id: rid }); return; }
@@ -6599,7 +6600,7 @@
     if (!S || ev.target.tagName === 'INPUT' || ev.ctrlKey || ev.metaKey || ev.altKey) return; var c = ev.code; keys[c] = true;
     if (c === 'Space') { ev.preventDefault(); if (!ev.repeat) setSpeed(speed ? 0 : lastSpeed); }
     else if (c === 'Escape' || c === 'Backspace') { if (modalKind && modalKind !== 'intro' && modalKind !== 'win' && modalKind !== 'lose') { ev.preventDefault(); closeModal(); } else if (mode.k !== 'idle' || panel || sel) { ev.preventDefault(); cancel(); } }
-    else if (c === 'KeyZ') rotateItem(-1); else if (c === 'KeyX') rotateItem(1);
+    else if (c === 'KeyZ') rotateItem(1); else if (c === 'KeyX') rotateItem(-1);
     else if (c === 'Delete') { if (mode.k === 'place' && mode.moveId) sellInHand(); else if (mode.k === 'idle' && sel && sel.t === 'i') { V.sellItem(S, sel.id); select(null); } }
     else if (c === 'Enter' && mode.k === 'place') placeNow();
     else if (c === 'Digit1' || c === 'Numpad1') setSpeed(1); else if (c === 'Digit2' || c === 'Numpad2') setSpeed(2); else if (c === 'Digit3' || c === 'Numpad3') setSpeed(3);
@@ -6628,7 +6629,7 @@
     else if (a === 'free') { S.freePlay = true; closeModal(); setSpeed(lastSpeed); }
     else if (a === 'close') closeModal(); else if (a === 'help') helpModal(true);
   };
-  function afterLoad() { idle(); sel = null; ui.sel = null; closePanel(); hideOffer(); shownLog = null; View.reset(); follow = 0; ui.hover = null; View.cam.set({ tx: V.SPAWN.x, tz: V.H - 7.5, yaw: 0.6, pitch: 0.92, dist: vw < 760 ? 23 : 21 }); View.cam.snap(); setSpeed(1); lastMonth = Math.floor(S.day / 30); hud(); }
+  function afterLoad() { idle(); sel = null; ui.sel = null; closePanel(); hideOffer(); shownLog = null; View.reset(); follow = 0; ui.hover = null; View.cam.set({ tx: V.SPAWN.x, tz: V.H - 11, yaw: 0.6, pitch: 0.92, dist: vw < 760 ? 34 : 30 }); View.cam.snap(); setSpeed(1); lastMonth = Math.floor(S.day / 30); hud(); }
   function intro() {
     var b = bestSave();
     modal('intro', '<h2>À l\'hôpital <span>Velpo</span></h2><p>Vous dirigez un hôpital public flambant vide. Tracez des salles, équipez-les, recrutez une équipe plus ou moins compétente, et soignez l\'écranite aiguë, la réunionite chronique ou le syndrome de la Quête.</p><p><b>Objectifs du niveau 1 :</b> 25 guérisons, 600 de réputation, 20 000 € en caisse.</p><div class="row">' +
@@ -6636,9 +6637,9 @@
   }
   function helpModal(fromIntro) {
     var K = keyLabel, rows = [
-      ['Clic gauche', 'Sélectionner, poser, valider'], ['Clic gauche maintenu', 'Prendre un employé ou un objet du couloir'], ['Double-clic sur quelqu\'un', 'Le suivre à la caméra'], ['Clic droit', 'Annuler, fermer · maintenu : déplacer la vue'], ['Clic molette maintenu', 'Tourner et incliner la vue'], ['Molette', 'Zoom'],
+      ['Clic gauche', 'Sélectionner, poser, valider'], ['Clic gauche maintenu', 'Prendre un employé ou un objet du couloir'], ['Double-clic sur quelqu\'un', 'Le suivre à la caméra'], ['Clic droit', 'Tourner l\'objet en main · sinon annuler, fermer'], ['Clic droit maintenu', 'Déplacer la vue'], ['Clic molette maintenu', 'Tourner et incliner la vue'], ['Molette', 'Zoom'],
       [K('KeyW', 'Z') + K('KeyA', 'Q') + K('KeyS', 'S') + K('KeyD', 'D'), 'Déplacer la vue'], [K('KeyQ', 'A') + K('KeyE', 'E') + ' ou <kbd>←</kbd><kbd>→</kbd>', 'Tourner la vue'], ['<kbd>↑</kbd><kbd>↓</kbd>', 'Zoom'], [K('KeyR', 'R') + K('KeyF', 'F'), 'Incliner la vue'],
-      [K('KeyZ', 'W') + K('KeyX', 'X') + ' ou clic maintenu + glisser', 'Tourner l\'objet en main'], ['<kbd>Suppr</kbd>', 'Vendre l\'objet en main'], ['<kbd>Espace</kbd>', 'Pause'], ['<kbd>1</kbd><kbd>2</kbd><kbd>3</kbd>', 'Vitesse du jeu'], ['<kbd>F6</kbd>', 'Sauvegarde rapide']
+      [K('KeyZ', 'W') + K('KeyX', 'X') + ' ou clic maintenu + glisser', 'Tourner l\'objet en main'], ['<kbd>Suppr</kbd>', 'Vendre l\'objet en main'], ['<kbd>Échap</kbd>', 'Annuler, reposer'], ['<kbd>Espace</kbd>', 'Pause'], ['<kbd>1</kbd><kbd>2</kbd><kbd>3</kbd>', 'Vitesse du jeu'], ['<kbd>F6</kbd>', 'Sauvegarde rapide']
     ];
     modal(fromIntro === true ? 'intro2' : 'help', '<h2>Commandes</h2><p>Comme dans Two Point Hospital.</p><div class="keys">' + rows.map(function (r) { return '<span>' + r[0] + '</span><span style="color:var(--muted)">' + r[1] + '</span>'; }).join('') + '</div><p style="margin-top:14px"><b>Au doigt :</b> un doigt déplace la vue, deux doigts zooment et tournent, un appui sélectionne. Les boutons à droite tournent et zooment aussi.</p><p><b>Salles :</b> un clic pose la taille minimale, un cliquer-glisser trace plus grand. « Modifier » ferme la salle pour la réaménager, « Copier » la reproduit toute équipée.</p><p><b>Personnel :</b> appui maintenu (ou « Prendre ») pour le soulever ; déposez-le dans une salle pour l\'y affecter.</p><div class="row"><button class="btn" data-a="' + (fromIntro === true ? 'back' : 'close') + '">Compris</button></div>');
     if (fromIntro === true) $('modalBody').querySelector('[data-a=back]').onclick = function (e) { e.stopPropagation(); intro(); };
@@ -6652,14 +6653,14 @@
   var acc = 0, last = 0, lastMonth = 0;
   var FXT = { cure: ['Guéri !', 'ok'], angry: ['Scandaleux !', 'neg'], idea: ['Diagnostic !', 'w'], fixed: ['Réparé', 'ok'], zombie: ['Remboursez…', 'neg'] };
   var FL = {};
-  function floatAt(x, y, text, cls, hgt) { var k = Math.round(x / 2) + ',' + Math.round(y / 2), now = Date.now(), f = FL[k]; if (f && now - f.t < 800) f.n = (f.n + 1) % 4; else f = FL[k] = { n: 0 }; f.t = now; View.float(x, y, text, cls, hgt + f.n * 0.45); }
+  function floatAt(x, y, text, cls, hgt) { var k = Math.round(x / 2) + ',' + Math.round(y / 2), now = Date.now(), f = FL[k]; if (f && now - f.t < 800) f.n = (f.n + 1) % 4; else f = FL[k] = { n: 0 }; f.t = now; View.float(x, y, text, cls, hgt + f.n * 0.6); }
   function resize() { var r = $('app').getBoundingClientRect(); vw = r.width; vh = r.height; View.resize(vw, vh); }
   function loop(ts) {
     requestAnimationFrame(loop); var dt = Math.min(0.1, (ts - last) / 1000 || 0.016); last = ts; if (!ready || !S) return; frames++;
     camKeys(dt);
     if (speed && !modalKind) { acc += dt * 20 * SPD[speed]; var n = 0; while (acc >= 1 && n < 14) { V.tick(S); acc -= 1; n++; } if (acc > 4) acc = 0; }
     if (S.fx && S.fx.length) {
-      S.fx.forEach(function (e) { sfx(e.n); View.event(e); if (e.v) floatAt(e.x, e.y, (e.v > 0 ? '+' : '−') + euro(Math.abs(e.v)), e.v > 0 ? '' : 'neg', 1.0); else if (FXT[e.n]) floatAt(e.x, e.y, FXT[e.n][0], FXT[e.n][1], 1.3); });
+      S.fx.forEach(function (e) { sfx(e.n); View.event(e); if (e.v) floatAt(e.x, e.y, (e.v > 0 ? '+' : '−') + euro(Math.abs(e.v)), e.v > 0 ? '' : 'neg', 1.3); else if (FXT[e.n]) floatAt(e.x, e.y, FXT[e.n][0], FXT[e.n][1], 1.7); });
       S.fx.length = 0;
     }
     var mth = Math.floor(S.day / 30); if (mth !== lastMonth) { lastMonth = mth; if (mth > 0 && mode.k !== 'carry') save(); }
@@ -6670,11 +6671,11 @@
   }
   function demo() {
     S.money = 60000;
-    var room = function (t, x, y, w, h) { var d = V.autoDoor(S, t, x, y, w, h); if (!d || V.buildRoom(S, t, x, y, w, h, d.rot, d.k)) return; var r = V.room(S, S.lastId); V.autoFurnish(S, r.id); V.openRoom(S, r.id); };
-    V.placeItem(S, 'reception', 14, 17, 2, 0); V.hire(S, 'recep', 0);
+    var room = function (t, x, y, w, h) { x *= 2; y *= 2; w *= 2; h *= 2; var d = V.autoDoor(S, t, x, y, w, h); if (!d || V.buildRoom(S, t, x, y, w, h, d.rot, d.k)) return; var r = V.room(S, S.lastId); V.autoFurnish(S, r.id); V.openRoom(S, r.id); };
+    V.placeItem(S, 'reception', 29, 35, 2, 0); V.hire(S, 'recep', 0);
     room('gp', 10, 12, 3, 3); room('gp', 6, 13, 3, 3); room('pharma', 18, 12, 3, 3); room('psy', 10, 6, 4, 4); room('radio', 16, 6, 4, 3); room('repos', 22, 6, 4, 3); room('wc', 22, 11, 3, 2); room('deco', 22, 14, 4, 4); room('guichet', 2, 17, 4, 3); room('platre', 4, 8, 4, 3);
     ['doc', 'doc', 'doc', 'doc', 'doc', 'nurse', 'nurse', 'nurse', 'handy'].forEach(function (k) { V.hire(S, k, 0); });
-    for (var i = 0; i < 4; i++) V.placeItem(S, 'bench', 14 + i, 10, 0, 0); V.placeItem(S, 'drinks', 19, 16, 0, 0); V.placeItem(S, 'plant', 12, 16, 0, 0); V.placeItem(S, 'bench', 8, 11, 3, 0);
+    for (var i = 0; i < 8; i++) V.placeItem(S, 'bench', 28 + i, 20, 0, 0); V.placeItem(S, 'drinks', 38, 32, 0, 0); V.placeItem(S, 'plant', 24, 32, 0, 0); V.placeItem(S, 'plant', 25, 32, 0, 0); V.placeItem(S, 'bench', 16, 22, 3, 0); V.placeItem(S, 'bench', 16, 23, 3, 0);
     for (i = 0; i < 4000; i++) { V.tick(S); S.fx.length = 0; if (S.offer) V.acceptEmergency(S, true); }
   }
   function start() {
