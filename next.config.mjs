@@ -19,6 +19,8 @@ const nextConfig = {
       { source: '/XYN', destination: '/xyn/index.html' },
       { source: '/landoflord', destination: '/landoflord/index.html' },
       { source: '/LandOfLord', destination: '/landoflord/index.html' },
+      { source: '/velpo', destination: '/velpo/index.html' },
+      { source: '/Velpo', destination: '/velpo/index.html' },
     ];
   },
 };

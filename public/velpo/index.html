@@ -1,0 +1,1481 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>À l'hôpital Velpo</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;800&family=Nunito:wght@500;700;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  /* Un seul univers visuel : nuit bleu pétrole dehors, hôpital menthe dedans, corail pour l'action. */
+  --night:#10303b; --night-2:#18434f; --panel:#f7fbf9; --ink:#17323a; --muted:#5d7a80;
+  --coral:#ff6b5e; --coral-ink:#7a1d15; --sun:#ffc94a; --mint:#8fd6b8; --line:#d5e5df;
+  --good:#1f9d6b; --warn:#c77700; --bad:#d23b3b;
+  --display:"Baloo 2","Trebuchet MS",system-ui,sans-serif; --body:"Nunito",system-ui,-apple-system,"Segoe UI",sans-serif;
+  color-scheme:light;
+}
+*{box-sizing:border-box}
+html,body{height:100%;margin:0}
+body{background:var(--night);color:var(--ink);font-family:var(--body);font-size:15px;display:flex;flex-direction:column;overflow:hidden;
+  -webkit-user-select:none;user-select:none;touch-action:none}
+button{font:inherit;color:inherit;cursor:pointer;border:0;background:none}
+button:focus-visible,input:focus-visible{outline:3px solid var(--sun);outline-offset:2px}
+#hud{display:flex;flex-wrap:wrap;align-items:center;gap:6px 8px;padding:8px 12px;background:var(--night-2);color:#eaf6f2}
+#hud h1{font-family:var(--display);font-weight:800;font-size:18px;margin:0 6px 0 0;line-height:1;color:#fff;white-space:nowrap}
+#hud h1 span{color:var(--coral)}
+.stat{display:flex;align-items:baseline;gap:5px;background:rgba(255,255,255,.09);border-radius:999px;padding:4px 10px;font-weight:800;font-variant-numeric:tabular-nums;white-space:nowrap}
+.stat small{font-weight:700;font-size:11px;opacity:.75;text-transform:uppercase;letter-spacing:.04em}
+.stat.money{color:var(--sun)} .stat.neg{color:#ff9d94}
+#speed{display:flex;gap:4px;margin-left:auto}
+#speed button{width:36px;height:32px;border-radius:9px;background:rgba(255,255,255,.1);color:#fff;font-weight:800}
+#speed button[aria-pressed="true"]{background:var(--coral)}
+#ticker{display:flex;gap:8px;align-items:center;padding:6px 12px;background:#0c252e;color:#d6ebe6;font-size:13.5px;min-height:34px}
+#ticker b{flex:none;font-family:var(--display);font-size:12px;padding:1px 8px;border-radius:999px;background:var(--mint);color:#0d3a2c}
+#ticker.warn b{background:var(--sun);color:#4a3200} #ticker.bad b{background:var(--coral);color:#fff} #ticker.ann b{background:#b9a7ee;color:#231650}
+#ticker span{flex:1;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
+#stage{position:relative;flex:1;min-height:0}
+canvas{position:absolute;inset:0;width:100%;height:100%;display:block;touch-action:none}
+#hint{position:absolute;left:12px;right:64px;top:10px;pointer-events:none}
+#hint div{display:inline-block;max-width:460px;background:rgba(247,251,249,.95);border-radius:12px;padding:7px 11px;font-weight:700;font-size:13px;box-shadow:0 3px 0 rgba(0,0,0,.2)}
+#hint div::before{content:"Conseil";font-family:var(--display);color:var(--coral);margin-right:6px}
+#zoom{position:absolute;right:12px;top:10px;display:flex;flex-direction:column;gap:6px}
+#ttsStop{flex:none;background:var(--coral);color:#fff;font-weight:800;font-size:12.5px;border-radius:999px;padding:4px 10px}
+#mute[aria-pressed="true"]{background:#cfdcd8;color:var(--muted)}
+.btn.alt[aria-pressed="false"]{opacity:.6}
+#zoom button{width:40px;height:40px;border-radius:12px;background:var(--panel);font-weight:800;font-size:20px;box-shadow:0 3px 0 rgba(0,0,0,.25)}
+#card,#buildbar,#offer{position:absolute;left:12px;right:12px;bottom:10px;margin:auto;max-width:520px;background:var(--panel);border-radius:16px;padding:12px 14px;box-shadow:0 4px 0 rgba(0,0,0,.25);display:none}
+#card h3,#buildbar h3,#offer h3{font-family:var(--display);font-size:18px;margin:0 0 2px;line-height:1.15}
+#card p,#buildbar p,#offer p{margin:2px 0 6px;color:var(--muted);font-size:13.5px;line-height:1.35}
+#buildbar p.err{color:var(--bad);font-weight:800}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.btn{background:var(--coral);color:#fff;font-weight:800;border-radius:11px;padding:9px 14px;box-shadow:0 3px 0 var(--coral-ink)}
+.btn:active{transform:translateY(2px);box-shadow:0 1px 0 var(--coral-ink)}
+.btn.alt{background:#e3efea;color:var(--ink);box-shadow:0 3px 0 #b9cfc7}
+.btn.sm{padding:6px 11px;font-size:13.5px}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.x{position:absolute;right:8px;top:6px;width:34px;height:34px;border-radius:50%;font-size:20px;font-weight:800;color:var(--muted)}
+.bar{height:8px;border-radius:99px;background:#dde9e5;overflow:hidden;flex:1;min-width:60px}
+.bar i{display:block;height:100%;background:var(--good);border-radius:99px}
+.bar.w i{background:var(--warn)} .bar.b i{background:var(--bad)}
+.kv{display:grid;grid-template-columns:auto 1fr auto;gap:4px 8px;align-items:center;font-size:13px;font-weight:700;margin:6px 0}
+#nav{display:flex;background:var(--panel);border-top:3px solid var(--mint);padding-bottom:env(safe-area-inset-bottom,0)}
+#nav button{flex:1;padding:10px 2px 9px;font-family:var(--display);font-weight:600;font-size:14.5px;color:var(--muted);border-top:3px solid transparent;margin-top:-3px}
+#nav button[aria-pressed="true"]{color:var(--coral);border-top-color:var(--coral)}
+#sheet{position:absolute;left:0;right:0;bottom:0;max-height:72%;background:var(--panel);border-radius:18px 18px 0 0;box-shadow:0 -6px 24px rgba(0,0,0,.35);display:none;flex-direction:column}
+#sheet header{display:flex;align-items:center;padding:10px 14px 6px}
+#sheet header h2{font-family:var(--display);font-size:20px;margin:0;flex:1}
+#sheetBody{overflow-y:auto;padding:2px 14px 16px;display:grid;gap:10px;touch-action:pan-y;-webkit-overflow-scrolling:touch}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:10px}
+.item{border:2px solid var(--line);border-radius:14px;padding:10px 12px;background:#fff;display:grid;gap:4px}
+.item h4{font-family:var(--display);font-size:16px;margin:0;display:flex;gap:8px;align-items:baseline;justify-content:space-between}
+.item h4 em{font-style:normal;font-family:var(--body);font-weight:800;font-size:13.5px;color:var(--warn);white-space:nowrap}
+.item p{margin:0;font-size:13px;color:var(--muted);line-height:1.35}
+.tag{display:inline-block;font-size:11.5px;font-weight:800;border-radius:99px;padding:1px 8px;background:#e3efea;color:var(--ink)}
+.sec{font-family:var(--display);font-size:15px;color:var(--coral);margin:6px 0 -4px}
+.log{font-size:13px;line-height:1.4;margin:0;padding:0;list-style:none;display:grid;gap:5px}
+.log li{padding-left:10px;border-left:3px solid var(--mint)} .log li.warn{border-color:var(--sun)} .log li.bad{border-color:var(--coral)} .log li.ann{border-color:#b9a7ee;font-style:italic}
+input[type=range]{width:100%;accent-color:var(--coral)}
+#modal{position:absolute;inset:0;background:rgba(8,26,32,.72);display:none;align-items:center;justify-content:center;padding:16px}
+#modal>div{background:var(--panel);border-radius:20px;padding:20px;max-width:440px;width:100%;max-height:100%;overflow:auto;box-shadow:0 6px 0 rgba(0,0,0,.3)}
+#modal h2{font-family:var(--display);font-weight:800;font-size:28px;line-height:1.05;margin:0 0 8px;text-wrap:balance}
+#modal h2 span{color:var(--coral)}
+#modal p{margin:0 0 10px;line-height:1.45}
+#modal small{color:var(--muted);display:block;margin-top:10px;line-height:1.4}
+#toast{position:absolute;left:50%;top:56px;transform:translateX(-50%);background:var(--ink);color:#fff;font-weight:800;padding:8px 14px;border-radius:999px;font-size:13.5px;opacity:0;transition:opacity .2s;pointer-events:none;white-space:nowrap;max-width:92%;overflow:hidden;text-overflow:ellipsis}
+@media (max-width:520px){#hud h1{display:none}.stat{padding:3px 8px;font-size:14px}#hint div{font-size:12.5px}}
+@media (prefers-reduced-motion:reduce){#toast{transition:none}}
+</style>
+</head>
+<body>
+<div id="hud">
+  <h1>Hôpital <span>Velpo</span></h1>
+  <div class="stat money" id="sMoney"><small>Caisse</small><span>30 000 €</span></div>
+  <div class="stat" id="sRep"><small>Réput.</small><span>500</span></div>
+  <div class="stat" id="sCured"><small>Guéris</small><span>0/25</span></div>
+  <div class="stat" id="sDate"><small>Jour</small><span>1</span></div>
+  <div id="speed" role="group" aria-label="Vitesse du jeu">
+    <button id="sp0" aria-label="Pause" aria-pressed="false">II</button>
+    <button id="sp1" aria-label="Vitesse normale" aria-pressed="true">&#9654;</button>
+    <button id="sp2" aria-label="Vitesse rapide" aria-pressed="false">&#9654;&#9654;</button>
+  </div>
+</div>
+<div id="ticker"><b>Accueil</b><span id="tickText"></span><button id="ttsStop" style="display:none">Couper la voix</button></div>
+<div id="stage">
+  <canvas id="cv" aria-label="Plan de l'hôpital"></canvas>
+  <div id="hint"><div id="hintText"></div></div>
+  <div id="zoom"><button id="zIn" aria-label="Zoomer">+</button><button id="zOut" aria-label="Dézoomer">&minus;</button><button id="mute" aria-label="Couper ou remettre le son" aria-pressed="false">♪</button></div>
+  <div id="card"></div>
+  <div id="offer"></div>
+  <div id="buildbar"></div>
+  <div id="sheet"><header><h2 id="sheetTitle"></h2><button class="x" id="sheetClose" aria-label="Fermer" style="position:static">&times;</button></header><div id="sheetBody"></div></div>
+  <div id="toast" role="status"></div>
+  <div id="modal"><div id="modalBody"></div></div>
+</div>
+<nav id="nav">
+  <button data-s="rooms" aria-pressed="false">Salles</button>
+  <button data-s="objs" aria-pressed="false">Objets</button>
+  <button data-s="team" aria-pressed="false">Équipe</button>
+  <button data-s="manage" aria-pressed="false">Gestion</button>
+</nav>
+<script>
+/* À l'hôpital Velpo — moteur de simulation (sans affichage).
+ *
+ * Plusieurs règles de jeu sont adaptées de CorsixTH (https://github.com/CorsixTH/CorsixTH) :
+ * progression du diagnostic, cycle du généraliste, acceptation du prix, efficacité du
+ * traitement, prix lié à la réputation, fatigue du personnel, besoins quotidiens des patients.
+ *
+ * CorsixTH — Copyright (C) 2009-2026 Peter "Corsix" Cawley, Edvin "Lego3" Linge and the
+ * CorsixTH contributors (liste complète : LICENSE.txt du dépôt).
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy of this
+ * software and associated documentation files (the "Software"), to deal in the Software
+ * without restriction, including without limitation the rights to use, copy, modify, merge,
+ * publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons
+ * to whom the Software is furnished to do so, subject to the following conditions:
+ * The above copyright notice and this permission notice shall be included in all copies or
+ * substantial portions of the Software.
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED,
+ * INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR
+ * PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE
+ * FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
+ * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+ * DEALINGS IN THE SOFTWARE.
+ *
+ * Aucun graphisme, son, texte, nom de maladie ou niveau du jeu d'origine n'est repris.
+ */
+(function (root) {
+  'use strict';
+  var W = 26, H = 18, SPAWN = { x: 13, y: 17 }, DAY = 50;
+  var rnd = Math.random;
+  function ri(a, b) { return a + Math.floor(rnd() * (b - a + 1)); }
+  function pick(a) { return a[Math.floor(rnd() * a.length)]; }
+  function clamp(v, a, b) { return v < a ? a : v > b ? b : v; }
+
+  var ROOMS = {
+    gp:      { name: 'Cabinet de généraliste', short: 'Généraliste', w: 3, h: 3, cost: 2500, staff: 'doc', kind: 'diag', price: 100, dur: 0, color: '#bfe3d0',
+               blurb: 'Tout commence ici. Et souvent, tout y revient.' },
+    radio:   { name: 'Radiologie approximative', short: 'Radio', w: 4, h: 3, cost: 6000, staff: 'doc', kind: 'diag', price: 260, dur: 34, machine: true, color: '#c9d6f2',
+               blurb: 'On voit à travers le patient. Pas toujours à travers son dossier.' },
+    psy:     { name: 'Psychiatrie', short: 'Psy', w: 3, h: 3, cost: 3500, staff: 'doc', kind: 'both', price: 160, dur: 42, color: '#e6d3f0',
+               blurb: 'Un divan, un médecin, et « on en reparle la semaine prochaine ».' },
+    pharma:  { name: 'Pharmacie', short: 'Pharmacie', w: 3, h: 3, cost: 3000, staff: 'nurse', kind: 'cure', dur: 26, color: '#f6dfb8',
+               blurb: 'Des cachets pour tout. Les notices sont offertes, personne ne les lit.' },
+    deco:    { name: 'Déconnecteur', short: 'Déconnecteur', w: 4, h: 3, cost: 5000, staff: 'doc', kind: 'cure', dur: 40, machine: true, color: '#f4c9c4',
+               blurb: 'Cage sans réseau, sans wifi, sans notifications. Les patients hurlent, puis guérissent.' },
+    guichet: { name: 'Guichet n° 12', short: 'Guichet 12', w: 3, h: 3, cost: 2000, staff: 'nurse', kind: 'cure', dur: 46, color: '#d7dccf',
+               blurb: 'Thérapie par exposition au formulaire. Il manque toujours une pièce.' },
+    platre:  { name: 'Atelier plâtre', short: 'Plâtre', w: 3, h: 3, cost: 3500, staff: 'nurse', kind: 'cure', dur: 36, color: '#f1ead9',
+               blurb: 'On plâtre large. Les amis signeront dessus.' },
+    repos:   { name: 'Salle de repos', short: 'Repos', w: 3, h: 3, cost: 2000, staff: null, kind: 'service', cap: 4, color: '#cfe6ef',
+               blurb: 'Canapé, machine à café, ragots. Sans elle, l\'équipe craque.' },
+    wc:      { name: 'Toilettes', short: 'Toilettes', w: 3, h: 2, cost: 1500, staff: null, kind: 'service', cap: 3, color: '#dbe9f4',
+               blurb: 'À construire avant le distributeur de boissons. Faites-nous confiance.' }
+  };
+  var OBJS = {
+    desk:   { name: 'Accueil', cost: 300, blurb: 'Les patients s\'y enregistrent. Il faut quelqu\'un derrière.' },
+    bench:  { name: 'Banc', cost: 60, blurb: 'Attendre assis rend l\'attente presque supportable.' },
+    drinks: { name: 'Distributeur', cost: 500, blurb: 'Rapporte 20 € par soda. Ne rend pas la monnaie.' },
+    plant:  { name: 'Plante verte', cost: 40, blurb: 'Remonte le moral. En plastique, mais personne ne vérifie.' }
+  };
+  var DISEASES = [
+    { id: 'ecranite', name: 'Écranite aiguë', cure: 'deco', diag: ['radio', 'psy'], diff: 0.2, eff: 92, price: 700,
+      desc: 'Le pouce a fusionné avec le téléphone. Le patient like son propre dossier médical.' },
+    { id: 'influencite', name: 'Influençite', cure: 'deco', diag: ['psy', 'radio'], diff: 0.3, eff: 88, price: 800,
+      desc: 'S\'adresse à une caméra imaginaire. Demande au médecin de s\'abonner.' },
+    { id: 'reunionite', name: 'Réunionite chronique', cure: 'psy', diag: ['psy'], diff: 0.25, eff: 90, price: 650,
+      desc: 'A passé trop d\'heures en visio. Coupe son micro avant de tousser.' },
+    { id: 'quete', name: 'Syndrome de la Quête', cure: 'psy', diag: ['psy', 'radio'], diff: 0.45, eff: 85, price: 900,
+      desc: 'Persuadé d\'être chevalier. Cherche un vase sacré dans les placards à pharmacie.' },
+    { id: 'pyjama', name: 'Télétravail en pyjama, stade 3', cure: 'psy', diag: ['psy'], diff: 0.3, eff: 90, price: 600,
+      desc: 'N\'a pas mis de pantalon depuis 2020. La partie haute reste présentable.' },
+    { id: 'lundi', name: 'Allergie au lundi', cure: 'pharma', diag: ['radio'], diff: 0.1, eff: 95, price: 350,
+      desc: 'Éruptions dès le dimanche soir. Rémission spontanée le vendredi à 17 h.' },
+    { id: 'rhume', name: 'Rhume de cerveau disponible', cure: 'pharma', diag: ['radio', 'psy'], diff: 0.15, eff: 95, price: 300,
+      desc: 'Le nez coule, les idées aussi. Très contagieux en open space.' },
+    { id: 'fauxlupus', name: 'Faux lupus', cure: 'pharma', diag: ['radio', 'psy'], diff: 0.7, eff: 80, price: 1200,
+      desc: 'Tout le monde pense au lupus. Tout le monde a tort. Il faut trois examens pour l\'admettre.' },
+    { id: 'phobie', name: 'Phobie administrative', cure: 'guichet', diag: ['psy'], diff: 0.2, eff: 90, price: 550,
+      desc: 'N\'ouvre plus son courrier depuis trois ans. Tremble devant un Cerfa.' },
+    { id: 'trottinette', name: 'Trottinettose', cure: 'platre', diag: ['radio'], diff: 0.1, eff: 96, price: 750,
+      desc: 'Fracture typique de la trottinette électrique. Le patient jure qu\'il avait la priorité.' }
+  ];
+  var DMAP = {}; DISEASES.forEach(function (d) { DMAP[d.id] = d; });
+
+  var STAFF = {
+    doc:   { name: 'Médecin', base: 260, perSkill: 520 },
+    nurse: { name: 'Infirmier·ère', base: 170, perSkill: 220 },
+    recep: { name: 'Réceptionniste', base: 130, perSkill: 60 },
+    handy: { name: 'Agent d\'entretien', base: 120, perSkill: 100 }
+  };
+  var FIRST = ['Gauvain', 'Solange', 'Kader', 'Yvette', 'Brice', 'Maïté', 'Octave', 'Fanny', 'Régis', 'Nadia', 'Clotaire', 'Josiane', 'Bébert', 'Linh', 'Hubert', 'Samia', 'Ghislain', 'Odile', 'Momo', 'Capucine', 'Raoul', 'Inès', 'Firmin', 'Paulette'];
+  var LAST = ['Dulac', 'Compresse', 'Sparadrap', 'Tisane', 'Bistouri', 'Garrot', 'Aspro', 'Pansement', 'Scalpel', 'Mercurochrome', 'Lavement', 'Béquille', 'Seringue', 'Ordonnance', 'Tensiomètre', 'Brancard'];
+  var BIOS = {
+    doc: [
+      'Génial, boiteux, odieux. Part du principe que le patient ment, et le distributeur aussi.',
+      'Ne comprend pas la moitié des mots du dossier. Soigne quand même, parfois juste.',
+      'Diagnostique à l\'instinct. Son instinct a fait médecine par correspondance.',
+      'A soutenu sa thèse sur la sieste. Mention très honorable, décernée pendant qu\'elle dormait.',
+      'Répond « on va faire des examens » à toute question, y compris « ça va ? ».',
+      'Commande ses internes comme une tablée de chevaliers. Ils n\'écoutent pas non plus.',
+      'Écrit lisiblement. Suspect. Vérifiez le diplôme.'
+    ],
+    nurse: [
+      'Pique du premier coup. Le dit trop souvent pour que ce soit vrai.',
+      'Tient le service à bout de bras, avec un café froid dans l\'autre main.',
+      'Connaît tous les ragots de l\'étage. Les perfuse à qui veut.',
+      'Sourit toujours. Personne n\'ose demander pourquoi.',
+      'A survécu à trois réformes de l\'hôpital et à la cantine.'
+    ],
+    recep: [
+      'Transfère les appels au mauvais service avec une grande régularité.',
+      'Dit « prenez un ticket » même quand il n\'y a pas de tickets.',
+      'Fait patienter les gens avec une musique qu\'elle fredonne elle-même.',
+      'A une voix d\'annonce de gare. On ne comprend rien, mais on se sent en voyage.'
+    ],
+    handy: [
+      'Répare tout avec du sparadrap. C\'est un hôpital, il y en a.',
+      'A déjà réparé la radio en tapant dessus. Deux fois.',
+      'Passe la serpillière en commentant le match d\'hier.',
+      'Brancardier le matin, plombier l\'après-midi, philosophe à la pause.'
+    ]
+  };
+  var THOUGHTS = {
+    queue: ['« Ça fait combien de temps qu\'on attend, là ? »', '« J\'aurais dû regarder sur internet. »', '« Le monsieur d\'à côté a l\'air plus malade que moi. Tant mieux. »', '« Si je tousse plus fort, je passe plus vite ? »'],
+    happy: ['« Finalement, c\'est mieux que la clinique d\'en face. »', '« Le personnel est charmant. Bizarre, mais charmant. »'],
+    angry: ['« Je veux parler au directeur. »', '« Trois heures pour un ticket ! »', '« Je mettrai une étoile. Une. »'],
+    thirsty: ['« Je donnerais un rein pour un soda. Ça tombe bien, je suis au bon endroit. »'],
+    wc: ['« C\'est par où, les toilettes ? C\'est assez urgent. »'],
+    lost: ['« On m\'a dit d\'aller dans une salle qui n\'existe pas. Classique. »']
+  };
+  var ANNOUNCE = [
+    'Les patients sont priés de ne pas mourir dans les couloirs. Ça fait désordre.',
+    'Rappel : le distributeur ne rend pas la monnaie. Ni la santé.',
+    'Un véhicule gêne devant l\'entrée. C\'est l\'ambulance. On la laisse.',
+    'Le formulaire B-12 est disponible au guichet 12. Le guichet 12 est fermé.',
+    'Il est rappelé au personnel que « c\'est pas clair » n\'est pas un diagnostic.',
+    'La direction précise que le burn-out n\'est pas contagieux. Enfin, pas par voie aérienne.',
+    'Le patient qui a perdu patience peut la récupérer à l\'accueil.',
+    'La cafétéria informe que le plat du jour est celui d\'hier. Littéralement.',
+    'Suite à une erreur d\'étiquetage, la salle de repos et la morgue ont été inversées. Bon courage à l\'équipe de nuit.',
+    'Un chevalier cherche un vase sacré en salle d\'attente. Merci de lui indiquer la psychiatrie.',
+    'Mesdames et messieurs, la mutuelle ne couvre pas ça. Ni ça. Ni ça non plus.',
+    'Le docteur est en retard. Le docteur a toujours été en retard. Le docteur est un concept.',
+    'Merci de ne pas filmer les soins pour vos abonnés. Ou alors taguez l\'hôpital.',
+    'Le service informatique rappelle que redémarrer le patient ne fonctionne pas.',
+    'Il reste des places en psychiatrie. Ce n\'est pas une promotion, juste une information.',
+    'Toute ressemblance entre le chef de service et un roi dépassé par ses chevaliers est fortuite.',
+    'Le voyant de la chambre 14 clignote. Ah, il s\'est éteint. Ce n\'était donc pas si urgent.',
+    'La visite de 8 h aura lieu, comme chaque jour, en fin de matinée.',
+    'Les visites aux patients sont ouvertes de 14 h 07 à 14 h 12, sur demande écrite déposée l\'avant-veille.',
+    'La direction rappelle qu\'on dit « patient ». « Client », c\'est uniquement en réunion budgétaire.',
+    'Docteur, la salle d\'examen est à gauche. Là, c\'est le placard à balais.',
+    'Les fleurs pour les malades sont à déposer à l\'accueil, qui les trouve très jolies sur son bureau.',
+    'Rappel à l\'atelier plâtre : la jambe gauche du patient est à votre droite. Dans le doute, demandez-lui.',
+    'Pour toute hémorragie pendant la pause déjeuner, merci de patienter en appuyant fort.',
+    'Le lit de la chambre 9 est attendu. Son occupant est prié de guérir d\'ici demain.'
+  ];
+  var GOALS = { cured: 25, rep: 600, money: 20000 };
+
+  /* ---------- état ---------- */
+  function newGame() {
+    var S = {
+      v: 1, tick: 0, day: 0, money: 30000, rep: 500, cured: 0, deaths: 0, left: 0, treated: 0,
+      priceMult: 1, occ: [], rooms: [], objs: [], people: [], puddles: [], nextId: 1, log: [],
+      pool: {}, spawnT: 120, emergency: null, offer: null, won: false, lost: false, freePlay: false,
+      seen: {}, known: {}, fx: [], ev: null, nextEv: 45, month: { inc: 0, exp: 0 }, lastMonth: null, annT: 300, nextEmerg: 150
+    };
+    for (var y = 0; y < H; y++) { S.occ.push([]); for (var x = 0; x < W; x++) S.occ[y].push(0); }
+    refreshPool(S);
+    say(S, 'Bienvenue à l\'hôpital Velpo. Budget serré, couloirs vides, ambitions démesurées.', 'info');
+    return S;
+  }
+  function say(S, text, kind) {
+    S.log.push({ t: text, k: kind || 'info', d: S.day });
+    if (S.log.length > 40) S.log.shift();
+  }
+  function sayOnce(S, key, text, kind) { if (S.seen[key] && S.day - S.seen[key] < 20) return; S.seen[key] = S.day || 1; say(S, text, kind); }
+  function fx(S, n, x, y, v) { if (!S.fx) S.fx = []; if (S.fx.length < 24) S.fx.push({ n: n, x: x, y: y, v: v }); }
+  function pay(S, r, n) { earn(S, n); fx(S, 'cash', r.x + r.w / 2, r.y + r.h / 2, n); }
+  function earn(S, n) { S.money += n; S.month.inc += n; }
+  function spend(S, n) { S.money -= n; S.month.exp += n; }
+  function changeRep(S, n) { S.rep = clamp(S.rep + n, 0, 1000); }
+  function byId(list, id) { for (var i = 0; i < list.length; i++) if (list[i].id === id) return list[i]; return null; }
+  function person(S, id) { return byId(S.people, id); }
+  function room(S, id) { return byId(S.rooms, id); }
+  function inB(x, y) { return x >= 0 && y >= 0 && x < W && y < H; }
+  function price(S, base) { return Math.ceil(base * (S.rep >= 500 ? S.rep / 500 : 1) * S.priceMult); }
+
+  /* ---------- personnel : profils ---------- */
+  function makeProfile(kind) {
+    var skill = clamp(0.15 + rnd() * 0.85, 0, 1);
+    return {
+      kind: kind, name: (kind === 'doc' ? 'Dr ' : '') + pick(FIRST) + ' ' + pick(LAST), skill: skill,
+      attn: rnd(), bio: pick(BIOS[kind]), wage: Math.round(STAFF[kind].base + STAFF[kind].perSkill * skill), hue: ri(0, 5)
+    };
+  }
+  function refreshPool(S) {
+    ['doc', 'nurse', 'recep', 'handy'].forEach(function (k) { S.pool[k] = [makeProfile(k), makeProfile(k), makeProfile(k)]; });
+  }
+  function hire(S, kind, idx) {
+    var pr = S.pool[kind][idx]; if (!pr) return null;
+    S.pool[kind].splice(idx, 1); S.pool[kind].push(makeProfile(kind));
+    var p = { id: S.nextId++, kind: kind, name: pr.name, skill: pr.skill, attn: pr.attn, bio: pr.bio, wage: pr.wage, hue: pr.hue,
+      x: SPAWN.x, y: SPAWN.y, path: [], st: 'idle', fatigue: 0, inRoom: null, idleT: 0 };
+    S.people.push(p); spend(S, pr.wage); fx(S, 'hire', p.x, p.y);
+    say(S, p.name + ' rejoint l\'équipe (' + STAFF[kind].name + ').', 'good');
+    return p;
+  }
+  function fire(S, id) {
+    var p = person(S, id); if (!p || p.kind === 'patient') return;
+    releaseStaff(S, p);
+    S.people.splice(S.people.indexOf(p), 1);
+    say(S, p.name + ' quitte l\'hôpital avec ses cartons et un yucca.', 'warn');
+  }
+  function releaseStaff(S, p) {
+    S.rooms.forEach(function (r) { if (r.staffId === p.id) { r.staffId = null; r.staffIn = false; } if (r.fixer === p.id) r.fixer = null; });
+    S.objs.forEach(function (o) { if (o.staffId === p.id) { o.staffId = null; o.staffIn = false; } });
+    S.puddles.forEach(function (u) { if (u.cleaner === p.id) u.cleaner = null; });
+    p.inRoom = null;
+  }
+
+  /* ---------- carte, chemins ---------- */
+  function walk(S, x, y) { return inB(x, y) && S.occ[y][x] === 0; }
+  function bfs(S, from, to) {
+    var fx = Math.round(from.x), fy = Math.round(from.y);
+    if (fx === to.x && fy === to.y) return [];
+    var prev = new Int32Array(W * H).fill(-1), q = [fy * W + fx], qi = 0; prev[fy * W + fx] = fy * W + fx;
+    var D = [[0, 1], [1, 0], [0, -1], [-1, 0]];
+    while (qi < q.length) {
+      var c = q[qi++], cx = c % W, cy = (c - cx) / W;
+      for (var i = 0; i < 4; i++) {
+        var nx = cx + D[i][0], ny = cy + D[i][1], n = ny * W + nx;
+        if (!inB(nx, ny) || prev[n] !== -1) continue;
+        var goal = nx === to.x && ny === to.y;
+        if (!goal && S.occ[ny][nx] !== 0) continue;
+        prev[n] = c;
+        if (goal) { var out = []; var k = n; while (k !== fy * W + fx) { out.unshift({ x: k % W, y: (k - k % W) / W }); k = prev[k]; } return out; }
+        q.push(n);
+      }
+    }
+    return null;
+  }
+  function reachable(S) {
+    var seen = new Uint8Array(W * H), q = [SPAWN.y * W + SPAWN.x], qi = 0; seen[q[0]] = 1;
+    var D = [[0, 1], [1, 0], [0, -1], [-1, 0]];
+    while (qi < q.length) {
+      var c = q[qi++], cx = c % W, cy = (c - cx) / W;
+      for (var i = 0; i < 4; i++) {
+        var nx = cx + D[i][0], ny = cy + D[i][1];
+        if (!inB(nx, ny) || seen[ny * W + nx]) continue;
+        seen[ny * W + nx] = 1;
+        if (S.occ[ny][nx] === 0) q.push(ny * W + nx);
+      }
+    }
+    return seen;
+  }
+  function doorOf(def, x, y, rot) {
+    var w = def.w, h = def.h, mx = x + Math.floor(w / 2), my = y + Math.floor(h / 2);
+    if (rot === 0) return { door: { x: mx, y: y + h - 1 }, front: { x: mx, y: y + h } };
+    if (rot === 1) return { door: { x: x + w - 1, y: my }, front: { x: x + w, y: my } };
+    if (rot === 2) return { door: { x: mx, y: y }, front: { x: mx, y: y - 1 } };
+    return { door: { x: x, y: my }, front: { x: x - 1, y: my } };
+  }
+  function allReachable(S) {
+    var seen = reachable(S), ok = true;
+    S.rooms.forEach(function (r) { if (!seen[r.front.y * W + r.front.x]) ok = false; });
+    S.objs.forEach(function (o) { if (!seen[o.y * W + o.x]) ok = false; });
+    return ok;
+  }
+  function isFront(S, x, y) { return S.rooms.some(function (r) { return r.front.x === x && r.front.y === y; }); }
+  function canPlaceRoom(S, type, x, y, rot) {
+    var def = ROOMS[type]; if (!def) return 'Salle inconnue';
+    if (S.money < def.cost) return 'Pas assez d\'argent';
+    for (var j = y; j < y + def.h; j++) for (var i = x; i < x + def.w; i++) {
+      if (!inB(i, j)) return 'Hors du bâtiment';
+      if (S.occ[j][i] !== 0) return 'Emplacement occupé';
+      if (isFront(S, i, j)) return 'Vous bloqueriez une porte';
+      if (i === SPAWN.x && j >= SPAWN.y - 1) return 'Laissez l\'entrée dégagée';
+    }
+    var d = doorOf(def, x, y, rot);
+    if (!inB(d.front.x, d.front.y) || S.occ[d.front.y][d.front.x] !== 0) return 'La porte doit donner sur un couloir libre';
+    for (j = y; j < y + def.h; j++) for (i = x; i < x + def.w; i++) S.occ[j][i] = 9999;
+    var ok = allReachable(S) && reachable(S)[d.front.y * W + d.front.x];
+    for (j = y; j < y + def.h; j++) for (i = x; i < x + def.w; i++) S.occ[j][i] = 0;
+    return ok ? null : 'Cette salle bloquerait un passage';
+  }
+  function buildRoom(S, type, x, y, rot) {
+    var err = canPlaceRoom(S, type, x, y, rot); if (err) return err;
+    var def = ROOMS[type], d = doorOf(def, x, y, rot);
+    var r = { id: S.nextId++, type: type, x: x, y: y, w: def.w, h: def.h, rot: rot, door: d.door, front: d.front,
+      queue: [], staffId: null, staffIn: false, patientId: null, t: 0, wear: 0, broken: false, fixer: null, uses: 0, occ: [] };
+    for (var j = y; j < y + def.h; j++) for (var i = x; i < x + def.w; i++) S.occ[j][i] = r.id;
+    S.rooms.push(r); spend(S, def.cost); fx(S, 'build', x + def.w / 2, y + def.h / 2, -def.cost);
+    S.people.forEach(function (p) {
+      if (!p.inRoom && S.occ[Math.round(p.y)][Math.round(p.x)] === r.id) { p.x = d.front.x; p.y = d.front.y; }
+      repath(S, p);
+    });
+    return null;
+  }
+  function demolishRoom(S, id) {
+    var r = room(S, id); if (!r) return;
+    for (var j = r.y; j < r.y + r.h; j++) for (var i = r.x; i < r.x + r.w; i++) S.occ[j][i] = 0;
+    S.people.forEach(function (p) {
+      if (p.inRoom === r.id) { p.inRoom = null; p.x = r.front.x; p.y = r.front.y; }
+      if (p.kind === 'patient') {
+        if (p.target === r.id || p.inRoomWas === r.id) { p.target = null; if (p.st !== 'leaving' && p.st !== 'dead') reseek(S, p); }
+      } else if (r.staffId === p.id || r.fixer === p.id || (p.st === 'rest' && p.restRoom === r.id) || p.goRoom === r.id) { p.st = 'idle'; p.path = []; p.goRoom = null; }
+    });
+    S.rooms.splice(S.rooms.indexOf(r), 1);
+    earn(S, Math.round(ROOMS[r.type].cost * 0.4));
+  }
+  function canPlaceObj(S, type, x, y) {
+    var def = OBJS[type]; if (!def) return 'Objet inconnu';
+    if (S.money < def.cost) return 'Pas assez d\'argent';
+    if (!inB(x, y) || S.occ[y][x] !== 0) return 'Emplacement occupé';
+    if (isFront(S, x, y)) return 'Vous bloqueriez une porte';
+    if (x === SPAWN.x && y >= SPAWN.y - 1) return 'Laissez l\'entrée dégagée';
+    S.occ[y][x] = 9999; var ok = allReachable(S); S.occ[y][x] = 0;
+    return ok ? null : 'Cet objet bloquerait un passage';
+  }
+  function placeObj(S, type, x, y) {
+    var err = canPlaceObj(S, type, x, y); if (err) return err;
+    var o = { id: S.nextId++, type: type, x: x, y: y, usedBy: null, staffId: null, staffIn: false, queue: [], cur: null, t: 0 };
+    S.objs.push(o); S.occ[y][x] = -o.id; spend(S, OBJS[type].cost); fx(S, 'build', x + 0.5, y + 0.5, -OBJS[type].cost);
+    S.people.forEach(function (p) { if (!p.inRoom && Math.round(p.x) === x && Math.round(p.y) === y) nudge(S, p); repath(S, p); });
+    return null;
+  }
+  function removeObj(S, id) {
+    var o = byId(S.objs, id); if (!o) return;
+    S.occ[o.y][o.x] = 0; S.objs.splice(S.objs.indexOf(o), 1);
+    S.people.forEach(function (p) {
+      if (p.seat === o.id) p.seat = null;
+      if (p.kind === 'recep' && o.staffId === p.id) { p.st = 'idle'; p.path = []; }
+      if (p.kind === 'patient' && (p.st === 'recQ' || p.next === 'recArrive') && p.desk === o.id) { p.desk = null; toReception(S, p); }
+    });
+    earn(S, Math.round(OBJS[o.type].cost * 0.5));
+  }
+  function nudge(S, p) {
+    var D = [[0, 1], [1, 0], [0, -1], [-1, 0]];
+    for (var i = 0; i < 4; i++) { var nx = Math.round(p.x) + D[i][0], ny = Math.round(p.y) + D[i][1]; if (walk(S, nx, ny)) { p.x = nx; p.y = ny; return; } }
+  }
+  function freeNeighbor(S, x, y) {
+    var D = [[0, 1], [1, 0], [-1, 0], [0, -1]];
+    for (var i = 0; i < 4; i++) if (walk(S, x + D[i][0], y + D[i][1])) return { x: x + D[i][0], y: y + D[i][1] };
+    return null;
+  }
+  function goTo(S, p, dest, next) {
+    p.dest = { x: dest.x, y: dest.y }; p.next = next; p.st = 'walk';
+    var path = bfs(S, p, dest);
+    if (path === null) { p.path = []; p.stuck = 1; } else { p.path = path; p.stuck = 0; }
+  }
+  function repath(S, p) { if (p.st === 'walk' && p.dest) { var n = p.next; goTo(S, p, p.dest, n); } }
+  function slot(r, i) {
+    var w = r.w - 1, h = r.h - 1;
+    var P = [[0.25, 0.3], [0.75, 0.65], [0.7, 0.2], [0.2, 0.8], [0.5, 0.5]];
+    var s = P[i % P.length]; return { x: r.x + w * s[0], y: r.y + h * s[1] };
+  }
+
+  /* ---------- patients ---------- */
+  function builtTypes(S) { var t = {}; S.rooms.forEach(function (r) { t[r.type] = 1; }); return t; }
+  function spawnPatient(S, diseaseId, emergency) {
+    var built = builtTypes(S), d;
+    if (diseaseId) d = DMAP[diseaseId];
+    else {
+      // Pondération : les maladies soignables ici arrivent plus souvent, comme les niveaux d'origine
+      // n'envoient que les maladies prévues pour l'hôpital.
+      var bag = []; DISEASES.forEach(function (x) { var n = built[x.cure] ? 5 : 1; while (n--) bag.push(x); }); d = pick(bag);
+    }
+    var p = { id: S.nextId++, kind: 'patient', name: pick(FIRST) + ' ' + pick(LAST).charAt(0) + '.', disease: d.id,
+      x: SPAWN.x, y: SPAWN.y, path: [], st: 'idle', health: 0.5 + rnd() * 0.5, happy: 1, thirst: rnd() * 0.3, wc: rnd() * 0.3,
+      diag: 0, diagnosed: !!emergency, diagLeft: d.diag.slice(), target: null, arrived: false, seat: null, inRoom: null,
+      emergency: !!emergency, hue: ri(0, 7), skin: ri(0, 3), born: S.day };
+    S.people.push(p);
+    if (emergency) seek(S, p, d.cure); else toReception(S, p);
+    return p;
+  }
+  function toReception(S, p) {
+    var desks = S.objs.filter(function (o) { return o.type === 'desk'; });
+    if (!desks.length) { p.st = 'waitDesk'; p.t = 25; sayOnce(S, 'nodesk', 'Des patients tournent en rond : il n\'y a pas d\'accueil.', 'warn'); return; }
+    desks.sort(function (a, b) { return a.queue.length - b.queue.length; });
+    var o = desks[0], f = freeNeighbor(S, o.x, o.y) || o;
+    p.desk = o.id; goTo(S, p, f, 'recArrive');
+  }
+  function seek(S, p, type) {
+    freeSeat(S, p);
+    var list = S.rooms.filter(function (r) { return r.type === type; });
+    if (!list.length) {
+      p.st = 'waitBuild'; p.want = type; p.t = 25; p.target = null;
+      sayOnce(S, 'need_' + type, 'Un patient cherche : ' + ROOMS[type].name + '. Il serait temps d\'en construire.', 'warn');
+      return;
+    }
+    list.sort(function (a, b) { return (a.queue.length + (a.broken ? 9 : 0) + (a.staffId ? 0 : 2)) - (b.queue.length + (b.broken ? 9 : 0) + (b.staffId ? 0 : 2)); });
+    var r = list[0]; r.queue.push(p.id); p.target = r.id; p.arrived = false; p.want = type;
+    goTo(S, p, r.front, 'roomArrive');
+  }
+  function reseek(S, p) {
+    S.rooms.forEach(function (r) { var i = r.queue.indexOf(p.id); if (i >= 0) r.queue.splice(i, 1); if (r.patientId === p.id) r.patientId = null; });
+    if (p.want) seek(S, p, p.want); else toReception(S, p);
+  }
+  function freeSeat(S, p) { if (p.seat) { var o = byId(S.objs, p.seat); if (o && o.usedBy === p.id) o.usedBy = null; p.seat = null; } }
+  function findSeat(S, p, r) {
+    var best = null, bd = 99;
+    S.objs.forEach(function (o) {
+      if (o.type !== 'bench' || o.usedBy) return;
+      var d = Math.abs(o.x - r.front.x) + Math.abs(o.y - r.front.y);
+      if (d < bd && d <= 8) { bd = d; best = o; }
+    });
+    if (best) { best.usedBy = p.id; p.seat = best.id; goTo(S, p, best, 'sit'); }
+    else {
+      var tries = 8;
+      while (tries--) { var x = r.front.x + ri(-2, 2), y = r.front.y + ri(-2, 2); if (walk(S, x, y) && !(x === r.front.x && y === r.front.y)) { goTo(S, p, { x: x, y: y }, 'stand'); if (!p.stuck) return; } }
+      p.st = 'roomQ';
+    }
+  }
+  function leave(S, p, reason) {
+    S.rooms.forEach(function (r) { var i = r.queue.indexOf(p.id); if (i >= 0) r.queue.splice(i, 1); if (r.patientId === p.id) r.patientId = null; var k = r.occ.indexOf(p.id); if (k >= 0) r.occ.splice(k, 1); });
+    S.objs.forEach(function (o) { var i = o.queue.indexOf(p.id); if (i >= 0) o.queue.splice(i, 1); if (o.cur === p.id) o.cur = null; });
+    freeSeat(S, p); p.inRoom = null; p.target = null; p.reason = reason;
+    if (reason === 'cured') { S.cured++; changeRep(S, 3); fx(S, 'cure', p.x, p.y); }
+    else if (reason === 'angry') { S.left++; changeRep(S, -4); fx(S, 'angry', p.x, p.y); sayOnce(S, 'angry', 'Un patient part furieux. Il parle de « laisser un avis ».', 'warn'); }
+    else if (reason === 'price') { S.left++; changeRep(S, -1); sayOnce(S, 'price', 'Un patient trouve vos tarifs indécents et repart se soigner à la tisane.', 'warn'); }
+    else if (reason === 'uncured') { S.left++; changeRep(S, -2); }
+    else if (reason === 'nodiag') { S.left++; changeRep(S, -2); sayOnce(S, 'nodiag', 'Diagnostic impossible : pas assez de salles d\'examen. Le patient repart avec un Doliprane.', 'warn'); }
+    if (S.emergency && p.emergency && reason !== 'cured') S.emergency.lost++;
+    if (S.emergency && p.emergency && reason === 'cured') S.emergency.cured++;
+    goTo(S, p, SPAWN, 'exit'); p.st = 'walk'; p.leaving = true;
+  }
+  function die(S, p) {
+    S.rooms.forEach(function (r) { var i = r.queue.indexOf(p.id); if (i >= 0) r.queue.splice(i, 1); if (r.patientId === p.id) r.patientId = null; var k = r.occ.indexOf(p.id); if (k >= 0) r.occ.splice(k, 1); });
+    S.objs.forEach(function (o) { var i = o.queue.indexOf(p.id); if (i >= 0) o.queue.splice(i, 1); if (o.cur === p.id) o.cur = null; });
+    freeSeat(S, p); p.inRoom = null; p.st = 'dead'; p.t = 70; p.path = [];
+    S.deaths++; changeRep(S, -8); fx(S, 'death', p.x, p.y);
+    if (S.emergency && p.emergency) S.emergency.lost++;
+    say(S, p.name + ' nous a quittés. La direction rappelle que ce n\'était pas prévu au planning.', 'bad');
+  }
+  // Adapté de Patient:completeDiagnosticStep (CorsixTH)
+  function diagStep(S, p, staff) {
+    var d = DMAP[p.disease], base = 0.4 * (1 - d.diff), bonus = 0.4, mult = 1;
+    if (staff) {
+      mult = (staff.skill >= 0.9 ? ri(1, 5) : 1) * (1 - (staff.fatigue - 0.5));
+      var div = ri(1, 3);
+      bonus = (staff.attn / div + 0.4) * (staff.skill / div);
+    }
+    p.diag = clamp(p.diag + base + bonus * mult, 0, 1);
+  }
+  // Adapté de Patient:agreesToPay (CorsixTH)
+  function agrees(S) {
+    if (S.priceMult <= 1) return true;
+    return rnd() <= Math.exp(-4 * (S.priceMult - 1));
+  }
+  // Adapté de GPRoom:dealtWithPatient (CorsixTH)
+  function gpDone(S, r, p, staff) {
+    pay(S, r, price(S, ROOMS.gp.price));
+    diagStep(S, p, staff);
+    var built = builtTypes(S);
+    var avail = p.diagLeft.filter(function (t) { return built[t]; });
+    if (p.diag >= 1 || (!avail.length && p.diag >= 0.55)) {
+      p.diagnosed = true;
+      if (!S.known[p.disease]) { S.known[p.disease] = 1; say(S, 'Nouvelle maladie identifiée : ' + DMAP[p.disease].name + '. ' + DMAP[p.disease].desc, 'good'); }
+      if (agrees(S)) seek(S, p, DMAP[p.disease].cure); else leave(S, p, 'price');
+    } else if (!avail.length) {
+      var missing = p.diagLeft.filter(function (t) { return !built[t]; })[0];
+      if (missing) { p.diagLeft.splice(p.diagLeft.indexOf(missing), 1); sayOnce(S, 'need_' + missing, 'Le généraliste aimerait envoyer un patient en ' + ROOMS[missing].name + '. Encore faudrait-il l\'avoir.', 'warn'); seek(S, p, 'gp'); p.gpVisits = (p.gpVisits || 0) + 1; if (p.gpVisits > 3) leave(S, p, 'nodiag'); }
+      else leave(S, p, 'nodiag');
+    } else {
+      var t = pick(avail); p.diagLeft.splice(p.diagLeft.indexOf(t), 1);
+      if (agrees(S)) seek(S, p, t); else leave(S, p, 'price');
+    }
+  }
+  // Adapté de Patient:isTreatmentEffective / treatDisease (CorsixTH)
+  function treat(S, r, p, staff) {
+    var d = DMAP[p.disease];
+    pay(S, r, price(S, d.price)); S.treated++;
+    var chance = d.eff * Math.max(p.diag, p.emergency ? 1 : 0.55);
+    var quality = staff ? clamp(0.5 * staff.skill + 0.3 * (1 - staff.fatigue) + 0.2, 0, 1) : 0.5;
+    chance += Math.max(100 - chance, 20) * (quality - 0.5) * 0.2;
+    if (chance >= ri(1, 100)) leave(S, p, 'cured');
+    else if (rnd() < 0.3 || p.health < 0.25) die(S, p);
+    else {
+      if (r.type === 'platre') sayOnce(S, 'failp', 'On a plâtré la mauvaise jambe. Le patient repart avec les deux plâtrées, par sécurité.', 'warn');
+      else sayOnce(S, 'fail', 'Un traitement a échoué. Le patient repart « pareil, mais plus pauvre ».', 'warn');
+      leave(S, p, 'uncured');
+    }
+  }
+  function roomFinished(S, r) {
+    var p = person(S, r.patientId), staff = r.staffId ? person(S, r.staffId) : null, def = ROOMS[r.type];
+    r.patientId = null; r.uses++;
+    if (def.machine) { r.wear++; if (r.wear >= 22) { r.broken = true; fx(S, 'alert', r.x, r.y); say(S, ROOMS[r.type].name + ' est en panne. Un agent d\'entretien, vite.', 'bad'); } }
+    if (!p) return;
+    p.inRoom = null; p.x = r.front.x; p.y = r.front.y; p.target = null;
+    if (r.type === 'gp') return gpDone(S, r, p, staff);
+    if (p.diagnosed && DMAP[p.disease].cure === r.type) return treat(S, r, p, staff);
+    pay(S, r, price(S, def.price || 150)); diagStep(S, p, staff); seek(S, p, 'gp');
+  }
+  function patientArrive(S, p) {
+    var n = p.next, r, o;
+    if (n === 'exit') { p.gone = true; return; }
+    if (n === 'recArrive') { o = byId(S.objs, p.desk); if (!o) return toReception(S, p); o.queue.push(p.id); p.st = 'recQ'; return; }
+    if (n === 'roomArrive') {
+      r = room(S, p.target); if (!r) return reseek(S, p);
+      p.arrived = true; p.st = 'roomQ'; if (!(r.queue[0] === p.id && !r.patientId)) findSeat(S, p, r); return;
+    }
+    if (n === 'sit' || n === 'stand') { p.st = 'roomQ'; return; }
+    if (n === 'enter') {
+      r = room(S, p.target); if (!r || r.patientId !== p.id) return reseek(S, p);
+      p.inRoom = r.id; p.st = 'inRoom'; var s = slot(r, 1); p.x = s.x; p.y = s.y;
+      var staff = r.staffId ? person(S, r.staffId) : null;
+      if (r.type === 'gp') { var inv = 1 - (staff ? staff.skill : 0.5); r.t = ri(Math.floor(3 + 5 * inv), Math.ceil(8 + 10 * inv)) * 4; }
+      else r.t = ROOMS[r.type].dur;
+      return;
+    }
+    if (n === 'drink') { earn(S, 20); p.thirst = 0; p.wc += 0.25; p.happy = clamp(p.happy + 0.05, 0, 1); return backToQueue(S, p); }
+    if (n === 'wc') {
+      r = room(S, p.wcRoom);
+      if (!r || r.occ.length >= ROOMS.wc.cap) { p.t = 12; p.st = 'wcWait'; return; }
+      r.occ.push(p.id); p.inRoom = r.id; var s2 = slot(r, r.occ.length - 1); p.x = s2.x; p.y = s2.y; p.st = 'wcUse'; p.t = 18; return;
+    }
+    p.st = 'roomQ';
+  }
+  function backToQueue(S, p) {
+    var r = p.target && room(S, p.target);
+    if (r) { p.next = 'roomArrive'; goTo(S, p, r.front, 'roomArrive'); }
+    else if (p.want) seek(S, p, p.want); else toReception(S, p);
+  }
+  function patientDay(S, p) {
+    if (p.st === 'dead' || p.leaving) return;
+    p.health -= 0.004;
+    if (p.health <= 0) { if (p.st !== 'inRoom') die(S, p); return; }
+    if (p.emergency) return;
+    p.thirst += 0.012 + rnd() * 0.008; p.wc += 0.008 + rnd() * 0.012;
+    var waiting = p.st === 'roomQ' || p.st === 'waitBuild' || p.st === 'recQ' || p.st === 'waitDesk';
+    if (waiting) {
+      var plants = 0; S.objs.forEach(function (o) { if (o.type === 'plant') plants++; });
+      p.happy -= (p.seat ? 0.006 : 0.014) + (p.st === 'waitBuild' || p.st === 'waitDesk' ? 0.012 : 0) + Math.min(S.puddles.length, 5) * 0.006 - Math.min(plants, 8) * 0.0008;
+      if (p.thirst > 0.7) p.happy -= 0.01;
+    }
+    p.happy = clamp(p.happy, 0, 1);
+    if (p.happy < 0.08 && p.st !== 'inRoom') return leave(S, p, 'angry');
+    if (p.st !== 'roomQ' && p.st !== 'waitBuild') return;
+    if (p.st === 'roomQ' && !p.arrived) return;
+    if (p.wc > 0.8) {
+      var wcs = S.rooms.filter(function (r) { return r.type === 'wc'; });
+      if (wcs.length) { freeSeat(S, p); p.wcRoom = pick(wcs).id; goTo(S, p, room(S, p.wcRoom).front, 'wc'); return; }
+      if (p.wc >= 1) {
+        S.puddles.push({ id: S.nextId++, x: Math.round(p.x), y: Math.round(p.y), cleaner: null }); p.wc = 0; p.happy = clamp(p.happy - 0.2, 0, 1);
+        sayOnce(S, 'puddle', 'Incident dans le couloir. Faute de toilettes, la nature a gagné.', 'bad');
+      }
+    }
+    if (p.thirst > 0.7) {
+      var m = S.objs.filter(function (o) { return o.type === 'drinks'; });
+      if (m.length) { freeSeat(S, p); var mm = pick(m); goTo(S, p, mm, 'drink'); }
+    }
+  }
+  function patientTick(S, p) {
+    if (p.st === 'dead') { if (--p.t <= 0) p.gone = true; return; }
+    if (p.st === 'waitBuild' || p.st === 'waitDesk' || p.st === 'wcWait') {
+      if (--p.t <= 0) {
+        if (p.st === 'waitDesk') toReception(S, p);
+        else if (p.st === 'wcWait') { var r0 = room(S, p.wcRoom); if (r0) goTo(S, p, r0.front, 'wc'); else backToQueue(S, p); }
+        else seek(S, p, p.want);
+      }
+      return;
+    }
+    if (p.st === 'wcUse' && --p.t <= 0) {
+      var r = room(S, p.wcRoom); p.inRoom = null; p.wc = 0;
+      if (r) { var k = r.occ.indexOf(p.id); if (k >= 0) r.occ.splice(k, 1); p.x = r.front.x; p.y = r.front.y; }
+      backToQueue(S, p);
+    }
+  }
+
+  /* ---------- personnel ---------- */
+  function restRoom(S) {
+    var l = S.rooms.filter(function (r) { return r.type === 'repos' && r.occ.length < ROOMS.repos.cap; });
+    return l.length ? l[0] : null;
+  }
+  function staffIdle(S, p) {
+    if (S.tick % 10 !== p.id % 10) return;
+    var r;
+    if ((p.kind === 'doc' || p.kind === 'nurse' || p.kind === 'handy') && p.fatigue >= 0.7 && (r = restRoom(S))) {
+      p.goRoom = r.id; goTo(S, p, r.front, 'restArrive'); return;
+    }
+    if (p.kind === 'doc' || p.kind === 'nurse') {
+      var list = S.rooms.filter(function (x) { return ROOMS[x.type].staff === p.kind && !x.staffId; });
+      if (!list.length) return;
+      list.sort(function (a, b) { return (b.queue.length + (b.type === 'gp' ? 0.5 : 0)) - (a.queue.length + (a.type === 'gp' ? 0.5 : 0)); });
+      r = list[0]; r.staffId = p.id; r.staffIn = false; p.goRoom = r.id; goTo(S, p, r.front, 'staffEnter');
+    } else if (p.kind === 'recep') {
+      var d = S.objs.filter(function (o) { return o.type === 'desk' && !o.staffId; })[0];
+      if (d) { d.staffId = p.id; d.staffIn = false; p.goDesk = d.id; goTo(S, p, d, 'deskArrive'); }
+    } else if (p.kind === 'handy') {
+      var fix = S.rooms.filter(function (x) { return ROOMS[x.type].machine && !x.fixer && (x.broken || x.wear >= 12) && !x.patientId; });
+      fix.sort(function (a, b) { return b.wear - a.wear; });
+      if (fix.length) { fix[0].fixer = p.id; p.goRoom = fix[0].id; goTo(S, p, fix[0].front, 'repair'); return; }
+      var pu = S.puddles.filter(function (u) { return !u.cleaner; })[0];
+      if (pu) { pu.cleaner = p.id; p.goPuddle = pu.id; goTo(S, p, pu, 'clean'); }
+    }
+  }
+  function staffArrive(S, p) {
+    var n = p.next, r, s;
+    if (n === 'staffEnter') {
+      r = room(S, p.goRoom); if (!r || r.staffId !== p.id) { p.st = 'idle'; return; }
+      p.inRoom = r.id; p.st = 'work'; p.idleT = 0; r.staffIn = true; s = slot(r, 0); p.x = s.x; p.y = s.y; return;
+    }
+    if (n === 'restArrive') {
+      r = room(S, p.goRoom); if (!r || r.occ.length >= ROOMS.repos.cap) { p.st = 'idle'; return; }
+      r.occ.push(p.id); p.inRoom = r.id; p.restRoom = r.id; p.st = 'rest'; s = slot(r, r.occ.length - 1); p.x = s.x; p.y = s.y; return;
+    }
+    if (n === 'deskArrive') { var d = byId(S.objs, p.goDesk); if (!d || d.staffId !== p.id) { p.st = 'idle'; return; } d.staffIn = true; p.st = 'work'; return; }
+    if (n === 'repair') { r = room(S, p.goRoom); if (!r) { p.st = 'idle'; return; } p.inRoom = r.id; s = slot(r, 2); p.x = s.x; p.y = s.y; p.st = 'fix'; p.t = Math.round(50 - 20 * p.skill); return; }
+    if (n === 'clean') { p.st = 'mop'; p.t = 12; return; }
+    if (n === 'awayArrive') { p.st = 'away'; p.hidden = true; return; }
+    p.st = 'idle';
+  }
+  function staffTick(S, p) {
+    var r;
+    if (p.st === 'away') { if (S.day >= p.back) { p.st = 'idle'; p.hidden = false; p.fatigue = 0; say(S, p.name + ' rentre de congrès, bronzé·e et sans aucune note.', 'info'); } return; }
+    if (p.st === 'idle') return staffIdle(S, p);
+    if (p.st === 'work') {
+      if (p.kind === 'recep') return;
+      r = room(S, p.inRoom); if (!r) { p.st = 'idle'; p.inRoom = null; return; }
+      var busy = r.patientId && person(S, r.patientId) && person(S, r.patientId).st === 'inRoom';
+      p.fatigue = clamp(p.fatigue + (busy ? 0.0009 : 0.00025), 0, 1);
+      if (busy) { p.idleT = 0; return; }
+      p.idleT++;
+      var leaveNow = false;
+      if (p.fatigue >= 0.7 && restRoom(S) && !r.patientId) leaveNow = true;
+      else if (p.idleT > 60 && !r.queue.length && !r.patientId && S.tick % 20 === 0) {
+        leaveNow = S.rooms.some(function (x) { return x !== r && ROOMS[x.type].staff === p.kind && !x.staffId && x.queue.length > 0; });
+      }
+      if (leaveNow) { r.staffId = null; r.staffIn = false; p.inRoom = null; p.x = r.front.x; p.y = r.front.y; p.st = 'idle'; }
+      return;
+    }
+    if (p.st === 'rest') {
+      p.fatigue = clamp(p.fatigue - 0.004, 0, 1);
+      if (p.fatigue <= 0.05) {
+        r = room(S, p.restRoom); p.inRoom = null; p.st = 'idle';
+        if (r) { var k = r.occ.indexOf(p.id); if (k >= 0) r.occ.splice(k, 1); p.x = r.front.x; p.y = r.front.y; }
+      }
+      return;
+    }
+    if (p.st === 'fix' && --p.t <= 0) {
+      r = room(S, p.goRoom); p.inRoom = null; p.st = 'idle'; p.fatigue = clamp(p.fatigue + 0.05, 0, 1);
+      if (r) { r.wear = 0; r.broken = false; r.fixer = null; p.x = r.front.x; p.y = r.front.y; }
+      return;
+    }
+    if (p.st === 'mop' && --p.t <= 0) {
+      var u = byId(S.puddles, p.goPuddle); if (u) S.puddles.splice(S.puddles.indexOf(u), 1); p.st = 'idle';
+    }
+  }
+
+  /* ---------- salles, accueil ---------- */
+  function roomTick(S, r) {
+    var def = ROOMS[r.type]; if (def.kind === 'service') return;
+    var staff = r.staffId && r.staffIn ? person(S, r.staffId) : null, docRoom = def.staff === 'doc', ev = S.ev ? S.ev.type : null;
+    if (ev === 'lunch' && docRoom) return;
+    if (r.patientId) {
+      var p = person(S, r.patientId);
+      if (!p) { r.patientId = null; return; }
+      if (p.st !== 'inRoom') return;
+      if (!staff || r.broken) return;
+      r.t -= (staff.fatigue > 0.9 ? 0.6 : 1) * (ev === 'visite' && docRoom ? 0.55 : 1);
+      if (r.t <= 0) roomFinished(S, r);
+      return;
+    }
+    if (!staff || r.broken || r.fixer && person(S, r.fixer) && person(S, r.fixer).st === 'fix') return;
+    for (var i = 0; i < r.queue.length; i++) {
+      var q = person(S, r.queue[i]);
+      if (!q) { r.queue.splice(i--, 1); continue; }
+      if (q.arrived && q.st === 'roomQ') {
+        r.queue.splice(i, 1); r.patientId = q.id; freeSeat(S, q); goTo(S, q, r.front, 'enter'); return;
+      }
+    }
+  }
+  function deskTick(S, o) {
+    if (o.type !== 'desk') return;
+    if (!o.staffId || !o.staffIn) { if (o.queue.length) sayOnce(S, 'norecep', 'Des patients attendent à l\'accueil, mais il n\'y a personne derrière.', 'warn'); return; }
+    if (o.cur) {
+      if (--o.t <= 0) { var p = person(S, o.cur); o.cur = null; if (p && p.st === 'recQ') seek(S, p, 'gp'); }
+      return;
+    }
+    while (o.queue.length) { var q = person(S, o.queue.shift()); if (q && q.st === 'recQ') { o.cur = q.id; o.t = 14; return; } }
+  }
+
+  /* ---------- temps ---------- */
+  function isOpen(S) { return S.objs.some(function (o) { return o.type === 'desk'; }) && S.rooms.some(function (r) { return r.type === 'gp'; }); }
+  function moveTick(S, p) {
+    if (p.st !== 'walk') return;
+    if (p.stuck) { if (S.tick % 20 === 0) goTo(S, p, p.dest, p.next); return; }
+    if (!p.path.length) { p.x = p.dest.x; p.y = p.dest.y; if (p.kind === 'patient') patientArrive(S, p); else staffArrive(S, p); return; }
+    var n = p.path[0], sp = p.kind === 'patient' ? (p.emergency ? 0.16 : 0.1) : 0.13;
+    var dx = n.x - p.x, dy = n.y - p.y, d = Math.sqrt(dx * dx + dy * dy);
+    if (d <= sp) { p.x = n.x; p.y = n.y; p.path.shift(); } else { p.x += dx / d * sp; p.y += dy / d * sp; p.dir = dx - dy; }
+  }
+  function tick(S) {
+    if (S.lost) return;
+    S.tick++;
+    var i, p;
+    for (i = 0; i < S.people.length; i++) {
+      p = S.people[i]; moveTick(S, p);
+      if (p.kind === 'patient') patientTick(S, p); else staffTick(S, p);
+    }
+    for (i = 0; i < S.rooms.length; i++) roomTick(S, S.rooms[i]);
+    for (i = 0; i < S.objs.length; i++) deskTick(S, S.objs[i]);
+    for (i = S.people.length - 1; i >= 0; i--) if (S.people[i].gone) S.people.splice(i, 1);
+    // arrivées
+    if (isOpen(S) && --S.spawnT <= 0) {
+      var month = Math.floor(S.day / 30), nPat = S.people.filter(function (x) { return x.kind === 'patient'; }).length;
+      S.spawnT = Math.round(Math.max(42, 110 - month * 6) * (700 / (200 + S.rep)) * (0.7 + rnd() * 0.6));
+      if (nPat < 55) spawnPatient(S);
+    }
+    if (--S.annT <= 0) { S.annT = ri(450, 800); if (isOpen(S)) say(S, pick(ANNOUNCE), 'ann'); }
+    if (S.tick % DAY === 0) dayTick(S);
+  }
+  function dayTick(S) {
+    S.day++;
+    S.people.slice().forEach(function (p) { if (p.kind === 'patient') patientDay(S, p); });
+    // urgences
+    if (S.emergency && (S.emergency.cured + S.emergency.lost >= S.emergency.n || S.day >= S.emergency.end)) endEmergency(S);
+    if (S.offer && S.day >= S.offer.until) { S.offer = null; }
+    if (!S.emergency && !S.offer && isOpen(S) && S.day >= S.nextEmerg) {
+      S.nextEmerg = S.day + ri(70, 120);
+      var built = builtTypes(S), cand = DISEASES.filter(function (d) { return built[d.cure]; });
+      if (cand.length) { var d = pick(cand), n = ri(4, 7); S.offer = { disease: d.id, n: n, bonus: 500, days: 45, until: S.day + 8 }; }
+    }
+    if (S.nextEv === undefined) S.nextEv = S.day + 20;
+    if (S.ev && S.day >= S.ev.until) { if (S.ev.type === 'lunch') say(S, 'Les médecins reviennent de déjeuner. Ils trouvent qu\'il y a du monde.', 'info'); S.ev = null; }
+    if (!S.ev && isOpen(S) && S.day >= S.nextEv) startEvent(S);
+    if (S.day % 30 === 0) monthEnd(S);
+    if (!S.won && !S.freePlay && S.cured >= GOALS.cured && S.rep >= GOALS.rep && S.money >= GOALS.money) { S.won = true; say(S, 'Objectifs atteints ! Le ministère vous félicite par courrier recommandé.', 'good'); }
+    if (S.money < -15000) { S.lost = true; say(S, 'Faillite. L\'hôpital est racheté par une chaîne de salles de sport.', 'bad'); }
+  }
+  function startEvent(S) {
+    S.nextEv = S.day + ri(28, 50);
+    var docs = S.people.filter(function (p) { return p.kind === 'doc' && p.st !== 'away'; });
+    var types = ['subv', 'inspect']; if (docs.length) types.push('lunch', 'visite'); if (docs.length >= 2) types.push('congres');
+    var t = pick(types);
+    if (t === 'lunch') { S.ev = { type: t, until: S.day + 2 }; fx(S, 'alert', SPAWN.x, SPAWN.y); say(S, 'Tous les médecins sont partis déjeuner en même temps. Retour annoncé « vers 14 h », donc après-demain. Les consultations sont suspendues.', 'warn'); }
+    else if (t === 'visite') { S.ev = { type: t, until: S.day + 4 }; say(S, 'Grande visite du chef de service : les médecins se déplacent en troupeau, hochent la tête et repartent. Consultations ralenties pendant 4 jours.', 'warn'); }
+    else if (t === 'congres') {
+      var p = pick(docs), rr = p.inRoom ? room(S, p.inRoom) : null;
+      if (rr) { var k = rr.occ.indexOf(p.id); if (k >= 0) rr.occ.splice(k, 1); p.x = rr.front.x; p.y = rr.front.y; }
+      releaseStaff(S, p); p.back = S.day + 8; goTo(S, p, SPAWN, 'awayArrive');
+      say(S, p.name + ' part en congrès aux Seychelles. Thème : « L\'épuisement du soignant ». Retour dans 8 jours, salaire maintenu.', 'warn');
+    } else if (t === 'subv') { earn(S, 3000); fx(S, 'cash', SPAWN.x, SPAWN.y - 2, 3000); say(S, 'Le ministère vous verse 3 000 € par erreur. Personne ne dit rien, et on avance.', 'good'); }
+    else {
+      var dirty = S.puddles.length > 0 || S.rooms.some(function (r) { return r.broken; });
+      changeRep(S, dirty ? -20 : 15);
+      say(S, dirty ? 'Inspection surprise. L\'inspecteur a glissé dans le couloir et noté « perfectible » en tombant.' : 'Inspection surprise. Rien à signaler, ce qui a beaucoup déçu l\'inspecteur.', dirty ? 'bad' : 'good');
+    }
+  }
+  function monthEnd(S) {
+    var wages = 0; S.people.forEach(function (p) { if (p.kind !== 'patient') wages += p.wage; });
+    spend(S, wages);
+    if (S.money < 0) spend(S, Math.round(-S.money * 0.02));
+    S.lastMonth = { inc: S.month.inc, exp: S.month.exp, n: Math.floor(S.day / 30) };
+    say(S, 'Bilan du mois ' + S.lastMonth.n + ' : +' + S.month.inc + ' € / −' + S.month.exp + ' € (dont ' + wages + ' € de salaires).', S.month.inc >= S.month.exp ? 'good' : 'warn');
+    S.month = { inc: 0, exp: 0 }; refreshPool(S);
+  }
+  function acceptEmergency(S, yes) {
+    var o = S.offer; if (!o) return; S.offer = null;
+    if (!yes) { say(S, 'Urgence refusée. Les ambulances font demi-tour en klaxonnant.', 'info'); return; }
+    S.emergency = { disease: o.disease, n: o.n, cured: 0, lost: 0, end: S.day + o.days, bonus: o.bonus };
+    for (var i = 0; i < o.n; i++) { var p = spawnPatient(S, o.disease, true); p.x += (i % 3 - 1) * 0.3; }
+    fx(S, 'alert', SPAWN.x, SPAWN.y);
+    say(S, 'URGENCE : ' + o.n + ' cas de « ' + DMAP[o.disease].name + ' » arrivent d\'un séminaire de cohésion d\'équipe.', 'bad');
+  }
+  function endEmergency(S) {
+    var e = S.emergency; S.emergency = null;
+    S.people.forEach(function (p) { if (p.kind === 'patient' && p.emergency && !p.leaving && p.st !== 'dead' && p.st !== 'inRoom') { p.emergency = false; leave(S, p, 'uncured'); } });
+    if (e.cured >= Math.ceil(e.n * 0.75)) { earn(S, e.cured * e.bonus); changeRep(S, 25); say(S, 'Urgence maîtrisée : ' + e.cured + '/' + e.n + ' guéris. Prime de ' + e.cured * e.bonus + ' €.', 'good'); }
+    else { changeRep(S, -30); say(S, 'Urgence ratée : ' + e.cured + '/' + e.n + ' guéris. La presse locale s\'en donne à cœur joie.', 'bad'); }
+  }
+  function hint(S) {
+    var has = function (k) { return S.people.some(function (p) { return p.kind === k; }); }, b = builtTypes(S);
+    var desk = S.objs.some(function (o) { return o.type === 'desk'; });
+    if (!desk) return 'Posez un accueil (menu Objets) près de l\'entrée, en bas.';
+    if (!has('recep')) return 'Embauchez une réceptionniste (menu Équipe).';
+    if (!b.gp) return 'Construisez un cabinet de généraliste (menu Salles).';
+    if (!has('doc')) return 'Embauchez un médecin : il ira seul dans son cabinet.';
+    if (!b.pharma) return 'Construisez une pharmacie pour soigner les premiers cas.';
+    if (!has('nurse')) return 'Embauchez un·e infirmier·ère pour la pharmacie.';
+    if (!b.psy && !b.radio) return 'Ajoutez une psychiatrie ou une radio : le généraliste en a besoin pour diagnostiquer.';
+    if (!S.objs.some(function (o) { return o.type === 'bench'; })) return 'Posez des bancs près des portes : debout, les patients s\'énervent vite.';
+    if (!b.repos) return 'Une salle de repos évitera que l\'équipe s\'épuise.';
+    if (!has('handy') && (b.radio || b.deco)) return 'Les machines s\'usent : embauchez un agent d\'entretien.';
+    if (!b.wc) return 'Des toilettes. Avant l\'incident.';
+    var missing = DISEASES.filter(function (d) { return !b[d.cure]; });
+    if (missing.length) return 'Salle de soin manquante : ' + ROOMS[missing[0].cure].name + '.';
+    return 'L\'hôpital tourne. Surveillez les files d\'attente et les prix.';
+  }
+
+  function sendHome(S, id) { var p = person(S, id); if (p && p.kind === 'patient' && !p.leaving && p.st !== 'dead' && p.st !== 'inRoom') leave(S, p, 'uncured'); }
+  root.Velpo = { sendHome: sendHome,
+    W: W, H: H, SPAWN: SPAWN, DAY: DAY, ROOMS: ROOMS, OBJS: OBJS, DISEASES: DISEASES, DMAP: DMAP, STAFF: STAFF, GOALS: GOALS, THOUGHTS: THOUGHTS,
+    newGame: newGame, tick: tick, buildRoom: buildRoom, canPlaceRoom: canPlaceRoom, demolishRoom: demolishRoom, placeObj: placeObj,
+    canPlaceObj: canPlaceObj, removeObj: removeObj, hire: hire, fire: fire, acceptEmergency: acceptEmergency, hint: hint, price: price,
+    doorOf: doorOf, isOpen: isOpen, person: person, room: room
+  };
+})(typeof window !== 'undefined' ? window : globalThis);
+
+</script>
+<script>
+/* À l'hôpital Velpo — affichage et commandes. */
+(function () {
+  'use strict';
+  var V = window.Velpo, $ = function (id) { return document.getElementById(id); };
+  var cv = $('cv'), ctx = cv.getContext('2d');
+  var S = null, speed = 1, lastSpeed = 1, zoom = 1, cam = { x: 0, y: 0 }, vw = 0, vh = 0, dpr = 1;
+  var sel = null, build = null, sheet = null, frame = 0, shownLog = null, modalKind = null;
+  var LS = 'velpo-save-v1', store = null, cloud = null, saving = false, saveNote = 'Sauvegarde sur cet appareil';
+
+  /* ---------- sauvegarde ---------- */
+  function localLoad() { try { return JSON.parse(localStorage.getItem(LS)); } catch (e) { return null; } }
+  function save(manual) {
+    if (!S || S.lost) return;
+    var doc = { json: JSON.stringify(S), day: S.day, t: Date.now() };
+    try { localStorage.setItem(LS, JSON.stringify(doc)); } catch (e) {}
+    if (store && !saving) {
+      saving = true;
+      store.set(doc).then(function () { saveNote = 'Sauvegardé en ligne, jour ' + doc.day; if (manual) toast('Partie sauvegardée en ligne'); })
+        .catch(function () { saveNote = 'Sauvegarde en ligne indisponible, copie gardée sur cet appareil'; if (manual) toast('Sauvegardé sur cet appareil seulement'); })
+        .then(function () { saving = false; });
+    } else if (manual) toast(store ? 'Sauvegarde en cours…' : 'Sauvegardé sur cet appareil');
+  }
+  function bestSave() {
+    var l = localLoad(); var c = cloud;
+    if (l && c) return (c.t || 0) >= (l.t || 0) ? c : l;
+    return c || l;
+  }
+  (function connect() {
+    if (!window.claude || !window.claude.use) return;
+    Promise.all([window.claude.use('db'), window.claude.use('user')]).then(function (r) {
+      if (!r[0] || !r[1]) return null;
+      return r[1].id().then(function (uid) {
+        if (!uid) return null;
+        store = r[0].doc('data/users/' + uid + '/velpo');
+        saveNote = 'Sauvegarde en ligne active';
+        return store.get();
+      });
+    }).then(function (snap) {
+      if (snap && snap.exists) { cloud = snap.data(); if (modalKind === 'intro') intro(); }
+    }).catch(function () {});
+  })();
+
+  /* ---------- son (entièrement généré par le code) ---------- */
+  var AC = null, master = null, mus = null, opt = { sfx: true, music: true, voice: true, mute: false }, lastFx = {}, floaters = [];
+  try { var so = JSON.parse(localStorage.getItem('velpo-opt')); if (so) for (var ko in opt) if (typeof so[ko] === 'boolean') opt[ko] = so[ko]; } catch (e) {}
+  function saveOpt() { try { localStorage.setItem('velpo-opt', JSON.stringify(opt)); } catch (e) {} applyOpt(); }
+  function applyOpt() {
+    if (master) master.gain.value = opt.mute ? 0 : 0.5; if (mus) mus.gain.value = opt.music ? 0.2 : 0;
+    $('mute').setAttribute('aria-pressed', String(opt.mute)); $('mute').textContent = opt.mute ? '×' : '♪';
+    if (opt.mute || !opt.voice) stopVoice();
+  }
+  function audioInit() {
+    if (AC) { if (AC.state === 'suspended') AC.resume(); return; }
+    try {
+      AC = new (window.AudioContext || window.webkitAudioContext)(); master = AC.createGain(); master.connect(AC.destination);
+      mus = AC.createGain(); mus.connect(master); applyOpt(); setInterval(musicTick, 120);
+    } catch (e) { AC = null; }
+  }
+  function tone(f, t0, d, type, vol, dest, f2) {
+    var o = AC.createOscillator(), g = AC.createGain(); o.type = type || 'sine'; o.frequency.setValueAtTime(f, t0);
+    if (f2) o.frequency.exponentialRampToValueAtTime(f2, t0 + d);
+    g.gain.setValueAtTime(0.0001, t0); g.gain.exponentialRampToValueAtTime(vol, t0 + 0.012); g.gain.exponentialRampToValueAtTime(0.0001, t0 + d);
+    o.connect(g); g.connect(dest || master); o.start(t0); o.stop(t0 + d + 0.03);
+  }
+  function sfx(n) {
+    if (!AC || !opt.sfx || opt.mute || AC.state !== 'running') return;
+    var now = performance.now(); if (lastFx[n] && now - lastFx[n] < 140) return; lastFx[n] = now;
+    var t = AC.currentTime + 0.01;
+    if (n === 'cash') { tone(988, t, 0.09, 'triangle', 0.22); tone(1319, t + 0.08, 0.16, 'triangle', 0.22); }
+    else if (n === 'cure') [523, 659, 784, 1047].forEach(function (f, i) { tone(f, t + i * 0.08, 0.2, 'triangle', 0.25); });
+    else if (n === 'death') { tone(330, t, 0.7, 'sawtooth', 0.12, null, 82); tone(165, t + 0.1, 0.8, 'sine', 0.2, null, 55); }
+    else if (n === 'build') { tone(140, t, 0.22, 'sine', 0.5, null, 50); tone(900, t, 0.04, 'square', 0.06); tone(440, t + 0.12, 0.12, 'triangle', 0.15); }
+    else if (n === 'hire') { tone(523, t, 0.1, 'triangle', 0.22); tone(784, t + 0.1, 0.2, 'triangle', 0.22); }
+    else if (n === 'alert') [0, 1, 2, 3].forEach(function (i) { tone(i % 2 ? 660 : 880, t + i * 0.16, 0.14, 'square', 0.09); });
+    else if (n === 'angry') tone(196, t, 0.25, 'sawtooth', 0.1, null, 130);
+    else if (n === 'click') tone(1200, t, 0.03, 'triangle', 0.08);
+  }
+  // Petite musique d'ascenseur d'hôpital : marimba tiré au hasard sur quatre accords.
+  var CH = [[262, 330, 392, 523, 587], [220, 262, 330, 440, 523], [175, 262, 349, 440, 523], [196, 247, 294, 392, 494]], mNext = 0, mStep = 0, mLast = 2;
+  function musicTick() {
+    if (!AC || AC.state !== 'running' || !opt.music || opt.mute || document.hidden) { mNext = 0; return; }
+    var t = AC.currentTime; if (mNext < t) mNext = t + 0.05;
+    while (mNext < t + 0.35) {
+      var ch = CH[Math.floor(mStep / 8) % 4], st = mStep % 8;
+      if (st === 0 || st === 5) tone(ch[0] / 2, mNext, 0.5, 'sine', 0.5, mus);
+      if (st % 2 === 0 || Math.random() < 0.45) { mLast = Math.max(0, Math.min(4, mLast + Math.floor(Math.random() * 3) - 1)); var f = ch[mLast] * (Math.random() < 0.25 ? 2 : 1); tone(f, mNext, 0.3, 'sine', 0.42, mus); tone(f * 4, mNext, 0.06, 'sine', 0.06, mus); }
+      if (st === 2 || st === 6) { tone(ch[1], mNext, 0.22, 'triangle', 0.1, mus); tone(ch[2], mNext, 0.22, 'triangle', 0.1, mus); }
+      mNext += 0.3; mStep++;
+    }
+  }
+  /* ---------- voix des annonces ---------- */
+  var tts = null, speaking = false;
+  if (window.claude && window.claude.use) window.claude.use('tts').then(function (t) {
+    if (!t) return; tts = t;
+    t.onState(function (e) {
+      speaking = e.state !== 'idle'; $('ttsStop').style.display = speaking ? '' : 'none';
+      if (e.reason === 'not_granted' || e.reason === 'unavailable') { tts = null; $('ttsStop').style.display = 'none'; }
+    });
+  }).catch(function () {});
+  function speak(text) {
+    if (!tts || !opt.voice || opt.mute || speaking || !speed || modalKind) return;
+    tts.speak(text, { voice: 'airy', language: 'fr' }).catch(function (e) { if (e && e.code === 'not_granted') tts = null; });
+  }
+  function stopVoice() { if (tts && speaking) tts.stop().catch(function () {}); }
+
+  /* ---------- géométrie iso ---------- */
+  function hw() { return 30 * zoom; } function hh() { return 15 * zoom; }
+  function P(tx, ty) { return [(tx - ty) * hw() + cam.x, (tx + ty) * hh() + cam.y]; }
+  function toTile(sx, sy) { var a = (sx - cam.x) / hw(), b = (sy - cam.y) / hh(); return { x: Math.floor((a + b) / 2), y: Math.floor((b - a) / 2) }; }
+  function center() { var ty = vw < 700 ? 13 : V.H / 2, c = [(V.W / 2 - ty) * hw(), (V.W / 2 + ty) * hh()]; cam.x = vw / 2 - c[0]; cam.y = vh / 2 - c[1]; }
+  function resize() {
+    var r = cv.getBoundingClientRect(); dpr = Math.min(window.devicePixelRatio || 1, 2);
+    var first = !vw; vw = r.width; vh = r.height; cv.width = Math.round(vw * dpr); cv.height = Math.round(vh * dpr);
+    if (first) { zoom = Math.max(0.55, Math.min(1.1, vw / 1250)); center(); }
+  }
+  function poly(pts, fill, stroke) {
+    ctx.beginPath(); ctx.moveTo(pts[0][0], pts[0][1]); for (var i = 1; i < pts.length; i++) ctx.lineTo(pts[i][0], pts[i][1]); ctx.closePath();
+    if (fill) { ctx.fillStyle = fill; ctx.fill(); } if (stroke) { ctx.strokeStyle = stroke; ctx.stroke(); }
+  }
+  function up(p, h) { return [p[0], p[1] - h * zoom]; }
+  function shade(hex, f) {
+    var n = parseInt(hex.slice(1), 16), r = n >> 16, g = n >> 8 & 255, b = n & 255;
+    r = Math.round(Math.min(255, r * f)); g = Math.round(Math.min(255, g * f)); b = Math.round(Math.min(255, b * f));
+    return 'rgb(' + r + ',' + g + ',' + b + ')';
+  }
+  function box(x, y, w, d, h, col) {
+    var A = P(x, y), B = P(x + w, y), C = P(x + w, y + d), D = P(x, y + d);
+    poly([D, C, up(C, h), up(D, h)], shade(col, 0.8));
+    poly([B, C, up(C, h), up(B, h)], shade(col, 0.65));
+    poly([up(A, h), up(B, h), up(C, h), up(D, h)], col);
+  }
+
+  /* ---------- dessin ---------- */
+  var CLOTH = ['#e86a5c', '#4f8fd9', '#f0b541', '#7bbf6a', '#a77bd6', '#e58cb5', '#4bb7b0', '#8a6f5a'];
+  var SKIN = ['#f6d3b3', '#e4b189', '#b97f57', '#7d5237'];
+  var STAFFCOL = { doc: '#ffffff', nurse: '#3fb5a3', recep: '#8d6fd1', handy: '#f08a2e' };
+  function drawPerson(p) {
+    var px = p.x, py = p.y, i;
+    if (p.st === 'recQ' && p.desk) { var o = find(S.objs, p.desk); i = o ? o.queue.indexOf(p.id) : -1; if (i > 0) { px += ((i % 3) - 1) * 0.32; py += Math.floor(i / 3 + 1) * 0.3; } }
+    else if (p.st === 'roomQ' && !p.seat) { px += ((p.id % 5) - 2) * 0.09; py += ((p.id % 3) - 1) * 0.1; }
+    if (p.hidden) return;
+    var c = P(px + 0.5, py + 0.5), x = c[0], y = c[1], z = zoom, walking = p.st === 'walk' && !p.stuck;
+    var sw = walking ? Math.sin((frame + p.id * 7) * 0.25) : 0;
+    var bob = walking ? Math.abs(Math.sin((frame + p.id * 7) * 0.25)) * 2.5 * z : 0;
+    if (p.st === 'dead') {
+      var k = 1 - p.t / 70; ctx.globalAlpha = Math.max(0, 0.85 - k * 0.8); y -= k * 46 * z;
+      ctx.fillStyle = '#f4fbff'; ctx.beginPath(); ctx.arc(x, y - 16 * z, 7 * z, Math.PI, 0); ctx.lineTo(x + 7 * z, y - 2 * z);
+      for (i = 0; i < 4; i++) ctx.lineTo(x + (7 - (i + 0.5) * 3.5) * z, y - (i % 2 ? 2 : 6) * z); ctx.lineTo(x - 7 * z, y - 2 * z); ctx.closePath(); ctx.fill();
+      ctx.fillStyle = '#17323a'; ctx.fillRect(x - 3.5 * z, y - 17 * z, 2 * z, 2.5 * z); ctx.fillRect(x + 1.5 * z, y - 17 * z, 2 * z, 2.5 * z);
+      ctx.globalAlpha = 1; return;
+    }
+    ctx.fillStyle = 'rgba(0,0,0,.18)'; ctx.beginPath(); ctx.ellipse(x, y, 7 * z, 3.5 * z, 0, 0, 7); ctx.fill();
+    y -= bob;
+    var sit = p.seat && p.st === 'roomQ', col = p.kind === 'patient' ? CLOTH[p.hue % 8] : STAFFCOL[p.kind], skin = SKIN[(p.kind === 'patient' ? p.skin : p.hue) % 4];
+    var legH = sit ? 2 : 6;
+    ctx.fillStyle = p.kind === 'patient' && p.disease === 'pyjama' ? '#9db7e8' : '#33505a';
+    ctx.fillRect(x - 4 * z, y - legH * z, 3 * z, (legH - Math.max(0, sw) * 2.5) * z);
+    if (p.kind === 'patient' && p.disease === 'trottinette') ctx.fillStyle = '#ffffff';
+    ctx.fillRect(x + 1 * z, y - legH * z, 3 * z, (legH - Math.max(0, -sw) * 2.5) * z);
+    var by = y - (legH + 12) * z;
+    ctx.fillStyle = shade(col === '#ffffff' ? '#dfe9ec' : col, 0.82);
+    rr(x - 8 * z, by + (2 + sw * 1.5) * z, 3 * z, 8 * z, 1.5 * z); ctx.fill(); rr(x + 5 * z, by + (2 - sw * 1.5) * z, 3 * z, 8 * z, 1.5 * z); ctx.fill();
+    ctx.fillStyle = col; rr(x - 5.5 * z, by, 11 * z, 13 * z, 3.5 * z); ctx.fill();
+    if (p.kind === 'doc') { ctx.strokeStyle = '#9bb4bb'; ctx.lineWidth = 1; rr(x - 5.5 * z, by, 11 * z, 13 * z, 3.5 * z); ctx.stroke(); ctx.fillStyle = '#ff6b5e'; ctx.fillRect(x - 1 * z, by + 3 * z, 2 * z, 6 * z); }
+    if (p.kind === 'nurse') { ctx.fillStyle = '#fff'; ctx.fillRect(x - 1 * z, by + 3 * z, 2 * z, 6 * z); ctx.fillRect(x - 3 * z, by + 5 * z, 6 * z, 2 * z); }
+    if (p.kind === 'patient' && p.disease === 'pyjama') { ctx.fillStyle = 'rgba(255,255,255,.55)'; for (i = 0; i < 3; i++) ctx.fillRect(x - 5.5 * z, by + (2 + i * 4) * z, 11 * z, 1.5 * z); }
+    var hy = by - 4.5 * z;
+    ctx.fillStyle = skin; ctx.beginPath(); ctx.arc(x, hy, 5.2 * z, 0, 7); ctx.fill();
+    if (p.kind === 'handy') { ctx.fillStyle = '#c45f12'; ctx.beginPath(); ctx.arc(x, hy - 1 * z, 5.4 * z, Math.PI, 0); ctx.fill(); ctx.fillRect(x - 6.5 * z, hy - 1.5 * z, 13 * z, 1.8 * z); }
+    else if (p.kind === 'patient' && p.disease === 'quete') { ctx.fillStyle = '#9aa7ad'; rr(x - 5.6 * z, hy - 6 * z, 11.2 * z, 8 * z, 2 * z); ctx.fill(); ctx.fillStyle = '#33505a'; ctx.fillRect(x - 3.5 * z, hy - 2 * z, 7 * z, 1.5 * z); }
+    else { ctx.fillStyle = ['#3a2a22', '#6b4a2b', '#c9a24a', '#22262b', '#8a8f94', '#a3421f'][p.id % 6]; ctx.beginPath(); ctx.arc(x, hy - 1.2 * z, 5.3 * z, Math.PI * 1.05, Math.PI * 1.95); ctx.fill(); }
+    if (!(p.kind === 'patient' && p.disease === 'quete')) { ctx.fillStyle = '#17323a'; ctx.fillRect(x - 2.6 * z, hy - 0.2 * z, 1.4 * z, 1.8 * z); ctx.fillRect(x + 1.2 * z, hy - 0.2 * z, 1.4 * z, 1.8 * z); }
+    if (p.kind === 'patient') {
+      if (p.disease === 'ecranite') { ctx.fillStyle = '#17323a'; ctx.fillRect(x + 4 * z, by + 2 * z, 4 * z, 6.5 * z); ctx.fillStyle = '#9ae6ff'; ctx.fillRect(x + 4.7 * z, by + 2.8 * z, 2.6 * z, 4.6 * z); }
+      if (p.disease === 'influencite') { ctx.strokeStyle = '#fff3b0'; ctx.lineWidth = 2 * z; ctx.beginPath(); ctx.arc(x + 9 * z, hy, 4 * z, 0, 7); ctx.stroke(); }
+      if (p.disease === 'rhume') { ctx.fillStyle = '#ff6b5e'; ctx.beginPath(); ctx.arc(x, hy + 1 * z, 1.6 * z, 0, 7); ctx.fill(); }
+      var ic = null, icc = '#17323a';
+      if (p.emergency) { ic = '!'; icc = '#d23b3b'; } else if (p.happy < 0.3) { ic = '#'; icc = '#d23b3b'; }
+      else if (p.st === 'waitBuild' || p.st === 'waitDesk') ic = '?'; else if (p.wc > 0.8) ic = 'WC'; else if (p.thirst > 0.7) ic = '~';
+      if (ic) bubble(x, hy - 12 * z, ic, icc);
+    } else if (p.fatigue >= 0.7) bubble(x, hy - 12 * z, 'zz', '#5d7a80');
+    if (sel && sel.t === 'p' && sel.id === p.id) { ctx.strokeStyle = '#ff6b5e'; ctx.lineWidth = 2.5; ctx.beginPath(); ctx.ellipse(x, y + bob, 10 * z, 5 * z, 0, 0, 7); ctx.stroke(); }
+  }
+  function bubble(x, y, t, col) {
+    var z = zoom, w = (t.length > 1 ? 15 : 11) * z;
+    ctx.fillStyle = '#fff'; rr(x - w / 2, y - 6 * z, w, 11 * z, 4 * z); ctx.fill();
+    ctx.fillStyle = col; ctx.font = '800 ' + Math.round(9 * z) + 'px Nunito,sans-serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText(t, x, y);
+  }
+  function rr(x, y, w, h, r) { ctx.beginPath(); ctx.moveTo(x + r, y); ctx.arcTo(x + w, y, x + w, y + h, r); ctx.arcTo(x + w, y + h, x, y + h, r); ctx.arcTo(x, y + h, x, y, r); ctx.arcTo(x, y, x + w, y, r); ctx.closePath(); }
+  function find(l, id) { for (var i = 0; i < l.length; i++) if (l[i].id === id) return l[i]; return null; }
+
+  function furniture(r, out) {
+    var x = r.x, y = r.y, t = r.type, add = function (bx, by, w, d, h, col) { out.push({ k: bx + by + w / 2 + d / 2, f: function () { box(bx, by, w, d, h, col); } }); };
+    if (t === 'gp') { add(x + 0.3, y + 0.9, 1.1, 0.6, 12, '#b98654'); add(x + 2.2, y + 0.2, 0.6, 0.6, 22, '#8fa7b0'); }
+    else if (t === 'radio') { add(x + 1.2, y + 0.4, 1.8, 0.9, 9, '#7e93c9'); add(x + 1.7, y + 0.2, 0.8, 0.3, 30, '#5a6ea6'); add(x + 0.2, y + 2, 0.6, 0.6, 14, '#b98654'); }
+    else if (t === 'psy') { add(x + 0.9, y + 1.1, 1.7, 0.7, 7, '#a77bd6'); add(x + 0.2, y + 0.3, 0.6, 0.6, 10, '#6b4a2b'); }
+    else if (t === 'pharma') { add(x + 0.15, y + 0.15, 2.6, 0.4, 26, '#e0b25e'); add(x + 0.5, y + 1.4, 1.6, 0.5, 12, '#ffffff'); }
+    else if (t === 'deco') { add(x + 1.5, y + 0.5, 1.6, 1.6, 4, '#7a2f29'); out.push({ k: x + y + 3.2, f: function () { cage(x + 1.5, y + 0.5, 1.6); } }); add(x + 0.2, y + 0.3, 0.6, 0.6, 14, '#b98654'); }
+    else if (t === 'guichet') { add(x + 0.2, y + 1.1, 2.6, 0.4, 14, '#9aa38c'); add(x + 0.3, y + 0.2, 0.9, 0.5, 20, '#c9c2a8'); }
+    else if (t === 'platre') { add(x + 0.9, y + 0.8, 1.6, 0.8, 9, '#ffffff'); add(x + 0.2, y + 0.2, 0.5, 0.5, 13, '#d9c9a3'); }
+    else if (t === 'repos') { add(x + 0.3, y + 0.2, 2, 0.6, 9, '#4f8fd9'); add(x + 2.3, y + 1.9, 0.5, 0.5, 18, '#33505a'); }
+    else if (t === 'wc') { add(x + 0.2, y + 0.15, 0.7, 0.7, 20, '#8fb4d6'); add(x + 1.15, y + 0.15, 0.7, 0.7, 20, '#8fb4d6'); add(x + 2.1, y + 0.15, 0.7, 0.7, 20, '#8fb4d6'); }
+  }
+  // Cloisons basses côté spectateur, une par case pour rester dans le bon ordre d'affichage, et la porte.
+  function rails(r, out) {
+    var c = V.ROOMS[r.type].color, i, y2 = r.y + r.h, x2 = r.x + r.w;
+    function seg(a, b, k, door) {
+      out.push({ k: k, f: function () {
+        if (door) {
+          ctx.strokeStyle = '#17323a'; ctx.lineWidth = 2 * zoom;
+          [a, b].forEach(function (q) { ctx.beginPath(); ctx.moveTo(q[0], q[1]); ctx.lineTo(q[0], q[1] - 30 * zoom); ctx.stroke(); });
+          ctx.lineWidth = 1; poly([up(a, 30), up(b, 30), up(b, 25), up(a, 25)], '#ff6b5e');
+        } else {
+          ctx.globalAlpha = 0.6; poly([a, b, up(b, 10), up(a, 10)], shade(c, 0.72)); ctx.globalAlpha = 1;
+          ctx.strokeStyle = shade(c, 0.5); ctx.beginPath(); var u1 = up(a, 10), u2 = up(b, 10); ctx.moveTo(u1[0], u1[1]); ctx.lineTo(u2[0], u2[1]); ctx.stroke();
+        }
+      } });
+    }
+    for (i = 0; i < r.w; i++) seg(P(r.x + i, y2), P(r.x + i + 1, y2), r.x + i + y2 - 1 + 1.5, r.rot === 0 && r.x + i === r.door.x);
+    for (i = 0; i < r.h; i++) seg(P(x2, r.y + i), P(x2, r.y + i + 1), x2 - 1 + r.y + i + 1.5, r.rot === 1 && r.y + i === r.door.y);
+    if (r.rot === 2) seg(P(r.door.x, r.y), P(r.door.x + 1, r.y), r.door.x + r.y + 0.2, true);
+    if (r.rot === 3) seg(P(r.x, r.door.y), P(r.x, r.door.y + 1), r.x + r.door.y + 0.2, true);
+  }
+  function cage(x, y, s) {
+    var c = [P(x, y), P(x + s, y), P(x + s, y + s), P(x, y + s)]; ctx.strokeStyle = '#33505a'; ctx.lineWidth = 1.5;
+    c.forEach(function (p) { ctx.beginPath(); ctx.moveTo(p[0], p[1] - 4 * zoom); ctx.lineTo(p[0], p[1] - 34 * zoom); ctx.stroke(); });
+    poly(c.map(function (p) { return up(p, 34); }), null, '#33505a');
+  }
+  function drawObj(o) {
+    var x = o.x, y = o.y;
+    if (o.type === 'desk') { box(x + 0.08, y + 0.25, 0.84, 0.5, 13, '#ff6b5e'); box(x + 0.35, y + 0.3, 0.3, 0.2, 21, '#17323a'); }
+    else if (o.type === 'bench') { box(x + 0.08, y + 0.22, 0.84, 0.14, 15, '#b97a34'); box(x + 0.08, y + 0.36, 0.84, 0.4, 6, '#d99a4e'); }
+    else if (o.type === 'drinks') { box(x + 0.2, y + 0.2, 0.6, 0.6, 30, '#ef4f8b'); var c = P(x + 0.5, y + 0.8); ctx.fillStyle = '#fff3b0'; ctx.fillRect(c[0] - 5 * zoom, c[1] - 26 * zoom, 5 * zoom, 9 * zoom); }
+    else if (o.type === 'plant') {
+      box(x + 0.35, y + 0.35, 0.3, 0.3, 7, '#b0653a'); var p = P(x + 0.5, y + 0.5); ctx.fillStyle = '#3f9d5a';
+      [[0, -19, 7], [-5, -14, 6], [5, -14, 6]].forEach(function (a) { ctx.beginPath(); ctx.arc(p[0] + a[0] * zoom, p[1] + a[1] * zoom, a[2] * zoom, 0, 7); ctx.fill(); });
+    }
+    if (sel && sel.t === 'o' && sel.id === o.id) poly([P(x, y), P(x + 1, y), P(x + 1, y + 1), P(x, y + 1)], null, '#ff6b5e');
+  }
+  function draw() {
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0); ctx.fillStyle = '#10303b'; ctx.fillRect(0, 0, vw, vh); ctx.lineWidth = 1;
+    var W = V.W, H = V.H, x, y, i;
+    poly([up(P(-0.4, -0.4), -10), up(P(W + 0.4, -0.4), -10), up(P(W + 0.4, H + 0.4), -10), up(P(-0.4, H + 0.4), -10)], 'rgba(0,0,0,.28)');
+    poly([P(0, 0), P(W, 0), up(P(W, 0), 44), up(P(0, 0), 44)], '#e9f4f0'); poly([P(0, 0), P(0, H), up(P(0, H), 44), up(P(0, 0), 44)], '#cfe3dc');
+    poly([P(0, 0), P(W, 0), up(P(W, 0), 14), up(P(0, 0), 14)], '#8fd6b8'); poly([P(0, 0), P(0, H), up(P(0, H), 14), up(P(0, 0), 14)], '#77c2a3');
+    for (x = 1; x < W - 1; x += 3) if (x < 9 || x > 16) poly([up(P(x + 0.3, 0), 20), up(P(x + 1.7, 0), 20), up(P(x + 1.7, 0), 38), up(P(x + 0.3, 0), 38)], '#bfe0ee', '#9cc7d8');
+    for (y = 1; y < H - 1; y += 3) poly([up(P(0, y + 0.3), 20), up(P(0, y + 1.7), 20), up(P(0, y + 1.7), 38), up(P(0, y + 0.3), 38)], '#a9cfdf', '#8ab6c8');
+    var sp = up(P(9.6, 0), 21); ctx.save(); ctx.transform(1, 0.5, 0, 1, sp[0], sp[1]);
+    ctx.fillStyle = '#ff6b5e'; ctx.font = '800 ' + Math.round(17 * zoom) + 'px "Baloo 2",sans-serif'; ctx.textAlign = 'left'; ctx.textBaseline = 'alphabetic'; ctx.fillText('+ HÔPITAL VELPO', 0, 0); ctx.restore();
+    for (y = 0; y < H; y++) for (x = 0; x < W; x++) if (S.occ[y][x] <= 0 || S.occ[y][x] === 9999) poly([P(x, y), P(x + 1, y), P(x + 1, y + 1), P(x, y + 1)], (x + y) % 2 ? '#f4faf7' : '#e2f0ea');
+    // paillasson d'entrée
+    poly([P(V.SPAWN.x, H), P(V.SPAWN.x + 1, H), P(V.SPAWN.x + 1, H + 1.2), P(V.SPAWN.x, H + 1.2)], '#ff6b5e');
+    S.rooms.forEach(function (r) {
+      var def = V.ROOMS[r.type], c = def.color;
+      poly([P(r.x, r.y), P(r.x + r.w, r.y), P(r.x + r.w, r.y + r.h), P(r.x, r.y + r.h)], r.broken ? '#e9b9b3' : c, shade(c, 0.7));
+      poly([P(r.door.x, r.door.y), P(r.door.x + 1, r.door.y), P(r.door.x + 1, r.door.y + 1), P(r.door.x, r.door.y + 1)], shade(c, 0.86));
+      poly([P(r.front.x + 0.2, r.front.y + 0.2), P(r.front.x + 0.8, r.front.y + 0.2), P(r.front.x + 0.8, r.front.y + 0.8), P(r.front.x + 0.2, r.front.y + 0.8)], shade(c, 0.78));
+      var wh = 28, gi; ctx.strokeStyle = 'rgba(255,255,255,.45)'; ctx.beginPath();
+      for (gi = 1; gi < r.w; gi++) { var g1 = P(r.x + gi, r.y), g2 = P(r.x + gi, r.y + r.h); ctx.moveTo(g1[0], g1[1]); ctx.lineTo(g2[0], g2[1]); }
+      for (gi = 1; gi < r.h; gi++) { var g3 = P(r.x, r.y + gi), g4 = P(r.x + r.w, r.y + gi); ctx.moveTo(g3[0], g3[1]); ctx.lineTo(g4[0], g4[1]); }
+      ctx.stroke();
+      for (gi = 0; gi < r.w; gi++) if (!(r.rot === 2 && r.x + gi === r.door.x)) {
+        poly([P(r.x + gi, r.y), P(r.x + gi + 1, r.y), up(P(r.x + gi + 1, r.y), wh), up(P(r.x + gi, r.y), wh)], shade(c, 0.95));
+        poly([up(P(r.x + gi, r.y), 6), up(P(r.x + gi + 1, r.y), 6), P(r.x + gi + 1, r.y), P(r.x + gi, r.y)], shade(c, 0.6));
+      }
+      for (gi = 0; gi < r.h; gi++) if (!(r.rot === 3 && r.y + gi === r.door.y)) {
+        poly([P(r.x, r.y + gi), P(r.x, r.y + gi + 1), up(P(r.x, r.y + gi + 1), wh), up(P(r.x, r.y + gi), wh)], shade(c, 0.8));
+        poly([up(P(r.x, r.y + gi), 6), up(P(r.x, r.y + gi + 1), 6), P(r.x, r.y + gi + 1), P(r.x, r.y + gi)], shade(c, 0.5));
+      }
+      if (sel && sel.t === 'r' && sel.id === r.id) { ctx.lineWidth = 3; poly([P(r.x, r.y), P(r.x + r.w, r.y), P(r.x + r.w, r.y + r.h), P(r.x, r.y + r.h)], null, '#ff6b5e'); ctx.lineWidth = 1; }
+    });
+    S.puddles.forEach(function (u) { var c = P(u.x + 0.5, u.y + 0.5); ctx.fillStyle = 'rgba(214,190,60,.75)'; ctx.beginPath(); ctx.ellipse(c[0], c[1], 11 * zoom, 5 * zoom, 0, 0, 7); ctx.fill(); });
+    var list = [];
+    S.rooms.forEach(function (r) { furniture(r, list); rails(r, list); });
+    S.objs.forEach(function (o) { list.push({ k: o.x + o.y + 1, f: function () { drawObj(o); } }); });
+    S.people.forEach(function (p) { list.push({ k: p.x + p.y + 1.05, f: function () { drawPerson(p); } }); });
+    list.sort(function (a, b) { return a.k - b.k; });
+    for (i = 0; i < list.length; i++) list[i].f();
+    S.rooms.forEach(function (r) {
+      var def = V.ROOMS[r.type], c = P(r.x + r.w / 2, r.y + r.h / 2), label = def.short, warn = null;
+      if (r.broken) warn = 'EN PANNE'; else if (def.staff && !r.staffId) warn = def.staff === 'doc' ? 'Sans médecin' : 'Sans infirmier';
+      var q = r.queue.length; if (q) label += ' · ' + q;
+      ctx.font = '800 ' + Math.round(11 * Math.max(zoom, 0.8)) + 'px Nunito,sans-serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+      var w = ctx.measureText(label).width + 12, yy = c[1] - (def.h * 15 + 26) * zoom;
+      ctx.fillStyle = 'rgba(23,50,58,.86)'; rr(c[0] - w / 2, yy - 9, w, 18, 9); ctx.fill(); ctx.fillStyle = '#fff'; ctx.fillText(label, c[0], yy + 0.5);
+      if (warn) { w = ctx.measureText(warn).width + 12; ctx.fillStyle = r.broken ? '#d23b3b' : '#ffc94a'; rr(c[0] - w / 2, yy + 11, w, 17, 8.5); ctx.fill(); ctx.fillStyle = r.broken ? '#fff' : '#4a3200'; ctx.fillText(warn, c[0], yy + 20); }
+    });
+    ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    for (i = floaters.length - 1; i >= 0; i--) {
+      var fl = floaters[i], fp = P(fl.x, fl.y); fl.t++;
+      if (fl.t > 70) { floaters.splice(i, 1); continue; }
+      ctx.globalAlpha = Math.min(1, (70 - fl.t) / 25); ctx.font = '800 ' + Math.round(13 * Math.max(zoom, 0.8)) + 'px Nunito,sans-serif';
+      var txt = (fl.v > 0 ? '+' : '−') + Math.abs(Math.round(fl.v)).toLocaleString('fr-FR') + ' €', fy = fp[1] - (30 + fl.t * 0.6) * zoom;
+      ctx.lineWidth = 3; ctx.strokeStyle = '#10303b'; ctx.strokeText(txt, fp[0], fy); ctx.fillStyle = fl.v > 0 ? '#ffc94a' : '#ff9d94'; ctx.fillText(txt, fp[0], fy); ctx.lineWidth = 1;
+    }
+    ctx.globalAlpha = 1;
+    if (build && build.x !== null) {
+      var ok = !build.err, col = ok ? 'rgba(31,157,107,.45)' : 'rgba(210,59,59,.45)', bw = 1, bh = 1;
+      if (build.kind === 'room') { bw = V.ROOMS[build.type].w; bh = V.ROOMS[build.type].h; }
+      poly([P(build.x, build.y), P(build.x + bw, build.y), P(build.x + bw, build.y + bh), P(build.x, build.y + bh)], col, ok ? '#1f9d6b' : '#d23b3b');
+      if (build.kind === 'room') {
+        var d = V.doorOf(V.ROOMS[build.type], build.x, build.y, build.rot);
+        poly([P(d.front.x, d.front.y), P(d.front.x + 1, d.front.y), P(d.front.x + 1, d.front.y + 1), P(d.front.x, d.front.y + 1)], 'rgba(255,201,74,.75)', '#c77700');
+        var pc = P(d.front.x + 0.5, d.front.y + 0.5); ctx.fillStyle = '#4a3200'; ctx.font = '800 ' + Math.round(10 * Math.max(zoom, 0.8)) + 'px Nunito,sans-serif'; ctx.textAlign = 'center'; ctx.fillText('porte', pc[0], pc[1]);
+      }
+    }
+  }
+
+  /* ---------- interface ---------- */
+  function euro(n) { return Math.round(n).toLocaleString('fr-FR') + ' €'; }
+  function toast(t) { var e = $('toast'); e.textContent = t; e.style.opacity = 1; clearTimeout(toast.t); toast.t = setTimeout(function () { e.style.opacity = 0; }, 2200); }
+  function bar(v, cls) { return '<div class="bar ' + (cls || '') + '"><i style="width:' + Math.round(Math.max(0, Math.min(1, v)) * 100) + '%"></i></div>'; }
+  function lvl(v) { return v < 0.3 ? 'b' : v < 0.6 ? 'w' : ''; }
+  function hud() {
+    $('sMoney').lastChild.textContent = euro(S.money); $('sMoney').className = 'stat money' + (S.money < 0 ? ' neg' : '');
+    $('sRep').lastChild.textContent = Math.round(S.rep);
+    $('sCured').lastChild.textContent = S.cured + '/' + V.GOALS.cured;
+    $('sDate').lastChild.textContent = (S.day % 30 + 1) + ' · mois ' + (Math.floor(S.day / 30) + 1);
+    var l = S.log[S.log.length - 1];
+    if (l && l !== shownLog) { var first = shownLog === null; shownLog = l; $('tickText').textContent = l.t; $('ticker').className = l.k; if (l.k === 'ann' && !first) speak(l.t); }
+    $('hintText').textContent = V.hint(S);
+    $('hint').style.display = build || sel || sheet ? 'none' : '';
+    if (S.offer && !$('offer').dataset.on) showOffer(); if (!S.offer && $('offer').dataset.on) hideOffer();
+    if (sel) card();
+    if (sheet === 'team' && frame % 90 === 0) openSheet('team');
+    if (S.won && !S.freePlay && !modalKind) winModal();
+    if (S.lost && !modalKind) loseModal();
+  }
+  function setSpeed(n) { speed = n; if (n) lastSpeed = n; ['sp0', 'sp1', 'sp2'].forEach(function (id, i) { $(id).setAttribute('aria-pressed', String([0, 1, 3][i] === n)); }); }
+  $('sp0').onclick = function () { setSpeed(0); }; $('sp1').onclick = function () { setSpeed(1); }; $('sp2').onclick = function () { setSpeed(3); };
+  function zoomBy(f, sx, sy) {
+    sx = sx === undefined ? vw / 2 : sx; sy = sy === undefined ? vh / 2 : sy;
+    var nz = Math.max(0.45, Math.min(2, zoom * f)), k = nz / zoom; cam.x = sx - (sx - cam.x) * k; cam.y = sy - (sy - cam.y) * k; zoom = nz;
+  }
+  $('zIn').onclick = function () { zoomBy(1.2); }; $('zOut').onclick = function () { zoomBy(1 / 1.2); };
+
+  // carte de sélection
+  function card() {
+    var e = $('card'), h = '', p, r, o;
+    if (sel.t === 'p') {
+      p = V.person(S, sel.id); if (!p) { deselect(); return; }
+      if (p.kind === 'patient') {
+        var d = V.DMAP[p.disease], th = V.THOUGHTS, mood = p.happy < 0.3 ? th.angry : p.st === 'waitBuild' ? th.lost : p.wc > 0.8 ? th.wc : p.thirst > 0.7 ? th.thirsty : p.happy > 0.8 ? th.happy : th.queue;
+        var where = p.leaving ? 'Rentre chez lui' : p.st === 'dead' ? 'Ne se plaint plus' : p.st === 'inRoom' ? 'En consultation' : p.st === 'recQ' ? 'Attend à l\'accueil' : p.st === 'waitBuild' ? 'Cherche : ' + V.ROOMS[p.want].name : p.want ? 'Direction : ' + V.ROOMS[p.want].name : 'Arrive';
+        h = '<h3>' + p.name + (p.emergency ? ' <span class="tag" style="background:#ffd9d5">Urgence</span>' : '') + '</h3><p>' + (p.diagnosed ? '<b>' + d.name + '.</b> ' + d.desc : 'Diagnostic en cours : ' + Math.round(p.diag * 100) + ' %') + '</p>' +
+          '<div class="kv"><span>Santé</span>' + bar(p.health, lvl(p.health)) + '<span></span><span>Moral</span>' + bar(p.happy, lvl(p.happy)) + '<span></span></div>' +
+          '<p>' + where + '. ' + mood[p.id % mood.length] + '</p>' + (p.leaving || p.st === 'dead' || p.st === 'inRoom' ? '' : '<div class="row"><button class="btn alt sm" data-a="home">Renvoyer chez lui</button></div>');
+      } else {
+        h = '<h3>' + p.name + ' <span class="tag">' + V.STAFF[p.kind].name + '</span></h3><p>' + p.bio + '</p><div class="kv"><span>Talent</span>' + bar(p.skill) + '<span></span><span>Fatigue</span>' + bar(p.fatigue, p.fatigue > 0.7 ? 'b' : p.fatigue > 0.4 ? 'w' : '') + '<span></span></div>' +
+          '<div class="row"><span class="tag">' + euro(p.wage) + ' / mois</span><button class="btn alt sm" data-a="fire">Renvoyer</button></div>';
+      }
+    } else if (sel.t === 'r') {
+      r = V.room(S, sel.id); if (!r) { deselect(); return; } var def = V.ROOMS[r.type], st = r.staffId ? V.person(S, r.staffId) : null;
+      h = '<h3>' + def.name + '</h3><p>' + def.blurb + '</p><div class="row" style="margin-bottom:8px">' +
+        (def.staff ? '<span class="tag">' + (st ? st.name + (r.staffIn ? '' : ' (en route)') : 'Personne en poste') + '</span>' : '') +
+        (def.kind !== 'service' ? '<span class="tag">File : ' + r.queue.length + '</span><span class="tag">Patients vus : ' + r.uses + '</span>' : '<span class="tag">Occupants : ' + r.occ.length + '/' + def.cap + '</span>') +
+        (def.machine ? '<span class="tag"' + (r.broken ? ' style="background:#ffd9d5"' : '') + '>Usure : ' + Math.round(r.wear / 22 * 100) + ' %</span>' : '') + '</div>' +
+        '<div class="row"><button class="btn alt sm" data-a="demo">Démolir (+' + euro(def.cost * 0.4) + ')</button></div>';
+    } else {
+      o = find(S.objs, sel.id); if (!o) { deselect(); return; } var od = V.OBJS[o.type];
+      h = '<h3>' + od.name + '</h3><p>' + od.blurb + '</p><div class="row">' + (o.type === 'desk' ? '<span class="tag">' + (o.staffId ? 'Tenu' : 'Personne derrière') + ' · file ' + o.queue.length + '</span>' : '') + '<button class="btn alt sm" data-a="rm">Retirer</button></div>';
+    }
+    h = '<button class="x" data-a="close" aria-label="Fermer">&times;</button>' + h;
+    if (e.dataset.h !== h) { e.innerHTML = h; e.dataset.h = h; }
+    e.style.display = 'block';
+  }
+  function deselect() { sel = null; $('card').style.display = 'none'; $('card').dataset.h = ''; }
+  $('card').onclick = function (ev) {
+    var a = ev.target.getAttribute('data-a'); if (!a) return;
+    if (a === 'home') V.sendHome(S, sel.id); else if (a === 'fire') { V.fire(S, sel.id); deselect(); }
+    else if (a === 'demo') { V.demolishRoom(S, sel.id); deselect(); } else if (a === 'rm') { V.removeObj(S, sel.id); deselect(); } else deselect();
+  };
+
+  // urgence
+  function showOffer() {
+    var o = S.offer, d = V.DMAP[o.disease], e = $('offer'); e.dataset.on = '1';
+    e.innerHTML = '<h3>Urgence annoncée</h3><p>' + o.n + ' cas de « ' + d.name + ' » après un séminaire de cohésion d\'équipe. ' + o.days + ' jours pour en guérir les trois quarts : ' + euro(o.bonus) + ' de prime par guéri, sinon la presse s\'en mêle.</p><div class="row"><button class="btn" data-a="y">Accepter</button><button class="btn alt" data-a="n">Refuser</button></div>';
+    e.style.display = 'block'; deselect();
+  }
+  function hideOffer() { var e = $('offer'); e.dataset.on = ''; e.style.display = 'none'; }
+  $('offer').onclick = function (ev) { var a = ev.target.getAttribute('data-a'); if (a) { V.acceptEmergency(S, a === 'y'); hideOffer(); } };
+
+  // construction
+  function startBuild(kind, type) {
+    closeSheet(); deselect(); var t = toTile(vw / 2, vh / 2);
+    build = { kind: kind, type: type, x: null, y: null, rot: 0, err: null }; moveGhost(t.x, t.y); buildBar();
+  }
+  function moveGhost(tx, ty) {
+    if (!build) return; var w = 1, h = 1;
+    if (build.kind === 'room') { w = V.ROOMS[build.type].w; h = V.ROOMS[build.type].h; }
+    build.x = Math.max(0, Math.min(V.W - w, tx - Math.floor(w / 2))); build.y = Math.max(0, Math.min(V.H - h, ty - Math.floor(h / 2)));
+    build.err = build.kind === 'room' ? V.canPlaceRoom(S, build.type, build.x, build.y, build.rot) : V.canPlaceObj(S, build.type, build.x, build.y);
+    buildBar();
+  }
+  function buildBar() {
+    var e = $('buildbar'); if (!build) { e.style.display = 'none'; return; }
+    var def = build.kind === 'room' ? V.ROOMS[build.type] : V.OBJS[build.type];
+    var h = '<h3>' + def.name + ' · ' + euro(def.cost) + '</h3><p class="' + (build.err ? 'err' : '') + '">' + (build.err || 'Touchez le plan pour déplacer, puis validez.') + '</p><div class="row"><button class="btn" data-a="ok"' + (build.err ? ' disabled' : '') + '>Construire</button>' +
+      (build.kind === 'room' ? '<button class="btn alt" data-a="rot">Tourner la porte</button>' : '') + '<button class="btn alt" data-a="no">' + (build.n ? 'Terminer' : 'Annuler') + '</button></div>';
+    if (e.dataset.h !== h) { e.innerHTML = h; e.dataset.h = h; } e.style.display = 'block';
+  }
+  $('buildbar').onclick = function (ev) {
+    var a = ev.target.getAttribute('data-a'); if (!a || !build) return;
+    if (a === 'rot') { build.rot = (build.rot + 1) % 4; moveGhost(build.x + Math.floor(V.ROOMS[build.type].w / 2), build.y + Math.floor(V.ROOMS[build.type].h / 2)); }
+    else if (a === 'no') { build = null; buildBar(); }
+    else if (a === 'ok') {
+      var err = build.kind === 'room' ? V.buildRoom(S, build.type, build.x, build.y, build.rot) : V.placeObj(S, build.type, build.x, build.y);
+      if (err) { toast(err); return; }
+      if (build.kind === 'room') { build = null; buildBar(); } else { build.n = 1; moveGhost(build.x, build.y); }
+    }
+  };
+
+  // volets
+  function closeSheet() { sheet = null; $('sheet').style.display = 'none'; nav(); }
+  function nav() { Array.prototype.forEach.call(document.querySelectorAll('#nav button'), function (b) { b.setAttribute('aria-pressed', String(b.dataset.s === sheet)); }); }
+  function openSheet(name) {
+    var keep = sheet === name ? $('sheetBody').scrollTop : 0; sheet = name; build = null; buildBar(); deselect(); nav();
+    var h = '', title = '';
+    if (name === 'rooms') {
+      title = 'Salles'; h = '<div class="grid">';
+      Object.keys(V.ROOMS).forEach(function (k) {
+        var d = V.ROOMS[k], who = d.staff === 'doc' ? 'Médecin' : d.staff === 'nurse' ? 'Infirmier·ère' : 'Sans personnel', kind = { diag: 'Diagnostic', cure: 'Soin', both: 'Diagnostic et soin', service: 'Service' }[d.kind];
+        h += '<div class="item"><h4>' + d.name + '<em>' + euro(d.cost) + '</em></h4><p>' + d.blurb + '</p><div class="row"><span class="tag">' + kind + '</span><span class="tag">' + who + '</span><button class="btn sm" style="margin-left:auto" data-b="room:' + k + '"' + (S.money < d.cost ? ' disabled' : '') + '>Placer</button></div></div>';
+      }); h += '</div>';
+    } else if (name === 'objs') {
+      title = 'Objets de couloir'; h = '<div class="grid">';
+      Object.keys(V.OBJS).forEach(function (k) { var d = V.OBJS[k]; h += '<div class="item"><h4>' + d.name + '<em>' + euro(d.cost) + '</em></h4><p>' + d.blurb + '</p><div class="row"><button class="btn sm" style="margin-left:auto" data-b="obj:' + k + '"' + (S.money < d.cost ? ' disabled' : '') + '>Placer</button></div></div>'; });
+      h += '</div>';
+    } else if (name === 'team') {
+      title = 'Équipe'; var staff = S.people.filter(function (p) { return p.kind !== 'patient'; });
+      h += '<div class="sec">En poste (' + staff.length + ')</div>';
+      if (!staff.length) h += '<p style="margin:0;color:var(--muted)">Personne. L\'hôpital est très calme, et très inutile.</p>';
+      h += '<div class="grid">'; staff.forEach(function (p) {
+        var stt = { idle: 'Disponible', walk: 'En déplacement', work: 'Au travail', rest: 'En pause', fix: 'Répare', mop: 'Nettoie', away: 'En congrès' }[p.st] || '';
+        h += '<div class="item"><h4>' + p.name + '<em>' + euro(p.wage) + '/mois</em></h4><div class="row"><span class="tag">' + V.STAFF[p.kind].name + '</span><span class="tag">' + stt + '</span></div><div class="kv"><span>Talent</span>' + bar(p.skill) + '<span></span><span>Fatigue</span>' + bar(p.fatigue, p.fatigue > 0.7 ? 'b' : p.fatigue > 0.4 ? 'w' : '') + '<span></span></div><div class="row"><button class="btn alt sm" style="margin-left:auto" data-b="fire:' + p.id + '">Renvoyer</button></div></div>';
+      }); h += '</div>';
+      ['doc', 'nurse', 'recep', 'handy'].forEach(function (k) {
+        h += '<div class="sec">Candidats : ' + V.STAFF[k].name + '</div><div class="grid">';
+        S.pool[k].forEach(function (c, i) { h += '<div class="item"><h4>' + c.name + '<em>' + euro(c.wage) + '/mois</em></h4><p>' + c.bio + '</p><div class="kv"><span>Talent</span>' + bar(c.skill) + '<span></span></div><div class="row"><button class="btn sm" style="margin-left:auto" data-b="hire:' + k + ':' + i + '">Embaucher</button></div></div>'; });
+        h += '</div>';
+      });
+    } else {
+      title = 'Gestion'; var G = V.GOALS;
+      h += '<div class="item"><h4>Objectifs du niveau 1</h4><div class="kv"><span>Patients guéris</span>' + bar(S.cured / G.cured) + '<span>' + S.cured + '/' + G.cured + '</span><span>Réputation</span>' + bar(S.rep / G.rep) + '<span>' + Math.round(S.rep) + '/' + G.rep + '</span><span>Caisse</span>' + bar(S.money / G.money) + '<span>' + euro(Math.max(0, S.money)) + '</span></div><p>' + S.deaths + ' décès, ' + S.left + ' départs mécontents. Faillite à −15 000 €.</p></div>';
+      h += '<div class="item"><h4>Tarifs<em id="pmv">' + Math.round(S.priceMult * 100) + ' %</em></h4><input type="range" id="pm" min="50" max="200" step="10" value="' + Math.round(S.priceMult * 100) + '" aria-label="Niveau des tarifs"><p>Au-dessus de 100 %, des patients refusent de payer et repartent. Une bonne réputation fait monter les prix toute seule.</p></div>';
+      if (S.lastMonth) h += '<div class="item"><h4>Mois ' + S.lastMonth.n + '</h4><p>Recettes ' + euro(S.lastMonth.inc) + ' · dépenses ' + euro(S.lastMonth.exp) + '</p></div>';
+      var known = V.DISEASES.filter(function (d) { return S.known[d.id]; });
+      h += '<div class="sec">Maladies identifiées (' + known.length + '/' + V.DISEASES.length + ')</div><div class="grid">';
+      known.forEach(function (d) { h += '<div class="item"><h4>' + d.name + '<em>' + euro(V.price(S, d.price)) + '</em></h4><p>' + d.desc + '</p><div class="row"><span class="tag">Soin : ' + V.ROOMS[d.cure].short + '</span></div></div>'; });
+      h += '</div><div class="sec">Journal</div><ul class="log">';
+      S.log.slice(-12).reverse().forEach(function (l) { h += '<li class="' + l.k + '">' + l.t + '</li>'; });
+      h += '</ul><div class="item"><h4>Son</h4><div class="row"><button class="btn alt sm" data-b="opt:music" aria-pressed="' + opt.music + '">Musique : ' + (opt.music ? 'oui' : 'non') + '</button><button class="btn alt sm" data-b="opt:sfx" aria-pressed="' + opt.sfx + '">Bruitages : ' + (opt.sfx ? 'oui' : 'non') + '</button>' +
+        (tts ? '<button class="btn alt sm" data-b="opt:voice" aria-pressed="' + opt.voice + '">Voix des annonces : ' + (opt.voice ? 'oui' : 'non') + '</button>' : '') + '</div><p>' + (tts ? 'Les annonces de l\'accueil sont lues à voix haute.' : (window.claude ? 'La lecture des annonces à voix haute n\'est pas proposée dans cette application ; elle fonctionne sur ordinateur, dans Chrome.' : 'La lecture des annonces à voix haute n\'est pas disponible sur cette version.')) + '</p></div><div class="item"><h4>Partie</h4><p>' + saveNote + '. Sauvegarde automatique chaque mois.</p><div class="row"><button class="btn sm" data-b="save">Sauvegarder</button><button class="btn alt sm" data-b="new">Nouvelle partie</button><button class="btn alt sm" data-b="credits">Crédits</button></div></div>';
+    }
+    $('sheetTitle').textContent = title; $('sheetBody').innerHTML = h; $('sheet').style.display = 'flex'; $('sheetBody').scrollTop = keep;
+    var pm = $('pm'); if (pm) pm.oninput = function () { S.priceMult = pm.value / 100; $('pmv').textContent = pm.value + ' %'; };
+  }
+  $('sheetClose').onclick = closeSheet;
+  $('nav').onclick = function (ev) { var s = ev.target.dataset.s; if (!s) return; if (sheet === s) closeSheet(); else openSheet(s); };
+  $('sheetBody').onclick = function (ev) {
+    var b = ev.target.getAttribute('data-b'); if (!b) return; var a = b.split(':');
+    if (a[0] === 'room' || a[0] === 'obj') startBuild(a[0], a[1]);
+    else if (a[0] === 'hire') { if (V.hire(S, a[1], +a[2])) { toast('Embauché'); openSheet('team'); } }
+    else if (a[0] === 'fire') { V.fire(S, +a[1]); openSheet('team'); }
+    else if (a[0] === 'save') { save(true); }
+    else if (a[0] === 'opt') { opt[a[1]] = !opt[a[1]]; saveOpt(); openSheet('manage'); }
+    else if (a[0] === 'new') confirmNew(); else if (a[0] === 'credits') credits();
+  };
+  $('ticker').onclick = function (ev) { if (ev.target.id === 'ttsStop') { stopVoice(); return; } openSheet('manage'); };
+  $('mute').onclick = function () { audioInit(); opt.mute = !opt.mute; saveOpt(); };
+  document.addEventListener('click', function (ev) { if (ev.target.closest && ev.target.closest('button')) { audioInit(); sfx('click'); } }, true);
+
+  // fenêtres
+  function modal(kind, html) { modalKind = kind; $('modalBody').innerHTML = html; $('modal').style.display = kind ? 'flex' : 'none'; }
+  $('modal').onclick = function (ev) {
+    var a = ev.target.getAttribute('data-m'); if (!a) return;
+    if (a === 'new') { S = V.newGame(); afterLoad(); modal(null, ''); }
+    else if (a === 'cont') { var b = bestSave(); try { S = JSON.parse(b.json); } catch (e) { S = V.newGame(); toast('Sauvegarde illisible : nouvelle partie'); } afterLoad(); modal(null, ''); }
+    else if (a === 'free') { S.freePlay = true; modal(null, ''); setSpeed(lastSpeed); }
+    else if (a === 'close') { modal(null, ''); setSpeed(lastSpeed); }
+  };
+  function afterLoad() { deselect(); build = null; buildBar(); closeSheet(); hideOffer(); shownLog = null; setSpeed(1); }
+  function intro() {
+    var b = bestSave();
+    modal('intro', '<h2>À l\'hôpital <span>Velpo</span></h2><p>Vous dirigez un hôpital public flambant vide. Construisez des salles, recrutez une équipe plus ou moins compétente, et soignez l\'écranite aiguë, la réunionite chronique ou le syndrome de la Quête.</p><p><b>Objectifs :</b> 25 guérisons, 600 de réputation, 20 000 € en caisse.</p><div class="row">' +
+      (b ? '<button class="btn" data-m="cont">Continuer (jour ' + (b.day + 1) + ')</button><button class="btn alt" data-m="new">Nouvelle partie</button>' : '<button class="btn" data-m="new">Ouvrir l\'hôpital</button>') +
+      '</div><small>Prototype, niveau 1. Glissez pour déplacer le plan, touchez un patient ou une salle pour les détails. Le personnel rejoint seul les salles qui en ont besoin.</small>');
+  }
+  function confirmNew() { closeSheet(); setSpeed(0); modal('confirm', '<h2>Tout recommencer ?</h2><p>La partie en cours sera remplacée à la prochaine sauvegarde.</p><div class="row"><button class="btn" data-m="new">Nouvelle partie</button><button class="btn alt" data-m="close">Annuler</button></div>'); }
+  function winModal() { setSpeed(0); save(); modal('win', '<h2>Niveau réussi</h2><p>' + S.cured + ' guérisons en ' + (Math.floor(S.day / 30) + 1) + ' mois, ' + S.deaths + ' décès « non imputables au service ». Le ministère vous adresse ses félicitations et une baisse de budget.</p><div class="row"><button class="btn" data-m="free">Continuer en mode libre</button><button class="btn alt" data-m="new">Nouvelle partie</button></div>'); }
+  function loseModal() { setSpeed(0); try { localStorage.removeItem(LS); } catch (e) {} modal('lose', '<h2>Faillite</h2><p>La caisse est passée sous −15 000 €. L\'hôpital Velpo devient une salle de sport, puis un parking, puis un espace de coworking.</p><div class="row"><button class="btn" data-m="new">Réessayer</button></div>'); }
+  function credits() { closeSheet(); setSpeed(0); modal('credits', '<h2>Crédits</h2><p>Jeu original : textes, dessins, bruitages et musique créés pour ce prototype, sans fichier externe.</p><p>Plusieurs règles de simulation (diagnostic, prix, efficacité des soins, fatigue, besoins des patients) sont adaptées de <b>CorsixTH</b>, © 2009-2026 Peter « Corsix » Cawley, Edvin « Lego3 » Linge et les contributeurs de CorsixTH, sous licence MIT. Le texte complet de la licence figure en tête du fichier sim.js.</p><p>Aucun graphisme, son, texte ou nom de maladie du jeu d\'origine n\'est utilisé.</p><div class="row"><button class="btn" data-m="close">Fermer</button></div>'); }
+
+  /* ---------- pointeur ---------- */
+  var ptrs = {}, drag = null, pinch = null;
+  function pos(ev) { var r = cv.getBoundingClientRect(); return { x: ev.clientX - r.left, y: ev.clientY - r.top }; }
+  cv.addEventListener('pointerdown', function (ev) {
+    try { cv.setPointerCapture(ev.pointerId); } catch (e) {}
+    var p = pos(ev); ptrs[ev.pointerId] = p; var ids = Object.keys(ptrs);
+    if (ids.length === 1) drag = { sx: p.x, sy: p.y, cx: cam.x, cy: cam.y, moved: false };
+    else if (ids.length === 2) { var a = ptrs[ids[0]], b = ptrs[ids[1]]; pinch = { d: Math.hypot(a.x - b.x, a.y - b.y) }; if (drag) drag.moved = true; }
+  });
+  cv.addEventListener('pointermove', function (ev) {
+    var p = pos(ev);
+    if (!ptrs[ev.pointerId]) { if (build && ev.pointerType === 'mouse') { var t = toTile(p.x, p.y); moveGhost(t.x, t.y); } return; }
+    ptrs[ev.pointerId] = p; var ids = Object.keys(ptrs);
+    if (ids.length >= 2 && pinch) {
+      var a = ptrs[ids[0]], b = ptrs[ids[1]], d = Math.hypot(a.x - b.x, a.y - b.y);
+      if (pinch.d > 0) zoomBy(d / pinch.d, (a.x + b.x) / 2, (a.y + b.y) / 2); pinch.d = d; return;
+    }
+    if (drag) { var dx = p.x - drag.sx, dy = p.y - drag.sy; if (!drag.moved && Math.hypot(dx, dy) > 7) drag.moved = true; if (drag.moved && !pinch) { cam.x = drag.cx + dx; cam.y = drag.cy + dy; } }
+  });
+  function endPtr(ev) {
+    var p = ptrs[ev.pointerId]; delete ptrs[ev.pointerId]; var n = Object.keys(ptrs).length;
+    if (n < 2) pinch = null;
+    if (n === 0 && drag) { if (!drag.moved && p && ev.type === 'pointerup') tap(p.x, p.y); drag = null; }
+    else if (n === 1 && drag) { var q = ptrs[Object.keys(ptrs)[0]]; drag = { sx: q.x, sy: q.y, cx: cam.x, cy: cam.y, moved: true }; }
+  }
+  cv.addEventListener('pointerup', endPtr); cv.addEventListener('pointercancel', endPtr);
+  cv.addEventListener('wheel', function (ev) { ev.preventDefault(); var p = pos(ev); zoomBy(ev.deltaY < 0 ? 1.12 : 1 / 1.12, p.x, p.y); }, { passive: false });
+  function tap(sx, sy) {
+    if (!S) return; var t = toTile(sx, sy);
+    if (build) { moveGhost(t.x, t.y); return; }
+    if (sheet) { closeSheet(); return; }
+    var best = null, bd = 24 * Math.max(zoom, 0.8);
+    S.people.forEach(function (p) { if (p.hidden) return; var c = P(p.x + 0.5, p.y + 0.5), d = Math.hypot(c[0] - sx, c[1] - 12 * zoom - sy); if (d < bd) { bd = d; best = p; } });
+    if (best) { sel = { t: 'p', id: best.id }; card(); return; }
+    if (t.x >= 0 && t.y >= 0 && t.x < V.W && t.y < V.H) {
+      var o = S.occ[t.y][t.x];
+      if (o > 0 && V.room(S, o)) { sel = { t: 'r', id: o }; card(); return; }
+      if (o < 0) { sel = { t: 'o', id: -o }; card(); return; }
+    }
+    deselect();
+  }
+  window.addEventListener('keydown', function (ev) {
+    if (ev.key === ' ') { ev.preventDefault(); setSpeed(speed ? 0 : lastSpeed); }
+    else if (ev.key === 'Escape') { if (build) { ev.preventDefault(); build = null; buildBar(); } else if (sheet) { ev.preventDefault(); closeSheet(); } else if (sel) { ev.preventDefault(); deselect(); } }
+    else if (ev.key === 'r' && build && build.kind === 'room') { build.rot = (build.rot + 1) % 4; moveGhost(build.x + 1, build.y + 1); }
+  });
+
+  /* ---------- boucle ---------- */
+  var acc = 0, last = 0, lastSavedMonth = -1;
+  function loop(ts) {
+    requestAnimationFrame(loop); frame++;
+    var dt = Math.min(100, ts - last || 16); last = ts;
+    if (!S) return;
+    if (speed && !modalKind) { acc += dt * 0.02 * speed; var n = 0; while (acc >= 1 && n < 10) { V.tick(S); acc -= 1; n++; } if (acc > 3) acc = 0; }
+    var m = Math.floor(S.day / 30); if (m !== lastSavedMonth) { if (lastSavedMonth >= 0 && m > 0) save(); lastSavedMonth = m; }
+    if (S.fx && S.fx.length) { S.fx.forEach(function (e) { sfx(e.n); if (e.v && floaters.length < 30) floaters.push({ x: e.x, y: e.y, v: e.v, t: 0 }); }); S.fx.length = 0; }
+    draw(); if (frame % 12 === 0) hud();
+  }
+  window.addEventListener('resize', resize); if (window.ResizeObserver) new ResizeObserver(resize).observe($('stage'));
+  document.addEventListener('visibilitychange', function () { if (document.hidden && S && S.day > 0) save(); if (AC) { if (document.hidden) AC.suspend(); else AC.resume(); } });
+  applyOpt(); resize(); S = V.newGame(); hud(); intro(); requestAnimationFrame(loop);
+})();
+
+</script>
+</body>
+</html>
