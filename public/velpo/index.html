@@ -17,73 +17,73 @@
 }
 *{box-sizing:border-box}
 html,body{height:100%;margin:0}
-body{background:var(--night);color:var(--ink);font-family:var(--body);font-size:15px;display:flex;flex-direction:column;overflow:hidden;
+body{background:var(--night);color:var(--ink);font-family:var(--body);font-size:17.5px;display:flex;flex-direction:column;overflow:hidden;
   -webkit-user-select:none;user-select:none;touch-action:none}
 button{font:inherit;color:inherit;cursor:pointer;border:0;background:none}
 button:focus-visible,input:focus-visible{outline:3px solid var(--sun);outline-offset:2px}
 #hud{display:flex;flex-wrap:wrap;align-items:center;gap:6px 8px;padding:8px 12px;background:var(--night-2);color:#eaf6f2}
-#hud h1{font-family:var(--display);font-weight:800;font-size:18px;margin:0 6px 0 0;line-height:1;color:#fff;white-space:nowrap}
+#hud h1{font-family:var(--display);font-weight:800;font-size:22px;margin:0 6px 0 0;line-height:1;color:#fff;white-space:nowrap}
 #hud h1 span{color:var(--coral)}
-.stat{display:flex;align-items:baseline;gap:5px;background:rgba(255,255,255,.09);border-radius:999px;padding:4px 10px;font-weight:800;font-variant-numeric:tabular-nums;white-space:nowrap}
-.stat small{font-weight:700;font-size:11px;opacity:.75;text-transform:uppercase;letter-spacing:.04em}
+.stat{display:flex;align-items:baseline;gap:5px;background:rgba(255,255,255,.09);border-radius:999px;padding:5px 12px;font-size:18px;font-weight:800;font-variant-numeric:tabular-nums;white-space:nowrap}
+.stat small{font-weight:700;font-size:13px;opacity:.75;text-transform:uppercase;letter-spacing:.04em}
 .stat.money{color:var(--sun)} .stat.neg{color:#ff9d94}
 #speed{display:flex;gap:4px;margin-left:auto}
-#speed button{width:36px;height:32px;border-radius:9px;background:rgba(255,255,255,.1);color:#fff;font-weight:800}
+#speed button{width:44px;height:40px;font-size:16px;border-radius:9px;background:rgba(255,255,255,.1);color:#fff;font-weight:800}
 #speed button[aria-pressed="true"]{background:var(--coral)}
-#ticker{display:flex;gap:8px;align-items:center;padding:6px 12px;background:#0c252e;color:#d6ebe6;font-size:13.5px;min-height:34px}
-#ticker b{flex:none;font-family:var(--display);font-size:12px;padding:1px 8px;border-radius:999px;background:var(--mint);color:#0d3a2c}
+#ticker{display:flex;gap:8px;align-items:center;padding:6px 12px;background:#0c252e;color:#eaf6f2;font-size:16.5px;line-height:1.3;min-height:44px}
+#ticker b{flex:none;font-family:var(--display);font-size:14.5px;padding:1px 8px;border-radius:999px;background:var(--mint);color:#0d3a2c}
 #ticker.warn b{background:var(--sun);color:#4a3200} #ticker.bad b{background:var(--coral);color:#fff} #ticker.ann b{background:#b9a7ee;color:#231650}
 #ticker span{flex:1;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
 #stage{position:relative;flex:1;min-height:0}
 canvas{position:absolute;inset:0;width:100%;height:100%;display:block;touch-action:none}
-#hint{position:absolute;left:12px;right:64px;top:10px;pointer-events:none}
-#hint div{display:inline-block;max-width:460px;background:rgba(247,251,249,.95);border-radius:12px;padding:7px 11px;font-weight:700;font-size:13px;box-shadow:0 3px 0 rgba(0,0,0,.2)}
+#hint{position:absolute;left:12px;right:12px;bottom:10px;pointer-events:none}
+#hint div{display:inline-block;max-width:460px;background:rgba(247,251,249,.95);border-radius:12px;padding:9px 13px;font-weight:700;font-size:16px;line-height:1.3;box-shadow:0 3px 0 rgba(0,0,0,.2)}
 #hint div::before{content:"Conseil";font-family:var(--display);color:var(--coral);margin-right:6px}
 #zoom{position:absolute;right:12px;top:10px;display:flex;flex-direction:column;gap:6px}
-#ttsStop{flex:none;background:var(--coral);color:#fff;font-weight:800;font-size:12.5px;border-radius:999px;padding:4px 10px}
+#ttsStop{flex:none;background:var(--coral);color:#fff;font-weight:800;font-size:15px;border-radius:999px;padding:4px 10px}
 #mute[aria-pressed="true"]{background:#cfdcd8;color:var(--muted)}
 .btn.alt[aria-pressed="false"]{opacity:.6}
-#zoom button{width:40px;height:40px;border-radius:12px;background:var(--panel);font-weight:800;font-size:20px;box-shadow:0 3px 0 rgba(0,0,0,.25)}
+#zoom button{width:48px;height:48px;border-radius:14px;background:var(--panel);font-weight:800;font-size:24px;box-shadow:0 3px 0 rgba(0,0,0,.25)}
 #card,#buildbar,#offer{position:absolute;left:12px;right:12px;bottom:10px;margin:auto;max-width:520px;background:var(--panel);border-radius:16px;padding:12px 14px;box-shadow:0 4px 0 rgba(0,0,0,.25);display:none}
-#card h3,#buildbar h3,#offer h3{font-family:var(--display);font-size:18px;margin:0 0 2px;line-height:1.15}
-#card p,#buildbar p,#offer p{margin:2px 0 6px;color:var(--muted);font-size:13.5px;line-height:1.35}
+#card h3,#buildbar h3,#offer h3{font-family:var(--display);font-size:22px;margin:0 0 2px;line-height:1.15}
+#card p,#buildbar p,#offer p{margin:2px 0 8px;color:#3f5d64;font-size:16.5px;line-height:1.35}
 #buildbar p.err{color:var(--bad);font-weight:800}
 .row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
 .btn{background:var(--coral);color:#fff;font-weight:800;border-radius:11px;padding:9px 14px;box-shadow:0 3px 0 var(--coral-ink)}
 .btn:active{transform:translateY(2px);box-shadow:0 1px 0 var(--coral-ink)}
 .btn.alt{background:#e3efea;color:var(--ink);box-shadow:0 3px 0 #b9cfc7}
-.btn.sm{padding:6px 11px;font-size:13.5px}
+.btn.sm{padding:8px 13px;font-size:16px}
 .btn:disabled{opacity:.45;cursor:not-allowed}
 .x{position:absolute;right:8px;top:6px;width:34px;height:34px;border-radius:50%;font-size:20px;font-weight:800;color:var(--muted)}
-.bar{height:8px;border-radius:99px;background:#dde9e5;overflow:hidden;flex:1;min-width:60px}
+.bar{height:11px;border-radius:99px;background:#dde9e5;overflow:hidden;flex:1;min-width:60px}
 .bar i{display:block;height:100%;background:var(--good);border-radius:99px}
 .bar.w i{background:var(--warn)} .bar.b i{background:var(--bad)}
-.kv{display:grid;grid-template-columns:auto 1fr auto;gap:4px 8px;align-items:center;font-size:13px;font-weight:700;margin:6px 0}
+.kv{display:grid;grid-template-columns:auto 1fr auto;gap:5px 9px;align-items:center;font-size:15.5px;font-weight:700;margin:6px 0}
 #nav{display:flex;background:var(--panel);border-top:3px solid var(--mint);padding-bottom:env(safe-area-inset-bottom,0)}
-#nav button{flex:1;padding:10px 2px 9px;font-family:var(--display);font-weight:600;font-size:14.5px;color:var(--muted);border-top:3px solid transparent;margin-top:-3px}
+#nav button{flex:1;padding:13px 2px 12px;font-family:var(--display);font-weight:600;font-size:18px;color:#3f5d64;border-top:3px solid transparent;margin-top:-3px}
 #nav button[aria-pressed="true"]{color:var(--coral);border-top-color:var(--coral)}
 #sheet{position:absolute;left:0;right:0;bottom:0;max-height:72%;background:var(--panel);border-radius:18px 18px 0 0;box-shadow:0 -6px 24px rgba(0,0,0,.35);display:none;flex-direction:column}
 #sheet header{display:flex;align-items:center;padding:10px 14px 6px}
-#sheet header h2{font-family:var(--display);font-size:20px;margin:0;flex:1}
+#sheet header h2{font-family:var(--display);font-size:24px;margin:0;flex:1}
 #sheetBody{overflow-y:auto;padding:2px 14px 16px;display:grid;gap:10px;touch-action:pan-y;-webkit-overflow-scrolling:touch}
-.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:10px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:10px}
 .item{border:2px solid var(--line);border-radius:14px;padding:10px 12px;background:#fff;display:grid;gap:4px}
-.item h4{font-family:var(--display);font-size:16px;margin:0;display:flex;gap:8px;align-items:baseline;justify-content:space-between}
-.item h4 em{font-style:normal;font-family:var(--body);font-weight:800;font-size:13.5px;color:var(--warn);white-space:nowrap}
-.item p{margin:0;font-size:13px;color:var(--muted);line-height:1.35}
-.tag{display:inline-block;font-size:11.5px;font-weight:800;border-radius:99px;padding:1px 8px;background:#e3efea;color:var(--ink)}
-.sec{font-family:var(--display);font-size:15px;color:var(--coral);margin:6px 0 -4px}
-.log{font-size:13px;line-height:1.4;margin:0;padding:0;list-style:none;display:grid;gap:5px}
+.item h4{font-family:var(--display);font-size:19.5px;line-height:1.2;margin:0;display:flex;gap:8px;align-items:baseline;justify-content:space-between}
+.item h4 em{font-style:normal;font-family:var(--body);font-weight:800;font-size:16px;color:var(--warn);white-space:nowrap}
+.item p{margin:0;font-size:16px;color:#3f5d64;line-height:1.4}
+.tag{display:inline-block;font-size:14.5px;font-weight:800;border-radius:99px;padding:1px 8px;background:#e3efea;color:var(--ink)}
+.sec{font-family:var(--display);font-size:18.5px;color:var(--coral);margin:6px 0 -4px}
+.log{font-size:16px;line-height:1.4;margin:0;padding:0;list-style:none;display:grid;gap:5px}
 .log li{padding-left:10px;border-left:3px solid var(--mint)} .log li.warn{border-color:var(--sun)} .log li.bad{border-color:var(--coral)} .log li.ann{border-color:#b9a7ee;font-style:italic}
 input[type=range]{width:100%;accent-color:var(--coral)}
 #modal{position:absolute;inset:0;background:rgba(8,26,32,.72);display:none;align-items:center;justify-content:center;padding:16px}
 #modal>div{background:var(--panel);border-radius:20px;padding:20px;max-width:440px;width:100%;max-height:100%;overflow:auto;box-shadow:0 6px 0 rgba(0,0,0,.3)}
 #modal h2{font-family:var(--display);font-weight:800;font-size:28px;line-height:1.05;margin:0 0 8px;text-wrap:balance}
 #modal h2 span{color:var(--coral)}
-#modal p{margin:0 0 10px;line-height:1.45}
-#modal small{color:var(--muted);display:block;margin-top:10px;line-height:1.4}
-#toast{position:absolute;left:50%;top:56px;transform:translateX(-50%);background:var(--ink);color:#fff;font-weight:800;padding:8px 14px;border-radius:999px;font-size:13.5px;opacity:0;transition:opacity .2s;pointer-events:none;white-space:nowrap;max-width:92%;overflow:hidden;text-overflow:ellipsis}
-@media (max-width:520px){#hud h1{display:none}.stat{padding:3px 8px;font-size:14px}#hint div{font-size:12.5px}}
+#modal p{margin:0 0 12px;line-height:1.45;font-size:17.5px}
+#modal small{color:#3f5d64;display:block;margin-top:12px;line-height:1.4;font-size:15.5px}
+#toast{position:absolute;left:50%;top:56px;transform:translateX(-50%);background:var(--ink);color:#fff;font-weight:800;padding:10px 16px;border-radius:999px;font-size:16.5px;opacity:0;transition:opacity .2s;pointer-events:none;white-space:nowrap;max-width:92%;overflow:hidden;text-overflow:ellipsis}
+@media (max-width:520px){#hud h1{display:none}.stat{padding:4px 9px;font-size:16.5px}.stat small{display:none}#sMoney::before{content:"€";display:none}#sRep::before{content:"★ "}#sCured::before{content:"♥ "}#hint div{font-size:15.5px}}
 @media (prefers-reduced-motion:reduce){#toast{transition:none}}
 </style>
 </head>
@@ -153,23 +153,23 @@ input[type=range]{width:100%;accent-color:var(--coral)}
   function clamp(v, a, b) { return v < a ? a : v > b ? b : v; }
 
   var ROOMS = {
-    gp:      { name: 'Cabinet de généraliste', short: 'Généraliste', w: 3, h: 3, cost: 2500, staff: 'doc', kind: 'diag', price: 100, dur: 0, color: '#bfe3d0',
+    gp:      { name: 'Cabinet de généraliste', short: 'Généraliste', min: [3, 3], cost: 2500, staff: 'doc', kind: 'diag', price: 100, dur: 0, color: '#bfe3d0',
                blurb: 'Tout commence ici. Et souvent, tout y revient.' },
-    radio:   { name: 'Radiologie approximative', short: 'Radio', w: 4, h: 3, cost: 6000, staff: 'doc', kind: 'diag', price: 260, dur: 34, machine: true, color: '#c9d6f2',
+    radio:   { name: 'Radiologie approximative', short: 'Radio', min: [3, 4], cost: 6000, staff: 'doc', kind: 'diag', price: 260, dur: 34, machine: true, color: '#c9d6f2',
                blurb: 'On voit à travers le patient. Pas toujours à travers son dossier.' },
-    psy:     { name: 'Psychiatrie', short: 'Psy', w: 3, h: 3, cost: 3500, staff: 'doc', kind: 'both', price: 160, dur: 42, color: '#e6d3f0',
+    psy:     { name: 'Psychiatrie', short: 'Psy', min: [3, 3], cost: 3500, staff: 'doc', kind: 'both', price: 160, dur: 42, color: '#e6d3f0',
                blurb: 'Un divan, un médecin, et « on en reparle la semaine prochaine ».' },
-    pharma:  { name: 'Pharmacie', short: 'Pharmacie', w: 3, h: 3, cost: 3000, staff: 'nurse', kind: 'cure', dur: 26, color: '#f6dfb8',
+    pharma:  { name: 'Pharmacie', short: 'Pharmacie', min: [3, 3], cost: 3000, staff: 'nurse', kind: 'cure', dur: 26, color: '#f6dfb8',
                blurb: 'Des cachets pour tout. Les notices sont offertes, personne ne les lit.' },
-    deco:    { name: 'Déconnecteur', short: 'Déconnecteur', w: 4, h: 3, cost: 5000, staff: 'doc', kind: 'cure', dur: 40, machine: true, color: '#f4c9c4',
+    deco:    { name: 'Déconnecteur', short: 'Déconnecteur', min: [3, 4], cost: 5000, staff: 'doc', kind: 'cure', dur: 40, machine: true, color: '#f4c9c4',
                blurb: 'Cage sans réseau, sans wifi, sans notifications. Les patients hurlent, puis guérissent.' },
-    guichet: { name: 'Guichet n° 12', short: 'Guichet 12', w: 3, h: 3, cost: 2000, staff: 'nurse', kind: 'cure', dur: 46, color: '#d7dccf',
+    guichet: { name: 'Guichet n° 12', short: 'Guichet 12', min: [3, 3], cost: 2000, staff: 'nurse', kind: 'cure', dur: 46, color: '#d7dccf',
                blurb: 'Thérapie par exposition au formulaire. Il manque toujours une pièce.' },
-    platre:  { name: 'Atelier plâtre', short: 'Plâtre', w: 3, h: 3, cost: 3500, staff: 'nurse', kind: 'cure', dur: 36, color: '#f1ead9',
+    platre:  { name: 'Atelier plâtre', short: 'Plâtre', min: [3, 3], cost: 3500, staff: 'nurse', kind: 'cure', dur: 36, color: '#f1ead9',
                blurb: 'On plâtre large. Les amis signeront dessus.' },
-    repos:   { name: 'Salle de repos', short: 'Repos', w: 3, h: 3, cost: 2000, staff: null, kind: 'service', cap: 4, color: '#cfe6ef',
+    repos:   { name: 'Salle de repos', short: 'Repos', min: [3, 3], cost: 2000, staff: null, kind: 'service', color: '#cfe6ef',
                blurb: 'Canapé, machine à café, ragots. Sans elle, l\'équipe craque.' },
-    wc:      { name: 'Toilettes', short: 'Toilettes', w: 3, h: 2, cost: 1500, staff: null, kind: 'service', cap: 3, color: '#dbe9f4',
+    wc:      { name: 'Toilettes', short: 'Toilettes', min: [2, 3], cost: 1500, staff: null, kind: 'service', color: '#dbe9f4',
                blurb: 'À construire avant le distributeur de boissons. Faites-nous confiance.' }
   };
   var OBJS = {
@@ -203,8 +203,8 @@ input[type=range]{width:100%;accent-color:var(--coral)}
   var DMAP = {}; DISEASES.forEach(function (d) { DMAP[d.id] = d; });
 
   var STAFF = {
-    doc:   { name: 'Médecin', base: 260, perSkill: 520 },
-    nurse: { name: 'Infirmier·ère', base: 170, perSkill: 220 },
+    doc:   { name: 'Médecin', base: 380, perSkill: 700 },
+    nurse: { name: 'Infirmier·ère', base: 240, perSkill: 300 },
     recep: { name: 'Réceptionniste', base: 130, perSkill: 60 },
     handy: { name: 'Agent d\'entretien', base: 120, perSkill: 100 }
   };
@@ -280,7 +280,7 @@ input[type=range]{width:100%;accent-color:var(--coral)}
   /* ---------- état ---------- */
   function newGame() {
     var S = {
-      v: 1, tick: 0, day: 0, money: 30000, rep: 500, cured: 0, deaths: 0, left: 0, treated: 0,
+      v: 2, tick: 0, day: 0, money: 30000, rep: 500, cured: 0, deaths: 0, left: 0, treated: 0,
       priceMult: 1, occ: [], rooms: [], objs: [], people: [], puddles: [], nextId: 1, log: [],
       pool: {}, spawnT: 120, emergency: null, offer: null, won: false, lost: false, freePlay: false,
       seen: {}, known: {}, fx: [], ev: null, nextEv: 45, month: { inc: 0, exp: 0 }, lastMonth: null, annT: 300, nextEmerg: 150
@@ -290,10 +290,7 @@ input[type=range]{width:100%;accent-color:var(--coral)}
     say(S, 'Bienvenue à l\'hôpital Velpo. Budget serré, couloirs vides, ambitions démesurées.', 'info');
     return S;
   }
-  function say(S, text, kind) {
-    S.log.push({ t: text, k: kind || 'info', d: S.day });
-    if (S.log.length > 40) S.log.shift();
-  }
+  function say(S, text, kind) { S.log.push({ t: text, k: kind || 'info', d: S.day }); if (S.log.length > 40) S.log.shift(); }
   function sayOnce(S, key, text, kind) { if (S.seen[key] && S.day - S.seen[key] < 20) return; S.seen[key] = S.day || 1; say(S, text, kind); }
   function fx(S, n, x, y, v) { if (!S.fx) S.fx = []; if (S.fx.length < 24) S.fx.push({ n: n, x: x, y: y, v: v }); }
   function pay(S, r, n) { earn(S, n); fx(S, 'cash', r.x + r.w / 2, r.y + r.h / 2, n); }
@@ -305,18 +302,15 @@ input[type=range]{width:100%;accent-color:var(--coral)}
   function room(S, id) { return byId(S.rooms, id); }
   function inB(x, y) { return x >= 0 && y >= 0 && x < W && y < H; }
   function price(S, base) { return Math.ceil(base * (S.rep >= 500 ? S.rep / 500 : 1) * S.priceMult); }
+  function tileOf(p) { return { x: Math.round(p.x), y: Math.round(p.y) }; }
 
   /* ---------- personnel : profils ---------- */
   function makeProfile(kind) {
     var skill = clamp(0.15 + rnd() * 0.85, 0, 1);
-    return {
-      kind: kind, name: (kind === 'doc' ? 'Dr ' : '') + pick(FIRST) + ' ' + pick(LAST), skill: skill,
-      attn: rnd(), bio: pick(BIOS[kind]), wage: Math.round(STAFF[kind].base + STAFF[kind].perSkill * skill), hue: ri(0, 5)
-    };
+    return { kind: kind, name: (kind === 'doc' ? 'Dr ' : '') + pick(FIRST) + ' ' + pick(LAST), skill: skill,
+      attn: rnd(), bio: pick(BIOS[kind]), wage: Math.round(STAFF[kind].base + STAFF[kind].perSkill * skill), hue: ri(0, 5) };
   }
-  function refreshPool(S) {
-    ['doc', 'nurse', 'recep', 'handy'].forEach(function (k) { S.pool[k] = [makeProfile(k), makeProfile(k), makeProfile(k)]; });
-  }
+  function refreshPool(S) { ['doc', 'nurse', 'recep', 'handy'].forEach(function (k) { S.pool[k] = [makeProfile(k), makeProfile(k), makeProfile(k)]; }); }
   function hire(S, kind, idx) {
     var pr = S.pool[kind][idx]; if (!pr) return null;
     S.pool[kind].splice(idx, 1); S.pool[kind].push(makeProfile(kind));
@@ -328,12 +322,11 @@ input[type=range]{width:100%;accent-color:var(--coral)}
   }
   function fire(S, id) {
     var p = person(S, id); if (!p || p.kind === 'patient') return;
-    releaseStaff(S, p);
-    S.people.splice(S.people.indexOf(p), 1);
+    releaseStaff(S, p); S.people.splice(S.people.indexOf(p), 1);
     say(S, p.name + ' quitte l\'hôpital avec ses cartons et un yucca.', 'warn');
   }
   function releaseStaff(S, p) {
-    S.rooms.forEach(function (r) { if (r.staffId === p.id) { r.staffId = null; r.staffIn = false; } if (r.fixer === p.id) r.fixer = null; });
+    S.rooms.forEach(function (r) { if (r.staffId === p.id) { r.staffId = null; r.staffIn = false; } if (r.fixer === p.id) r.fixer = null; unreserve(r, p); });
     S.objs.forEach(function (o) { if (o.staffId === p.id) { o.staffId = null; o.staffIn = false; } });
     S.puddles.forEach(function (u) { if (u.cleaner === p.id) u.cleaner = null; });
     p.inRoom = null;
@@ -341,20 +334,28 @@ input[type=range]{width:100%;accent-color:var(--coral)}
 
   /* ---------- carte, chemins ---------- */
   function walk(S, x, y) { return inB(x, y) && S.occ[y][x] === 0; }
+  // Les salles se traversent uniquement par leur porte ; un objet (banc, accueil) n'est franchi que s'il est la destination.
+  function pass(S, cx, cy, nx, ny, to) {
+    var a = S.occ[cy][cx], b = S.occ[ny][nx], r;
+    if (b < 0) return nx === to.x && ny === to.y && a <= 0;
+    if (a <= 0 && b === 0) return true;
+    if (a > 0 && a === b) return true;
+    if (a > 0 && b === 0) { r = room(S, a); return !!r && r.door.x === cx && r.door.y === cy && r.front.x === nx && r.front.y === ny; }
+    if (a <= 0 && b > 0) { r = room(S, b); return !!r && a === 0 && r.door.x === nx && r.door.y === ny && r.front.x === cx && r.front.y === cy; }
+    return false;
+  }
+  var D4 = [[0, 1], [1, 0], [0, -1], [-1, 0]];
   function bfs(S, from, to) {
-    var fx = Math.round(from.x), fy = Math.round(from.y);
-    if (fx === to.x && fy === to.y) return [];
-    var prev = new Int32Array(W * H).fill(-1), q = [fy * W + fx], qi = 0; prev[fy * W + fx] = fy * W + fx;
-    var D = [[0, 1], [1, 0], [0, -1], [-1, 0]];
+    var fx0 = clamp(Math.round(from.x), 0, W - 1), fy0 = clamp(Math.round(from.y), 0, H - 1);
+    if (fx0 === to.x && fy0 === to.y) return [];
+    var prev = new Int32Array(W * H).fill(-1), s = fy0 * W + fx0, q = [s], qi = 0; prev[s] = s;
     while (qi < q.length) {
       var c = q[qi++], cx = c % W, cy = (c - cx) / W;
       for (var i = 0; i < 4; i++) {
-        var nx = cx + D[i][0], ny = cy + D[i][1], n = ny * W + nx;
-        if (!inB(nx, ny) || prev[n] !== -1) continue;
-        var goal = nx === to.x && ny === to.y;
-        if (!goal && S.occ[ny][nx] !== 0) continue;
+        var nx = cx + D4[i][0], ny = cy + D4[i][1], n = ny * W + nx;
+        if (!inB(nx, ny) || prev[n] !== -1 || !pass(S, cx, cy, nx, ny, to)) continue;
         prev[n] = c;
-        if (goal) { var out = []; var k = n; while (k !== fy * W + fx) { out.unshift({ x: k % W, y: (k - k % W) / W }); k = prev[k]; } return out; }
+        if (nx === to.x && ny === to.y) { var out = [], k = n; while (k !== s) { out.unshift({ x: k % W, y: (k - k % W) / W }); k = prev[k]; } return out; }
         q.push(n);
       }
     }
@@ -362,72 +363,108 @@ input[type=range]{width:100%;accent-color:var(--coral)}
   }
   function reachable(S) {
     var seen = new Uint8Array(W * H), q = [SPAWN.y * W + SPAWN.x], qi = 0; seen[q[0]] = 1;
-    var D = [[0, 1], [1, 0], [0, -1], [-1, 0]];
     while (qi < q.length) {
       var c = q[qi++], cx = c % W, cy = (c - cx) / W;
       for (var i = 0; i < 4; i++) {
-        var nx = cx + D[i][0], ny = cy + D[i][1];
+        var nx = cx + D4[i][0], ny = cy + D4[i][1];
         if (!inB(nx, ny) || seen[ny * W + nx]) continue;
-        seen[ny * W + nx] = 1;
-        if (S.occ[ny][nx] === 0) q.push(ny * W + nx);
+        seen[ny * W + nx] = 1; if (S.occ[ny][nx] === 0) q.push(ny * W + nx);
       }
     }
     return seen;
   }
-  function doorOf(def, x, y, rot) {
-    var w = def.w, h = def.h, mx = x + Math.floor(w / 2), my = y + Math.floor(h / 2);
-    if (rot === 0) return { door: { x: mx, y: y + h - 1 }, front: { x: mx, y: y + h } };
-    if (rot === 1) return { door: { x: x + w - 1, y: my }, front: { x: x + w, y: my } };
-    if (rot === 2) return { door: { x: mx, y: y }, front: { x: mx, y: y - 1 } };
-    return { door: { x: x, y: my }, front: { x: x - 1, y: my } };
+  function doorAt(x, y, w, h, rot, k) {
+    if (rot === 0) return { door: { x: x + k, y: y + h - 1 }, front: { x: x + k, y: y + h } };
+    if (rot === 1) return { door: { x: x + w - 1, y: y + k }, front: { x: x + w, y: y + k } };
+    if (rot === 2) return { door: { x: x + k, y: y }, front: { x: x + k, y: y - 1 } };
+    return { door: { x: x, y: y + k }, front: { x: x - 1, y: y + k } };
   }
+  function sizeOk(def, w, h) { var a = def.min[0], b = def.min[1]; return ((w >= a && h >= b) || (w >= b && h >= a)) && w <= 8 && h <= 8; }
+  function roomCost(type, w, h) { var d = ROOMS[type]; return d.cost + Math.max(0, w * h - d.min[0] * d.min[1]) * 120; }
   function allReachable(S) {
     var seen = reachable(S), ok = true;
-    S.rooms.forEach(function (r) { if (!seen[r.front.y * W + r.front.x]) ok = false; });
+    S.rooms.forEach(function (r) { if (!seen[r.front.y * W + r.front.x] || S.occ[r.front.y][r.front.x] !== 0) ok = false; });
     S.objs.forEach(function (o) { if (!seen[o.y * W + o.x]) ok = false; });
     return ok;
   }
   function isFront(S, x, y) { return S.rooms.some(function (r) { return r.front.x === x && r.front.y === y; }); }
-  function canPlaceRoom(S, type, x, y, rot) {
-    var def = ROOMS[type]; if (!def) return 'Salle inconnue';
-    if (S.money < def.cost) return 'Pas assez d\'argent';
-    for (var j = y; j < y + def.h; j++) for (var i = x; i < x + def.w; i++) {
+  function canPlaceRoom(S, type, x, y, w, h, rot, k) {
+    var def = ROOMS[type], i, j; if (!def) return 'Salle inconnue';
+    if (!sizeOk(def, w, h)) return 'Taille minimale : ' + def.min[0] + ' × ' + def.min[1] + ' cases (maximum 8 × 8)';
+    if (S.money < roomCost(type, w, h)) return 'Pas assez d\'argent';
+    for (j = y; j < y + h; j++) for (i = x; i < x + w; i++) {
       if (!inB(i, j)) return 'Hors du bâtiment';
       if (S.occ[j][i] !== 0) return 'Emplacement occupé';
       if (isFront(S, i, j)) return 'Vous bloqueriez une porte';
       if (i === SPAWN.x && j >= SPAWN.y - 1) return 'Laissez l\'entrée dégagée';
     }
-    var d = doorOf(def, x, y, rot);
+    if (rot === undefined || rot === null) return 'Aucun mur libre pour la porte';
+    var kmax = (rot % 2 === 0 ? w : h) - 1; if (k < 0 || k > kmax) return 'Porte hors du mur';
+    var d = doorAt(x, y, w, h, rot, k);
     if (!inB(d.front.x, d.front.y) || S.occ[d.front.y][d.front.x] !== 0) return 'La porte doit donner sur un couloir libre';
-    for (j = y; j < y + def.h; j++) for (i = x; i < x + def.w; i++) S.occ[j][i] = 9999;
+    for (j = y; j < y + h; j++) for (i = x; i < x + w; i++) S.occ[j][i] = 9999;
     var ok = allReachable(S) && reachable(S)[d.front.y * W + d.front.x];
-    for (j = y; j < y + def.h; j++) for (i = x; i < x + def.w; i++) S.occ[j][i] = 0;
+    for (j = y; j < y + h; j++) for (i = x; i < x + w; i++) S.occ[j][i] = 0;
     return ok ? null : 'Cette salle bloquerait un passage';
   }
-  function buildRoom(S, type, x, y, rot) {
-    var err = canPlaceRoom(S, type, x, y, rot); if (err) return err;
-    var def = ROOMS[type], d = doorOf(def, x, y, rot);
-    var r = { id: S.nextId++, type: type, x: x, y: y, w: def.w, h: def.h, rot: rot, door: d.door, front: d.front,
-      queue: [], staffId: null, staffIn: false, patientId: null, t: 0, wear: 0, broken: false, fixer: null, uses: 0, occ: [] };
-    for (var j = y; j < y + def.h; j++) for (var i = x; i < x + def.w; i++) S.occ[j][i] = r.id;
-    S.rooms.push(r); spend(S, def.cost); fx(S, 'build', x + def.w / 2, y + def.h / 2, -def.cost);
-    S.people.forEach(function (p) {
-      if (!p.inRoom && S.occ[Math.round(p.y)][Math.round(p.x)] === r.id) { p.x = d.front.x; p.y = d.front.y; }
-      repath(S, p);
-    });
+  function autoDoor(S, type, x, y, w, h) {
+    var rots = [0, 1, 3, 2];
+    for (var a = 0; a < 4; a++) {
+      var rot = rots[a], n = rot % 2 === 0 ? w : h, c = Math.floor(n / 2);
+      for (var o = 0; o < n; o++) { var k = c + (o % 2 ? -1 : 1) * Math.ceil(o / 2); if (k < 0 || k >= n) continue; if (!canPlaceRoom(S, type, x, y, w, h, rot, k)) return { rot: rot, k: k }; }
+    }
+    return null;
+  }
+  // Aménagement automatique : le poste de travail est contre le mur du fond, face à la porte.
+  function layout(r) {
+    var D = r.rot % 2 === 0 ? r.h : r.w, L = r.rot % 2 === 0 ? r.w : r.h, B = D - 1, c = Math.floor(L / 2), t = r.type, f = [], i;
+    function at(d, l) {
+      l = clamp(l, 0, L - 1); d = clamp(d, 0, B);
+      if (r.rot === 0) return { x: r.x + l, y: r.y + r.h - 1 - d };
+      if (r.rot === 2) return { x: r.x + l, y: r.y + d };
+      if (r.rot === 1) return { x: r.x + r.w - 1 - d, y: r.y + l };
+      return { x: r.x + d, y: r.y + l };
+    }
+    function add(k, d, l) { var q = at(d, l); f.push({ k: k, x: q.x, y: q.y }); }
+    var side = c + 1 < L ? c + 1 : c - 1, other = c - 1 >= 0 ? c - 1 : c + 1;
+    r.spots = {}; r.cap = 1;
+    if (t === 'gp') { add('desk', B - 1, c); add('cabinet', B, side); if (L > 3) add('plantpot', B, 0); r.spots.staff = at(B, c); r.spots.patient = at(B - 2, c); }
+    else if (t === 'pharma') { for (i = 0; i < L; i++) if (i !== c) add('shelf', B, i); add('counter', B - 1, c); r.spots.staff = at(B, c); r.spots.patient = at(B - 2, c); }
+    else if (t === 'guichet') { for (i = 0; i < L; i++) add(i === c ? 'guichet' : 'counter', B - 1, i); add('files', B, side); r.spots.staff = at(B, c); r.spots.patient = at(B - 2, c); }
+    else if (t === 'radio') { add('xray', B, c); add('console', B, other); r.spots.staff = at(B - 1, other); r.spots.patient = at(B, c); }
+    else if (t === 'psy') { add('couch', B, c); add('books', B, other); add('armchair', B - 1, other); r.spots.staff = at(B - 1, other); r.spots.patient = at(B, c); }
+    else if (t === 'deco') { add('cage', B, c); add('console', B, other); r.spots.staff = at(B - 1, other); r.spots.patient = at(B, c); }
+    else if (t === 'platre') { add('table', B, c); add('trolley', B, other); r.spots.staff = at(B - 1, c); r.spots.patient = at(B, c); }
+    else {
+      r.spots.multi = []; var n = Math.min(L, t === 'wc' ? 5 : 4);
+      for (i = 0; i < n; i++) { add(t === 'wc' ? 'cabin' : 'sofa', B, i); r.spots.multi.push(at(B, i)); }
+      if (t === 'repos' && L > n) add('coffee', B, L - 1); else if (t === 'repos' && D > 2) add('coffee', B - 1, L - 1);
+      r.cap = n;
+    }
+    r.furn = f;
+  }
+  function buildRoom(S, type, x, y, w, h, rot, k) {
+    var err = canPlaceRoom(S, type, x, y, w, h, rot, k); if (err) return err;
+    var d = doorAt(x, y, w, h, rot, k), cost = roomCost(type, w, h);
+    var r = { id: S.nextId++, type: type, x: x, y: y, w: w, h: h, rot: rot, door: d.door, front: d.front, cost: cost,
+      queue: [], staffId: null, staffIn: false, patientId: null, t: 0, t0: 1, wear: 0, broken: false, fixer: null, uses: 0, occ: [] };
+    layout(r);
+    S.people.forEach(function (p) { var t = tileOf(p); if (t.x >= x && t.x < x + w && t.y >= y && t.y < y + h) { p.x = d.front.x; p.y = d.front.y; } });
+    for (var j = y; j < y + h; j++) for (var i = x; i < x + w; i++) S.occ[j][i] = r.id;
+    S.rooms.push(r); spend(S, cost); fx(S, 'build', x + w / 2, y + h / 2, -cost);
+    S.people.forEach(function (p) { repath(S, p); });
     return null;
   }
   function demolishRoom(S, id) {
     var r = room(S, id); if (!r) return;
     for (var j = r.y; j < r.y + r.h; j++) for (var i = r.x; i < r.x + r.w; i++) S.occ[j][i] = 0;
-    S.people.forEach(function (p) {
-      if (p.inRoom === r.id) { p.inRoom = null; p.x = r.front.x; p.y = r.front.y; }
-      if (p.kind === 'patient') {
-        if (p.target === r.id || p.inRoomWas === r.id) { p.target = null; if (p.st !== 'leaving' && p.st !== 'dead') reseek(S, p); }
-      } else if (r.staffId === p.id || r.fixer === p.id || (p.st === 'rest' && p.restRoom === r.id) || p.goRoom === r.id) { p.st = 'idle'; p.path = []; p.goRoom = null; }
-    });
     S.rooms.splice(S.rooms.indexOf(r), 1);
-    earn(S, Math.round(ROOMS[r.type].cost * 0.4));
+    S.people.forEach(function (p) {
+      if (p.inRoom === r.id) p.inRoom = null;
+      if (p.kind === 'patient') { if ((p.target === r.id || p.wcRoom === r.id) && !p.leaving && p.st !== 'dead') { p.target = null; p.wcRoom = null; reseek(S, p); } }
+      else if (r.staffId === p.id || r.fixer === p.id || p.goRoom === r.id) { p.st = 'idle'; p.path = []; p.goRoom = null; }
+    });
+    earn(S, Math.round((r.cost || ROOMS[r.type].cost) * 0.4));
   }
   function canPlaceObj(S, type, x, y) {
     var def = OBJS[type]; if (!def) return 'Objet inconnu';
@@ -442,7 +479,7 @@ input[type=range]{width:100%;accent-color:var(--coral)}
     var err = canPlaceObj(S, type, x, y); if (err) return err;
     var o = { id: S.nextId++, type: type, x: x, y: y, usedBy: null, staffId: null, staffIn: false, queue: [], cur: null, t: 0 };
     S.objs.push(o); S.occ[y][x] = -o.id; spend(S, OBJS[type].cost); fx(S, 'build', x + 0.5, y + 0.5, -OBJS[type].cost);
-    S.people.forEach(function (p) { if (!p.inRoom && Math.round(p.x) === x && Math.round(p.y) === y) nudge(S, p); repath(S, p); });
+    S.people.forEach(function (p) { var t = tileOf(p); if (t.x === x && t.y === y && p.st === 'walk') nudge(S, p); repath(S, p); });
     return null;
   }
   function removeObj(S, id) {
@@ -451,41 +488,45 @@ input[type=range]{width:100%;accent-color:var(--coral)}
     S.people.forEach(function (p) {
       if (p.seat === o.id) p.seat = null;
       if (p.kind === 'recep' && o.staffId === p.id) { p.st = 'idle'; p.path = []; }
-      if (p.kind === 'patient' && (p.st === 'recQ' || p.next === 'recArrive') && p.desk === o.id) { p.desk = null; toReception(S, p); }
+      if (p.kind === 'patient' && p.desk === o.id && !p.leaving && (p.st === 'recQ' || p.next === 'recArrive' || p.next === 'recStand')) { p.desk = null; toReception(S, p); }
     });
     earn(S, Math.round(OBJS[o.type].cost * 0.5));
   }
-  function nudge(S, p) {
-    var D = [[0, 1], [1, 0], [0, -1], [-1, 0]];
-    for (var i = 0; i < 4; i++) { var nx = Math.round(p.x) + D[i][0], ny = Math.round(p.y) + D[i][1]; if (walk(S, nx, ny)) { p.x = nx; p.y = ny; return; } }
-  }
-  function freeNeighbor(S, x, y) {
-    var D = [[0, 1], [1, 0], [-1, 0], [0, -1]];
-    for (var i = 0; i < 4; i++) if (walk(S, x + D[i][0], y + D[i][1])) return { x: x + D[i][0], y: y + D[i][1] };
-    return null;
-  }
+  function nudge(S, p) { var t = tileOf(p); for (var i = 0; i < 4; i++) if (walk(S, t.x + D4[i][0], t.y + D4[i][1])) { p.x = t.x + D4[i][0]; p.y = t.y + D4[i][1]; return; } }
+  function freeNeighbor(S, x, y) { for (var i = 0; i < 4; i++) if (walk(S, x + D4[i][0], y + D4[i][1])) return { x: x + D4[i][0], y: y + D4[i][1] }; return null; }
   function goTo(S, p, dest, next) {
     p.dest = { x: dest.x, y: dest.y }; p.next = next; p.st = 'walk';
     var path = bfs(S, p, dest);
-    if (path === null) { p.path = []; p.stuck = 1; } else { p.path = path; p.stuck = 0; }
+    if (path === null) { p.path = []; p.stuck = (p.stuck || 0) + 1; } else { p.path = path; p.stuck = 0; }
   }
-  function repath(S, p) { if (p.st === 'walk' && p.dest) { var n = p.next; goTo(S, p, p.dest, n); } }
-  function slot(r, i) {
-    var w = r.w - 1, h = r.h - 1;
-    var P = [[0.25, 0.3], [0.75, 0.65], [0.7, 0.2], [0.2, 0.8], [0.5, 0.5]];
-    var s = P[i % P.length]; return { x: r.x + w * s[0], y: r.y + h * s[1] };
+  function repath(S, p) { if (p.st === 'walk' && p.dest) goTo(S, p, p.dest, p.next); }
+  // Places d'une file d'attente : les cases de couloir les plus proches du point de départ, dans l'ordre.
+  function lineSpots(S, start, n) {
+    var out = [], seen = {}, q = [start], qi = 0; seen[start.x + ',' + start.y] = 1;
+    while (qi < q.length && out.length < n) {
+      var c = q[qi++];
+      for (var i = 0; i < 4 && out.length < n; i++) {
+        var nx = c.x + D4[i][0], ny = c.y + D4[i][1], key = nx + ',' + ny;
+        if (seen[key] || !walk(S, nx, ny)) continue; seen[key] = 1;
+        var t = { x: nx, y: ny }; q.push(t);
+        if (!isFront(S, nx, ny) && !(nx === SPAWN.x && ny >= SPAWN.y - 1)) out.push(t);
+      }
+    }
+    return out;
   }
+  function reserve(S, r, p) {
+    var used = {}; r.occ.forEach(function (id) { var q = person(S, id); if (q) used[q.spotIdx] = 1; });
+    for (var i = 0; i < r.cap; i++) if (!used[i]) { r.occ.push(p.id); p.spotIdx = i; return r.spots.multi[i]; }
+    return null;
+  }
+  function unreserve(r, p) { var k = r.occ.indexOf(p.id); if (k >= 0) r.occ.splice(k, 1); }
 
   /* ---------- patients ---------- */
   function builtTypes(S) { var t = {}; S.rooms.forEach(function (r) { t[r.type] = 1; }); return t; }
   function spawnPatient(S, diseaseId, emergency) {
     var built = builtTypes(S), d;
     if (diseaseId) d = DMAP[diseaseId];
-    else {
-      // Pondération : les maladies soignables ici arrivent plus souvent, comme les niveaux d'origine
-      // n'envoient que les maladies prévues pour l'hôpital.
-      var bag = []; DISEASES.forEach(function (x) { var n = built[x.cure] ? 5 : 1; while (n--) bag.push(x); }); d = pick(bag);
-    }
+    else { var bag = []; DISEASES.forEach(function (x) { var n = built[x.cure] ? 5 : 1; while (n--) bag.push(x); }); d = pick(bag); }
     var p = { id: S.nextId++, kind: 'patient', name: pick(FIRST) + ' ' + pick(LAST).charAt(0) + '.', disease: d.id,
       x: SPAWN.x, y: SPAWN.y, path: [], st: 'idle', health: 0.5 + rnd() * 0.5, happy: 1, thirst: rnd() * 0.3, wc: rnd() * 0.3,
       diag: 0, diagnosed: !!emergency, diagLeft: d.diag.slice(), target: null, arrived: false, seat: null, inRoom: null,
@@ -499,7 +540,7 @@ input[type=range]{width:100%;accent-color:var(--coral)}
     if (!desks.length) { p.st = 'waitDesk'; p.t = 25; sayOnce(S, 'nodesk', 'Des patients tournent en rond : il n\'y a pas d\'accueil.', 'warn'); return; }
     desks.sort(function (a, b) { return a.queue.length - b.queue.length; });
     var o = desks[0], f = freeNeighbor(S, o.x, o.y) || o;
-    p.desk = o.id; goTo(S, p, f, 'recArrive');
+    p.desk = o.id; p.want = null; goTo(S, p, f, 'recArrive');
   }
   function seek(S, p, type) {
     freeSeat(S, p);
@@ -513,42 +554,31 @@ input[type=range]{width:100%;accent-color:var(--coral)}
     var r = list[0]; r.queue.push(p.id); p.target = r.id; p.arrived = false; p.want = type;
     goTo(S, p, r.front, 'roomArrive');
   }
-  function reseek(S, p) {
-    S.rooms.forEach(function (r) { var i = r.queue.indexOf(p.id); if (i >= 0) r.queue.splice(i, 1); if (r.patientId === p.id) r.patientId = null; });
-    if (p.want) seek(S, p, p.want); else toReception(S, p);
+  function clearFrom(S, p) {
+    S.rooms.forEach(function (r) { var i = r.queue.indexOf(p.id); if (i >= 0) r.queue.splice(i, 1); if (r.patientId === p.id) r.patientId = null; unreserve(r, p); });
+    S.objs.forEach(function (o) { var i = o.queue.indexOf(p.id); if (i >= 0) o.queue.splice(i, 1); if (o.cur === p.id) o.cur = null; });
+    freeSeat(S, p); p.inRoom = null;
   }
+  function reseek(S, p) { clearFrom(S, p); if (p.want) seek(S, p, p.want); else toReception(S, p); }
   function freeSeat(S, p) { if (p.seat) { var o = byId(S.objs, p.seat); if (o && o.usedBy === p.id) o.usedBy = null; p.seat = null; } }
-  function findSeat(S, p, r) {
+  function findSeat(S, p, at) {
     var best = null, bd = 99;
-    S.objs.forEach(function (o) {
-      if (o.type !== 'bench' || o.usedBy) return;
-      var d = Math.abs(o.x - r.front.x) + Math.abs(o.y - r.front.y);
-      if (d < bd && d <= 8) { bd = d; best = o; }
-    });
-    if (best) { best.usedBy = p.id; p.seat = best.id; goTo(S, p, best, 'sit'); }
-    else {
-      var tries = 8;
-      while (tries--) { var x = r.front.x + ri(-2, 2), y = r.front.y + ri(-2, 2); if (walk(S, x, y) && !(x === r.front.x && y === r.front.y)) { goTo(S, p, { x: x, y: y }, 'stand'); if (!p.stuck) return; } }
-      p.st = 'roomQ';
-    }
+    S.objs.forEach(function (o) { if (o.type !== 'bench' || o.usedBy) return; var d = Math.abs(o.x - at.x) + Math.abs(o.y - at.y); if (d < bd && d <= 8) { bd = d; best = o; } });
+    if (!best) return false;
+    best.usedBy = p.id; p.seat = best.id; goTo(S, p, best, 'sit'); return true;
   }
   function leave(S, p, reason) {
-    S.rooms.forEach(function (r) { var i = r.queue.indexOf(p.id); if (i >= 0) r.queue.splice(i, 1); if (r.patientId === p.id) r.patientId = null; var k = r.occ.indexOf(p.id); if (k >= 0) r.occ.splice(k, 1); });
-    S.objs.forEach(function (o) { var i = o.queue.indexOf(p.id); if (i >= 0) o.queue.splice(i, 1); if (o.cur === p.id) o.cur = null; });
-    freeSeat(S, p); p.inRoom = null; p.target = null; p.reason = reason;
+    clearFrom(S, p); p.target = null; p.reason = reason;
     if (reason === 'cured') { S.cured++; changeRep(S, 3); fx(S, 'cure', p.x, p.y); }
     else if (reason === 'angry') { S.left++; changeRep(S, -4); fx(S, 'angry', p.x, p.y); sayOnce(S, 'angry', 'Un patient part furieux. Il parle de « laisser un avis ».', 'warn'); }
     else if (reason === 'price') { S.left++; changeRep(S, -1); sayOnce(S, 'price', 'Un patient trouve vos tarifs indécents et repart se soigner à la tisane.', 'warn'); }
     else if (reason === 'uncured') { S.left++; changeRep(S, -2); }
     else if (reason === 'nodiag') { S.left++; changeRep(S, -2); sayOnce(S, 'nodiag', 'Diagnostic impossible : pas assez de salles d\'examen. Le patient repart avec un Doliprane.', 'warn'); }
-    if (S.emergency && p.emergency && reason !== 'cured') S.emergency.lost++;
-    if (S.emergency && p.emergency && reason === 'cured') S.emergency.cured++;
-    goTo(S, p, SPAWN, 'exit'); p.st = 'walk'; p.leaving = true;
+    if (S.emergency && p.emergency) { if (reason === 'cured') S.emergency.cured++; else S.emergency.lost++; }
+    goTo(S, p, SPAWN, 'exit'); p.leaving = true;
   }
   function die(S, p) {
-    S.rooms.forEach(function (r) { var i = r.queue.indexOf(p.id); if (i >= 0) r.queue.splice(i, 1); if (r.patientId === p.id) r.patientId = null; var k = r.occ.indexOf(p.id); if (k >= 0) r.occ.splice(k, 1); });
-    S.objs.forEach(function (o) { var i = o.queue.indexOf(p.id); if (i >= 0) o.queue.splice(i, 1); if (o.cur === p.id) o.cur = null; });
-    freeSeat(S, p); p.inRoom = null; p.st = 'dead'; p.t = 70; p.path = [];
+    clearFrom(S, p); p.st = 'dead'; p.t = 70; p.path = [];
     S.deaths++; changeRep(S, -8); fx(S, 'death', p.x, p.y);
     if (S.emergency && p.emergency) S.emergency.lost++;
     say(S, p.name + ' nous a quittés. La direction rappelle que ce n\'était pas prévu au planning.', 'bad');
@@ -558,30 +588,27 @@ input[type=range]{width:100%;accent-color:var(--coral)}
     var d = DMAP[p.disease], base = 0.4 * (1 - d.diff), bonus = 0.4, mult = 1;
     if (staff) {
       mult = (staff.skill >= 0.9 ? ri(1, 5) : 1) * (1 - (staff.fatigue - 0.5));
-      var div = ri(1, 3);
-      bonus = (staff.attn / div + 0.4) * (staff.skill / div);
+      var div = ri(1, 3); bonus = (staff.attn / div + 0.4) * (staff.skill / div);
     }
     p.diag = clamp(p.diag + base + bonus * mult, 0, 1);
   }
   // Adapté de Patient:agreesToPay (CorsixTH)
-  function agrees(S) {
-    if (S.priceMult <= 1) return true;
-    return rnd() <= Math.exp(-4 * (S.priceMult - 1));
-  }
+  function agrees(S) { return S.priceMult <= 1 || rnd() <= Math.exp(-4 * (S.priceMult - 1)); }
   // Adapté de GPRoom:dealtWithPatient (CorsixTH)
   function gpDone(S, r, p, staff) {
-    pay(S, r, price(S, ROOMS.gp.price));
-    diagStep(S, p, staff);
-    var built = builtTypes(S);
-    var avail = p.diagLeft.filter(function (t) { return built[t]; });
+    pay(S, r, price(S, ROOMS.gp.price)); diagStep(S, p, staff);
+    var built = builtTypes(S), avail = p.diagLeft.filter(function (t) { return built[t]; });
     if (p.diag >= 1 || (!avail.length && p.diag >= 0.55)) {
-      p.diagnosed = true;
+      p.diagnosed = true; fx(S, 'idea', p.x, p.y);
       if (!S.known[p.disease]) { S.known[p.disease] = 1; say(S, 'Nouvelle maladie identifiée : ' + DMAP[p.disease].name + '. ' + DMAP[p.disease].desc, 'good'); }
       if (agrees(S)) seek(S, p, DMAP[p.disease].cure); else leave(S, p, 'price');
     } else if (!avail.length) {
       var missing = p.diagLeft.filter(function (t) { return !built[t]; })[0];
-      if (missing) { p.diagLeft.splice(p.diagLeft.indexOf(missing), 1); sayOnce(S, 'need_' + missing, 'Le généraliste aimerait envoyer un patient en ' + ROOMS[missing].name + '. Encore faudrait-il l\'avoir.', 'warn'); seek(S, p, 'gp'); p.gpVisits = (p.gpVisits || 0) + 1; if (p.gpVisits > 3) leave(S, p, 'nodiag'); }
-      else leave(S, p, 'nodiag');
+      if (missing) {
+        p.diagLeft.splice(p.diagLeft.indexOf(missing), 1);
+        sayOnce(S, 'need_' + missing, 'Le généraliste aimerait envoyer un patient en ' + ROOMS[missing].name + '. Encore faudrait-il l\'avoir.', 'warn');
+        p.gpVisits = (p.gpVisits || 0) + 1; if (p.gpVisits > 3) leave(S, p, 'nodiag'); else seek(S, p, 'gp');
+      } else leave(S, p, 'nodiag');
     } else {
       var t = pick(avail); p.diagLeft.splice(p.diagLeft.indexOf(t), 1);
       if (agrees(S)) seek(S, p, t); else leave(S, p, 'price');
@@ -607,7 +634,7 @@ input[type=range]{width:100%;accent-color:var(--coral)}
     r.patientId = null; r.uses++;
     if (def.machine) { r.wear++; if (r.wear >= 22) { r.broken = true; fx(S, 'alert', r.x, r.y); say(S, ROOMS[r.type].name + ' est en panne. Un agent d\'entretien, vite.', 'bad'); } }
     if (!p) return;
-    p.inRoom = null; p.x = r.front.x; p.y = r.front.y; p.target = null;
+    p.inRoom = null; p.target = null;
     if (r.type === 'gp') return gpDone(S, r, p, staff);
     if (p.diagnosed && DMAP[p.disease].cure === r.type) return treat(S, r, p, staff);
     pay(S, r, price(S, def.price || 150)); diagStep(S, p, staff); seek(S, p, 'gp');
@@ -616,31 +643,26 @@ input[type=range]{width:100%;accent-color:var(--coral)}
     var n = p.next, r, o;
     if (n === 'exit') { p.gone = true; return; }
     if (n === 'recArrive') { o = byId(S.objs, p.desk); if (!o) return toReception(S, p); o.queue.push(p.id); p.st = 'recQ'; return; }
+    if (n === 'recStand') { p.st = 'recQ'; return; }
     if (n === 'roomArrive') {
       r = room(S, p.target); if (!r) return reseek(S, p);
-      p.arrived = true; p.st = 'roomQ'; if (!(r.queue[0] === p.id && !r.patientId)) findSeat(S, p, r); return;
+      p.arrived = true; p.st = 'roomQ'; if (!(r.queue[0] === p.id && !r.patientId)) findSeat(S, p, r.front); return;
     }
     if (n === 'sit' || n === 'stand') { p.st = 'roomQ'; return; }
     if (n === 'enter') {
       r = room(S, p.target); if (!r || r.patientId !== p.id) return reseek(S, p);
-      p.inRoom = r.id; p.st = 'inRoom'; var s = slot(r, 1); p.x = s.x; p.y = s.y;
+      p.inRoom = r.id; p.st = 'inRoom';
       var staff = r.staffId ? person(S, r.staffId) : null;
-      if (r.type === 'gp') { var inv = 1 - (staff ? staff.skill : 0.5); r.t = ri(Math.floor(3 + 5 * inv), Math.ceil(8 + 10 * inv)) * 4; }
-      else r.t = ROOMS[r.type].dur;
-      return;
+      if (r.type === 'gp') { var inv = 1 - (staff ? staff.skill : 0.5); r.t = ri(Math.floor(3 + 5 * inv), Math.ceil(8 + 10 * inv)) * 4; } else r.t = ROOMS[r.type].dur;
+      r.t0 = r.t; return;
     }
-    if (n === 'drink') { earn(S, 20); p.thirst = 0; p.wc += 0.25; p.happy = clamp(p.happy + 0.05, 0, 1); return backToQueue(S, p); }
-    if (n === 'wc') {
-      r = room(S, p.wcRoom);
-      if (!r || r.occ.length >= ROOMS.wc.cap) { p.t = 12; p.st = 'wcWait'; return; }
-      r.occ.push(p.id); p.inRoom = r.id; var s2 = slot(r, r.occ.length - 1); p.x = s2.x; p.y = s2.y; p.st = 'wcUse'; p.t = 18; return;
-    }
+    if (n === 'drink') { earn(S, 20); fx(S, 'cash', p.x + 0.5, p.y + 0.5, 20); p.thirst = 0; p.wc += 0.25; p.happy = clamp(p.happy + 0.05, 0, 1); return backToQueue(S, p); }
+    if (n === 'wc') { r = room(S, p.wcRoom); if (!r) return backToQueue(S, p); p.inRoom = r.id; p.st = 'wcUse'; p.t = 18; return; }
     p.st = 'roomQ';
   }
   function backToQueue(S, p) {
     var r = p.target && room(S, p.target);
-    if (r) { p.next = 'roomArrive'; goTo(S, p, r.front, 'roomArrive'); }
-    else if (p.want) seek(S, p, p.want); else toReception(S, p);
+    if (r) goTo(S, p, r.front, 'roomArrive'); else if (p.want) seek(S, p, p.want); else toReception(S, p);
   }
   function patientDay(S, p) {
     if (p.st === 'dead' || p.leaving) return;
@@ -648,85 +670,77 @@ input[type=range]{width:100%;accent-color:var(--coral)}
     if (p.health <= 0) { if (p.st !== 'inRoom') die(S, p); return; }
     if (p.emergency) return;
     p.thirst += 0.012 + rnd() * 0.008; p.wc += 0.008 + rnd() * 0.012;
-    var waiting = p.st === 'roomQ' || p.st === 'waitBuild' || p.st === 'recQ' || p.st === 'waitDesk';
+    var queued = p.st === 'roomQ' || (p.st === 'walk' && (p.next === 'stand' || p.next === 'sit'));
+    var waiting = queued || p.st === 'waitBuild' || p.st === 'recQ' || p.st === 'waitDesk';
     if (waiting) {
       var plants = 0; S.objs.forEach(function (o) { if (o.type === 'plant') plants++; });
       p.happy -= (p.seat ? 0.006 : 0.014) + (p.st === 'waitBuild' || p.st === 'waitDesk' ? 0.012 : 0) + Math.min(S.puddles.length, 5) * 0.006 - Math.min(plants, 8) * 0.0008;
       if (p.thirst > 0.7) p.happy -= 0.01;
     }
     p.happy = clamp(p.happy, 0, 1);
-    if (p.happy < 0.08 && p.st !== 'inRoom') return leave(S, p, 'angry');
-    if (p.st !== 'roomQ' && p.st !== 'waitBuild') return;
-    if (p.st === 'roomQ' && !p.arrived) return;
+    if (p.happy < 0.08 && p.st !== 'inRoom' && p.st !== 'wcUse') return leave(S, p, 'angry');
+    if (!(queued && p.arrived) && p.st !== 'waitBuild') return;
     if (p.wc > 0.8) {
-      var wcs = S.rooms.filter(function (r) { return r.type === 'wc'; });
-      if (wcs.length) { freeSeat(S, p); p.wcRoom = pick(wcs).id; goTo(S, p, room(S, p.wcRoom).front, 'wc'); return; }
-      if (p.wc >= 1) {
-        S.puddles.push({ id: S.nextId++, x: Math.round(p.x), y: Math.round(p.y), cleaner: null }); p.wc = 0; p.happy = clamp(p.happy - 0.2, 0, 1);
+      var wcs = S.rooms.filter(function (r) { return r.type === 'wc' && r.occ.length < r.cap; });
+      if (wcs.length) { freeSeat(S, p); var w = pick(wcs), spot = reserve(S, w, p); if (spot) { p.wcRoom = w.id; goTo(S, p, spot, 'wc'); return; } }
+      else if (p.wc >= 1 && !S.rooms.some(function (r) { return r.type === 'wc'; })) {
+        var t = tileOf(p); S.puddles.push({ id: S.nextId++, x: t.x, y: t.y, cleaner: null }); p.wc = 0; p.happy = clamp(p.happy - 0.2, 0, 1);
         sayOnce(S, 'puddle', 'Incident dans le couloir. Faute de toilettes, la nature a gagné.', 'bad');
       }
     }
-    if (p.thirst > 0.7) {
-      var m = S.objs.filter(function (o) { return o.type === 'drinks'; });
-      if (m.length) { freeSeat(S, p); var mm = pick(m); goTo(S, p, mm, 'drink'); }
-    }
+    if (p.thirst > 0.7) { var m = S.objs.filter(function (o) { return o.type === 'drinks'; }); if (m.length) { freeSeat(S, p); goTo(S, p, pick(m), 'drink'); } }
   }
   function patientTick(S, p) {
     if (p.st === 'dead') { if (--p.t <= 0) p.gone = true; return; }
-    if (p.st === 'waitBuild' || p.st === 'waitDesk' || p.st === 'wcWait') {
-      if (--p.t <= 0) {
-        if (p.st === 'waitDesk') toReception(S, p);
-        else if (p.st === 'wcWait') { var r0 = room(S, p.wcRoom); if (r0) goTo(S, p, r0.front, 'wc'); else backToQueue(S, p); }
-        else seek(S, p, p.want);
-      }
-      return;
-    }
-    if (p.st === 'wcUse' && --p.t <= 0) {
-      var r = room(S, p.wcRoom); p.inRoom = null; p.wc = 0;
-      if (r) { var k = r.occ.indexOf(p.id); if (k >= 0) r.occ.splice(k, 1); p.x = r.front.x; p.y = r.front.y; }
-      backToQueue(S, p);
-    }
+    if (p.st === 'waitBuild' || p.st === 'waitDesk') { if (--p.t <= 0) { if (p.st === 'waitDesk') toReception(S, p); else seek(S, p, p.want); } return; }
+    if (p.st === 'wcUse' && --p.t <= 0) { var r = room(S, p.wcRoom); p.inRoom = null; p.wc = 0; p.wcRoom = null; if (r) unreserve(r, p); backToQueue(S, p); }
+  }
+  // Range les patients en file devant chaque porte et devant l'accueil.
+  function queueLines(S) {
+    S.rooms.forEach(function (r) {
+      if (!r.queue.length) return;
+      var wait = r.queue.map(function (id) { return person(S, id); }).filter(function (q) { return q && q.arrived && !q.seat && (q.st === 'roomQ' || (q.st === 'walk' && q.next === 'stand')); });
+      if (!wait.length) return;
+      var spots = lineSpots(S, r.front, wait.length);
+      wait.forEach(function (q, i) { var s = spots[i]; if (!s) return; var d = q.st === 'walk' ? q.dest : tileOf(q); if (d.x !== s.x || d.y !== s.y) goTo(S, q, s, 'stand'); });
+    });
+    S.objs.forEach(function (o) {
+      if (o.type !== 'desk' || !o.queue.length) return;
+      var st = freeNeighbor(S, o.x, o.y); if (!st) return;
+      var spots = [st].concat(lineSpots(S, st, o.queue.length));
+      o.queue.forEach(function (id, i) { var q = person(S, id), s = spots[i]; if (!q || !s) return; var d = q.st === 'walk' ? q.dest : tileOf(q); if (d.x !== s.x || d.y !== s.y) goTo(S, q, s, 'recStand'); });
+    });
   }
 
   /* ---------- personnel ---------- */
-  function restRoom(S) {
-    var l = S.rooms.filter(function (r) { return r.type === 'repos' && r.occ.length < ROOMS.repos.cap; });
-    return l.length ? l[0] : null;
-  }
+  function restRoom(S) { var l = S.rooms.filter(function (r) { return r.type === 'repos' && r.occ.length < r.cap; }); return l.length ? l[0] : null; }
+  function goRest(S, p, r) { var spot = reserve(S, r, p); if (!spot) return false; p.goRoom = r.id; p.restRoom = r.id; goTo(S, p, spot, 'restArrive'); return true; }
   function staffIdle(S, p) {
     if (S.tick % 10 !== p.id % 10) return;
     var r;
-    if ((p.kind === 'doc' || p.kind === 'nurse' || p.kind === 'handy') && p.fatigue >= 0.7 && (r = restRoom(S))) {
-      p.goRoom = r.id; goTo(S, p, r.front, 'restArrive'); return;
-    }
+    if (p.kind !== 'recep' && p.fatigue >= 0.7 && (r = restRoom(S)) && goRest(S, p, r)) return;
     if (p.kind === 'doc' || p.kind === 'nurse') {
       var list = S.rooms.filter(function (x) { return ROOMS[x.type].staff === p.kind && !x.staffId; });
       if (!list.length) return;
       list.sort(function (a, b) { return (b.queue.length + (b.type === 'gp' ? 0.5 : 0)) - (a.queue.length + (a.type === 'gp' ? 0.5 : 0)); });
-      r = list[0]; r.staffId = p.id; r.staffIn = false; p.goRoom = r.id; goTo(S, p, r.front, 'staffEnter');
+      r = list[0]; r.staffId = p.id; r.staffIn = false; p.goRoom = r.id; goTo(S, p, r.spots.staff, 'staffEnter');
     } else if (p.kind === 'recep') {
       var d = S.objs.filter(function (o) { return o.type === 'desk' && !o.staffId; })[0];
       if (d) { d.staffId = p.id; d.staffIn = false; p.goDesk = d.id; goTo(S, p, d, 'deskArrive'); }
     } else if (p.kind === 'handy') {
       var fix = S.rooms.filter(function (x) { return ROOMS[x.type].machine && !x.fixer && (x.broken || x.wear >= 12) && !x.patientId; });
       fix.sort(function (a, b) { return b.wear - a.wear; });
-      if (fix.length) { fix[0].fixer = p.id; p.goRoom = fix[0].id; goTo(S, p, fix[0].front, 'repair'); return; }
+      if (fix.length) { fix[0].fixer = p.id; p.goRoom = fix[0].id; goTo(S, p, fix[0].spots.patient, 'repair'); return; }
       var pu = S.puddles.filter(function (u) { return !u.cleaner; })[0];
       if (pu) { pu.cleaner = p.id; p.goPuddle = pu.id; goTo(S, p, pu, 'clean'); }
     }
   }
   function staffArrive(S, p) {
-    var n = p.next, r, s;
-    if (n === 'staffEnter') {
-      r = room(S, p.goRoom); if (!r || r.staffId !== p.id) { p.st = 'idle'; return; }
-      p.inRoom = r.id; p.st = 'work'; p.idleT = 0; r.staffIn = true; s = slot(r, 0); p.x = s.x; p.y = s.y; return;
-    }
-    if (n === 'restArrive') {
-      r = room(S, p.goRoom); if (!r || r.occ.length >= ROOMS.repos.cap) { p.st = 'idle'; return; }
-      r.occ.push(p.id); p.inRoom = r.id; p.restRoom = r.id; p.st = 'rest'; s = slot(r, r.occ.length - 1); p.x = s.x; p.y = s.y; return;
-    }
+    var n = p.next, r;
+    if (n === 'staffEnter') { r = room(S, p.goRoom); if (!r || r.staffId !== p.id) { p.st = 'idle'; return; } p.inRoom = r.id; p.st = 'work'; p.idleT = 0; r.staffIn = true; return; }
+    if (n === 'restArrive') { r = room(S, p.restRoom); if (!r) { p.st = 'idle'; return; } p.inRoom = r.id; p.st = 'rest'; return; }
     if (n === 'deskArrive') { var d = byId(S.objs, p.goDesk); if (!d || d.staffId !== p.id) { p.st = 'idle'; return; } d.staffIn = true; p.st = 'work'; return; }
-    if (n === 'repair') { r = room(S, p.goRoom); if (!r) { p.st = 'idle'; return; } p.inRoom = r.id; s = slot(r, 2); p.x = s.x; p.y = s.y; p.st = 'fix'; p.t = Math.round(50 - 20 * p.skill); return; }
+    if (n === 'repair') { r = room(S, p.goRoom); if (!r) { p.st = 'idle'; return; } p.inRoom = r.id; p.st = 'fix'; p.t = Math.round(50 - 20 * p.skill); return; }
     if (n === 'clean') { p.st = 'mop'; p.t = 12; return; }
     if (n === 'awayArrive') { p.st = 'away'; p.hidden = true; return; }
     p.st = 'idle';
@@ -738,34 +752,23 @@ input[type=range]{width:100%;accent-color:var(--coral)}
     if (p.st === 'work') {
       if (p.kind === 'recep') return;
       r = room(S, p.inRoom); if (!r) { p.st = 'idle'; p.inRoom = null; return; }
-      var busy = r.patientId && person(S, r.patientId) && person(S, r.patientId).st === 'inRoom';
+      var pt = r.patientId ? person(S, r.patientId) : null, busy = pt && pt.st === 'inRoom';
       p.fatigue = clamp(p.fatigue + (busy ? 0.0009 : 0.00025), 0, 1);
       if (busy) { p.idleT = 0; return; }
       p.idleT++;
-      var leaveNow = false;
-      if (p.fatigue >= 0.7 && restRoom(S) && !r.patientId) leaveNow = true;
-      else if (p.idleT > 60 && !r.queue.length && !r.patientId && S.tick % 20 === 0) {
-        leaveNow = S.rooms.some(function (x) { return x !== r && ROOMS[x.type].staff === p.kind && !x.staffId && x.queue.length > 0; });
-      }
-      if (leaveNow) { r.staffId = null; r.staffIn = false; p.inRoom = null; p.x = r.front.x; p.y = r.front.y; p.st = 'idle'; }
+      var rest = null, leaveNow = false;
+      if (p.fatigue >= 0.7 && !r.patientId && (rest = restRoom(S))) leaveNow = true;
+      else if (p.idleT > 60 && !r.queue.length && !r.patientId && S.tick % 20 === 0) leaveNow = S.rooms.some(function (x) { return x !== r && ROOMS[x.type].staff === p.kind && !x.staffId && x.queue.length > 0; });
+      if (leaveNow) { r.staffId = null; r.staffIn = false; p.inRoom = null; p.st = 'idle'; if (rest) goRest(S, p, rest); }
       return;
     }
     if (p.st === 'rest') {
       p.fatigue = clamp(p.fatigue - 0.004, 0, 1);
-      if (p.fatigue <= 0.05) {
-        r = room(S, p.restRoom); p.inRoom = null; p.st = 'idle';
-        if (r) { var k = r.occ.indexOf(p.id); if (k >= 0) r.occ.splice(k, 1); p.x = r.front.x; p.y = r.front.y; }
-      }
+      if (p.fatigue <= 0.05) { r = room(S, p.restRoom); p.inRoom = null; p.st = 'idle'; if (r) unreserve(r, p); }
       return;
     }
-    if (p.st === 'fix' && --p.t <= 0) {
-      r = room(S, p.goRoom); p.inRoom = null; p.st = 'idle'; p.fatigue = clamp(p.fatigue + 0.05, 0, 1);
-      if (r) { r.wear = 0; r.broken = false; r.fixer = null; p.x = r.front.x; p.y = r.front.y; }
-      return;
-    }
-    if (p.st === 'mop' && --p.t <= 0) {
-      var u = byId(S.puddles, p.goPuddle); if (u) S.puddles.splice(S.puddles.indexOf(u), 1); p.st = 'idle';
-    }
+    if (p.st === 'fix' && --p.t <= 0) { r = room(S, p.goRoom); p.inRoom = null; p.st = 'idle'; p.fatigue = clamp(p.fatigue + 0.05, 0, 1); if (r) { r.wear = 0; r.broken = false; r.fixer = null; fx(S, 'hire', r.x, r.y); } return; }
+    if (p.st === 'mop' && --p.t <= 0) { var u = byId(S.puddles, p.goPuddle); if (u) S.puddles.splice(S.puddles.indexOf(u), 1); p.st = 'idle'; }
   }
 
   /* ---------- salles, accueil ---------- */
@@ -776,36 +779,36 @@ input[type=range]{width:100%;accent-color:var(--coral)}
     if (r.patientId) {
       var p = person(S, r.patientId);
       if (!p) { r.patientId = null; return; }
-      if (p.st !== 'inRoom') return;
-      if (!staff || r.broken) return;
+      if (p.st !== 'inRoom' || !staff || r.broken) return;
       r.t -= (staff.fatigue > 0.9 ? 0.6 : 1) * (ev === 'visite' && docRoom ? 0.55 : 1);
       if (r.t <= 0) roomFinished(S, r);
       return;
     }
-    if (!staff || r.broken || r.fixer && person(S, r.fixer) && person(S, r.fixer).st === 'fix') return;
+    var fixer = r.fixer ? person(S, r.fixer) : null;
+    if (!staff || r.broken || (fixer && fixer.st === 'fix')) return;
     for (var i = 0; i < r.queue.length; i++) {
       var q = person(S, r.queue[i]);
       if (!q) { r.queue.splice(i--, 1); continue; }
-      if (q.arrived && q.st === 'roomQ') {
-        r.queue.splice(i, 1); r.patientId = q.id; freeSeat(S, q); goTo(S, q, r.front, 'enter'); return;
+      if (q.arrived && (q.st === 'roomQ' || (q.st === 'walk' && (q.next === 'stand' || q.next === 'sit')))) {
+        r.queue.splice(i, 1); r.patientId = q.id; freeSeat(S, q); goTo(S, q, r.spots.patient, 'enter'); return;
       }
     }
   }
   function deskTick(S, o) {
     if (o.type !== 'desk') return;
     if (!o.staffId || !o.staffIn) { if (o.queue.length) sayOnce(S, 'norecep', 'Des patients attendent à l\'accueil, mais il n\'y a personne derrière.', 'warn'); return; }
-    if (o.cur) {
-      if (--o.t <= 0) { var p = person(S, o.cur); o.cur = null; if (p && p.st === 'recQ') seek(S, p, 'gp'); }
-      return;
-    }
-    while (o.queue.length) { var q = person(S, o.queue.shift()); if (q && q.st === 'recQ') { o.cur = q.id; o.t = 14; return; } }
+    if (o.cur) { if (--o.t <= 0) { var p = person(S, o.cur); o.cur = null; if (p && !p.leaving && p.st !== 'dead') seek(S, p, 'gp'); } return; }
+    if (o.queue.length) { var q = person(S, o.queue[0]); if (!q) { o.queue.shift(); return; } if (q.st === 'recQ') { o.queue.shift(); o.cur = q.id; o.t = 14; } }
   }
 
   /* ---------- temps ---------- */
   function isOpen(S) { return S.objs.some(function (o) { return o.type === 'desk'; }) && S.rooms.some(function (r) { return r.type === 'gp'; }); }
   function moveTick(S, p) {
     if (p.st !== 'walk') return;
-    if (p.stuck) { if (S.tick % 20 === 0) goTo(S, p, p.dest, p.next); return; }
+    if (p.stuck) {
+      if (S.tick % 20 === 0) { goTo(S, p, p.dest, p.next); if (p.stuck > 6) { p.stuck = 0; if (p.kind === 'patient') { if (p.leaving) p.gone = true; else reseek(S, p); } else { releaseStaff(S, p); p.st = 'idle'; } } }
+      return;
+    }
     if (!p.path.length) { p.x = p.dest.x; p.y = p.dest.y; if (p.kind === 'patient') patientArrive(S, p); else staffArrive(S, p); return; }
     var n = p.path[0], sp = p.kind === 'patient' ? (p.emergency ? 0.16 : 0.1) : 0.13;
     var dx = n.x - p.x, dy = n.y - p.y, d = Math.sqrt(dx * dx + dy * dy);
@@ -815,14 +818,11 @@ input[type=range]{width:100%;accent-color:var(--coral)}
     if (S.lost) return;
     S.tick++;
     var i, p;
-    for (i = 0; i < S.people.length; i++) {
-      p = S.people[i]; moveTick(S, p);
-      if (p.kind === 'patient') patientTick(S, p); else staffTick(S, p);
-    }
+    for (i = 0; i < S.people.length; i++) { p = S.people[i]; moveTick(S, p); if (p.kind === 'patient') patientTick(S, p); else staffTick(S, p); }
     for (i = 0; i < S.rooms.length; i++) roomTick(S, S.rooms[i]);
     for (i = 0; i < S.objs.length; i++) deskTick(S, S.objs[i]);
+    if (S.tick % 12 === 0) queueLines(S);
     for (i = S.people.length - 1; i >= 0; i--) if (S.people[i].gone) S.people.splice(i, 1);
-    // arrivées
     if (isOpen(S) && --S.spawnT <= 0) {
       var month = Math.floor(S.day / 30), nPat = S.people.filter(function (x) { return x.kind === 'patient'; }).length;
       S.spawnT = Math.round(Math.max(42, 110 - month * 6) * (700 / (200 + S.rep)) * (0.7 + rnd() * 0.6));
@@ -834,15 +834,13 @@ input[type=range]{width:100%;accent-color:var(--coral)}
   function dayTick(S) {
     S.day++;
     S.people.slice().forEach(function (p) { if (p.kind === 'patient') patientDay(S, p); });
-    // urgences
     if (S.emergency && (S.emergency.cured + S.emergency.lost >= S.emergency.n || S.day >= S.emergency.end)) endEmergency(S);
-    if (S.offer && S.day >= S.offer.until) { S.offer = null; }
+    if (S.offer && S.day >= S.offer.until) S.offer = null;
     if (!S.emergency && !S.offer && isOpen(S) && S.day >= S.nextEmerg) {
       S.nextEmerg = S.day + ri(70, 120);
       var built = builtTypes(S), cand = DISEASES.filter(function (d) { return built[d.cure]; });
-      if (cand.length) { var d = pick(cand), n = ri(4, 7); S.offer = { disease: d.id, n: n, bonus: 500, days: 45, until: S.day + 8 }; }
+      if (cand.length) { var d = pick(cand); S.offer = { disease: d.id, n: ri(4, 7), bonus: 500, days: 45, until: S.day + 8 }; }
     }
-    if (S.nextEv === undefined) S.nextEv = S.day + 20;
     if (S.ev && S.day >= S.ev.until) { if (S.ev.type === 'lunch') say(S, 'Les médecins reviennent de déjeuner. Ils trouvent qu\'il y a du monde.', 'info'); S.ev = null; }
     if (!S.ev && isOpen(S) && S.day >= S.nextEv) startEvent(S);
     if (S.day % 30 === 0) monthEnd(S);
@@ -857,9 +855,7 @@ input[type=range]{width:100%;accent-color:var(--coral)}
     if (t === 'lunch') { S.ev = { type: t, until: S.day + 2 }; fx(S, 'alert', SPAWN.x, SPAWN.y); say(S, 'Tous les médecins sont partis déjeuner en même temps. Retour annoncé « vers 14 h », donc après-demain. Les consultations sont suspendues.', 'warn'); }
     else if (t === 'visite') { S.ev = { type: t, until: S.day + 4 }; say(S, 'Grande visite du chef de service : les médecins se déplacent en troupeau, hochent la tête et repartent. Consultations ralenties pendant 4 jours.', 'warn'); }
     else if (t === 'congres') {
-      var p = pick(docs), rr = p.inRoom ? room(S, p.inRoom) : null;
-      if (rr) { var k = rr.occ.indexOf(p.id); if (k >= 0) rr.occ.splice(k, 1); p.x = rr.front.x; p.y = rr.front.y; }
-      releaseStaff(S, p); p.back = S.day + 8; goTo(S, p, SPAWN, 'awayArrive');
+      var p = pick(docs); releaseStaff(S, p); p.back = S.day + 8; goTo(S, p, SPAWN, 'awayArrive');
       say(S, p.name + ' part en congrès aux Seychelles. Thème : « L\'épuisement du soignant ». Retour dans 8 jours, salaire maintenu.', 'warn');
     } else if (t === 'subv') { earn(S, 3000); fx(S, 'cash', SPAWN.x, SPAWN.y - 2, 3000); say(S, 'Le ministère vous verse 3 000 € par erreur. Personne ne dit rien, et on avance.', 'good'); }
     else {
@@ -870,17 +866,17 @@ input[type=range]{width:100%;accent-color:var(--coral)}
   }
   function monthEnd(S) {
     var wages = 0; S.people.forEach(function (p) { if (p.kind !== 'patient') wages += p.wage; });
-    spend(S, wages);
-    if (S.money < 0) spend(S, Math.round(-S.money * 0.02));
+    var tiles = 0; S.rooms.forEach(function (r) { tiles += r.w * r.h; }); var charges = tiles * 45;
+    spend(S, wages + charges); if (S.money < 0) spend(S, Math.round(-S.money * 0.02));
     S.lastMonth = { inc: S.month.inc, exp: S.month.exp, n: Math.floor(S.day / 30) };
-    say(S, 'Bilan du mois ' + S.lastMonth.n + ' : +' + S.month.inc + ' € / −' + S.month.exp + ' € (dont ' + wages + ' € de salaires).', S.month.inc >= S.month.exp ? 'good' : 'warn');
+    say(S, 'Bilan du mois ' + S.lastMonth.n + ' : +' + S.month.inc + ' € / −' + S.month.exp + ' € (dont ' + wages + ' € de salaires et ' + charges + ' € de charges).', S.month.inc >= S.month.exp ? 'good' : 'warn');
     S.month = { inc: 0, exp: 0 }; refreshPool(S);
   }
   function acceptEmergency(S, yes) {
     var o = S.offer; if (!o) return; S.offer = null;
     if (!yes) { say(S, 'Urgence refusée. Les ambulances font demi-tour en klaxonnant.', 'info'); return; }
     S.emergency = { disease: o.disease, n: o.n, cured: 0, lost: 0, end: S.day + o.days, bonus: o.bonus };
-    for (var i = 0; i < o.n; i++) { var p = spawnPatient(S, o.disease, true); p.x += (i % 3 - 1) * 0.3; }
+    for (var i = 0; i < o.n; i++) spawnPatient(S, o.disease, true);
     fx(S, 'alert', SPAWN.x, SPAWN.y);
     say(S, 'URGENCE : ' + o.n + ' cas de « ' + DMAP[o.disease].name + ' » arrivent d\'un séminaire de cohésion d\'équipe.', 'bad');
   }
@@ -892,10 +888,9 @@ input[type=range]{width:100%;accent-color:var(--coral)}
   }
   function hint(S) {
     var has = function (k) { return S.people.some(function (p) { return p.kind === k; }); }, b = builtTypes(S);
-    var desk = S.objs.some(function (o) { return o.type === 'desk'; });
-    if (!desk) return 'Posez un accueil (menu Objets) près de l\'entrée, en bas.';
+    if (!S.objs.some(function (o) { return o.type === 'desk'; })) return 'Posez un accueil (menu Objets) près de l\'entrée, en bas.';
     if (!has('recep')) return 'Embauchez une réceptionniste (menu Équipe).';
-    if (!b.gp) return 'Construisez un cabinet de généraliste (menu Salles).';
+    if (!b.gp) return 'Tracez un cabinet de généraliste (menu Salles).';
     if (!has('doc')) return 'Embauchez un médecin : il ira seul dans son cabinet.';
     if (!b.pharma) return 'Construisez une pharmacie pour soigner les premiers cas.';
     if (!has('nurse')) return 'Embauchez un·e infirmier·ère pour la pharmacie.';
@@ -908,13 +903,13 @@ input[type=range]{width:100%;accent-color:var(--coral)}
     if (missing.length) return 'Salle de soin manquante : ' + ROOMS[missing[0].cure].name + '.';
     return 'L\'hôpital tourne. Surveillez les files d\'attente et les prix.';
   }
-
   function sendHome(S, id) { var p = person(S, id); if (p && p.kind === 'patient' && !p.leaving && p.st !== 'dead' && p.st !== 'inRoom') leave(S, p, 'uncured'); }
-  root.Velpo = { sendHome: sendHome,
+
+  root.Velpo = {
     W: W, H: H, SPAWN: SPAWN, DAY: DAY, ROOMS: ROOMS, OBJS: OBJS, DISEASES: DISEASES, DMAP: DMAP, STAFF: STAFF, GOALS: GOALS, THOUGHTS: THOUGHTS,
-    newGame: newGame, tick: tick, buildRoom: buildRoom, canPlaceRoom: canPlaceRoom, demolishRoom: demolishRoom, placeObj: placeObj,
-    canPlaceObj: canPlaceObj, removeObj: removeObj, hire: hire, fire: fire, acceptEmergency: acceptEmergency, hint: hint, price: price,
-    doorOf: doorOf, isOpen: isOpen, person: person, room: room
+    newGame: newGame, tick: tick, buildRoom: buildRoom, canPlaceRoom: canPlaceRoom, autoDoor: autoDoor, doorAt: doorAt, roomCost: roomCost, sizeOk: sizeOk,
+    demolishRoom: demolishRoom, placeObj: placeObj, canPlaceObj: canPlaceObj, removeObj: removeObj, hire: hire, fire: fire,
+    acceptEmergency: acceptEmergency, hint: hint, price: price, isOpen: isOpen, person: person, room: room, sendHome: sendHome
   };
 })(typeof window !== 'undefined' ? window : globalThis);
 
@@ -927,7 +922,7 @@ input[type=range]{width:100%;accent-color:var(--coral)}
   var cv = $('cv'), ctx = cv.getContext('2d');
   var S = null, speed = 1, lastSpeed = 1, zoom = 1, cam = { x: 0, y: 0 }, vw = 0, vh = 0, dpr = 1;
   var sel = null, build = null, sheet = null, frame = 0, shownLog = null, modalKind = null;
-  var LS = 'velpo-save-v1', store = null, cloud = null, saving = false, saveNote = 'Sauvegarde sur cet appareil';
+  var LS = 'velpo-save-v2', store = null, cloud = null, saving = false, saveNote = 'Sauvegarde sur cet appareil';
 
   /* ---------- sauvegarde ---------- */
   function localLoad() { try { return JSON.parse(localStorage.getItem(LS)); } catch (e) { return null; } }
@@ -943,7 +938,7 @@ input[type=range]{width:100%;accent-color:var(--coral)}
     } else if (manual) toast(store ? 'Sauvegarde en cours…' : 'Sauvegardé sur cet appareil');
   }
   function bestSave() {
-    var l = localLoad(); var c = cloud;
+    var l = localLoad(); var c = cloud; if (c && !(c.json && c.json.indexOf('{"v":2') === 0)) c = null; if (l && !(l.json && l.json.indexOf('{"v":2') === 0)) l = null;
     if (l && c) return (c.t || 0) >= (l.t || 0) ? c : l;
     return c || l;
   }
@@ -1033,7 +1028,7 @@ input[type=range]{width:100%;accent-color:var(--coral)}
   function resize() {
     var r = cv.getBoundingClientRect(); dpr = Math.min(window.devicePixelRatio || 1, 2);
     var first = !vw; vw = r.width; vh = r.height; cv.width = Math.round(vw * dpr); cv.height = Math.round(vh * dpr);
-    if (first) { zoom = Math.max(0.55, Math.min(1.1, vw / 1250)); center(); }
+    if (first) { zoom = Math.max(0.85, Math.min(1.25, vw / 1100)); center(); }
   }
   function poly(pts, fill, stroke) {
     ctx.beginPath(); ctx.moveTo(pts[0][0], pts[0][1]); for (var i = 1; i < pts.length; i++) ctx.lineTo(pts[i][0], pts[i][1]); ctx.closePath();
@@ -1045,8 +1040,9 @@ input[type=range]{width:100%;accent-color:var(--coral)}
     r = Math.round(Math.min(255, r * f)); g = Math.round(Math.min(255, g * f)); b = Math.round(Math.min(255, b * f));
     return 'rgb(' + r + ',' + g + ',' + b + ')';
   }
-  function box(x, y, w, d, h, col) {
+  function box(x, y, w, d, h, col, base) {
     var A = P(x, y), B = P(x + w, y), C = P(x + w, y + d), D = P(x, y + d);
+    if (base) { A = up(A, base); B = up(B, base); C = up(C, base); D = up(D, base); }
     poly([D, C, up(C, h), up(D, h)], shade(col, 0.8));
     poly([B, C, up(C, h), up(B, h)], shade(col, 0.65));
     poly([up(A, h), up(B, h), up(C, h), up(D, h)], col);
@@ -1057,72 +1053,165 @@ input[type=range]{width:100%;accent-color:var(--coral)}
   var SKIN = ['#f6d3b3', '#e4b189', '#b97f57', '#7d5237'];
   var STAFFCOL = { doc: '#ffffff', nurse: '#3fb5a3', recep: '#8d6fd1', handy: '#f08a2e' };
   function drawPerson(p) {
-    var px = p.x, py = p.y, i;
-    if (p.st === 'recQ' && p.desk) { var o = find(S.objs, p.desk); i = o ? o.queue.indexOf(p.id) : -1; if (i > 0) { px += ((i % 3) - 1) * 0.32; py += Math.floor(i / 3 + 1) * 0.3; } }
-    else if (p.st === 'roomQ' && !p.seat) { px += ((p.id % 5) - 2) * 0.09; py += ((p.id % 3) - 1) * 0.1; }
-    if (p.hidden) return;
-    var c = P(px + 0.5, py + 0.5), x = c[0], y = c[1], z = zoom, walking = p.st === 'walk' && !p.stuck;
-    var sw = walking ? Math.sin((frame + p.id * 7) * 0.25) : 0;
-    var bob = walking ? Math.abs(Math.sin((frame + p.id * 7) * 0.25)) * 2.5 * z : 0;
+    if (p.hidden || p.st === 'wcUse') return;
+    var z = zoom * 1.5, c = P(p.x + 0.5, p.y + 0.5), x = c[0], y = c[1], i;
+    var walking = p.st === 'walk' && !p.stuck, sw = walking ? Math.sin((frame + p.id * 7) * 0.3) : 0;
+    var rm = p.inRoom ? V.room(S, p.inRoom) : null, pose = 'stand', lift = 0, pat = p.kind === 'patient';
+    if (pat) {
+      if (p.seat && p.st === 'roomQ') { pose = 'sit'; lift = 6; }
+      else if (p.st === 'inRoom' && rm) { if (rm.type === 'psy') { pose = 'lie'; lift = 9; } else if (rm.type === 'platre') { pose = 'sit'; lift = 9; } else if (rm.type === 'deco') lift = 4; }
+    } else if (p.st === 'rest') { pose = 'sit'; lift = 8; }
     if (p.st === 'dead') {
-      var k = 1 - p.t / 70; ctx.globalAlpha = Math.max(0, 0.85 - k * 0.8); y -= k * 46 * z;
+      var k = 1 - p.t / 70; ctx.globalAlpha = Math.max(0, 0.9 - k * 0.8); y -= k * 60 * zoom;
       ctx.fillStyle = '#f4fbff'; ctx.beginPath(); ctx.arc(x, y - 16 * z, 7 * z, Math.PI, 0); ctx.lineTo(x + 7 * z, y - 2 * z);
       for (i = 0; i < 4; i++) ctx.lineTo(x + (7 - (i + 0.5) * 3.5) * z, y - (i % 2 ? 2 : 6) * z); ctx.lineTo(x - 7 * z, y - 2 * z); ctx.closePath(); ctx.fill();
       ctx.fillStyle = '#17323a'; ctx.fillRect(x - 3.5 * z, y - 17 * z, 2 * z, 2.5 * z); ctx.fillRect(x + 1.5 * z, y - 17 * z, 2 * z, 2.5 * z);
+      ctx.strokeStyle = '#ffc94a'; ctx.lineWidth = 1.5 * z; ctx.beginPath(); ctx.ellipse(x, y - 26 * z, 5 * z, 1.8 * z, 0, 0, 7); ctx.stroke(); ctx.lineWidth = 1;
       ctx.globalAlpha = 1; return;
     }
-    ctx.fillStyle = 'rgba(0,0,0,.18)'; ctx.beginPath(); ctx.ellipse(x, y, 7 * z, 3.5 * z, 0, 0, 7); ctx.fill();
-    y -= bob;
-    var sit = p.seat && p.st === 'roomQ', col = p.kind === 'patient' ? CLOTH[p.hue % 8] : STAFFCOL[p.kind], skin = SKIN[(p.kind === 'patient' ? p.skin : p.hue) % 4];
-    var legH = sit ? 2 : 6;
-    ctx.fillStyle = p.kind === 'patient' && p.disease === 'pyjama' ? '#9db7e8' : '#33505a';
-    ctx.fillRect(x - 4 * z, y - legH * z, 3 * z, (legH - Math.max(0, sw) * 2.5) * z);
-    if (p.kind === 'patient' && p.disease === 'trottinette') ctx.fillStyle = '#ffffff';
-    ctx.fillRect(x + 1 * z, y - legH * z, 3 * z, (legH - Math.max(0, -sw) * 2.5) * z);
-    var by = y - (legH + 12) * z;
-    ctx.fillStyle = shade(col === '#ffffff' ? '#dfe9ec' : col, 0.82);
-    rr(x - 8 * z, by + (2 + sw * 1.5) * z, 3 * z, 8 * z, 1.5 * z); ctx.fill(); rr(x + 5 * z, by + (2 - sw * 1.5) * z, 3 * z, 8 * z, 1.5 * z); ctx.fill();
-    ctx.fillStyle = col; rr(x - 5.5 * z, by, 11 * z, 13 * z, 3.5 * z); ctx.fill();
-    if (p.kind === 'doc') { ctx.strokeStyle = '#9bb4bb'; ctx.lineWidth = 1; rr(x - 5.5 * z, by, 11 * z, 13 * z, 3.5 * z); ctx.stroke(); ctx.fillStyle = '#ff6b5e'; ctx.fillRect(x - 1 * z, by + 3 * z, 2 * z, 6 * z); }
-    if (p.kind === 'nurse') { ctx.fillStyle = '#fff'; ctx.fillRect(x - 1 * z, by + 3 * z, 2 * z, 6 * z); ctx.fillRect(x - 3 * z, by + 5 * z, 6 * z, 2 * z); }
-    if (p.kind === 'patient' && p.disease === 'pyjama') { ctx.fillStyle = 'rgba(255,255,255,.55)'; for (i = 0; i < 3; i++) ctx.fillRect(x - 5.5 * z, by + (2 + i * 4) * z, 11 * z, 1.5 * z); }
-    var hy = by - 4.5 * z;
-    ctx.fillStyle = skin; ctx.beginPath(); ctx.arc(x, hy, 5.2 * z, 0, 7); ctx.fill();
-    if (p.kind === 'handy') { ctx.fillStyle = '#c45f12'; ctx.beginPath(); ctx.arc(x, hy - 1 * z, 5.4 * z, Math.PI, 0); ctx.fill(); ctx.fillRect(x - 6.5 * z, hy - 1.5 * z, 13 * z, 1.8 * z); }
-    else if (p.kind === 'patient' && p.disease === 'quete') { ctx.fillStyle = '#9aa7ad'; rr(x - 5.6 * z, hy - 6 * z, 11.2 * z, 8 * z, 2 * z); ctx.fill(); ctx.fillStyle = '#33505a'; ctx.fillRect(x - 3.5 * z, hy - 2 * z, 7 * z, 1.5 * z); }
-    else { ctx.fillStyle = ['#3a2a22', '#6b4a2b', '#c9a24a', '#22262b', '#8a8f94', '#a3421f'][p.id % 6]; ctx.beginPath(); ctx.arc(x, hy - 1.2 * z, 5.3 * z, Math.PI * 1.05, Math.PI * 1.95); ctx.fill(); }
-    if (!(p.kind === 'patient' && p.disease === 'quete')) { ctx.fillStyle = '#17323a'; ctx.fillRect(x - 2.6 * z, hy - 0.2 * z, 1.4 * z, 1.8 * z); ctx.fillRect(x + 1.2 * z, hy - 0.2 * z, 1.4 * z, 1.8 * z); }
-    if (p.kind === 'patient') {
-      if (p.disease === 'ecranite') { ctx.fillStyle = '#17323a'; ctx.fillRect(x + 4 * z, by + 2 * z, 4 * z, 6.5 * z); ctx.fillStyle = '#9ae6ff'; ctx.fillRect(x + 4.7 * z, by + 2.8 * z, 2.6 * z, 4.6 * z); }
-      if (p.disease === 'influencite') { ctx.strokeStyle = '#fff3b0'; ctx.lineWidth = 2 * z; ctx.beginPath(); ctx.arc(x + 9 * z, hy, 4 * z, 0, 7); ctx.stroke(); }
-      if (p.disease === 'rhume') { ctx.fillStyle = '#ff6b5e'; ctx.beginPath(); ctx.arc(x, hy + 1 * z, 1.6 * z, 0, 7); ctx.fill(); }
+    var col = pat ? CLOTH[p.hue % 8] : STAFFCOL[p.kind], skin = SKIN[(pat ? p.skin : p.hue) % 4], dis = pat ? p.disease : '';
+    var pants = dis === 'pyjama' ? '#9db7e8' : p.kind === 'handy' ? '#f08a2e' : '#33505a';
+    if (!lift) { ctx.fillStyle = 'rgba(0,0,0,.2)'; ctx.beginPath(); ctx.ellipse(x, y, 8 * z, 3.6 * z, 0, 0, 7); ctx.fill(); }
+    y -= lift * zoom;
+    if (pose === 'lie') {
+      ctx.fillStyle = pants; rr(x - 13 * z, y - 6 * z, 9 * z, 5 * z, 2 * z); ctx.fill();
+      ctx.fillStyle = col; rr(x - 5 * z, y - 7.5 * z, 12 * z, 7 * z, 3 * z); ctx.fill();
+      ctx.fillStyle = skin; ctx.beginPath(); ctx.arc(x + 10 * z, y - 5 * z, 5 * z, 0, 7); ctx.fill();
+      ctx.fillStyle = '#17323a'; ctx.fillRect(x + 9 * z, y - 7 * z, 1.4 * z, 1.4 * z); ctx.fillRect(x + 12 * z, y - 6 * z, 1.4 * z, 1.4 * z);
+      return;
+    }
+    var bob = walking ? Math.abs(sw) * 2 * z : (p.st === 'fix' || p.st === 'mop') ? Math.abs(Math.sin(frame * 0.3)) * 2 * z : 0; y -= bob;
+    var legH = pose === 'sit' ? 3 : 7;
+    ctx.fillStyle = pants;
+    rr(x - 4.5 * z, y - legH * z, 3.6 * z, (legH - Math.max(0, sw) * 3) * z, 1.4 * z); ctx.fill();
+    if (dis === 'trottinette') ctx.fillStyle = '#ffffff';
+    rr(x + 0.9 * z, y - legH * z, 3.6 * z, (legH - Math.max(0, -sw) * 3) * z, 1.4 * z); ctx.fill();
+    var by = y - (legH + 12) * z, arm = shade(col === '#ffffff' ? '#e3edf0' : col, 0.85);
+    ctx.fillStyle = arm; rr(x - 8.5 * z, by + (1.5 + sw * 2) * z, 3.4 * z, 9 * z, 1.7 * z); ctx.fill(); rr(x + 5.1 * z, by + (1.5 - sw * 2) * z, 3.4 * z, 9 * z, 1.7 * z); ctx.fill();
+    ctx.fillStyle = col; rr(x - 6 * z, by, 12 * z, 13.5 * z, 4 * z); ctx.fill();
+    if (p.kind === 'doc') { ctx.strokeStyle = '#9bb4bb'; ctx.lineWidth = 1; rr(x - 6 * z, by, 12 * z, 13.5 * z, 4 * z); ctx.stroke(); ctx.fillStyle = '#ff6b5e'; ctx.fillRect(x - 1 * z, by + 2 * z, 2 * z, 7 * z); ctx.strokeStyle = '#5d7a80'; ctx.lineWidth = 1.2 * z; ctx.beginPath(); ctx.arc(x, by + 1 * z, 4 * z, 0.1, Math.PI - 0.1); ctx.stroke(); ctx.lineWidth = 1; }
+    if (p.kind === 'nurse') { ctx.fillStyle = '#fff'; ctx.fillRect(x - 1 * z, by + 3.5 * z, 2 * z, 6 * z); ctx.fillRect(x - 3 * z, by + 5.5 * z, 6 * z, 2 * z); }
+    if (p.kind === 'handy') { ctx.fillStyle = '#33505a'; ctx.fillRect(x - 6 * z, by, 12 * z, 4 * z); }
+    if (dis === 'pyjama') { ctx.fillStyle = 'rgba(255,255,255,.6)'; for (i = 0; i < 3; i++) ctx.fillRect(x - 6 * z, by + (2 + i * 4) * z, 12 * z, 1.5 * z); }
+    var hy = by - 5.5 * z, hr = 6.4 * z;
+    ctx.fillStyle = skin; ctx.beginPath(); ctx.arc(x, hy, hr, 0, 7); ctx.fill();
+    if (dis === 'quete') { ctx.fillStyle = '#9aa7ad'; rr(x - hr - 0.5 * z, hy - hr - 1 * z, 2 * hr + z, hr * 1.9, 2.5 * z); ctx.fill(); ctx.fillStyle = '#17323a'; ctx.fillRect(x - 4 * z, hy - 1.5 * z, 8 * z, 1.8 * z); ctx.fillStyle = '#ff6b5e'; ctx.fillRect(x - 0.8 * z, hy - hr - 5 * z, 1.6 * z, 5 * z); }
+    else {
+      var hair = ['#3a2a22', '#6b4a2b', '#c9a24a', '#22262b', '#8a8f94', '#a3421f'][p.id % 6]; ctx.fillStyle = hair;
+      if (p.kind === 'handy') { ctx.fillStyle = '#c45f12'; ctx.beginPath(); ctx.arc(x, hy - 1 * z, hr + 0.3 * z, Math.PI, 0); ctx.fill(); ctx.fillRect(x - hr - 2 * z, hy - 1.6 * z, 2 * hr + 3 * z, 2 * z); }
+      else if (p.id % 3 === 0) { ctx.beginPath(); ctx.arc(x, hy - 1.2 * z, hr + 0.2 * z, Math.PI * 1.02, Math.PI * 1.98); ctx.fill(); }
+      else if (p.id % 3 === 1) { ctx.beginPath(); ctx.arc(x, hy - 1 * z, hr + 0.4 * z, Math.PI * 0.95, Math.PI * 2.05); ctx.fill(); ctx.fillRect(x - hr - 0.4 * z, hy - 1 * z, 2.4 * z, 6 * z); ctx.fillRect(x + hr - 2 * z, hy - 1 * z, 2.4 * z, 6 * z); }
+      else { ctx.beginPath(); ctx.arc(x, hy - 2 * z, hr - 0.5 * z, Math.PI * 1.1, Math.PI * 1.9); ctx.fill(); ctx.beginPath(); ctx.arc(x, hy - hr - 1 * z, 2.6 * z, 0, 7); ctx.fill(); }
+      if (p.kind === 'nurse') { ctx.fillStyle = '#fff'; rr(x - 4 * z, hy - hr - 1.5 * z, 8 * z, 3.6 * z, 1.2 * z); ctx.fill(); ctx.fillStyle = '#ff6b5e'; ctx.fillRect(x - 0.6 * z, hy - hr - 1 * z, 1.2 * z, 2.6 * z); }
+      if (p.kind === 'recep') { ctx.strokeStyle = '#17323a'; ctx.lineWidth = 1.4 * z; ctx.beginPath(); ctx.arc(x, hy, hr + 0.6 * z, Math.PI * 1.1, Math.PI * 1.9); ctx.stroke(); ctx.lineWidth = 1; ctx.fillStyle = '#17323a'; ctx.fillRect(x - hr - 1.2 * z, hy - 1 * z, 2.2 * z, 3.4 * z); }
+      ctx.fillStyle = '#17323a'; ctx.beginPath(); ctx.arc(x - 2.4 * z, hy + 0.6 * z, 1 * z, 0, 7); ctx.arc(x + 2.4 * z, hy + 0.6 * z, 1 * z, 0, 7); ctx.fill();
+      var mood = pat ? p.happy : 1 - p.fatigue; ctx.strokeStyle = '#17323a'; ctx.lineWidth = 0.9 * z; ctx.beginPath();
+      if (mood > 0.55) ctx.arc(x, hy + 2 * z, 2 * z, 0.2, Math.PI - 0.2); else if (mood > 0.3) { ctx.moveTo(x - 1.8 * z, hy + 3.2 * z); ctx.lineTo(x + 1.8 * z, hy + 3.2 * z); } else ctx.arc(x, hy + 4.6 * z, 2 * z, Math.PI + 0.3, -0.3);
+      ctx.stroke(); ctx.lineWidth = 1;
+      if (pat && mood <= 0.3) { ctx.strokeStyle = '#17323a'; ctx.lineWidth = 0.9 * z; ctx.beginPath(); ctx.moveTo(x - 4 * z, hy - 2 * z); ctx.lineTo(x - 1.2 * z, hy - 0.8 * z); ctx.moveTo(x + 4 * z, hy - 2 * z); ctx.lineTo(x + 1.2 * z, hy - 0.8 * z); ctx.stroke(); ctx.lineWidth = 1; }
+    }
+    if (dis === 'ecranite') { ctx.fillStyle = '#17323a'; rr(x + 4.5 * z, by + 1 * z, 4.6 * z, 7.5 * z, 1 * z); ctx.fill(); ctx.fillStyle = frame % 40 < 20 ? '#9ae6ff' : '#d6f5ff'; ctx.fillRect(x + 5.2 * z, by + 1.8 * z, 3.2 * z, 5.6 * z); }
+    if (dis === 'influencite') { ctx.strokeStyle = '#fff3b0'; ctx.lineWidth = 2 * z; ctx.beginPath(); ctx.arc(x + 11 * z, hy, 4.5 * z, 0, 7); ctx.stroke(); ctx.lineWidth = 1; ctx.fillStyle = '#17323a'; ctx.fillRect(x + 10.4 * z, hy + 4.5 * z, 1.2 * z, 14 * z); }
+    if (dis === 'rhume') { ctx.fillStyle = '#ff6b5e'; ctx.beginPath(); ctx.arc(x, hy + 2 * z, 1.8 * z, 0, 7); ctx.fill(); }
+    if (dis === 'lundi') { ctx.fillStyle = '#e86a5c'; [[-3.5, -1], [3.8, 2.5], [-1, -3.6]].forEach(function (a) { ctx.beginPath(); ctx.arc(x + a[0] * z, hy + a[1] * z, 0.9 * z, 0, 7); ctx.fill(); }); }
+    if (dis === 'reunionite') { ctx.strokeStyle = '#17323a'; ctx.lineWidth = 1.3 * z; ctx.beginPath(); ctx.arc(x, hy, hr + 0.8 * z, Math.PI * 1.15, Math.PI * 1.85); ctx.stroke(); ctx.lineWidth = 1; ctx.fillStyle = '#17323a'; ctx.fillRect(x + hr - 0.6 * z, hy - 1.5 * z, 2.4 * z, 4 * z); }
+    if (dis === 'phobie') { ctx.fillStyle = '#fff'; ctx.fillRect(x - 10 * z, by + 6 * z, 5 * z, 6.5 * z); ctx.fillStyle = '#9bb4bb'; for (i = 0; i < 3; i++) ctx.fillRect(x - 9.3 * z, by + (7 + i * 1.8) * z, 3.6 * z, 0.7 * z); }
+    if (p.st === 'mop') { ctx.strokeStyle = '#6b4a2b'; ctx.lineWidth = 1.5 * z; ctx.beginPath(); ctx.moveTo(x + 8 * z, by); ctx.lineTo(x + 11 * z, y + bob); ctx.stroke(); ctx.lineWidth = 1; }
+    var top = hy - hr - 9 * z;
+    if (pat) {
       var ic = null, icc = '#17323a';
-      if (p.emergency) { ic = '!'; icc = '#d23b3b'; } else if (p.happy < 0.3) { ic = '#'; icc = '#d23b3b'; }
-      else if (p.st === 'waitBuild' || p.st === 'waitDesk') ic = '?'; else if (p.wc > 0.8) ic = 'WC'; else if (p.thirst > 0.7) ic = '~';
-      if (ic) bubble(x, hy - 12 * z, ic, icc);
-    } else if (p.fatigue >= 0.7) bubble(x, hy - 12 * z, 'zz', '#5d7a80');
-    if (sel && sel.t === 'p' && sel.id === p.id) { ctx.strokeStyle = '#ff6b5e'; ctx.lineWidth = 2.5; ctx.beginPath(); ctx.ellipse(x, y + bob, 10 * z, 5 * z, 0, 0, 7); ctx.stroke(); }
+      if (p.emergency) { ic = '!'; icc = '#d23b3b'; } else if (p.happy < 0.3) { ic = '#!'; icc = '#d23b3b'; }
+      else if (p.st === 'waitBuild' || p.st === 'waitDesk') ic = '?'; else if (p.wc > 0.8) ic = 'WC'; else if (p.thirst > 0.7) { ic = 'soif'; icc = '#2a7fb8'; }
+      if (ic) bubble(x, top, ic, icc);
+    } else if (p.fatigue >= 0.7 && p.st !== 'rest') bubble(x, top, 'zzz', '#5d7a80');
+    else if (p.st === 'rest') bubble(x, top, 'café', '#6b4a2b');
+    if (sel && sel.t === 'p' && sel.id === p.id) { ctx.strokeStyle = '#ff6b5e'; ctx.lineWidth = 3; ctx.beginPath(); ctx.ellipse(x, y + bob + lift * zoom, 11 * z, 5 * z, 0, 0, 7); ctx.stroke(); ctx.lineWidth = 1; }
   }
   function bubble(x, y, t, col) {
-    var z = zoom, w = (t.length > 1 ? 15 : 11) * z;
-    ctx.fillStyle = '#fff'; rr(x - w / 2, y - 6 * z, w, 11 * z, 4 * z); ctx.fill();
-    ctx.fillStyle = col; ctx.font = '800 ' + Math.round(9 * z) + 'px Nunito,sans-serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText(t, x, y);
+    var z = Math.max(zoom, 0.75) * 1.25; ctx.font = '800 ' + Math.round(11 * z) + 'px Nunito,sans-serif';
+    var w = ctx.measureText(t).width + 9 * z, h = 15 * z;
+    ctx.fillStyle = '#fff'; rr(x - w / 2, y - h / 2, w, h, 6 * z); ctx.fill();
+    ctx.beginPath(); ctx.moveTo(x - 3 * z, y + h / 2 - 1); ctx.lineTo(x, y + h / 2 + 4 * z); ctx.lineTo(x + 3 * z, y + h / 2 - 1); ctx.fill();
+    ctx.fillStyle = col; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText(t, x, y + 0.5);
   }
   function rr(x, y, w, h, r) { ctx.beginPath(); ctx.moveTo(x + r, y); ctx.arcTo(x + w, y, x + w, y + h, r); ctx.arcTo(x + w, y + h, x, y + h, r); ctx.arcTo(x, y + h, x, y, r); ctx.arcTo(x, y, x + w, y, r); ctx.closePath(); }
   function find(l, id) { for (var i = 0; i < l.length; i++) if (l[i].id === id) return l[i]; return null; }
 
   function furniture(r, out) {
-    var x = r.x, y = r.y, t = r.type, add = function (bx, by, w, d, h, col) { out.push({ k: bx + by + w / 2 + d / 2, f: function () { box(bx, by, w, d, h, col); } }); };
-    if (t === 'gp') { add(x + 0.3, y + 0.9, 1.1, 0.6, 12, '#b98654'); add(x + 2.2, y + 0.2, 0.6, 0.6, 22, '#8fa7b0'); }
-    else if (t === 'radio') { add(x + 1.2, y + 0.4, 1.8, 0.9, 9, '#7e93c9'); add(x + 1.7, y + 0.2, 0.8, 0.3, 30, '#5a6ea6'); add(x + 0.2, y + 2, 0.6, 0.6, 14, '#b98654'); }
-    else if (t === 'psy') { add(x + 0.9, y + 1.1, 1.7, 0.7, 7, '#a77bd6'); add(x + 0.2, y + 0.3, 0.6, 0.6, 10, '#6b4a2b'); }
-    else if (t === 'pharma') { add(x + 0.15, y + 0.15, 2.6, 0.4, 26, '#e0b25e'); add(x + 0.5, y + 1.4, 1.6, 0.5, 12, '#ffffff'); }
-    else if (t === 'deco') { add(x + 1.5, y + 0.5, 1.6, 1.6, 4, '#7a2f29'); out.push({ k: x + y + 3.2, f: function () { cage(x + 1.5, y + 0.5, 1.6); } }); add(x + 0.2, y + 0.3, 0.6, 0.6, 14, '#b98654'); }
-    else if (t === 'guichet') { add(x + 0.2, y + 1.1, 2.6, 0.4, 14, '#9aa38c'); add(x + 0.3, y + 0.2, 0.9, 0.5, 20, '#c9c2a8'); }
-    else if (t === 'platre') { add(x + 0.9, y + 0.8, 1.6, 0.8, 9, '#ffffff'); add(x + 0.2, y + 0.2, 0.5, 0.5, 13, '#d9c9a3'); }
-    else if (t === 'repos') { add(x + 0.3, y + 0.2, 2, 0.6, 9, '#4f8fd9'); add(x + 2.3, y + 1.9, 0.5, 0.5, 18, '#33505a'); }
-    else if (t === 'wc') { add(x + 0.2, y + 0.15, 0.7, 0.7, 20, '#8fb4d6'); add(x + 1.15, y + 0.15, 0.7, 0.7, 20, '#8fb4d6'); add(x + 2.1, y + 0.15, 0.7, 0.7, 20, '#8fb4d6'); }
+    (r.furn || []).forEach(function (f) {
+      var x = f.x, y = f.y, k = f.k, key = x + y + 1;
+      out.push({ k: key, f: function () {
+        var c, i;
+        if (k === 'desk') { box(x + 0.08, y + 0.25, 0.84, 0.5, 13, '#b98654'); box(x + 0.4, y + 0.38, 0.26, 0.12, 9, '#17323a', 13); }
+        else if (k === 'cabinet') { box(x + 0.2, y + 0.2, 0.6, 0.6, 28, '#8fa7b0'); }
+        else if (k === 'plantpot') { box(x + 0.35, y + 0.35, 0.3, 0.3, 7, '#b0653a'); c = P(x + 0.5, y + 0.5); ctx.fillStyle = '#3f9d5a'; [[0, -19, 7], [-5, -14, 6], [5, -14, 6]].forEach(function (a) { ctx.beginPath(); ctx.arc(c[0] + a[0] * zoom, c[1] + a[1] * zoom, a[2] * zoom, 0, 7); ctx.fill(); }); }
+        else if (k === 'shelf') { box(x + 0.08, y + 0.08, 0.84, 0.32, 32, '#e0b25e'); c = P(x + 0.5, y + 0.4); ['#e86a5c', '#4f8fd9', '#7bbf6a', '#a77bd6'].forEach(function (col, n) { ctx.fillStyle = col; ctx.fillRect(c[0] + (n * 4 - 9) * zoom, c[1] - (18 + (n % 2) * 9) * zoom, 3 * zoom, 6 * zoom); }); }
+        else if (k === 'counter') box(x + 0.02, y + 0.3, 0.96, 0.4, 14, '#ffffff');
+        else if (k === 'guichet') {
+          box(x + 0.02, y + 0.3, 0.96, 0.4, 14, '#9aa38c'); var a = up(P(x, y + 0.7), 14), b = up(P(x + 1, y + 0.7), 14);
+          ctx.globalAlpha = 0.45; poly([a, b, up(b, 22), up(a, 22)], '#cfe9f2'); ctx.globalAlpha = 1; poly([up(a, 22), up(b, 22), up(b, 30), up(a, 30)], '#17323a');
+          ctx.fillStyle = '#ffc94a'; ctx.font = '800 ' + Math.round(8 * zoom) + 'px Nunito,sans-serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText('N° 12', (a[0] + b[0]) / 2, (a[1] + b[1]) / 2 - 26 * zoom);
+        }
+        else if (k === 'files') { box(x + 0.15, y + 0.2, 0.7, 0.6, 12, '#c9c2a8'); box(x + 0.22, y + 0.26, 0.5, 0.45, 9, '#f1ead9', 12); box(x + 0.3, y + 0.3, 0.4, 0.35, 7, '#e2d9bd', 21); }
+        else if (k === 'xray') { box(x + 0.08, y + 0.4, 0.14, 0.2, 38, '#5a6ea6'); box(x + 0.78, y + 0.4, 0.14, 0.2, 38, '#5a6ea6'); box(x + 0.08, y + 0.4, 0.84, 0.2, 6, '#7e93c9', 34); box(x + 0.15, y + 0.2, 0.7, 0.6, 3, '#c9d6f2'); }
+        else if (k === 'console') { box(x + 0.2, y + 0.25, 0.6, 0.5, 15, '#5a6ea6'); c = P(x + 0.5, y + 0.75); ctx.fillStyle = frame % 50 < 25 ? '#8fd6b8' : '#ffc94a'; ctx.fillRect(c[0] - 5 * zoom, c[1] - 12 * zoom, 4 * zoom, 3 * zoom); }
+        else if (k === 'couch') { box(x + 0.05, y + 0.12, 0.9, 0.16, 15, '#8e62bd'); box(x + 0.05, y + 0.28, 0.9, 0.52, 8, '#a77bd6'); }
+        else if (k === 'books') { box(x + 0.12, y + 0.08, 0.76, 0.3, 32, '#6b4a2b'); c = P(x + 0.5, y + 0.38); for (i = 0; i < 6; i++) { ctx.fillStyle = CLOTH[(i * 3 + r.id) % 8]; ctx.fillRect(c[0] + (i * 3 - 10) * zoom, c[1] - (15 + (i % 2) * 10 - i * 0.6) * zoom, 2.4 * zoom, 7 * zoom); } }
+        else if (k === 'cage') box(x + 0.08, y + 0.08, 0.84, 0.84, 4, '#7a2f29');
+        else if (k === 'table') { box(x + 0.08, y + 0.22, 0.84, 0.56, 9, '#ffffff'); }
+        else if (k === 'trolley') { box(x + 0.25, y + 0.25, 0.5, 0.5, 13, '#d9c9a3'); box(x + 0.32, y + 0.32, 0.2, 0.2, 5, '#ffffff', 13); }
+        else if (k === 'sofa') { box(x + 0.06, y + 0.12, 0.88, 0.16, 16, '#3d74b8'); box(x + 0.06, y + 0.28, 0.88, 0.5, 8, '#4f8fd9'); }
+        else if (k === 'coffee') { box(x + 0.3, y + 0.3, 0.4, 0.4, 24, '#33505a'); c = P(x + 0.5, y + 0.7); ctx.fillStyle = '#ff6b5e'; ctx.fillRect(c[0] - 2 * zoom, c[1] - 18 * zoom, 3 * zoom, 3 * zoom); }
+        else if (k === 'cabin') {
+          var busy = (r.occ || []).some(function (id) { var q = V.person(S, id); return q && q.st === 'wcUse' && Math.round(q.x) === x && Math.round(q.y) === y; });
+          box(x + 0.1, y + 0.1, 0.8, 0.8, 30, '#8fb4d6'); c = P(x + 0.5, y + 0.9); ctx.fillStyle = busy ? '#d23b3b' : '#1f9d6b'; ctx.beginPath(); ctx.arc(c[0], c[1] - 20 * zoom, 2.6 * zoom, 0, 7); ctx.fill();
+        }
+      } });
+      if (k === 'cage') out.push({ k: key + 0.2, f: function () { cage(x + 0.08, y + 0.08, 0.84); } });
+    });
+    roomFx(r, out);
   }
+  // Ce qu'on voit pendant un examen ou un soin : c'est ici que vit le gag de chaque salle.
+  function roomFx(r, out) {
+    if (!r.patientId || !r.staffIn || !r.spots || !r.spots.patient) return;
+    var p = V.person(S, r.patientId); if (!p || p.st !== 'inRoom') return;
+    var st = r.staffId ? V.person(S, r.staffId) : null, prog = Math.max(0, Math.min(1, 1 - r.t / (r.t0 || 1))), t = r.type;
+    out.push({ k: p.x + p.y + 1.3, f: function () {
+      var c = P(p.x + 0.5, p.y + 0.5), x = c[0], y = c[1], z = zoom * 1.5, i, sc = st ? P(st.x + 0.5, st.y + 0.5) : c;
+      if (t === 'gp') bubble(sc[0], sc[1] - 46 * z, prog < 0.75 ? ['hum…', 'ah ?', 'aïe.', 'tiens'][Math.floor(prog * 5.2) % 4] : 'j\'ai trouvé !', '#17323a');
+      else if (t === 'radio') {
+        var fl = 0.75 + 0.2 * Math.sin(frame * 0.4); ctx.globalAlpha = fl; ctx.fillStyle = '#0c2440'; rr(x - 11 * z, y - 36 * z, 22 * z, 34 * z, 3 * z); ctx.fill(); ctx.globalAlpha = 1;
+        ctx.strokeStyle = '#e8f6ff'; ctx.fillStyle = '#e8f6ff'; ctx.lineWidth = 1.4 * z;
+        ctx.beginPath(); ctx.arc(x, y - 29 * z, 4.2 * z, 0, 7); ctx.fill(); ctx.fillStyle = '#0c2440'; ctx.fillRect(x - 2.6 * z, y - 30 * z, 1.8 * z, 2 * z); ctx.fillRect(x + 0.8 * z, y - 30 * z, 1.8 * z, 2 * z);
+        ctx.beginPath(); ctx.moveTo(x, y - 24 * z); ctx.lineTo(x, y - 10 * z); for (i = 0; i < 4; i++) { ctx.moveTo(x - 6 * z, y - (22 - i * 3) * z); ctx.lineTo(x + 6 * z, y - (22 - i * 3) * z); }
+        ctx.moveTo(x - 3 * z, y - 10 * z); ctx.lineTo(x - 4 * z, y - 3 * z); ctx.moveTo(x + 3 * z, y - 10 * z); ctx.lineTo(x + 4 * z, y - 3 * z); ctx.stroke();
+        ctx.strokeStyle = '#8fd6b8'; ctx.beginPath(); var sy = y - 36 * z + (frame * 1.2 % 34) * z; ctx.moveTo(x - 11 * z, sy); ctx.lineTo(x + 11 * z, sy); ctx.stroke(); ctx.lineWidth = 1;
+      }
+      else if (t === 'psy') { bubble(x + 6 * z, y - (26 + (frame % 60) * 0.25) * z, ['bla', 'bla bla', 'et ma mère…', 'bla'][Math.floor(frame / 60) % 4], '#17323a'); if (st && frame % 180 > 120) bubble(sc[0], sc[1] - 46 * z, 'hm hm.', '#5d7a80'); }
+      else if (t === 'pharma') {
+        var by = y - 44 * z; ctx.fillStyle = '#fff'; rr(x - 8 * z, by - 9 * z, 16 * z, 18 * z, 5 * z); ctx.fill();
+        ctx.fillStyle = '#b98654'; rr(x - 3.5 * z, by - 4 * z, 7 * z, 10 * z, 2 * z); ctx.fill(); ctx.fillStyle = '#fff'; ctx.fillRect(x - 3.5 * z, by - 1 * z, 7 * z, 4 * z); ctx.fillStyle = '#17323a'; ctx.fillRect(x - 2 * z, by - 7 * z, 4 * z, 3 * z);
+        if (prog > 0.6) for (i = 0; i < 5; i++) star(x + Math.cos(i * 1.3 + frame * 0.1) * 14 * z, y - 20 * z + Math.sin(i * 2.1 + frame * 0.13) * 12 * z, 2.4 * z, '#ffc94a');
+      }
+      else if (t === 'deco') {
+        ctx.strokeStyle = '#ffe15a'; ctx.lineWidth = 2 * zoom;
+        for (i = 0; i < 3; i++) { var a = (Math.floor(frame / 5) * 2.3 + i * 2.1) % 6.28, lx = x + Math.cos(a) * 16 * z, ly = y - 20 * z + Math.sin(a) * 14 * z; ctx.beginPath(); ctx.moveTo(lx, ly); ctx.lineTo(lx + 4 * z, ly + 5 * z); ctx.lineTo(lx - 1 * z, ly + 6 * z); ctx.lineTo(lx + 3 * z, ly + 12 * z); ctx.stroke(); }
+        ctx.lineWidth = 1; var py = y - (30 + prog * 34) * z, px = x + 10 * z + Math.sin(frame * 0.3) * 2 * z;
+        ctx.save(); ctx.translate(px, py); ctx.rotate(Math.sin(frame * 0.2) * 0.5); ctx.fillStyle = '#17323a'; rr(-3 * z, -5 * z, 6 * z, 10 * z, 1.4 * z); ctx.fill(); ctx.fillStyle = '#9ae6ff'; ctx.fillRect(-2.2 * z, -4 * z, 4.4 * z, 7 * z);
+        ctx.fillStyle = '#fff'; ctx.beginPath(); ctx.ellipse(-6 * z, -2 * z, 4 * z, 2 * z, -0.5 + Math.sin(frame * 0.8) * 0.4, 0, 7); ctx.ellipse(6 * z, -2 * z, 4 * z, 2 * z, 0.5 - Math.sin(frame * 0.8) * 0.4, 0, 7); ctx.fill(); ctx.restore();
+        if (prog < 0.5) bubble(x, y - 44 * z, 'nooon !', '#d23b3b');
+      }
+      else if (t === 'guichet') {
+        bubble(x, y - 46 * z, ['formulaire B-12 ?', 'en 3 exemplaires', 'il manque une pièce', 'revenez mardi', 'TAMPON !'][Math.min(4, Math.floor(prog * 5))], prog > 0.8 ? '#1f9d6b' : '#17323a');
+        var cc = P(r.spots.staff.x + 0.5, r.spots.staff.y + 0.5), n = Math.floor(prog * 7); for (i = 0; i < n; i++) { ctx.fillStyle = i % 2 ? '#fff' : '#f1ead9'; ctx.fillRect(cc[0] + 9 * z, cc[1] - (16 + i * 2) * z, 9 * z, 2 * z); }
+      }
+      else if (t === 'platre') {
+        ctx.fillStyle = '#fff'; rr(x - 1 * z, y - 12 * zoom - 2 * z, (4 + prog * 12) * z, 6 * z, 2 * z); ctx.fill(); ctx.strokeStyle = '#cfd8dc'; ctx.beginPath(); for (i = 0; i < prog * 5; i++) { ctx.moveTo(x + (2 + i * 2.6) * z, y - 12 * zoom - 2 * z); ctx.lineTo(x + (1 + i * 2.6) * z, y - 12 * zoom + 4 * z); } ctx.stroke();
+        if (frame % 90 < 45) bubble(sc[0], sc[1] - 46 * z, 'c\'était laquelle ?', '#17323a');
+      }
+    } });
+  }
+  function star(x, y, r, col) { ctx.fillStyle = col; ctx.beginPath(); for (var i = 0; i < 8; i++) { var a = i * Math.PI / 4, q = i % 2 ? r * 0.4 : r; ctx.lineTo(x + Math.cos(a) * q, y + Math.sin(a) * q); } ctx.closePath(); ctx.fill(); }
   // Cloisons basses côté spectateur, une par case pour rester dans le bon ordre d'affichage, et la porte.
   function rails(r, out) {
     var c = V.ROOMS[r.type].color, i, y2 = r.y + r.h, x2 = r.x + r.w;
@@ -1150,7 +1239,7 @@ input[type=range]{width:100%;accent-color:var(--coral)}
   }
   function drawObj(o) {
     var x = o.x, y = o.y;
-    if (o.type === 'desk') { box(x + 0.08, y + 0.25, 0.84, 0.5, 13, '#ff6b5e'); box(x + 0.35, y + 0.3, 0.3, 0.2, 21, '#17323a'); }
+    if (o.type === 'desk') { box(x + 0.04, y + 0.5, 0.92, 0.42, 15, '#ff6b5e'); box(x + 0.1, y + 0.6, 0.24, 0.12, 8, '#17323a', 15); }
     else if (o.type === 'bench') { box(x + 0.08, y + 0.22, 0.84, 0.14, 15, '#b97a34'); box(x + 0.08, y + 0.36, 0.84, 0.4, 6, '#d99a4e'); }
     else if (o.type === 'drinks') { box(x + 0.2, y + 0.2, 0.6, 0.6, 30, '#ef4f8b'); var c = P(x + 0.5, y + 0.8); ctx.fillStyle = '#fff3b0'; ctx.fillRect(c[0] - 5 * zoom, c[1] - 26 * zoom, 5 * zoom, 9 * zoom); }
     else if (o.type === 'plant') {
@@ -1195,35 +1284,38 @@ input[type=range]{width:100%;accent-color:var(--coral)}
     var list = [];
     S.rooms.forEach(function (r) { furniture(r, list); rails(r, list); });
     S.objs.forEach(function (o) { list.push({ k: o.x + o.y + 1, f: function () { drawObj(o); } }); });
-    S.people.forEach(function (p) { list.push({ k: p.x + p.y + 1.05, f: function () { drawPerson(p); } }); });
+    S.people.forEach(function (p) { list.push({ k: p.x + p.y + (p.kind === 'recep' && p.st === 'work' ? 0.95 : 1.05), f: function () { drawPerson(p); } }); });
     list.sort(function (a, b) { return a.k - b.k; });
     for (i = 0; i < list.length; i++) list[i].f();
     S.rooms.forEach(function (r) {
-      var def = V.ROOMS[r.type], c = P(r.x + r.w / 2, r.y + r.h / 2), label = def.short, warn = null;
+      var def = V.ROOMS[r.type], c = P(r.x + r.w / 2, r.y + r.h / 2), label = def.short, warn = null, fz = Math.round(14 * Math.max(zoom, 0.85));
       if (r.broken) warn = 'EN PANNE'; else if (def.staff && !r.staffId) warn = def.staff === 'doc' ? 'Sans médecin' : 'Sans infirmier';
       var q = r.queue.length; if (q) label += ' · ' + q;
-      ctx.font = '800 ' + Math.round(11 * Math.max(zoom, 0.8)) + 'px Nunito,sans-serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-      var w = ctx.measureText(label).width + 12, yy = c[1] - (def.h * 15 + 26) * zoom;
-      ctx.fillStyle = 'rgba(23,50,58,.86)'; rr(c[0] - w / 2, yy - 9, w, 18, 9); ctx.fill(); ctx.fillStyle = '#fff'; ctx.fillText(label, c[0], yy + 0.5);
-      if (warn) { w = ctx.measureText(warn).width + 12; ctx.fillStyle = r.broken ? '#d23b3b' : '#ffc94a'; rr(c[0] - w / 2, yy + 11, w, 17, 8.5); ctx.fill(); ctx.fillStyle = r.broken ? '#fff' : '#4a3200'; ctx.fillText(warn, c[0], yy + 20); }
+      ctx.font = '800 ' + fz + 'px Nunito,sans-serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+      var w = ctx.measureText(label).width + 16, yy = P(r.x, r.y)[1] - 40 * zoom, bh = fz + 9;
+      ctx.fillStyle = 'rgba(23,50,58,.9)'; rr(c[0] - w / 2, yy - bh / 2, w, bh, bh / 2); ctx.fill(); ctx.fillStyle = '#fff'; ctx.fillText(label, c[0], yy + 0.5);
+      if (warn) { w = ctx.measureText(warn).width + 16; ctx.fillStyle = r.broken ? '#d23b3b' : '#ffc94a'; rr(c[0] - w / 2, yy + bh / 2 + 2, w, bh, bh / 2); ctx.fill(); ctx.fillStyle = r.broken ? '#fff' : '#4a3200'; ctx.fillText(warn, c[0], yy + bh + 2.5); }
     });
     ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
     for (i = floaters.length - 1; i >= 0; i--) {
       var fl = floaters[i], fp = P(fl.x, fl.y); fl.t++;
       if (fl.t > 70) { floaters.splice(i, 1); continue; }
-      ctx.globalAlpha = Math.min(1, (70 - fl.t) / 25); ctx.font = '800 ' + Math.round(13 * Math.max(zoom, 0.8)) + 'px Nunito,sans-serif';
-      var txt = (fl.v > 0 ? '+' : '−') + Math.abs(Math.round(fl.v)).toLocaleString('fr-FR') + ' €', fy = fp[1] - (30 + fl.t * 0.6) * zoom;
-      ctx.lineWidth = 3; ctx.strokeStyle = '#10303b'; ctx.strokeText(txt, fp[0], fy); ctx.fillStyle = fl.v > 0 ? '#ffc94a' : '#ff9d94'; ctx.fillText(txt, fp[0], fy); ctx.lineWidth = 1;
+      ctx.globalAlpha = Math.min(1, (70 - fl.t) / 25); ctx.font = '800 ' + Math.round(16 * Math.max(zoom, 0.85)) + 'px Nunito,sans-serif';
+      var txt = fl.txt || ((fl.v > 0 ? '+' : '−') + Math.abs(Math.round(fl.v)).toLocaleString('fr-FR') + ' €'), fy = fp[1] - (30 + fl.t * 0.6) * zoom;
+      ctx.lineWidth = 3; ctx.strokeStyle = '#10303b'; ctx.strokeText(txt, fp[0], fy); ctx.fillStyle = fl.col || (fl.v > 0 ? '#ffc94a' : '#ff9d94'); ctx.fillText(txt, fp[0], fy); ctx.lineWidth = 1;
     }
     ctx.globalAlpha = 1;
     if (build && build.x !== null) {
-      var ok = !build.err, col = ok ? 'rgba(31,157,107,.45)' : 'rgba(210,59,59,.45)', bw = 1, bh = 1;
-      if (build.kind === 'room') { bw = V.ROOMS[build.type].w; bh = V.ROOMS[build.type].h; }
-      poly([P(build.x, build.y), P(build.x + bw, build.y), P(build.x + bw, build.y + bh), P(build.x, build.y + bh)], col, ok ? '#1f9d6b' : '#d23b3b');
+      var ok = !build.err, col = ok ? 'rgba(31,157,107,.45)' : 'rgba(210,59,59,.45)', bw = build.kind === 'room' ? build.w : 1, bh2 = build.kind === 'room' ? build.h : 1;
+      ctx.lineWidth = 2; poly([P(build.x, build.y), P(build.x + bw, build.y), P(build.x + bw, build.y + bh2), P(build.x, build.y + bh2)], col, ok ? '#1f9d6b' : '#d23b3b'); ctx.lineWidth = 1;
       if (build.kind === 'room') {
-        var d = V.doorOf(V.ROOMS[build.type], build.x, build.y, build.rot);
-        poly([P(d.front.x, d.front.y), P(d.front.x + 1, d.front.y), P(d.front.x + 1, d.front.y + 1), P(d.front.x, d.front.y + 1)], 'rgba(255,201,74,.75)', '#c77700');
-        var pc = P(d.front.x + 0.5, d.front.y + 0.5); ctx.fillStyle = '#4a3200'; ctx.font = '800 ' + Math.round(10 * Math.max(zoom, 0.8)) + 'px Nunito,sans-serif'; ctx.textAlign = 'center'; ctx.fillText('porte', pc[0], pc[1]);
+        if (build.rot !== null) {
+          var d = V.doorAt(build.x, build.y, bw, bh2, build.rot, build.k);
+          poly([P(d.door.x, d.door.y), P(d.door.x + 1, d.door.y), P(d.door.x + 1, d.door.y + 1), P(d.door.x, d.door.y + 1)], 'rgba(255,201,74,.9)', '#c77700');
+          poly([P(d.front.x + 0.2, d.front.y + 0.2), P(d.front.x + 0.8, d.front.y + 0.2), P(d.front.x + 0.8, d.front.y + 0.8), P(d.front.x + 0.2, d.front.y + 0.8)], 'rgba(255,201,74,.55)');
+          var pc = P(d.door.x + 0.5, d.door.y + 0.5); ctx.fillStyle = '#4a3200'; ctx.font = '800 ' + Math.round(12 * Math.max(zoom, 0.85)) + 'px Nunito,sans-serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText('porte', pc[0], pc[1]);
+        }
+        var cc2 = P(build.x + bw / 2, build.y + bh2 / 2); bubble(cc2[0], P(build.x, build.y)[1] - 22 * zoom, bw + ' × ' + bh2, ok ? '#1f9d6b' : '#d23b3b');
       }
     }
   }
@@ -1275,9 +1367,9 @@ input[type=range]{width:100%;accent-color:var(--coral)}
       r = V.room(S, sel.id); if (!r) { deselect(); return; } var def = V.ROOMS[r.type], st = r.staffId ? V.person(S, r.staffId) : null;
       h = '<h3>' + def.name + '</h3><p>' + def.blurb + '</p><div class="row" style="margin-bottom:8px">' +
         (def.staff ? '<span class="tag">' + (st ? st.name + (r.staffIn ? '' : ' (en route)') : 'Personne en poste') + '</span>' : '') +
-        (def.kind !== 'service' ? '<span class="tag">File : ' + r.queue.length + '</span><span class="tag">Patients vus : ' + r.uses + '</span>' : '<span class="tag">Occupants : ' + r.occ.length + '/' + def.cap + '</span>') +
+        (def.kind !== 'service' ? '<span class="tag">File : ' + r.queue.length + '</span><span class="tag">Patients vus : ' + r.uses + '</span>' : '<span class="tag">Places : ' + r.occ.length + '/' + r.cap + '</span>') +
         (def.machine ? '<span class="tag"' + (r.broken ? ' style="background:#ffd9d5"' : '') + '>Usure : ' + Math.round(r.wear / 22 * 100) + ' %</span>' : '') + '</div>' +
-        '<div class="row"><button class="btn alt sm" data-a="demo">Démolir (+' + euro(def.cost * 0.4) + ')</button></div>';
+        '<div class="row"><span class="tag">' + r.w + ' × ' + r.h + ' cases</span><button class="btn alt sm" data-a="demo">Démolir (+' + euro((r.cost || def.cost) * 0.4) + ')</button></div>';
     } else {
       o = find(S.objs, sel.id); if (!o) { deselect(); return; } var od = V.OBJS[o.type];
       h = '<h3>' + od.name + '</h3><p>' + od.blurb + '</p><div class="row">' + (o.type === 'desk' ? '<span class="tag">' + (o.staffId ? 'Tenu' : 'Personne derrière') + ' · file ' + o.queue.length + '</span>' : '') + '<button class="btn alt sm" data-a="rm">Retirer</button></div>';
@@ -1302,33 +1394,57 @@ input[type=range]{width:100%;accent-color:var(--coral)}
   function hideOffer() { var e = $('offer'); e.dataset.on = ''; e.style.display = 'none'; }
   $('offer').onclick = function (ev) { var a = ev.target.getAttribute('data-a'); if (a) { V.acceptEmergency(S, a === 'y'); hideOffer(); } };
 
-  // construction
+  // construction : on trace la salle, puis on choisit le mur de la porte
   function startBuild(kind, type) {
-    closeSheet(); deselect(); var t = toTile(vw / 2, vh / 2);
-    build = { kind: kind, type: type, x: null, y: null, rot: 0, err: null }; moveGhost(t.x, t.y); buildBar();
+    closeSheet(); deselect();
+    if (kind === 'room') build = { kind: 'room', type: type, phase: 'trace', x: null, y: null, w: 0, h: 0, rot: null, k: 0, err: null };
+    else { build = { kind: 'obj', type: type, x: null, y: null, err: null }; var t = toTile(vw / 2, vh / 2); moveGhost(t.x, t.y); }
+    buildBar();
+  }
+  function cl(v, a, b) { return v < a ? a : v > b ? b : v; }
+  function setRect(a, b) {
+    var x0 = cl(Math.min(a.x, b.x), 0, V.W - 1), x1 = cl(Math.max(a.x, b.x), 0, V.W - 1), y0 = cl(Math.min(a.y, b.y), 0, V.H - 1), y1 = cl(Math.max(a.y, b.y), 0, V.H - 1);
+    if (x1 - x0 > 7) { if (b.x < a.x) x0 = x1 - 7; else x1 = x0 + 7; } if (y1 - y0 > 7) { if (b.y < a.y) y0 = y1 - 7; else y1 = y0 + 7; }
+    build.x = x0; build.y = y0; build.w = x1 - x0 + 1; build.h = y1 - y0 + 1; checkRect();
+  }
+  function checkRect() {
+    var b = build, d = V.autoDoor(S, b.type, b.x, b.y, b.w, b.h);
+    if (d) { b.rot = d.rot; b.k = d.k; b.err = null; } else { b.rot = null; b.err = V.canPlaceRoom(S, b.type, b.x, b.y, b.w, b.h, null, 0); }
+    buildBar();
+  }
+  function pickDoor(t) {
+    var b = build, best = null, rot, k, n, d;
+    for (rot = 0; rot < 4; rot++) { n = rot % 2 === 0 ? b.w : b.h; for (k = 0; k < n; k++) {
+      d = V.doorAt(b.x, b.y, b.w, b.h, rot, k); var onFront = d.front.x === t.x && d.front.y === t.y, onDoor = d.door.x === t.x && d.door.y === t.y;
+      if ((onFront || onDoor) && !V.canPlaceRoom(S, b.type, b.x, b.y, b.w, b.h, rot, k) && (!best || onFront)) best = { rot: rot, k: k };
+    } }
+    if (best) { b.rot = best.rot; b.k = best.k; sfx('click'); } else toast('Touchez un mur qui donne sur un couloir libre');
   }
   function moveGhost(tx, ty) {
-    if (!build) return; var w = 1, h = 1;
-    if (build.kind === 'room') { w = V.ROOMS[build.type].w; h = V.ROOMS[build.type].h; }
-    build.x = Math.max(0, Math.min(V.W - w, tx - Math.floor(w / 2))); build.y = Math.max(0, Math.min(V.H - h, ty - Math.floor(h / 2)));
-    build.err = build.kind === 'room' ? V.canPlaceRoom(S, build.type, build.x, build.y, build.rot) : V.canPlaceObj(S, build.type, build.x, build.y);
-    buildBar();
+    if (!build || build.kind !== 'obj') return;
+    build.x = cl(tx, 0, V.W - 1); build.y = cl(ty, 0, V.H - 1); build.err = V.canPlaceObj(S, build.type, build.x, build.y); buildBar();
   }
   function buildBar() {
     var e = $('buildbar'); if (!build) { e.style.display = 'none'; return; }
-    var def = build.kind === 'room' ? V.ROOMS[build.type] : V.OBJS[build.type];
-    var h = '<h3>' + def.name + ' · ' + euro(def.cost) + '</h3><p class="' + (build.err ? 'err' : '') + '">' + (build.err || 'Touchez le plan pour déplacer, puis validez.') + '</p><div class="row"><button class="btn" data-a="ok"' + (build.err ? ' disabled' : '') + '>Construire</button>' +
-      (build.kind === 'room' ? '<button class="btn alt" data-a="rot">Tourner la porte</button>' : '') + '<button class="btn alt" data-a="no">' + (build.n ? 'Terminer' : 'Annuler') + '</button></div>';
+    var h, b = build;
+    if (b.kind === 'obj') {
+      var od = V.OBJS[b.type];
+      h = '<h3>' + od.name + ' · ' + euro(od.cost) + '</h3><p class="' + (b.err ? 'err' : '') + '">' + (b.err || 'Touchez le plan pour déplacer, puis validez.') + '</p><div class="row"><button class="btn" data-a="ok"' + (b.err ? ' disabled' : '') + '>Poser</button><button class="btn alt" data-a="no">' + (b.n ? 'Terminer' : 'Annuler') + '</button></div>';
+    } else {
+      var def = V.ROOMS[b.type], size = b.x === null ? '' : b.w + ' × ' + b.h + ' cases · ' + euro(V.roomCost(b.type, b.w, b.h));
+      if (b.phase === 'trace') h = '<h3>' + def.name + '</h3><p class="' + (b.err ? 'err' : '') + '">' + (b.err ? size + '. ' + b.err : 'Glissez sur le plan pour tracer la salle (minimum ' + def.min[0] + ' × ' + def.min[1] + '), ou touchez un endroit. Deux doigts pour déplacer la vue.') + '</p><div class="row"><button class="btn alt" data-a="no">Annuler</button></div>';
+      else h = '<h3>' + def.name + ' · ' + size + '</h3><p>La porte est en jaune. Touchez un autre mur pour la déplacer.</p><div class="row"><button class="btn" data-a="ok">Construire</button><button class="btn alt" data-a="re">Retracer</button><button class="btn alt" data-a="no">Annuler</button></div>';
+    }
     if (e.dataset.h !== h) { e.innerHTML = h; e.dataset.h = h; } e.style.display = 'block';
   }
   $('buildbar').onclick = function (ev) {
-    var a = ev.target.getAttribute('data-a'); if (!a || !build) return;
-    if (a === 'rot') { build.rot = (build.rot + 1) % 4; moveGhost(build.x + Math.floor(V.ROOMS[build.type].w / 2), build.y + Math.floor(V.ROOMS[build.type].h / 2)); }
-    else if (a === 'no') { build = null; buildBar(); }
+    var a = ev.target.getAttribute('data-a'); if (!a || !build) return; var b = build;
+    if (a === 'no') { build = null; buildBar(); }
+    else if (a === 're') { b.phase = 'trace'; b.x = null; b.err = null; buildBar(); }
     else if (a === 'ok') {
-      var err = build.kind === 'room' ? V.buildRoom(S, build.type, build.x, build.y, build.rot) : V.placeObj(S, build.type, build.x, build.y);
+      var err = b.kind === 'room' ? V.buildRoom(S, b.type, b.x, b.y, b.w, b.h, b.rot, b.k) : V.placeObj(S, b.type, b.x, b.y);
       if (err) { toast(err); return; }
-      if (build.kind === 'room') { build = null; buildBar(); } else { build.n = 1; moveGhost(build.x, build.y); }
+      if (b.kind === 'room') { build = null; buildBar(); } else { b.n = 1; moveGhost(b.x, b.y); }
     }
   };
 
@@ -1342,7 +1458,7 @@ input[type=range]{width:100%;accent-color:var(--coral)}
       title = 'Salles'; h = '<div class="grid">';
       Object.keys(V.ROOMS).forEach(function (k) {
         var d = V.ROOMS[k], who = d.staff === 'doc' ? 'Médecin' : d.staff === 'nurse' ? 'Infirmier·ère' : 'Sans personnel', kind = { diag: 'Diagnostic', cure: 'Soin', both: 'Diagnostic et soin', service: 'Service' }[d.kind];
-        h += '<div class="item"><h4>' + d.name + '<em>' + euro(d.cost) + '</em></h4><p>' + d.blurb + '</p><div class="row"><span class="tag">' + kind + '</span><span class="tag">' + who + '</span><button class="btn sm" style="margin-left:auto" data-b="room:' + k + '"' + (S.money < d.cost ? ' disabled' : '') + '>Placer</button></div></div>';
+        h += '<div class="item"><h4>' + d.name + '<em>dès ' + euro(d.cost) + '</em></h4><p>' + d.blurb + '</p><div class="row"><span class="tag">' + kind + '</span><span class="tag">' + who + '</span><button class="btn sm" style="margin-left:auto" data-b="room:' + k + '"' + (S.money < d.cost ? ' disabled' : '') + '>Tracer</button></div></div>';
       }); h += '</div>';
     } else if (name === 'objs') {
       title = 'Objets de couloir'; h = '<div class="grid">';
@@ -1406,7 +1522,7 @@ input[type=range]{width:100%;accent-color:var(--coral)}
     var b = bestSave();
     modal('intro', '<h2>À l\'hôpital <span>Velpo</span></h2><p>Vous dirigez un hôpital public flambant vide. Construisez des salles, recrutez une équipe plus ou moins compétente, et soignez l\'écranite aiguë, la réunionite chronique ou le syndrome de la Quête.</p><p><b>Objectifs :</b> 25 guérisons, 600 de réputation, 20 000 € en caisse.</p><div class="row">' +
       (b ? '<button class="btn" data-m="cont">Continuer (jour ' + (b.day + 1) + ')</button><button class="btn alt" data-m="new">Nouvelle partie</button>' : '<button class="btn" data-m="new">Ouvrir l\'hôpital</button>') +
-      '</div><small>Prototype, niveau 1. Glissez pour déplacer le plan, touchez un patient ou une salle pour les détails. Le personnel rejoint seul les salles qui en ont besoin.</small>');
+      '</div><small>Prototype, niveau 1. Glissez pour déplacer le plan, pincez pour zoomer, touchez un patient ou une salle pour les détails. Le personnel rejoint seul les salles qui en ont besoin.</small>');
   }
   function confirmNew() { closeSheet(); setSpeed(0); modal('confirm', '<h2>Tout recommencer ?</h2><p>La partie en cours sera remplacée à la prochaine sauvegarde.</p><div class="row"><button class="btn" data-m="new">Nouvelle partie</button><button class="btn alt" data-m="close">Annuler</button></div>'); }
   function winModal() { setSpeed(0); save(); modal('win', '<h2>Niveau réussi</h2><p>' + S.cured + ' guérisons en ' + (Math.floor(S.day / 30) + 1) + ' mois, ' + S.deaths + ' décès « non imputables au service ». Le ministère vous adresse ses félicitations et une baisse de budget.</p><div class="row"><button class="btn" data-m="free">Continuer en mode libre</button><button class="btn alt" data-m="new">Nouvelle partie</button></div>'); }
@@ -1414,38 +1530,48 @@ input[type=range]{width:100%;accent-color:var(--coral)}
   function credits() { closeSheet(); setSpeed(0); modal('credits', '<h2>Crédits</h2><p>Jeu original : textes, dessins, bruitages et musique créés pour ce prototype, sans fichier externe.</p><p>Plusieurs règles de simulation (diagnostic, prix, efficacité des soins, fatigue, besoins des patients) sont adaptées de <b>CorsixTH</b>, © 2009-2026 Peter « Corsix » Cawley, Edvin « Lego3 » Linge et les contributeurs de CorsixTH, sous licence MIT. Le texte complet de la licence figure en tête du fichier sim.js.</p><p>Aucun graphisme, son, texte ou nom de maladie du jeu d\'origine n\'est utilisé.</p><div class="row"><button class="btn" data-m="close">Fermer</button></div>'); }
 
   /* ---------- pointeur ---------- */
-  var ptrs = {}, drag = null, pinch = null;
+  var ptrs = {}, drag = null, pinch = null, trace = null;
   function pos(ev) { var r = cv.getBoundingClientRect(); return { x: ev.clientX - r.left, y: ev.clientY - r.top }; }
+  function tracing() { return build && build.kind === 'room' && build.phase === 'trace'; }
   cv.addEventListener('pointerdown', function (ev) {
     try { cv.setPointerCapture(ev.pointerId); } catch (e) {}
     var p = pos(ev); ptrs[ev.pointerId] = p; var ids = Object.keys(ptrs);
-    if (ids.length === 1) drag = { sx: p.x, sy: p.y, cx: cam.x, cy: cam.y, moved: false };
-    else if (ids.length === 2) { var a = ptrs[ids[0]], b = ptrs[ids[1]]; pinch = { d: Math.hypot(a.x - b.x, a.y - b.y) }; if (drag) drag.moved = true; }
+    if (ids.length === 1) { if (tracing()) { trace = { a: toTile(p.x, p.y), moved: false, sx: p.x, sy: p.y }; drag = null; } else drag = { sx: p.x, sy: p.y, cx: cam.x, cy: cam.y, moved: false }; }
+    else if (ids.length === 2) { var a = ptrs[ids[0]], b = ptrs[ids[1]]; pinch = { d: Math.hypot(a.x - b.x, a.y - b.y), mx: (a.x + b.x) / 2, my: (a.y + b.y) / 2 }; if (drag) drag.moved = true; if (trace) { trace = null; if (build) { build.x = null; build.err = null; buildBar(); } } }
   });
   cv.addEventListener('pointermove', function (ev) {
     var p = pos(ev);
-    if (!ptrs[ev.pointerId]) { if (build && ev.pointerType === 'mouse') { var t = toTile(p.x, p.y); moveGhost(t.x, t.y); } return; }
+    if (!ptrs[ev.pointerId]) { if (build && build.kind === 'obj' && ev.pointerType === 'mouse') { var t = toTile(p.x, p.y); moveGhost(t.x, t.y); } return; }
     ptrs[ev.pointerId] = p; var ids = Object.keys(ptrs);
     if (ids.length >= 2 && pinch) {
-      var a = ptrs[ids[0]], b = ptrs[ids[1]], d = Math.hypot(a.x - b.x, a.y - b.y);
-      if (pinch.d > 0) zoomBy(d / pinch.d, (a.x + b.x) / 2, (a.y + b.y) / 2); pinch.d = d; return;
+      var a = ptrs[ids[0]], b = ptrs[ids[1]], d = Math.hypot(a.x - b.x, a.y - b.y), mx = (a.x + b.x) / 2, my = (a.y + b.y) / 2;
+      cam.x += mx - pinch.mx; cam.y += my - pinch.my; if (pinch.d > 0) zoomBy(d / pinch.d, mx, my); pinch = { d: d, mx: mx, my: my }; return;
     }
+    if (trace) { if (!trace.moved && Math.hypot(p.x - trace.sx, p.y - trace.sy) > 7) trace.moved = true; if (trace.moved) setRect(trace.a, toTile(p.x, p.y)); return; }
     if (drag) { var dx = p.x - drag.sx, dy = p.y - drag.sy; if (!drag.moved && Math.hypot(dx, dy) > 7) drag.moved = true; if (drag.moved && !pinch) { cam.x = drag.cx + dx; cam.y = drag.cy + dy; } }
   });
   function endPtr(ev) {
     var p = ptrs[ev.pointerId]; delete ptrs[ev.pointerId]; var n = Object.keys(ptrs).length;
     if (n < 2) pinch = null;
+    if (trace && n === 0) {
+      var tr = trace; trace = null;
+      if (ev.type === 'pointerup' && build) {
+        if (!tr.moved) { var m = V.ROOMS[build.type].min, w = m[1], h = m[0]; setRect({ x: cl(tr.a.x - Math.floor(w / 2), 0, V.W - w), y: cl(tr.a.y - Math.floor(h / 2), 0, V.H - h) }, { x: cl(tr.a.x - Math.floor(w / 2), 0, V.W - w) + w - 1, y: cl(tr.a.y - Math.floor(h / 2), 0, V.H - h) + h - 1 }); }
+        if (build.x !== null && !build.err) { build.phase = 'door'; buildBar(); }
+      }
+      return;
+    }
     if (n === 0 && drag) { if (!drag.moved && p && ev.type === 'pointerup') tap(p.x, p.y); drag = null; }
-    else if (n === 1 && drag) { var q = ptrs[Object.keys(ptrs)[0]]; drag = { sx: q.x, sy: q.y, cx: cam.x, cy: cam.y, moved: true }; }
+    else if (n === 1) { var q = ptrs[Object.keys(ptrs)[0]]; drag = { sx: q.x, sy: q.y, cx: cam.x, cy: cam.y, moved: true }; }
   }
   cv.addEventListener('pointerup', endPtr); cv.addEventListener('pointercancel', endPtr);
   cv.addEventListener('wheel', function (ev) { ev.preventDefault(); var p = pos(ev); zoomBy(ev.deltaY < 0 ? 1.12 : 1 / 1.12, p.x, p.y); }, { passive: false });
   function tap(sx, sy) {
     if (!S) return; var t = toTile(sx, sy);
-    if (build) { moveGhost(t.x, t.y); return; }
+    if (build) { if (build.kind === 'obj') moveGhost(t.x, t.y); else if (build.phase === 'door') pickDoor(t); return; }
     if (sheet) { closeSheet(); return; }
-    var best = null, bd = 24 * Math.max(zoom, 0.8);
-    S.people.forEach(function (p) { if (p.hidden) return; var c = P(p.x + 0.5, p.y + 0.5), d = Math.hypot(c[0] - sx, c[1] - 12 * zoom - sy); if (d < bd) { bd = d; best = p; } });
+    var best = null, bd = 30 * Math.max(zoom, 0.8);
+    S.people.forEach(function (p) { if (p.hidden || p.st === 'wcUse') return; var c = P(p.x + 0.5, p.y + 0.5), d = Math.hypot(c[0] - sx, c[1] - 18 * zoom - sy); if (d < bd) { bd = d; best = p; } });
     if (best) { sel = { t: 'p', id: best.id }; card(); return; }
     if (t.x >= 0 && t.y >= 0 && t.x < V.W && t.y < V.H) {
       var o = S.occ[t.y][t.x];
@@ -1457,7 +1583,6 @@ input[type=range]{width:100%;accent-color:var(--coral)}
   window.addEventListener('keydown', function (ev) {
     if (ev.key === ' ') { ev.preventDefault(); setSpeed(speed ? 0 : lastSpeed); }
     else if (ev.key === 'Escape') { if (build) { ev.preventDefault(); build = null; buildBar(); } else if (sheet) { ev.preventDefault(); closeSheet(); } else if (sel) { ev.preventDefault(); deselect(); } }
-    else if (ev.key === 'r' && build && build.kind === 'room') { build.rot = (build.rot + 1) % 4; moveGhost(build.x + 1, build.y + 1); }
   });
 
   /* ---------- boucle ---------- */
@@ -1468,7 +1593,7 @@ input[type=range]{width:100%;accent-color:var(--coral)}
     if (!S) return;
     if (speed && !modalKind) { acc += dt * 0.02 * speed; var n = 0; while (acc >= 1 && n < 10) { V.tick(S); acc -= 1; n++; } if (acc > 3) acc = 0; }
     var m = Math.floor(S.day / 30); if (m !== lastSavedMonth) { if (lastSavedMonth >= 0 && m > 0) save(); lastSavedMonth = m; }
-    if (S.fx && S.fx.length) { S.fx.forEach(function (e) { sfx(e.n); if (e.v && floaters.length < 30) floaters.push({ x: e.x, y: e.y, v: e.v, t: 0 }); }); S.fx.length = 0; }
+    if (S.fx && S.fx.length) { S.fx.forEach(function (e) { sfx(e.n === 'idea' ? 'hire' : e.n); if (floaters.length >= 30) return; if (e.v) floaters.push({ x: e.x, y: e.y, v: e.v, t: 0 }); else if (e.n === 'cure') floaters.push({ x: e.x + 0.5, y: e.y + 0.5, txt: 'Guéri !', col: '#8fd6b8', t: 0 }); else if (e.n === 'angry') floaters.push({ x: e.x + 0.5, y: e.y + 0.5, txt: 'Scandaleux !', col: '#ff9d94', t: 0 }); else if (e.n === 'idea') floaters.push({ x: e.x + 0.5, y: e.y + 0.5, txt: 'Diagnostic !', col: '#fff', t: 0 }); }); S.fx.length = 0; }
     draw(); if (frame % 12 === 0) hud();
   }
   window.addEventListener('resize', resize); if (window.ResizeObserver) new ResizeObserver(resize).observe($('stage'));
