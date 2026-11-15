@@ -2,7 +2,7 @@
 import re, sys, io, os, json, base64, subprocess, glob
 import numpy as np
 from PIL import Image
-SWV = 43
+SWV = 44
 sys.path.insert(0, '/home/claude/work/tools'); import charte
 REPO = '/home/claude/ecolesenligne'; REL = 'public/landoflord/index.html'
 WK = '/home/claude/work'
@@ -343,6 +343,22 @@ import maj
 s = maj.apply(s, rep1)
 # 12. intro en plans animés, calée sur l'enchaînement de l'original
 s = intro.apply(s, rep1)
+# 13. taille des textes : proportionnelle à l'écran, comme dans l'original (où la police occupe une part fixe de l'image).
+#     Sur ordinateur : textes agrandis de 40 %, et au-delà de 760 px de haut tout le cadre du jeu est grossi pour remplir la fenêtre.
+import re as _re
+_a = s.index('<style>'); _b = s.index('</style>'); _css = s[_a:_b]
+_css = _re.sub(r'font-size:(\d+(?:\.\d+)?)px', r'font-size:calc(\1px*var(--fs,1))', _css)
+_css = _re.sub(r'font:((?:bold |italic |small-caps )*)(\d+(?:\.\d+)?)px', r'font:\1calc(\2px*var(--fs,1))', _css)
+_css += """
+body:not(.ls) #app{zoom:var(--zk,1)}
+body:not(.ls) #modalBox,body:not(.ls) #dlg:not(.cine) .box,body:not(.ls) #heroSel .hbox,body:not(.ls) #title>*{zoom:var(--zk,1)}
+@media (min-width:900px) and (min-height:560px){body:not(.ls) #app{max-width:var(--aw,1100px);grid-template-columns:calc(170px + 80px*var(--fs,1)) minmax(0,1fr)}
+ body:not(.ls) #log{height:calc(14px + 44px*var(--fs,1))}
+ body:not(.ls) .nm{flex-wrap:wrap;white-space:normal;column-gap:8px;row-gap:0;line-height:1.15}
+ body:not(.ls) #sys button{font-size:calc(10px*var(--fs,1));letter-spacing:0}}
+"""
+s = s[:_a] + _css + s[_b:]
+s = rep1(s, "r.setProperty('--H',H+'px');", "r.setProperty('--H',H+'px');{const dk=!ls&&W>=900&&H>=560,zk=dk?Math.max(1,Math.min(H/760,W/1010)):1,fs=ls?(H<340?1:1.08):dk?Math.max(1.12,Math.min(1.4,1.4*H/760)):1;r.setProperty('--fs',fs.toFixed(3));r.setProperty('--zk',zk.toFixed(3));if(dk){const hh=H/zk,ww=W/zk;r.setProperty('--aw',Math.round(Math.min(ww-16,1180,(hh-(284+62*fs))*1.6+170+80*fs+40))+'px');}}")
 # 5. le plan façon Lands of Lore et les sorties signalées
 import carte
 s = carte.apply(s, rep1)
