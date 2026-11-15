@@ -4166,7 +4166,7 @@
  */
 (function (root) {
   'use strict';
-  var W = 30, H = 22, SPAWN = { x: 15, y: 21 }, DAY = 50;
+  var W = 30, H = 22, SPAWN = { x: 15, y: 21 }, DAY = 62;
   var rnd = Math.random;
   function ri(a, b) { return a + Math.floor(rnd() * (b - a + 1)); }
   function pick(a) { return a[Math.floor(rnd() * a.length)]; }
@@ -4198,7 +4198,7 @@
   function SP(tile, pos, face, pose, h, any) { return { tile: tile, pos: pos || tile, face: face || [0, 1], pose: pose || 'stand', h: h || 0, any: !!any }; }
   var ITEMS = {
     reception:      { name: 'Accueil', cost: 400, w: 2, d: 1, where: ['hall'], res: [[0, -1], [1, -1], [0, 1], [1, 1]], spots: { staff: SP([0, -1], [0.5, -0.72], [0, 1]), patient: SP([0, 1], [0.5, 0.95], [0, -1]) }, blurb: 'Les patients s\'y enregistrent. Il faut quelqu\'un derrière.' },
-    bench:          { name: 'Banc', cost: 80, w: 1, d: 1, where: ['hall'], res: [[0, 1]], spots: { seats: [SP([0, 1], [0, 0.04], [0, 1], 'sit', 0.3)] }, blurb: 'Attendre assis rend l\'attente presque supportable.' },
+    bench:          { name: 'Banc', cost: 80, w: 1, d: 1, where: ['hall'], res: [[0, 1]], spots: { seats: [SP([0, 1], [-0.37, 0.04], [0, 1], 'sit', 0.3), SP([0, 1], [0.37, 0.04], [0, 1], 'sit', 0.3)] }, blurb: 'Deux places. Attendre assis rend l\'attente presque supportable.' },
     drinks:         { name: 'Distributeur', cost: 600, w: 1, d: 1, where: ['hall'], res: [[0, 1]], spots: { use: SP([0, 1], [0, 0.92], [0, -1]) }, blurb: 'Rapporte 20 € par soda. Ne rend pas la monnaie.' },
     plant:          { name: 'Plante verte', cost: 60, w: 1, d: 1, where: ['hall', '*'], blurb: 'Remonte le moral. En plastique, mais personne ne vérifie.' },
     lamp:           { name: 'Lampadaire', cost: 90, w: 1, d: 1, where: ['hall', '*'], blurb: 'Une lumière douce qui cache très bien la poussière.' },
@@ -4365,6 +4365,9 @@
     (def.res || []).forEach(function (q) { c = rotCell(def, rot, q[0], q[1]); res.push({ x: x + c[0], y: y + c[1] }); });
     return { cells: cells, res: res, w: rot % 2 ? def.d : def.w, h: rot % 2 ? def.w : def.d };
   }
+  // Un personnage occupe environ un quart de case (0,46 de large) : deux personnes se croisent dans une case.
+  // Le mobilier est à la même échelle, donc les places (sièges, guichets) se resserrent autour du centre de l'objet.
+  var KS = 0.7;
   function spotWorld(S, it, sp) {
     var def = ITEMS[it.type], t = rotCell(def, it.rot, sp.tile[0], sp.tile[1]), p = rotCell(def, it.rot, sp.pos[0], sp.pos[1]), f = rotDir(it.rot, sp.face[0], sp.face[1]);
     var tile = { x: it.x + t[0], y: it.y + t[1] };
@@ -4380,7 +4383,8 @@
       }
       tile = found || { x: cx, y: cy };
     }
-    return { tile: tile, pos: { x: it.x + p[0], y: it.y + p[1] }, face: Math.atan2(f[0], f[1]), pose: sp.pose, h: sp.h, item: it.id };
+    var fw = it.rot % 2 ? def.d : def.w, fh = it.rot % 2 ? def.w : def.d, c0x = it.x + (fw - 1) / 2, c0y = it.y + (fh - 1) / 2;
+    return { tile: tile, pos: { x: c0x + (it.x + p[0] - c0x) * KS, y: c0y + (it.y + p[1] - c0y) * KS }, face: Math.atan2(f[0], f[1]), pose: sp.pose, h: sp.h * KS, item: it.id };
   }
   function itemSpots(S, it) {
     var d = ITEMS[it.type].spots || {}, out = [];
@@ -4770,10 +4774,94 @@
   function goTo(S, p, target, next) {
     var tile = target.tile || target;
     if (p.st === 'walk' && p.path && p.path.length && !p.lead) { var n = p.path[0]; if (Math.abs(p.x - n.x) + Math.abs(p.y - n.y) < Math.abs(p.x - p.at.x) + Math.abs(p.y - p.at.y)) p.at = n; }
-    p.dest = { x: tile.x, y: tile.y }; p.fin = target.tile ? target : null; p.next = next; p.st = 'walk'; p.pose = 'stand'; p.h = 0;
+    p.dest = { x: tile.x, y: tile.y }; p.fin = target.tile ? target : null; p.next = next; p.st = 'walk'; p.pose = 'stand'; p.h = 0; p.fromZone = S.rm[p.at.y] ? S.rm[p.at.y][p.at.x] || 0 : 0;
     var path = bfs(S, p.at, p.dest);
-    if (path === null) { p.path = []; p.stuck = (p.stuck || 0) + 1; } else { p.path = path; p.stuck = 0; p.lead = Math.abs(p.x - p.at.x) + Math.abs(p.y - p.at.y) > 0.05; }
+    if (path === null) { p.path = []; p.stuck = (p.stuck || 0) + 1; return; }
+    // Si l'on est déjà en terrain dégagé, on part d'où l'on est ; sinon (assis, derrière un comptoir) on rejoint d'abord le centre de sa case.
+    var off = Math.abs(p.x - p.at.x) + Math.abs(p.y - p.at.y), free = off < 1.2 && clearWalk(S, p.x, p.y, p.at.x, p.at.y);
+    if (path.length && S.rm[path[0].y][path[0].x] !== S.rm[p.at.y][p.at.x]) free = false;
+    p.lead = off > 0.05 && (!free || !path.length); p.path = straighten(S, p.lead ? p.at : p, path); p.stuck = 0;
   }
+  // Passage dégagé entre deux points : toutes les cases frôlées (marge d'une demi-largeur d'épaules) sont libres et dans la même zone.
+  function clearWalk(S, ax, ay, bx, by) {
+    var zx = Math.round(ax), zy = Math.round(ay); if (!inB(zx, zy)) return false;
+    var dx = bx - ax, dy = by - ay, d = Math.sqrt(dx * dx + dy * dy), zone = S.rm[zy][zx];
+    if (d < 0.01) return !S.blk[zy][zx];
+    var n = Math.ceil(d / 0.2), px = -dy / d * 0.3, py = dx / d * 0.3, i, k, tx, ty;
+    for (i = 0; i <= n; i++) for (k = -1; k <= 1; k++) {
+      tx = Math.round(ax + dx * i / n + px * k); ty = Math.round(ay + dy * i / n + py * k);
+      if (!inB(tx, ty) || S.blk[ty][tx] || S.rm[ty][tx] !== zone) return false;
+    }
+    return true;
+  }
+  function straighten(S, from, path) {
+    function pull(pts, win) {
+      var out = [], cx = from.x, cy = from.y, i = 0, n = pts.length, j, k;
+      while (i < n) {
+        j = i; for (k = i + 1; k < n && k <= i + win; k++) if (clearWalk(S, cx, cy, pts[k].x, pts[k].y)) j = k;
+        out.push(pts[j]); cx = pts[j].x; cy = pts[j].y; i = j + 1;
+      }
+      return out;
+    }
+    var w = pull(path, 16); return w.length > 1 ? pull(w, 99) : w;
+  }
+  function walkSpeed(p) { return p.kind === 'patient' ? (p.emergency ? 0.125 : p.zombie ? 0.047 : 0.08) : 0.1; }
+  function isDoor(S, x, y) { return S.rooms.some(function (r) { return r.door.x === x && r.door.y === y; }); }
+  function moving(p) { return p.st === 'walk' || p.st === 'in' || p.st === 'out'; }
+  // Croisements : chacun serre à droite, on double par la gauche, on contourne ceux qui attendent,
+  // et à angle droit on laisse passer celui qui vient de droite. p.lat est le déport latéral (en cases).
+  function steer(S) {
+    var P = S.people, n = P.length, i, j, p, o;
+    for (i = 0; i < n; i++) {
+      p = P[i];
+      if (!moving(p)) { p.v = 0; p.slow = 1; p.hold = false; if (p.lat) p.lat = Math.abs(p.lat) < 0.02 ? 0 : p.lat * 0.55; continue; }
+      p.v = Math.min(1, (p.v || 0) + 0.2);
+      var fx = Math.sin(p.face), fy = Math.cos(p.face), rx = -fy, ry = fx, lat = p.lat || 0, px = p.x + rx * lat, py = p.y + ry * lat;
+      var my = walkSpeed(p), want = p.st === 'walk' && !p.path.length ? 0 : 0.1, slow = 1, needR = 0, needL = 0, hold = false;
+      var tx = Math.round(p.x), ty = Math.round(p.y), inside = inB(tx, ty), zone = inside ? S.rm[ty][tx] : 0, gR = 0.45, gL = 0.45;
+      // la place libre de chaque côté, ici et un demi-pas plus loin : jamais dans un mur ni dans un meuble
+      if (inside) {
+        var cds = (zone ? isDoor(S, tx, ty) : isFront(S, tx, ty)) ? [0.2, 0.12] : [0.45, 0.36, 0.26, 0.14];
+        var gap = function (dir, ax, ay) { for (var q = 0, qx, qy; q < cds.length; q++) { qx = Math.round(ax + rx * dir * (cds[q] + 0.21)); qy = Math.round(ay + ry * dir * (cds[q] + 0.21)); if (inB(qx, qy) && !S.blk[qy][qx] && S.rm[qy][qx] === zone) return cds[q]; } return 0; };
+        gR = gap(1, p.x, p.y); gL = gap(-1, p.x, p.y);
+        if (lat > gR) lat = gR; else if (lat < -gL) lat = -gL;
+        gR = Math.min(gR, gap(1, p.x + fx * 0.45, p.y + fy * 0.45)); gL = Math.min(gL, gap(-1, p.x + fx * 0.45, p.y + fy * 0.45));
+      }
+      for (j = 0; j < n; j++) {
+        o = P[j]; if (o === p || o.hidden || o.gone || o.st === 'held' || o.st === 'away' || o.st === 'dead') continue;
+        var d0 = o.x - p.x, d1 = o.y - p.y; if (d0 > 1.8 || d0 < -1.8 || d1 > 1.8 || d1 < -1.8) continue;
+        var ol = o.lat || 0, ofx = Math.sin(o.face), ofy = Math.cos(o.face), dx = o.x - ofy * ol - px, dy = o.y + ofx * ol - py;
+        var ahead = dx * fx + dy * fy, side = dx * rx + dy * ry;
+        if (ahead < -0.6 || ahead > 1.3 || side > 0.8 || side < -0.8) continue;
+        if (!moving(o) || o.hold) {
+          // quelqu'un d'immobile sur la route : on le contourne par le côté où il y a la place
+          if (o.pose === 'stand' && ahead > 0.05 && ahead < 0.95 && side > -0.46 && side < 0.46) {
+            var goL = 0.5 - side, goR = 0.5 + side, canL = goL - lat <= gL + 0.03, canR = goR + lat <= gR + 0.03;
+            if ((goL <= goR && canL) || !canR) needL = Math.max(needL, goL); else needR = Math.max(needR, goR);
+          }
+          continue;
+        }
+        var c = fx * ofx + fy * ofy, os = walkSpeed(o) * (o.v === undefined ? 1 : o.v) * (o.slow === undefined ? 1 : o.slow);
+        if (c < -0.75) {
+          // on se croise : chacun serre à droite, juste ce qu'il faut — sauf si l'on est déjà nettement décalés de l'autre côté
+          if (ahead > 0.05 && side > -0.5 && side < 0.7) { if (side < 0.12) needR = Math.max(needR, side + 0.5); else needL = Math.max(needL, 0.5 - side); }
+        } else if (c > 0.5) {
+          if (os < my * 0.85) {                                                                                      // plus lent : on double par la gauche et on ne se rabat qu'une fois passé
+            if (ahead > -0.55 && ahead < 0.9 && side > -0.2 && side < 0.6) { needL = Math.max(needL, 0.5 - side); if (ahead > 0.06 && ahead < 0.5 && side < 0.36) slow = Math.min(slow, Math.max(0.3, os / my)); }
+          } else if (side > -0.36 && side < 0.36) {
+            if (ahead > -0.06 && ahead < 0.06) { if (p.id > o.id) slow = Math.min(slow, 0.6); }                       // au même endroit : l'un des deux laisse filer l'autre
+            else if (ahead > 0 && ahead < 0.55) slow = Math.min(slow, clamp(os / my * 0.8, 0.25, 0.8));              // même allure : on garde ses distances
+          }
+        }
+        else if (ahead > 0.05 && ahead < 0.85 && (side > 0.05 || (side > -0.35 && p.id > o.id))) slow = Math.min(slow, ahead < 0.62 ? 0.1 : 0.35);   // trajectoires qui se coupent : priorité à droite
+      }
+      if (needR > 0 && needL > 0) { want = lat; slow = Math.min(slow, 0.5); } else if (needR > 0) want = lat + needR; else if (needL > 0) want = lat - needL;
+      want = clamp(want, -gL, gR);
+      p.lat = lat + clamp(want - lat, -0.05, 0.05); p.slow = slow; p.hold = hold;
+    }
+  }
+  // ralentir dans les virages serrés
+  function bend(p, n) { var a = Math.atan2(n.x - p.x, n.y - p.y) - p.face; while (a > Math.PI) a -= 2 * Math.PI; while (a < -Math.PI) a += 2 * Math.PI; a = Math.abs(a); if (a > 2.3) p.v = Math.min(p.v || 0, 0.2); else if (a > 1.1) p.v = Math.min(p.v || 0, 0.45); }
   function repath(S, p) { if (p.st === 'walk' && p.dest) goTo(S, p, p.fin || p.dest, p.next); }
   function lineSpots(S, start, n) {
     var out = [], seen = {}, q = [start], qi = 0; seen[start.x + ',' + start.y] = 1;
@@ -4835,11 +4923,12 @@
   function findSeat(S, p, near) {
     var best = null, bd = 99;
     S.items.forEach(function (o) {
-      if (o.type !== 'bench' || o.used[0]) return;
+      if (o.type !== 'bench' || (o.used[0] && o.used[1])) return;
       var d = Math.abs(o.x - near.x) + Math.abs(o.y - near.y); if (d < bd && d <= 9) { bd = d; best = o; }
     });
     if (!best) return false;
-    best.used[0] = p.id; p.seat = { item: best.id, idx: 0 }; goTo(S, p, spotWorld(S, best, ITEMS.bench.spots.seats[0]), 'sit'); return true;
+    var si = best.used[0] ? 1 : 0;
+    best.used[si] = p.id; p.seat = { item: best.id, idx: si }; goTo(S, p, spotWorld(S, best, ITEMS.bench.spots.seats[si]), 'sit'); return true;
   }
   function leave(S, p, reason) {
     clearFrom(S, p); p.target = null; p.reason = reason;
@@ -4983,14 +5072,18 @@
   function moveIf(S, q, target, next) { var t = target.tile || target, d = q.st === 'walk' ? q.dest : q.at; if (d.x !== t.x || d.y !== t.y || (target.tile && q.st !== 'walk' && (Math.abs(q.x - target.pos.x) + Math.abs(q.y - target.pos.y) > 0.05))) goTo(S, q, target, next); }
   function queueLines(S) {
     var taken = {};
-    S.people.forEach(function (p) { if (p.kind === 'patient' && p.spot && (waitingInLine(p) || p.st === 'recQ' || (p.st === 'walk' && p.next === 'recStand'))) taken[p.spot.x + ',' + p.spot.y] = p.id; else if (p.kind === 'patient') p.spot = null; });
+    S.people.forEach(function (p) { if (p.kind === 'patient' && p.spot && (waitingInLine(p) || p.st === 'recQ' || (p.st === 'walk' && p.next === 'recStand'))) taken[sk(p.spot)] = p.id; else if (p.kind === 'patient') p.spot = null; });
+    function sk(s) { return s.x + ',' + s.y + ',' + (s.k || 0); }
     function place(q, start, next) {
-      if (q.spot && (S.blk[q.spot.y][q.spot.x] || S.rm[q.spot.y][q.spot.x])) { delete taken[q.spot.x + ',' + q.spot.y]; q.spot = null; }
-      if (!q.spot) {
-        var c = lineSpots(S, start, 70);
-        for (var i = 0; i < c.length; i++) if (!taken[c[i].x + ',' + c[i].y]) { q.spot = c[i]; taken[c[i].x + ',' + c[i].y] = q.id; break; }
+      var s = q.spot, c, i, k;
+      if (s && (S.blk[s.y][s.x] || S.rm[s.y][s.x])) { delete taken[sk(s)]; q.spot = s = null; }
+      if (!s) {
+        c = lineSpots(S, start, 40);
+        for (i = 0; i < c.length && !s; i++) for (k = 0; k < 2 && !s; k++) if (!taken[c[i].x + ',' + c[i].y + ',' + k]) { s = q.spot = { x: c[i].x, y: c[i].y, k: k }; taken[sk(s)] = q.id; }
       }
-      if (q.spot) moveIf(S, q, q.spot, next);
+      if (!s) return;
+      var px = s.x + (s.k ? 0.24 : -0.24) + ((q.id * 7) % 5 - 2) * 0.02, py = s.y + (s.k ? 0.13 : -0.13) + ((q.id * 3) % 5 - 2) * 0.02;
+      moveIf(S, q, { tile: { x: s.x, y: s.y }, pos: { x: px, y: py }, face: Math.atan2(start.x - px, start.y - py), pose: 'stand', h: 0 }, next);
     }
     S.rooms.forEach(function (r) {
       if (!r.queue.length || !r.open) return;
@@ -5001,7 +5094,7 @@
       var head = spotWorld(S, o, ITEMS.reception.spots.patient);
       o.queue.forEach(function (id, i) {
         var q = person(S, id); if (!q || (q.st !== 'recQ' && !(q.st === 'walk' && q.next === 'recStand'))) return;
-        if (i === 0) { if (q.spot) { delete taken[q.spot.x + ',' + q.spot.y]; q.spot = null; } moveIf(S, q, head, 'recStand'); } else place(q, head.tile, 'recStand');
+        if (i === 0) { if (q.spot) { delete taken[sk(q.spot)]; q.spot = null; } moveIf(S, q, head, 'recStand'); } else place(q, head.tile, 'recStand');
       });
     });
   }
@@ -5156,7 +5249,7 @@
   function isOpen(S) { return S.items.some(function (o) { return o.type === 'reception'; }) && S.rooms.some(function (r) { return r.type === 'gp' && r.open; }); }
   function stepTo(p, tx, ty, sp) { var dx = tx - p.x, dy = ty - p.y, d = Math.sqrt(dx * dx + dy * dy); if (d <= sp) { p.x = tx; p.y = ty; return true; } p.x += dx / d * sp; p.y += dy / d * sp; p.face = Math.atan2(dx, dy); return false; }
   function moveTick(S, p) {
-    var sp = p.kind === 'patient' ? (p.emergency ? 0.16 : p.zombie ? 0.06 : 0.1) : 0.13;
+    var sp = walkSpeed(p) * (p.v === undefined ? 1 : p.v) * (p.slow === undefined ? 1 : p.slow);
     if (p.st === 'in') { if (stepTo(p, SPAWN.x, SPAWN.y, sp)) { p.at = { x: SPAWN.x, y: SPAWN.y }; p.st = 'idle'; if (p.kind === 'patient') begin(S, p); } return; }
     if (p.st === 'out') { if (stepTo(p, SPAWN.x, H + 3.2, sp)) p.gone = true; return; }
     if (p.st !== 'walk') return;
@@ -5168,7 +5261,16 @@
       return;
     }
     if (p.lead) { if (stepTo(p, p.at.x, p.at.y, sp)) p.lead = false; return; }
-    if (p.path.length) { var n = p.path[0]; if (stepTo(p, n.x, n.y, sp)) p.at = p.path.shift(); return; }
+    if (p.path.length) {
+      var n = p.path[0], g = n, f = p.fin;
+      // dernière ligne droite : on va directement à sa place si elle est dans la case d'arrivée
+      if (p.path.length === 1) { if (f && f.pose === 'stand' && Math.abs(f.pos.x - n.x) < 0.5 && Math.abs(f.pos.y - n.y) < 0.5) g = f.pos; }
+      // on coupe le virage dès que la suite du chemin est dégagée
+      else if (Math.abs(p.x - n.x) + Math.abs(p.y - n.y) < 0.3 && clearWalk(S, p.x, p.y, p.path[1].x, p.path[1].y)) { p.path.shift(); n = g = p.path[0]; bend(p, n); }
+      if (stepTo(p, g.x, g.y, sp)) { p.at = p.path.shift(); if (p.path.length) bend(p, p.path[0]); }
+      else { var ax = Math.round(p.x), ay = Math.round(p.y); if ((ax !== p.at.x || ay !== p.at.y) && inB(ax, ay) && !S.blk[ay][ax] && S.rm[ay][ax] === S.rm[p.at.y][p.at.x]) p.at = { x: ax, y: ay }; }
+      return;
+    }
     if (p.fin) { if (!stepTo(p, p.fin.pos.x, p.fin.pos.y, sp)) return; p.face = p.fin.face; p.pose = p.fin.pose; p.h = p.fin.h || 0; }
     if (p.kind === 'patient') patientArrive(S, p); else staffArrive(S, p);
   }
@@ -5176,6 +5278,7 @@
     if (S.lost) return;
     S.tick++;
     var i, p;
+    steer(S);
     for (i = 0; i < S.people.length; i++) { p = S.people[i]; moveTick(S, p); if (p.gone) continue; if (p.kind === 'patient') patientTick(S, p); else staffTick(S, p); }
     for (i = 0; i < S.rooms.length; i++) roomTick(S, S.rooms[i]);
     for (i = 0; i < S.items.length; i++) deskTick(S, S.items[i]);
@@ -5272,7 +5375,7 @@
   }
   function callRepair(S, id) { var r = room(S, id); if (r && ROOMS[r.type].machine) r.urgent = true; }
 
-  root.Velpo = {
+  root.Velpo = { SCALE: KS, _goTo: goTo, _clear: clearWalk,
     W: W, H: H, SPAWN: SPAWN, DAY: DAY, ROOMS: ROOMS, ITEMS: ITEMS, DISEASES: DISEASES, DMAP: DMAP, STAFF: STAFF, GOALS: GOALS, THOUGHTS: THOUGHTS,
     newGame: newGame, tick: tick, canPlaceRoom: canPlaceRoom, autoDoor: autoDoor, doorAt: doorAt, roomCost: roomCost, roomTotal: roomTotal, sizeOk: sizeOk, canFurnish: canFurnish,
     buildRoom: buildRoom, autoFurnish: autoFurnish, openRoom: openRoom, closeRoom: closeRoom, demolishRoom: demolishRoom, moveDoor: moveDoor, roomMissing: roomMissing, roomItems: roomItems,
@@ -5468,7 +5571,7 @@
     g.add(furn('plantSmall1', 0.2, 0.32, 0.2, { x: 0.7, y: 0.68, z: 0.08 })); g.add(cyl(0.05, 0.03, '#ffc94a', 0.25, 0.68, 0.18)); g.add(sph(0.035, '#ffc94a', 0.25, 0.72, 0.18));
     g.add(box(0.5, 0.012, 0.3, '#ffffff', 0.1, 0.68, -0.05)); return { h: 0.75 };
   };
-  IV.bench = function (g) { g.add(furn('benchCushion', 0.94, 0.68, 0.5, { z: -0.14, cols: { carpet: '#7fcfb0' } })); return { h: 0.7 }; };
+  IV.bench = function (g) { g.add(furn('benchCushion', 1.38, 0.68, 0.5, { z: -0.14, cols: { carpet: '#7fcfb0' } })); return { h: 0.7 }; };
   IV.drinks = function (g) {
     g.add(box(0.82, 1.42, 0.56, '#ff5a4d', 0, 0, -0.08)); g.add(box(0.86, 0.08, 0.6, '#d94a3f', 0, 1.42, -0.08)); g.add(box(0.86, 0.06, 0.6, '#33505a', 0, 0, -0.08));
     var mat = new T.MeshBasicMaterial({ map: canvasTex(128, 224, function (c) {
@@ -5580,7 +5683,7 @@
   function buildItemGroup(type) { var g = new T.Group(), info = (IV[type] || function (gg) { gg.add(box(0.8, 0.6, 0.8, '#ff00ff')); return { h: 0.6 }; })(g); return { g: g, info: info || {} }; }
 
   /* ---------- décor fixe ---------- */
-  var SCALE = 1.45, pickMat = new T.MeshBasicMaterial({ visible: false });
+  var SCALE = 1.45, KS = V.SCALE || 0.7, DH = 1.38 * KS, pickMat = new T.MeshBasicMaterial({ visible: false });
   function shade(hex, f) { var c = new T.Color(hex); c.multiplyScalar(f); return '#' + c.getHexString(); }
   function tint(hex, k) { var c = new T.Color(hex); c.lerp(new T.Color('#ffffff'), k); return '#' + c.getHexString(); }
   function repeatPlane(w, d, tex, rx, ry) { var geo = new T.PlaneGeometry(w, d), uv = geo.attributes.uv; for (var i = 0; i < uv.count; i++) uv.setXY(i, uv.getX(i) * rx, uv.getY(i) * ry); var m = new T.Mesh(geo, new T.MeshLambertMaterial({ map: tex })); m.rotation.x = -PI / 2; m.receiveShadow = true; return m; }
@@ -5592,12 +5695,12 @@
     g.add(box(W + 0.9, 0.22, H + 0.9, '#cfdad5', cx, -0.22, cz));
     var hall = repeatPlane(W, H, tileTex('#e6ece9', '#d9e3df', '#bfd0c9'), W / 2, H / 2); hall.position.set(cx, 0.002, cz); g.add(hall);
     // murs extérieurs, bas pour laisser voir l'intérieur
-    var wh = 0.85, th = 0.22, cap = '#7fcfb0', wc = '#fbfdfc', ex = V.SPAWN.x;
+    var wh = 0.62, th = 0.22, cap = '#7fcfb0', wc = '#fbfdfc', ex = V.SPAWN.x;
     function wall(x0, z0, x1, z1) { var L = Math.abs(x1 - x0) + Math.abs(z1 - z0), alongX = z0 === z1, w = alongX ? L : th, d = alongX ? th : L; g.add(box(w, wh, d, wc, (x0 + x1) / 2, 0, (z0 + z1) / 2)); g.add(box(w + 0.06, 0.08, d + 0.06, cap, (x0 + x1) / 2, wh, (z0 + z1) / 2)); g.add(box(w + 0.02, 0.14, d + 0.02, '#b9c9c3', (x0 + x1) / 2, 0, (z0 + z1) / 2)); }
     wall(-0.6, -0.61, W - 0.4, -0.61); wall(-0.61, -0.6, -0.61, H - 0.4); wall(W - 0.39, -0.6, W - 0.39, H - 0.4);
     wall(-0.6, H - 0.39, ex - 1.5, H - 0.39); wall(ex + 1.5, H - 0.39, W - 0.4, H - 0.39);
     // entrée : montants, portes vitrées ouvertes, paillasson
-    [-1.5, 1.5].forEach(function (s) { g.add(box(0.3, 1.5, 0.34, '#ff6b5e', ex + s, 0, H - 0.39)); g.add(box(1.0, 1.25, 0.05, '#bfe3ee', ex + s * 1.0 + (s > 0 ? 0.35 : -0.35), 0.05, H - 0.2, { opacity: 0.38 })); });
+    [-1.5, 1.5].forEach(function (s) { g.add(box(0.3, 1.12, 0.34, '#ff6b5e', ex + s, 0, H - 0.39)); g.add(box(1.0, 0.92, 0.05, '#bfe3ee', ex + s * 1.0 + (s > 0 ? 0.35 : -0.35), 0.05, H - 0.2, { opacity: 0.38 })); });
     g.add(flat(2.2, 0.9, M('#ff6b5e'), ex, 0.006, H - 0.38));
     // parvis, allée, route, parking
     g.add(flat(7, 3, M('#eee7d6'), ex, -0.095, H + 1.2)); g.add(flat(3.2, 8, M('#eee7d6'), ex, -0.094, H + 4.6)); g.add(flat(140, 5.2, M('#5b6570'), cx, -0.096, H + 11.2));
@@ -5611,7 +5714,7 @@
     var a = new T.Group(); a.add(box(2.5, 1.15, 1.3, '#ffffff', 0, 0.3, 0)); a.add(box(0.9, 0.85, 1.26, '#ffffff', 1.65, 0.3, 0)); a.add(box(0.5, 0.42, 1.1, '#9fd3e6', 1.86, 0.7, 0)); a.add(box(2.52, 0.2, 1.32, '#ff5a4d', 0, 0.72, 0)); a.add(box(0.5, 0.14, 0.5, '#6fa8dc', 0.9, 1.45, 0, { emissive: '#6fa8dc', ei: 0.6 }));
     a.add(plane(0.5, 0.5, crossTex('#ffffff', '#ff5a4d'), -0.5, 1.0, 0.655)); var cb = plane(0.5, 0.5, crossTex('#ffffff', '#ff5a4d'), -0.5, 1.0, -0.655); cb.rotation.y = PI; a.add(cb);
     [[-0.75, 0.62], [1.35, 0.62], [-0.75, -0.62], [1.35, -0.62]].forEach(function (p) { var w = cyl(0.3, 0.22, '#2b2f36', p[0], 0, p[1]); w.rotation.x = PI / 2; w.position.y = 0.3; a.add(w); });
-    a.position.set(ex + 7.4, -0.1, H + 6.2); a.rotation.y = 0.0; g.add(a);
+    a.position.set(ex + 7.4, -0.1, H + 6.2); a.rotation.y = 0.0; a.scale.setScalar(0.8); g.add(a);
     // arbres, buissons, lampadaires
     [[-4, 3, 1.1], [-5, 11, 1.3], [-3.5, 19, 1], [W + 3, 2, 1.2], [W + 4.5, 10, 1], [W + 3, 18, 1.3], [4, -4, 1.2], [13, -5, 1], [22, -4, 1.3], [30, -5.5, 1.1], [3, H + 4, 1.1], [W - 2, H + 3.2, 1.2], [-6, H + 6, 1.3], [W + 6, H + 6, 1], [8, H + 6.5, 0.9], [-9, -6, 1.4], [W + 9, -5, 1.3]].forEach(function (t) { g.add(tree(t[0], t[1], t[2])); });
     [[ex - 2.6, H + 0.6], [ex + 2.6, H + 0.6], [5, H + 0.7], [9, H + 0.7], [21, H + 0.7], [26, H + 0.7], [1, H + 0.7]].forEach(function (b, k) { var s = sph(0.55, k % 2 ? '#55b574' : '#48a566', b[0], 0.15, b[1]); s.scale.y = 0.75; g.add(s); });
@@ -5625,7 +5728,7 @@
   function floorMat(col) { return floorMats[col] || (floorMats[col] = new T.MeshLambertMaterial({ map: tileTex(tint(col, 0.52), tint(col, 0.3), tint(col, 0.05)) })); }
   function roomKey(r) { return [r.type, r.x, r.y, r.w, r.h, r.rot, r.k, r.open ? 1 : 0].join(','); }
   function buildRoomView(r) {
-    var def = V.ROOMS[r.type], g = new T.Group(), col = def.color, th = 0.12, wh = 0.62, cap = shade(col, 0.82), v = { g: g, key: roomKey(r), ang: 0, leaf: null, inS: 1 };
+    var def = V.ROOMS[r.type], g = new T.Group(), col = def.color, th = 0.12, wh = 0.46, cap = shade(col, 0.82), v = { g: g, key: roomKey(r), ang: 0, leaf: null, inS: 1 };
     var geo = new T.PlaneGeometry(r.w, r.h), uv = geo.attributes.uv, i; for (i = 0; i < uv.count; i++) uv.setXY(i, uv.getX(i) * r.w / 2, uv.getY(i) * r.h / 2);
     var fl = new T.Mesh(geo, floorMat(col)); fl.rotation.x = -PI / 2; fl.position.set(r.x + (r.w - 1) / 2, 0.012, r.y + (r.h - 1) / 2); fl.receiveShadow = true; g.add(fl);
     if (!r.open) {
@@ -5640,10 +5743,10 @@
       var segs = [[0, s.len]];
       if (s.rot === r.rot) {
         var a = r.k + 0.06, b = r.k + 0.94; segs = [[0, a], [b, s.len]];
-        sg.add(box(0.1, 1.38, 0.18, cap, a, 0, 0)); sg.add(box(0.1, 1.38, 0.18, cap, b, 0, 0)); sg.add(box(b - a + 0.1, 0.12, 0.18, cap, (a + b) / 2, 1.38, 0));
+        sg.add(box(0.1, DH, 0.18, cap, a, 0, 0)); sg.add(box(0.1, DH, 0.18, cap, b, 0, 0)); sg.add(box(b - a + 0.1, 0.1, 0.18, cap, (a + b) / 2, DH, 0));
         var sm = signMats[r.type] || (signMats[r.type] = signMat(def.short, col, '#17323a', 256, 80, 38));
-        var s1 = plane(0.98, 0.31, sm, (a + b) / 2, 1.7, 0.02), s2 = plane(0.98, 0.31, sm, (a + b) / 2, 1.7, -0.02); s2.rotation.y = PI; sg.add(box(1.04, 0.37, 0.03, '#17323a', (a + b) / 2, 1.515, 0)); sg.add(s1); sg.add(s2);
-        var piv = new T.Group(); piv.position.set(a + 0.05, 0, 0); piv.add(box(b - a - 0.1, 1.2, 0.05, '#ffffff', (b - a - 0.1) / 2, 0.04, 0)); piv.add(box(0.2, 0.34, 0.06, '#bfe3ee', (b - a - 0.1) / 2, 0.72, 0)); piv.add(sph(0.045, '#ffc94a', b - a - 0.22, 0.6, 0.05)); sg.add(piv);
+        var s1 = plane(0.98, 0.31, sm, (a + b) / 2, DH + 0.3, 0.02), s2 = plane(0.98, 0.31, sm, (a + b) / 2, DH + 0.3, -0.02); s2.rotation.y = PI; sg.add(box(1.04, 0.37, 0.03, '#17323a', (a + b) / 2, DH + 0.115, 0)); sg.add(s1); sg.add(s2);
+        var piv = new T.Group(); piv.position.set(a + 0.05, 0, 0); piv.add(box(b - a - 0.1, DH - 0.1, 0.05, '#ffffff', (b - a - 0.1) / 2, 0.04, 0)); piv.add(box(0.2, 0.24, 0.06, '#bfe3ee', (b - a - 0.1) / 2, 0.5, 0)); piv.add(sph(0.04, '#ffc94a', b - a - 0.22, 0.42, 0.05)); sg.add(piv);
         v.leaf = piv; v.inS = s.inS;
       }
       segs.forEach(function (q) { var L = q[1] - q[0]; if (L <= 0.02) return; sg.add(box(L, wh, th, '#fbfdfc', q[0] + L / 2, 0, 0)); sg.add(box(L + 0.02, 0.06, th + 0.05, cap, q[0] + L / 2, wh, 0)); });
@@ -5654,8 +5757,8 @@
 
   /* ---------- objets ---------- */
   function buildItemView(it) {
-    var b = buildItemGroup(it.type), def = V.ITEMS[it.type], v = { g: b.g, key: it.type, info: b.info, sig: '' };
-    var px = new T.Mesh(uBox, pickMat); px.scale.set(def.w * 0.92, Math.max(0.25, b.info.h || 0.8), def.d * 0.92); px.position.y = Math.max(0.25, b.info.h || 0.8) / 2; px.userData = { t: 'i', id: it.id }; b.g.add(px); v.proxy = px; pickables.push(px);
+    var b = buildItemGroup(it.type), def = V.ITEMS[it.type], v = { g: b.g, key: it.type, info: b.info, sig: '' }; b.g.scale.setScalar(KS);
+    var px = new T.Mesh(uBox, pickMat); px.scale.set(def.w * 0.92 / KS, Math.max(0.25, b.info.h || 0.8), def.d * 0.92 / KS); px.position.y = Math.max(0.25, b.info.h || 0.8) / 2; px.userData = { t: 'i', id: it.id }; b.g.add(px); v.proxy = px; pickables.push(px);
     scene.add(b.g); return v;
   }
   function placeItemView(g, type, x, y, rot) { var fw = rot % 2 ? V.ITEMS[type].d : V.ITEMS[type].w, fh = rot % 2 ? V.ITEMS[type].w : V.ITEMS[type].d; g.position.set(x + (fw - 1) / 2, 0, y + (fh - 1) / 2); g.rotation.y = -rot * PI / 2; }
@@ -5668,12 +5771,12 @@
       if (p.zombie) base = 'c_zombie'; else if (p.disease === 'quete') base = 'c_knight';
       else { base = CIV[p.look % CIV.length]; st = { hue: Math.floor(p.tint * 5) / 5 }; if (p.disease === 'pyjama') st = { pale: 1 }; if (p.disease === 'trottinette') st.cast = 1; }
     } else if (p.kind === 'handy') base = 'c_worker'; else { base = CIV[p.look % CIV.length]; st = OUTFIT[p.kind]; }
-    var model = buildChar(base, st), root = new T.Group(), tilt = new T.Group(); model.scale.setScalar(SCALE); tilt.add(model); root.add(tilt);
+    var model = buildChar(base, st), root = new T.Group(), tilt = new T.Group(); model.scale.setScalar(SCALE); tilt.add(model); root.add(tilt); root.scale.setScalar(KS);
     if (p.zombie) hold = 'holding-both'; else if (p.kind === 'patient') hold = diseaseProps(model, p.disease); else staffProps(model, p.kind);
     var proxy = new T.Mesh(uCyl, pickMat); proxy.scale.set(0.82, 1.3, 0.82); proxy.position.y = 0.65; proxy.userData = { t: 'p', id: p.id }; root.add(proxy); pickables.push(proxy);
     var bobs = []; model.traverse(function (o) { if (o.userData && o.userData.bob) bobs.push(o); });
     root.position.set(p.x, 0, p.y); scene.add(root);
-    return { key: actorKey(p), root: root, tilt: tilt, model: model, mixer: new T.AnimationMixer(model), acts: {}, cur: null, curAct: null, hold: hold, x: p.x, z: p.y, y: 0, ry: p.face || 0, proxy: proxy, bobs: bobs, fxName: null, fxUntil: 0, ghost: null };
+    return { key: actorKey(p), root: root, tilt: tilt, model: model, mixer: new T.AnimationMixer(model), acts: {}, cur: null, curAct: null, hold: hold, x: p.x, z: p.y, y: 0, ry: p.face || 0, proxy: proxy, bobs: bobs, fxName: null, fxUntil: 0, ghost: null, head: model.getObjectByName('head') || null, look: 0, spd: 0, mov: false, gaze: null };
   }
   function play(a, name) {
     if (a.cur === name) return;
@@ -5716,15 +5819,26 @@
   function updateActor(a, p, S, ui, dt, adt) {
     var tx = p.x, tz = p.y, ty = 0, moving = p.st === 'walk' || p.st === 'in' || p.st === 'out', lie = p.pose === 'lie' && !moving, held = p.st === 'held';
     if (!moving && (p.pose === 'sit' || lie)) ty = p.h || 0;
-    if (held && ui.carry) { tx = ui.carry.x; tz = ui.carry.z; ty = 1.05 + Math.sin(time * 6) * 0.06; }
+    if (p.lat && !held) { tx -= Math.cos(a.ry) * p.lat; tz += Math.sin(a.ry) * p.lat; }      // on marche sur sa droite
+    if (held && ui.carry) { tx = ui.carry.x; tz = ui.carry.z; ty = 0.8 + Math.sin(time * 6) * 0.05; }
+    var ox = a.x, oz = a.z; a.mov = moving;
     var far = Math.abs(tx - a.x) + Math.abs(tz - a.z) > 3, k = far ? 1 : 1 - Math.exp(-dt * (held ? 22 : 13));
     a.x += (tx - a.x) * k; a.z += (tz - a.z) * k; a.y += (ty - a.y) * (far ? 1 : 1 - Math.exp(-dt * 10));
     a.root.position.set(a.x, a.y, a.z); a.root.visible = !p.hidden;
-    a.ry = far ? (p.face || 0) : lerpAngle(a.ry, held ? a.ry + dt * 2.5 : (p.face || 0), 1 - Math.exp(-dt * 11)); a.root.rotation.y = a.ry;
+    var mv = dt > 0 && !far ? Math.sqrt((a.x - ox) * (a.x - ox) + (a.z - oz) * (a.z - oz)) / dt : 0; a.spd += (mv - a.spd) * Math.min(1, dt * 9);
+    a.ry = far ? (p.face || 0) : lerpAngle(a.ry, held ? a.ry + dt * 2.5 : (p.face || 0), 1 - Math.exp(-dt * (moving ? 8.5 : 11))); a.root.rotation.y = a.ry;
     if (lie) { a.tilt.rotation.x = -PI / 2; a.tilt.position.set(0, 0.17, 0.52); } else { a.tilt.rotation.x = 0; a.tilt.position.set(0, 0, 0); }
     a.root.rotation.z = held ? Math.sin(time * 5) * 0.18 : 0;
     play(a, animFor(p, S, a));
-    a.mixer.update(held ? dt : adt * (p.zombie ? 0.5 : 1));
+    // le pas suit la vitesse réelle : ni patinage, ni jambes qui moulinent
+    var rate = held ? dt : adt * (p.zombie ? 0.5 : 1);
+    if (moving && !held && adt > 0 && !p.stuck) rate = dt * Math.max(0.5, Math.min(3.2, a.spd / (p.emergency ? 2.0 : 1.3)));
+    if (a.head && a.look) a.head.rotation.y -= a.look;
+    a.mixer.update(rate);
+    // un regard vers la personne que l'on croise
+    var lk = 0; if (a.gaze && !held && !lie && p.st !== 'dead') { var ga = Math.atan2(a.gaze.x - a.x, a.gaze.z - a.z) - a.ry; while (ga > PI) ga -= 2 * PI; while (ga < -PI) ga += 2 * PI; if (Math.abs(ga) < 1.9) lk = Math.max(-0.9, Math.min(0.9, ga)); }
+    a.look += (lk - a.look) * Math.min(1, dt * 6); if (Math.abs(a.look) < 0.004) a.look = 0;
+    if (a.head && a.look) a.head.rotation.y += a.look;
     for (var i = 0; i < a.bobs.length; i++) a.bobs[i].position.y = 0.5 + Math.sin(time * 2 + p.id) * 0.03;
     if (p.st === 'dead') {
       if (!a.ghost) { a.ghost = makeGhost(); scene.add(a.ghost); }
@@ -5784,7 +5898,15 @@
       v.g.visible = !(ui.ghost && ui.ghost.k === 'item' && ui.ghost.moveId === it.id);
     });
     syncMap(S.puddles, puddleV, function () { return 'p'; }, function (u) { var m = new T.Mesh(new T.CircleGeometry(0.42, 16), M('#d8c84a', { opacity: 0.7 })); m.rotation.x = -PI / 2; m.position.set(u.x, 0.02, u.y); m.scale.set(1, 0.7, 1); scene.add(m); return { g: m }; }, null);
-    syncMap(S.people, actorV, actorKey, makeActor, function (a, p) { updateActor(a, p, S, ui, dt, adt); var b = personBubble(p); if (b) label('p' + p.id, b[0], 'pb ' + b[1], a.x, a.y + 1.42, a.z); });
+    if (frames % 4 === 0) {
+      var ids = Object.keys(actorV), gi, gj, A, B, gd, g2, gb;
+      for (gi = 0; gi < ids.length; gi++) {
+        A = actorV[ids[gi]]; gb = null; gd = 1.5;
+        for (gj = 0; gj < ids.length; gj++) { B = actorV[ids[gj]]; if (B === A || !B.root.visible || (!A.mov && !B.mov)) continue; g2 = (B.x - A.x) * (B.x - A.x) + (B.z - A.z) * (B.z - A.z); if (g2 < gd && g2 > 0.02) { gd = g2; gb = B; } }
+        A.gaze = gb;
+      }
+    }
+    syncMap(S.people, actorV, actorKey, makeActor, function (a, p) { updateActor(a, p, S, ui, dt, adt); var b = personBubble(p); if (b) label('p' + p.id, b[0], 'pb ' + b[1], a.x, a.y + 1.08, a.z); });
     // portes, effets de soin, cabines
     var near = {};
     S.people.forEach(function (p) { if (p.hidden || p.st === 'held') return; var rid = null; S.rooms.forEach(function (r) { var mx = (r.door.x + r.front.x) / 2, my = (r.door.y + r.front.y) / 2; if (Math.abs(p.x - mx) + Math.abs(p.y - my) < 1.05) near[r.id] = 1; }); });
@@ -5796,13 +5918,13 @@
       // étiquette de la salle
       var cx = r.x + (r.w - 1) / 2, cz = r.y + (r.h - 1) / 2, warn = null;
       if (!r.open) warn = 'En travaux'; else if (r.broken) warn = 'En panne'; else if (def.staff && !r.staffId) warn = def.staff === 'doc' ? 'Pas de médecin' : 'Pas d\'infirmier';
-      if (warn) label('rw' + r.id, warn, 'rw' + (r.broken ? ' bad' : ''), cx, 1.5, cz);
-      else if (r.queue.length) label('rq' + r.id, r.queue.length + ' en attente', 'rq', cx, 1.3, cz);
+      if (warn) label('rw' + r.id, warn, 'rw' + (r.broken ? ' bad' : ''), cx, 1.2, cz);
+      else if (r.queue.length) label('rq' + r.id, r.queue.length + ' en attente', 'rq', cx, 1.05, cz);
       if (on && BUB[r.type]) {
         var tx = BUB[r.type](prog, time), who = (r.type === 'gp') ? V.person(S, r.staffId) : pt;
-        if (tx && who) label('rb' + r.id, tx, 'pb t', who.x, (who.h || 0) + 1.38, who.y);
-        if (r.type === 'psy' && Math.floor(time / 2.4) % 3 === 2) { var doc = V.person(S, r.staffId); if (doc) label('rd' + r.id, 'hm hm.', 'pb c', doc.x, (doc.h || 0) + 1.5, doc.y); }
-        if (r.type === 'platre' && Math.floor(time / 2) % 2 === 0) { var nu = V.person(S, r.staffId); if (nu) label('rd' + r.id, 'c\'était laquelle ?', 'pb c', nu.x, 1.5, nu.y); }
+        if (tx && who) label('rb' + r.id, tx, 'pb t', who.x, (who.h || 0) + 1.05, who.y);
+        if (r.type === 'psy' && Math.floor(time / 2.4) % 3 === 2) { var doc = V.person(S, r.staffId); if (doc) label('rd' + r.id, 'hm hm.', 'pb c', doc.x, (doc.h || 0) + 1.12, doc.y); }
+        if (r.type === 'platre' && Math.floor(time / 2) % 2 === 0) { var nu = V.person(S, r.staffId); if (nu) label('rd' + r.id, 'c\'était laquelle ?', 'pb c', nu.x, 1.12, nu.y); }
       }
     });
   }
@@ -5829,7 +5951,7 @@
         if (gh.door) { ghostG.add(tileFlat(gh.door.door.x, gh.door.door.y, new T.MeshBasicMaterial({ color: C('#ffc94a'), transparent: true, opacity: 0.9, depthWrite: false }), 0.9, 0.05)); var dx = gh.door.front.x - gh.door.door.x, dz = gh.door.front.y - gh.door.door.y; var dm = box(dx ? 0.14 : 0.86, 1.3, dz ? 0.14 : 0.86, M('#ffc94a', { opacity: 0.85 }), gh.door.door.x + dx * 0.5, 0, gh.door.door.y + dz * 0.5); ghostG.add(dm); ghostG.add(tileFlat(gh.door.front.x, gh.door.front.y, cellRes, 0.5, 0.05)); }
       } else if (gh && gh.k === 'item') {
         var gi = ghostItems[gh.type + (gh.ok ? '1' : '0')];
-        if (!gi) { gi = buildItemGroup(gh.type).g; var gm = gh.ok ? gMatOk : gMatBad; gi.traverse(function (m) { if (m.isMesh) { m.material = gm; m.castShadow = false; } }); ghostItems[gh.type + (gh.ok ? '1' : '0')] = gi; }
+        if (!gi) { gi = buildItemGroup(gh.type).g; gi.scale.setScalar(KS); var gm = gh.ok ? gMatOk : gMatBad; gi.traverse(function (m) { if (m.isMesh) { m.material = gm; m.castShadow = false; } }); ghostItems[gh.type + (gh.ok ? '1' : '0')] = gi; }
         placeItemView(gi, gh.type, gh.x, gh.y, gh.rot); ghostG.add(gi);
         var fp = V.footprint(gh.type, gh.x, gh.y, gh.rot);
         fp.cells.forEach(function (c) { ghostG.add(tileFlat(c.x, c.y, gh.ok ? cellOk : cellBad)); });
@@ -5843,7 +5965,7 @@
     var sk = ui.sel ? ui.sel.t + ui.sel.id : '', sel = ui.sel;
     if (selG.userData.k !== sk) {
       selG.userData.k = sk; clearGroup(selG); var coral = new T.MeshBasicMaterial({ color: C('#ff6b5e') });
-      if (sel && sel.t === 'p') { var tr = new T.Mesh(new T.TorusGeometry(0.46, 0.05, 6, 28), coral); tr.rotation.x = PI / 2; selG.add(tr); }
+      if (sel && sel.t === 'p') { var tr = new T.Mesh(new T.TorusGeometry(0.34, 0.04, 6, 28), coral); tr.rotation.x = PI / 2; selG.add(tr); }
       else if (sel && sel.t === 'r') { var r = V.room(S, sel.id); if (r) frameRect(selG, r.x, r.y, r.w, r.h, coral, 0.12, 0.7); }
       else if (sel && sel.t === 'i') { var it = V.item(S, sel.id); if (it) it.fp.cells.forEach(function (c) { selG.add(tileFlat(c.x, c.y, new T.MeshBasicMaterial({ color: C('#ff6b5e'), transparent: true, opacity: 0.55, depthWrite: false }), 0.96, 0.035)); }); }
     }
@@ -5854,13 +5976,13 @@
     var hv = ui.hover, hk = hv ? hv.t + hv.id : '';
     if (hovG.userData.k !== hk) {
       hovG.userData.k = hk; clearGroup(hovG); var white = new T.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.85, depthWrite: false });
-      if (hv && hv.t === 'p') { var hr = new T.Mesh(new T.TorusGeometry(0.44, 0.035, 6, 28), white); hr.rotation.x = PI / 2; hovG.add(hr); }
+      if (hv && hv.t === 'p') { var hr = new T.Mesh(new T.TorusGeometry(0.33, 0.028, 6, 28), white); hr.rotation.x = PI / 2; hovG.add(hr); }
       else if (hv && hv.t === 'r') { var r2 = V.room(S, hv.id); if (r2) frameRect(hovG, r2.x, r2.y, r2.w, r2.h, white, 0.07, 0.71); }
       else if (hv && hv.t === 'i') { var it2 = V.item(S, hv.id); if (it2) it2.fp.cells.forEach(function (q) { hovG.add(tileFlat(q.x, q.y, white, 0.96, 0.034)); }); }
     }
     hovG.position.set(0, 0, 0); hovG.visible = true;
-    if (hv && hv.t === 'p') { var ha = actorV[hv.id]; hovG.visible = !!ha; if (ha) { hovG.position.set(ha.x, 0.05, ha.z); if (hv.name) label('hov', hv.name, 'hv', ha.x, 1.5, ha.z); } }
-    else if (hv && hv.t === 'i' && hv.name) { var it3 = V.item(S, hv.id); if (it3) { var hx = 0, hz = 0; it3.fp.cells.forEach(function (q) { hx += q.x; hz += q.y; }); label('hov', hv.name, 'hv', hx / it3.fp.cells.length, 1.55, hz / it3.fp.cells.length); } }
+    if (hv && hv.t === 'p') { var ha = actorV[hv.id]; hovG.visible = !!ha; if (ha) { hovG.position.set(ha.x, 0.05, ha.z); if (hv.name) label('hov', hv.name, 'hv', ha.x, 1.12, ha.z); } }
+    else if (hv && hv.t === 'i' && hv.name) { var it3 = V.item(S, hv.id); if (it3) { var hx = 0, hz = 0; it3.fp.cells.forEach(function (q) { hx += q.x; hz += q.y; }); label('hov', hv.name, 'hv', hx / it3.fp.cells.length, 1.2, hz / it3.fp.cells.length); } }
   }
 
   /* ---------- caméra ---------- */
@@ -5868,7 +5990,7 @@
     var cp = Math.cos(cam.pitch), sp = Math.sin(cam.pitch);
     camera.position.set(cam.tx + Math.sin(cam.yaw) * cp * cam.dist, sp * cam.dist, cam.tz + Math.cos(cam.yaw) * cp * cam.dist); camera.lookAt(cam.tx, 0.4, cam.tz); camera.updateMatrixWorld();
   }
-  function clampGoal() { goal.tx = Math.max(-4, Math.min(W + 3, goal.tx)); goal.tz = Math.max(-4, Math.min(H + 7, goal.tz)); goal.dist = Math.max(9, Math.min(64, goal.dist)); goal.pitch = Math.max(0.5, Math.min(1.35, goal.pitch)); }
+  function clampGoal() { goal.tx = Math.max(-4, Math.min(W + 3, goal.tx)); goal.tz = Math.max(-4, Math.min(H + 7, goal.tz)); goal.dist = Math.max(6.5, Math.min(64, goal.dist)); goal.pitch = Math.max(0.5, Math.min(1.35, goal.pitch)); }
   function stepCam(dt) { clampGoal(); var k = 1 - Math.exp(-dt * 12); cam.tx += (goal.tx - cam.tx) * k; cam.tz += (goal.tz - cam.tz) * k; cam.dist += (goal.dist - cam.dist) * k; cam.pitch += (goal.pitch - cam.pitch) * k; cam.yaw += (goal.yaw - cam.yaw) * k; applyCam(); }
   function setRay(sx, sy) { ray.setFromCamera({ x: sx / vw * 2 - 1, y: -(sy / vh) * 2 + 1 }, camera); }
   var hitV = new T.Vector3();
@@ -5907,7 +6029,7 @@
     sun = new T.DirectionalLight(0xfff0d2, 0.7); sun.position.set(W / 2 - 13, 30, H / 2 + 17); sun.target.position.set(W / 2, 0, H / 2); sun.castShadow = true; sun.shadow.mapSize.set(2048, 2048); sun.shadow.bias = -0.0005; sun.shadow.normalBias = 0.02;
     var sc = sun.shadow.camera; sc.left = -27; sc.right = 27; sc.top = 24; sc.bottom = -24; sc.near = 2; sc.far = 90; scene.add(sun); scene.add(sun.target);
     ghostG = new T.Group(); selG = new T.Group(); hovG = new T.Group(); scene.add(ghostG); scene.add(selG); scene.add(hovG);
-    carryRing = new T.Mesh(new T.RingGeometry(0.3, 0.48, 24), new T.MeshBasicMaterial()); carryRing.rotation.x = -PI / 2; carryRing.visible = false; scene.add(carryRing);
+    carryRing = new T.Mesh(new T.RingGeometry(0.22, 0.37, 24), new T.MeshBasicMaterial()); carryRing.rotation.x = -PI / 2; carryRing.visible = false; scene.add(carryRing);
     loadAssets(function () { scene.add(buildWorld()); applyCam(); done(); }, progress);
   }
   function resize(w, h) { vw = w; vh = h; if (!renderer) return; renderer.setSize(w, h, false); camera.aspect = w / h; camera.fov = w < h ? 40 : 32; camera.updateProjectionMatrix(); }
@@ -6207,7 +6329,7 @@
   $('inspector').onclick = function (ev) {
     var a = act(ev); if (!a || !sel) return; var k = a[0], id = sel.id, it;
     if (k === 'close') select(null);
-    else if (k === 'follow') { var fp = V.person(S, id); follow = follow === id || !fp ? 0 : id; if (follow) View.cam.focus(fp.x, fp.y, Math.min(View.cam.get().dist, 20)); }
+    else if (k === 'follow') { var fp = V.person(S, id); follow = follow === id || !fp ? 0 : id; if (follow) View.cam.focus(fp.x, fp.y, Math.min(View.cam.get().dist, 15)); }
     else if (k === 'copy') { var cr = V.room(S, id); if (cr) startBlueprint(cr.type, { w: cr.w, h: cr.h, copy: true }); return; }
     else if (k === 'home') V.sendHome(S, id);
     else if (k === 'force') { if (V.forceTreat(S, id)) toast('Soigné sans attendre le diagnostic : croisons les doigts'); }
@@ -6464,7 +6586,7 @@
     }
     if (m.k !== 'idle') return;
     if (panel) closePanel();
-    if (pk.person) { var now = Date.now(), again = sel && sel.t === 'p' && sel.id === pk.person && now - lastClick < 420; lastClick = now; if (again) { var fp = V.person(S, pk.person); follow = pk.person; if (fp) View.cam.focus(fp.x, fp.y, Math.min(View.cam.get().dist, 20)); dock(); } else { select({ t: 'p', id: pk.person }); sfx('pick'); } return; }
+    if (pk.person) { var now = Date.now(), again = sel && sel.t === 'p' && sel.id === pk.person && now - lastClick < 420; lastClick = now; if (again) { var fp = V.person(S, pk.person); follow = pk.person; if (fp) View.cam.focus(fp.x, fp.y, Math.min(View.cam.get().dist, 15)); dock(); } else { select({ t: 'p', id: pk.person }); sfx('pick'); } return; }
     it = pk.item ? V.item(S, pk.item) : null;
     if (it && !it.room) { select({ t: 'i', id: it.id }); return; }
     var rid = it ? it.room : pk.room; if (rid && V.room(S, rid)) { select({ t: 'r', id: rid }); return; }
@@ -6506,7 +6628,7 @@
     else if (a === 'free') { S.freePlay = true; closeModal(); setSpeed(lastSpeed); }
     else if (a === 'close') closeModal(); else if (a === 'help') helpModal(true);
   };
-  function afterLoad() { idle(); sel = null; ui.sel = null; closePanel(); hideOffer(); shownLog = null; View.reset(); follow = 0; ui.hover = null; View.cam.set({ tx: V.SPAWN.x, tz: V.H - 7.5, yaw: 0.6, pitch: 0.92, dist: vw < 760 ? 31 : 25 }); View.cam.snap(); setSpeed(1); lastMonth = Math.floor(S.day / 30); hud(); }
+  function afterLoad() { idle(); sel = null; ui.sel = null; closePanel(); hideOffer(); shownLog = null; View.reset(); follow = 0; ui.hover = null; View.cam.set({ tx: V.SPAWN.x, tz: V.H - 7.5, yaw: 0.6, pitch: 0.92, dist: vw < 760 ? 23 : 21 }); View.cam.snap(); setSpeed(1); lastMonth = Math.floor(S.day / 30); hud(); }
   function intro() {
     var b = bestSave();
     modal('intro', '<h2>À l\'hôpital <span>Velpo</span></h2><p>Vous dirigez un hôpital public flambant vide. Tracez des salles, équipez-les, recrutez une équipe plus ou moins compétente, et soignez l\'écranite aiguë, la réunionite chronique ou le syndrome de la Quête.</p><p><b>Objectifs du niveau 1 :</b> 25 guérisons, 600 de réputation, 20 000 € en caisse.</p><div class="row">' +
@@ -6530,14 +6652,14 @@
   var acc = 0, last = 0, lastMonth = 0;
   var FXT = { cure: ['Guéri !', 'ok'], angry: ['Scandaleux !', 'neg'], idea: ['Diagnostic !', 'w'], fixed: ['Réparé', 'ok'], zombie: ['Remboursez…', 'neg'] };
   var FL = {};
-  function floatAt(x, y, text, cls, hgt) { var k = Math.round(x / 2) + ',' + Math.round(y / 2), now = Date.now(), f = FL[k]; if (f && now - f.t < 800) f.n = (f.n + 1) % 4; else f = FL[k] = { n: 0 }; f.t = now; View.float(x, y, text, cls, hgt + f.n * 0.6); }
+  function floatAt(x, y, text, cls, hgt) { var k = Math.round(x / 2) + ',' + Math.round(y / 2), now = Date.now(), f = FL[k]; if (f && now - f.t < 800) f.n = (f.n + 1) % 4; else f = FL[k] = { n: 0 }; f.t = now; View.float(x, y, text, cls, hgt + f.n * 0.45); }
   function resize() { var r = $('app').getBoundingClientRect(); vw = r.width; vh = r.height; View.resize(vw, vh); }
   function loop(ts) {
     requestAnimationFrame(loop); var dt = Math.min(0.1, (ts - last) / 1000 || 0.016); last = ts; if (!ready || !S) return; frames++;
     camKeys(dt);
     if (speed && !modalKind) { acc += dt * 20 * SPD[speed]; var n = 0; while (acc >= 1 && n < 14) { V.tick(S); acc -= 1; n++; } if (acc > 4) acc = 0; }
     if (S.fx && S.fx.length) {
-      S.fx.forEach(function (e) { sfx(e.n); View.event(e); if (e.v) floatAt(e.x, e.y, (e.v > 0 ? '+' : '−') + euro(Math.abs(e.v)), e.v > 0 ? '' : 'neg', 1.3); else if (FXT[e.n]) floatAt(e.x, e.y, FXT[e.n][0], FXT[e.n][1], 1.7); });
+      S.fx.forEach(function (e) { sfx(e.n); View.event(e); if (e.v) floatAt(e.x, e.y, (e.v > 0 ? '+' : '−') + euro(Math.abs(e.v)), e.v > 0 ? '' : 'neg', 1.0); else if (FXT[e.n]) floatAt(e.x, e.y, FXT[e.n][0], FXT[e.n][1], 1.3); });
       S.fx.length = 0;
     }
     var mth = Math.floor(S.day / 30); if (mth !== lastMonth) { lastMonth = mth; if (mth > 0 && mode.k !== 'carry') save(); }
