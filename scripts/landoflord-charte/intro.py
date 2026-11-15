@@ -96,9 +96,11 @@ JS = r"""
   cab2(t,sp,ts){SH.cab(t,sp,ts,true);},
   scowl(t,sp,ts){SH.close(t,ts,'dark',1.06,.5,.5,[{k:'chancelier',x:.54,act:sp==='chancelier'}],250,330);if(sp!=='chancelier'){G.save();G.globalCompositeOperation='lighter';for(let i=0;i<22;i++){const q=(t*.5+hs(i))%1,x=CW*(.3+hs(i+2)*.12)+Math.sin(t*2+i)*8*K,y=CH*(.86-q*.5);G.fillStyle='rgba(255,'+(130+hs(i+6)*90|0)+',50,'+((1-q)*.8).toFixed(2)+')';G.fillRect(x,y,2*K,2*K);}G.restore();glowAt(CW*.36,CH*.9,90*K,'rgba(255,140,50,A)',.4+.15*Math.sin(t*11));}},
   tent(t,sp,ts){uncam();G.fillStyle='#070a1c';G.fillRect(0,0,CW,CH);G.fillStyle='#fff';for(let i=0;i<40;i++){G.globalAlpha=.4+.5*Math.abs(Math.sin(t+i));G.fillRect(CW*(.3+hs(i)*.4),CH*(.5+hs(i+1)*.25),K,K);}G.globalAlpha=1;const z=1+.08*ease(cl(t/14));cam(z,.5,.6);plate('tent');G.fillStyle='rgba(20,8,4,.34)';G.fillRect(0,0,800,400);glowAt(520,300,240,'rgba(255,170,80,A)',.24+.06*Math.sin(t*9)+.04*Math.sin(t*21));if(t>1.2){const e=ease(cl((t-1.2)/1.6));sil('garde_royal',Math.floor(t*1.5),lerp(880,700,e),388,230);sil('capitaine',Math.floor(t*1.5+1),lerp(900,600,e),392,250);sil('garde_royal',Math.floor(t*1.5+2),lerp(960,770,e),394,240,true);}motes(t,20,300,150,620,330,'rgba(255,220,170,A)');vign(.6);},
+  qw(t,sp,ts){if(t<2.6){SH.hall(t);if(t>2.2){uncam();G.fillStyle='rgba(0,0,0,'+cl((t-2.2)/.4).toFixed(2)+')';G.fillRect(0,0,CW,CH);}}else{SH.queen(t-2.6,sp,ts);if(t<3.1){uncam();G.fillStyle='rgba(0,0,0,'+(1-cl((t-2.6)/.5)).toFixed(2)+')';G.fillRect(0,0,CW,CH);}}},
+  cell(t){const im=IMGEL['s_cell'];cam(1+.10*ease(cl(t/12)),.55,.5);G.imageSmoothingEnabled=true;if(im)G.drawImage(im,0,0,800,400);G.fillStyle='rgba(6,6,16,.30)';G.fillRect(0,0,800,400);glowAt(620,150,200,'rgba(255,170,80,A)',.14+.05*Math.sin(t*9)+.03*Math.sin(t*23));motes(t,16,300,80,700,330,'rgba(255,225,180,A)');vign(.6);},
   trial(t,sp,ts){SH.close(t,ts,'throneback',1.06,.5,.42,[{k:'aldric',x:.22,act:sp==='aldric'},{k:'reine',x:.5,act:sp==='reine'},{k:'chancelier',x:.78,act:sp==='chancelier'}],220,222);},
   cap(t,sp,ts){uncam();G.fillStyle='#070a1c';G.fillRect(0,0,CW,CH);SH.close(t,ts,'tent',1.5,.58,.62,[{k:'capitaine',x:.5,act:sp==='capitaine'}],520,300);}};
- const SHOT={i_logo:SH.logo,i_dawn:SH.dawn,i_bridge:SH.bridge,i_news:SH.news,i_hall:SH.hall,i_mess:SH.mess,i_queen:SH.queen,i_duo:SH.duo,i_cab:SH.cab,i_cab2:SH.cab2,i_scowl:SH.scowl,i_tent:SH.tent,i_cap:SH.cap,i_trial:SH.trial};
+ const SHOT={i_logo:SH.logo,i_dawn:SH.dawn,i_bridge:SH.bridge,i_news:SH.news,i_hall:SH.hall,i_mess:SH.mess,i_queen:SH.queen,i_duo:SH.duo,i_cab:SH.cab,i_cab2:SH.cab2,i_scowl:SH.scowl,i_tent:SH.tent,i_cap:SH.cap,i_trial:SH.trial,i_qw:SH.qw,i_field:SH.field,i_cell:SH.cell};
  for(const k in SHOT)SCENES[k]=g=>{g.fillStyle='#000';g.fillRect(0,0,400,200);};
  let cur=null,t0=0,slow=0,acc=0;
  function frame(fn,t,sp,ts,extra){G.setTransform(1,0,0,1,0,0);G.globalAlpha=1;G.globalCompositeOperation='source-over';G.imageSmoothingEnabled=true;fn(t,sp,ts,extra);G.setTransform(1,0,0,1,0,0);G.globalAlpha=1;G.globalCompositeOperation='source-over';}
@@ -121,32 +123,26 @@ CSS = """
 #dlg.cine.full #dlgBtns.col{max-width:62%;margin-left:auto}
 #dlg.cine.full #dlgCap{top:18px;font-size:22px}
 """
+PROLOGUE = r"""prologue(){music();say([
+  [null,"Une chronique d'Austrevie, telle que la racontent ceux qui en sont revenus.",0,'i_logo'],
+  [null,"Austrevie, an 1247. Neuf ans de guerre contre l'Empire de Karst, et un seul général qui gagne.",0,'i_dawn'],
+  [null,"Ce matin-là, il rentrait vainqueur, une fois de plus. La ville criait son nom. Elle le criait un peu trop fort.",0,'i_bridge',"La porte de Castelroc"],
+  ['reine',"Encore une victoire, général. Mon peuple vous aime. Je commence à compter combien.",0,'i_qw',"Castelroc · salle du trône"],
+  ['chancelier',"Un général que l'on acclame, Majesté, finit toujours par s'écouter. Ou par écouter quelqu'un d'autre.",0,'i_duo'],
+  [null,"Le soir même, dans son cabinet, le chancelier fit écrire trois lettres. Elles étaient de la main du général, à ceci près que le général ne les avait jamais écrites.",0,'i_cab',"Le cabinet du chancelier"],
+  ['chancelier',"« Je livrerai le plan de bataille à l'Empire. » C'est bien tourné. Il aurait pu l'écrire.",0,'i_scowl'],
+  [null,"Trois jours plus tard, le général apprit qu'il vendait le royaume à l'ennemi. Il l'apprit en même temps que la cour.",0,'i_hall',"Le procès"],
+  ['reine',"On a trouvé ces lettres, général. Vous avez servi neuf ans : je vous accorde une phrase.",0,'i_queen']
+ """
 def apply(s, rep1):
     i = s.rindex('</script>'); s = s[:i] + JS + s[i:]
     s = s.replace('</style>', CSS + '</style>', 1)
-    a = s.index("prologue(){say(["); b = s.index("],openHeroSel);},", a); blk = s[a:b]
-    def sub(old, new, n=1):
-        nonlocal blk
-        assert blk.count(old) == n, (old, blk.count(old)); blk = blk.replace(old, new)
-    sub(""",0,'logo'],""", """,0,'i_logo'],""")
-    sub(""",0,'castle',"Le Général déchu"],""", """,0,'i_dawn'],""")
-    sub(""",0,'road',"La route de Castelroc"],""", """,0,'i_bridge',"La porte de Castelroc"],""")
-    sub(""",0,'throne',"Castelroc · salle du trône"],""", """,0,'i_news',"Castelroc · salle du trône"],""")
-    sub("""Celui qui gagne ?"],""", """Celui qui gagne ?",0,'i_queen'],""")
-    sub("""sous le sceau du chancelier."],""", """sous le sceau du chancelier.",0,'i_mess'],""")
-    sub("""je vous les apporterai."],""", """je vous les apporterai.",0,'i_duo'],""")
-    sub(""",0,'cabinet',"Le cabinet du chancelier"],""", """,0,'i_cab',"Le cabinet du chancelier"],""")
-    sub("""imprudent de laisser circuler."],""", """imprudent de laisser circuler.",0,'i_scowl'],""")
-    sub("""et le seul du royaume."],""", """et le seul du royaume.",0,'i_cab2'],""")
-    sub("""où l'on aime son métier."],""", """où l'on aime son métier.",0,'i_scowl'],""")
-    sub(""",0,'tent',"La veille du Gué-aux-Corbeaux"],""", """,0,'i_tent',"La veille du Gué-aux-Corbeaux"],""")
-    sub("""Ils m'ont dit de le dire."],""", """Ils m'ont dit de le dire.",0,'i_cap'],""")
-    sub("""le plus longtemps possible."]];}]]],""", """le plus longtemps possible."]];}]],'i_tent'],""")
-    sub("""Le rapport ne servira à rien."]];""", """Le rapport ne servira à rien.",0,'i_cap']];""")
-    sub("""Il n'y a pas de case pour ça."]]]""", """Il n'y a pas de case pour ça.",0,'i_cap']]]""")
-    sub(""",0,'throne',"Le procès"],""", """,0,'i_hall',"Le procès"],""")
-    sub("""afin qu'elles le soient."],""", """afin qu'elles le soient.",0,'i_duo'],""")
-    assert blk.rstrip().endswith("""mon dernier ministre."]"""); blk = blk.rstrip()[:-1] + ",0,'i_queen']\n "
-    s = s[:a] + blk + s[b:]
+    a = s.index("prologue(){say(["); b = s.index("],openHeroSel);},", a); s = s[:a] + PROLOGUE + s[b:]
     s = rep1(s, "say([['aldric',h.line,0,'throne'],['chancelier',h.rep],", "say([['aldric',h.line,0,'i_trial'],['chancelier',h.rep],")
+    # après la sentence : l'armée sans son général, puis la cellule
+    s = rep1(s, """[null,"La reine a dit « le temps d'y voir clair ». C'était il y a quarante jours.",0,'cell',"Quarante jours plus tard"]]""", """[null,"L'armée passa au duc de Fierbois. Au Gué-aux-Corbeaux, il tint une heure.",0,'i_field',"Le Gué-aux-Corbeaux"],[null,"La reine a dit « le temps d'y voir clair ». C'était il y a quarante jours.",0,'i_cell',"Quarante jours plus tard"]]""")
+    # musique : un seul thème épique, du logo à la cellule ; elle passe sous les voix au lieu de se taire
+    s = rep1(s, "if(!$('heroSel').hidden)return'festin';if(!S)return'barde';if(!LS)return'complainte';", "if(!$('heroSel').hidden)return'epopee';if(!S)return'barde';if(!LS)return'epopee';")
+    s = rep1(s, "f=(sc||musHold)?0:duckF,d=now?0:musHold?.22:sc?.8:", "f=musHold?0:sc?(/^i_/.test(curScene)&&cineMode?(duckF<1?.4:1):0):duckF,d=now?0:musHold?.22:sc?.8:")
+    s = rep1(s, "musBase=()=>(curTrack==='combat'?.22:.2)*(PREF.lm/60);", "musBase=()=>(curTrack==='combat'?.22:curTrack==='epopee'?.36:.2)*(PREF.lm/60);")
     return s

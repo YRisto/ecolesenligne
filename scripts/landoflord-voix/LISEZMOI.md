@@ -47,3 +47,21 @@ de la chambre forte) ; le message d'une dalle dit de quel côté la herse remont
 (levier et salle, dalle, signes gravés). À réappliquer comme les autres après une construction qui ne l'intègre pas :
 
     python3 scripts/landoflord-voix/p24_site.py public/landoflord/index.html
+
+## Reprise du conteur (intonations)
+
+`gen_conteur.py` réenregistre les répliques de la chronique (voix « narr ») avec le même timbre, phrase par phrase, en gardant
+pour chaque phrase la prise dont la mélodie convient au texte (chute en fin d'affirmation, montée en fin de question, débit
+régulier). L'ancienne prise est gardée en `gen/<clé>_av.npy`. Il faut le modèle à clonage de Pocket TTS (dépôt Hugging Face
+à accès sur demande) : là où il n'est pas en cache, seul l'essai `VOIX_ESSAI=jean` fonctionne.
+
+    PAGE=public/landoflord/index.html python3 lignes.py     # relève aussi les nouvelles répliques de l'intro
+    python3 gen.py 0                                        # enregistre ce qui manque (reine, chancelier, conteur)
+    python3 gen_conteur.py                                  # reprend tout le conteur, phrase par phrase
+    python3 ctl.py && python3 bilan.py && python3 enc.py    # contrôle, puis encodage et table des durées
+
+## Intro (novembre 2026)
+
+L'intro a été réécrite (le général trop aimé, les trois lettres, le procès, le gué) : neuf répliques nouvelles sont muettes
+tant qu'elles ne sont pas enregistrées. La musique de l'intro est `mus/epopee.mp3` (composition originale synthétisée par
+`scripts/landoflord-charte/epopee.py`) ; elle passe sous les voix au lieu de se taire.

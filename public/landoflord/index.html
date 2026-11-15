@@ -421,7 +421,7 @@ body:not(.ls) .box.mapM .legend{grid-template-columns:1fr 1fr}body:not(.ls) .box
  <button id="tCont" hidden>Continuer</button>
  <div class="keys">Souris, doigt ou clavier : tout se fait des trois façons. L'aide est dans la chronique (Échap).</div>
 </div>
-<script>(function(){var q=location.search,lite=/[?&]lite\b/.test(q)||(!/[?&]hd\b/.test(q)&&(/iPhone|iPod|Android.*Mobile|Windows Phone/i.test(navigator.userAgent)||(navigator.maxTouchPoints>1&&Math.min(screen.width,screen.height)<=600)));window.LITE=lite;var base=/landoflord/i.test(location.pathname)&&location.protocol!=='file:'?'/landoflord/':'';document.write('<script src="'+base+'pack-'+(lite?'lite':'hd')+'.js?v=44"><\/script>');})();</script>
+<script>(function(){var q=location.search,lite=/[?&]lite\b/.test(q)||(!/[?&]hd\b/.test(q)&&(/iPhone|iPod|Android.*Mobile|Windows Phone/i.test(navigator.userAgent)||(navigator.maxTouchPoints>1&&Math.min(screen.width,screen.height)<=600)));window.LITE=lite;var base=/landoflord/i.test(location.pathname)&&location.protocol!=='file:'?'/landoflord/':'';document.write('<script src="'+base+'pack-'+(lite?'lite':'hd')+'.js?v=45"><\/script>');})();</script>
 <script>
 /* Images : bustes du jeu libre Flare (CC-BY-SA 3.0), textures et illustrations libres (voir Crédits). */
 const IMG=PACK.IMG;
@@ -1190,7 +1190,7 @@ function loadSnd(){if(!BASE||!AC||loadSnd.done)return;loadSnd.done=1;for(const k
 function audioOn(){if(AC)return;try{AC=new(window.AudioContext||window.webkitAudioContext)();}catch(e){return;}mixInit();
  const n=AC.createBuffer(1,AC.sampleRate*2,AC.sampleRate),d=n.getChannelData(0);let l=0;for(let i=0;i<d.length;i++){l=(l+.02*(Math.random()*2-1))/1.02;d[i]=l*3.5;}
  const s=AC.createBufferSource();s.buffer=n;s.loop=true;const f=AC.createBiquadFilter();f.type='lowpass';f.frequency.value=320;amb=AC.createGain();amb.gain.value=PREF.sfx?.05:0;s.connect(f).connect(amb).connect(OUT('amb'));s.start();loadSnd();}
-function trackFor(){if(musForce)return musForce;if(!$('title').hidden)return'barde';if(!$('heroSel').hidden)return'festin';if(!S)return'barde';if(!LS)return'complainte';
+function trackFor(){if(musForce)return musForce;if(!$('title').hidden)return'barde';if(!$('heroSel').hidden)return'epopee';if(!S)return'barde';if(!LS)return'epopee';
  if(!$('modal').hidden&&$('modalBox').querySelector('.shop'))return'marche';if(resting)return'taverne';if(fightT)return'combat';return TRACK[S.lv]||'barde';}
 function music(){if(!BASE)return;const t=PREF.mus?trackFor():'';if(t===curTrack){if(t&&MUS.paused&&!MUS.ended)MUS.play().catch(()=>{});return;}
  if(curTrack&&MUS.loop&&!musHold)MPOS[curTrack]=MUS.currentTime;const was=curTrack&&!MUS.paused&&!musHold;curTrack=t;clearTimeout(musSwT);if(!t){MUS.pause();return;}const tok=++musTok;
@@ -1261,13 +1261,13 @@ function markSeen(){for(let dy=-1;dy<=1;dy++)for(let dx=-1;dx<=1;dx++)LS.seen[(S
 /* ---------- mixage : trois niveaux (musique, bruitages, voix) comme dans l'original, fondus en plus ---------- */
 const BUS={};let mixScene=0,voxGn=null,vrT=0;const IOS=/iPad|iPhone|iPod/.test(navigator.userAgent)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);
 function vramp(v,d){clearInterval(vrT);if(!(d>0)){try{MUS.volume=v;}catch(e){}return;}const v0=MUS.volume,t0=performance.now();vrT=setInterval(()=>{const k=Math.min(1,(performance.now()-t0)/(d*1000));try{MUS.volume=v0+(v-v0)*k;}catch(e){}if(k>=1)clearInterval(vrT);},40);}
-const OUT=k=>BUS[k]||AC.destination,voxOn=()=>!!(BASE&&AC&&PREF.vox!==0),musBase=()=>(curTrack==='combat'?.22:.2)*(PREF.lm/60);
+const OUT=k=>BUS[k]||AC.destination,voxOn=()=>!!(BASE&&AC&&PREF.vox!==0),musBase=()=>(curTrack==='combat'?.22:curTrack==='epopee'?.36:.2)*(PREF.lm/60);
 function mixInit(){try{BUS.sfx=AC.createGain();BUS.sfx.connect(AC.destination);BUS.amb=AC.createGain();BUS.amb.connect(BUS.sfx);BUS.vox=AC.createGain();BUS.vox.connect(AC.destination);}catch(e){}
  if(IOS)try{const g=AC.createGain();g.gain.value=0;g.connect(AC.destination);AC.createMediaElementSource(MUS).connect(g);BUS.mus=g;MUS.volume=1;}catch(e){BUS.mus=null;}
  mixUpd(1);}
 function gset(p,v,d){const t=AC.currentTime;try{p.cancelScheduledValues(t);if(d>0)p.setTargetAtTime(v,t,d/3);else p.setValueAtTime(v,t);}catch(e){try{p.value=v;}catch(x){}}}
 /* scène parlée (intro, intermèdes) : musique et ambiance s'éteignent en fondu ; ailleurs la musique baisse seulement sous une voix */
-function mixUpd(now){const sc=(cineMode&&!$('dlg').hidden&&voxOn())?1:0,f=(sc||musHold)?0:duckF,d=now?0:musHold?.22:sc?.8:mixScene?1.5:duckF<1?.25:.6;mixScene=sc;
+function mixUpd(now){const sc=(cineMode&&!$('dlg').hidden&&voxOn())?1:0,f=musHold?0:sc?(/^i_/.test(curScene)&&cineMode?(duckF<1?.4:1):0):duckF,d=now?0:musHold?.22:sc?.8:mixScene?1.5:duckF<1?.25:.6;mixScene=sc;
  if(AC&&BUS.mus)gset(BUS.mus.gain,musBase()*f,d);else vramp(Math.min(1,musBase()*f),d);
  if(!AC)return;if(BUS.amb)gset(BUS.amb.gain,sc?0:1,d);if(BUS.sfx)gset(BUS.sfx.gain,PREF.ls/80,now?0:.05);if(BUS.vox)gset(BUS.vox.gain,PREF.lv/100,now?0:.05);}
 function setVol(k,v){PREF[k]=v;const m=PREF.mus,s=PREF.sfx;PREF.mus=PREF.lm>0?1:0;PREF.sfx=PREF.ls>0?1:0;PREF.vox=PREF.lv>0?1:0;
@@ -1682,33 +1682,20 @@ function loop(ts){const dt=Math.min(100,ts-last);last=ts;
 /* ---------- récit ---------- */
 const hon=n=>{S.hon+=n;};
 const SC={
- prologue(){say([
+ prologue(){music();say([
   [null,"Une chronique d'Austrevie, telle que la racontent ceux qui en sont revenus.",0,'i_logo'],
-  [null,"Royaume d'Austrevie, an 1247. Depuis neuf ans, la reine Aliénor fait la guerre à l'Empire de Karst. Depuis neuf ans, on lui explique que la victoire est proche.",0,'i_dawn'],
-  [null,"Un cavalier crève son cheval sur la route de Castelroc. Il porte une nouvelle que personne n'a voulu porter à sa place.",0,'i_bridge',"La porte de Castelroc"],
-  ["messager","Majesté. Le Gué-aux-Corbeaux est perdu. Sept mille hommes, le pont, les bagages. Le duc de Fierbois a tenu à commander lui-même. Il a tenu une heure.",0,'i_news',"Castelroc · salle du trône"],
-  ['reine',"Fierbois. Et mon général ? Celui qui gagne ?",0,'i_queen'],
-  ["messager","Arrêté la veille, Majesté. Par votre ordre, sous le sceau du chancelier.",0,'i_mess'],
-  ['chancelier',"Une mesure de prudence, Majesté. Des lettres circulaient. Elles circulent encore mieux depuis ce matin : je vous les apporterai.",0,'i_duo'],
-  ['reine',"Vous avez une heure, Malvoisin. Le royaume recule de quarante lieues, et je veux savoir à qui je le dois."],
-  [null,"Le même soir, dans le cabinet du chancelier. Un petit homme à lunettes pose trois lettres sur le pupitre. L'encre en est sèche depuis peu.",0,'i_cab',"Le cabinet du chancelier"],
-  ["Le faussaire","L'écriture du général, monseigneur, à s'y méprendre. J'ai même reproduit ses fautes. Il en fait peu ; j'en ai ajouté, pour le naturel."],
-  ['chancelier',"Tu as un talent rare, maître Josse. Rare, et qu'il serait imprudent de laisser circuler.",0,'i_scowl'],
-  [null,"On ne revit pas maître Josse. Le chancelier relut les trois lettres, les trouva convaincantes, et s'accorda un sourire : le premier depuis la défaite, et le seul du royaume.",0,'i_cab2'],
-  ['chancelier',"Un général sans cousins, sans fortune, et désormais sans alibi. Il y a des soirs où l'on aime son métier.",0,'i_scowl'],
-  [null,"La veille de la bataille, sous la tente du général. Le plan était prêt, l'ennemi mal placé, les sapeurs avaient travaillé toute la semaine sous son camp. Puis douze gardes sont entrés.",0,'i_tent',"La veille du Gué-aux-Corbeaux"],
-  ['capitaine',"Mon général. Par ordre de la reine et sous le sceau du chancelier, je vous arrête pour intelligence avec l'ennemi. Je suis navré. Ils m'ont dit de le dire.",0,'i_cap'],
-  [null,"Vous aviez répondu :",[
-   ["« Je vous suis. Un général obéit, même aux ordres absurdes. »",()=>{hon(1);return[['capitaine',"C'est noté, mon général. Le rapport dira que vous avez été exemplaire. Le rapport ne servira à rien.",0,'i_cap']];}],
-   ["« Laissez-moi gagner demain. Vous m'arrêterez après. »",()=>[['capitaine',"J'ai relu l'ordre, mon général. Il n'y a pas de case pour ça.",0,'i_cap']]],
-   ["« Lequel de vous douze veut passer le premier ? »",()=>{hon(-1);return[[null,"Ils étaient douze. Vous êtes général, c'est-à-dire que vous savez compter. Vous avez rendu votre épée, en la tenant du mauvais côté le plus longtemps possible."]];}]],'i_tent'],
-  [null,"Castelroc, salle du trône. Le chancelier produit ses trois lettres. La cour retient son souffle, par politesse.",0,'i_hall',"Le procès"],
-  ['chancelier',"Les preuves sont accablantes, Majesté. Je les ai réunies moi-même, afin qu'elles le soient.",0,'i_duo'],
-  ['reine',"Qu'on fasse entrer mon général. Il a servi neuf ans : je lui accorde une phrase. C'est une de plus que n'en a eu mon dernier ministre.",0,'i_queen']
+  [null,"Austrevie, an 1247. Neuf ans de guerre contre l'Empire de Karst, et un seul général qui gagne.",0,'i_dawn'],
+  [null,"Ce matin-là, il rentrait vainqueur, une fois de plus. La ville criait son nom. Elle le criait un peu trop fort.",0,'i_bridge',"La porte de Castelroc"],
+  ['reine',"Encore une victoire, général. Mon peuple vous aime. Je commence à compter combien.",0,'i_qw',"Castelroc · salle du trône"],
+  ['chancelier',"Un général que l'on acclame, Majesté, finit toujours par s'écouter. Ou par écouter quelqu'un d'autre.",0,'i_duo'],
+  [null,"Le soir même, dans son cabinet, le chancelier fit écrire trois lettres. Elles étaient de la main du général, à ceci près que le général ne les avait jamais écrites.",0,'i_cab',"Le cabinet du chancelier"],
+  ['chancelier',"« Je livrerai le plan de bataille à l'Empire. » C'est bien tourné. Il aurait pu l'écrire.",0,'i_scowl'],
+  [null,"Trois jours plus tard, le général apprit qu'il vendait le royaume à l'ennemi. Il l'apprit en même temps que la cour.",0,'i_hall',"Le procès"],
+  ['reine',"On a trouvé ces lettres, général. Vous avez servi neuf ans : je vous accorde une phrase.",0,'i_queen']
  ],openHeroSel);},
  proces(){const h=HEROES[S.hero];say([['aldric',h.line,0,'i_trial'],['chancelier',h.rep],
   ['reine',"Il suffit. Aux geôles, le temps d'y voir clair. Et qu'on le nourrisse : je déteste perdre un témoin avant d'avoir compris de quoi."],
-  [null,"La reine a dit « le temps d'y voir clair ». C'était il y a quarante jours.",0,'cell',"Quarante jours plus tard"]],()=>enterLevel('geoles'));},
+  [null,"L'armée passa au duc de Fierbois. Au Gué-aux-Corbeaux, il tint une heure.",0,'i_field',"Le Gué-aux-Corbeaux"],[null,"La reine a dit « le temps d'y voir clair ». C'était il y a quarante jours.",0,'i_cell',"Quarante jours plus tard"]],()=>enterLevel('geoles'));},
  intro_geoles(){say([
   [null,"Geôles royales de Castelroc, troisième sous-sol. Une clé tourne dans la serrure. C'est l'heure de la soupe."],
   ['pepin',"Votre soupe, mon général. Elle est froide, mais je vous rassure : elle l'était déjà chaude."],
@@ -2707,7 +2694,7 @@ SC.qpri=function(p){const q=QPRI[p.pz],f='q_'+q.id;if(S.flags[f]===2){log("Prime
 function questTick(){for(const q of QPRI){if(q.off||q.lv!==S.lv||S.flags['q_'+q.id]===2)continue;const m=LS.mons.find(m=>m.t===q.id);if(m&&m.hp<=0){S.flags['q_'+q.id]=2;sfx('coin');const got=q.loot.map(l=>give(l[0],l[1]||0));log(`<b>Prime : ${q.n} ne nuira plus.</b> Dans sa bourse, de quoi vous payer vous-même : <b>${got.join(', ')}</b>.`);ui();}}}
 function questLines(){const l=[];for(const q of QCOM)if(!q.off&&S.flags['q_'+q.it]===1)l.push(`rapporter ${ITEMS[q.it].n.toLowerCase()} (${LEVELS[q.a].name})`);for(const q of QPRI)if(!q.off&&S.flags['q_'+q.id]===1)l.push(`prime sur ${q.n} (${LEVELS[q.lv].name})`);return l;}
 
-const AUDE={v:44,np:0,nv:0,ok:0};
+const AUDE={v:45,np:0,nv:0,ok:0};
 MUS.addEventListener('error',()=>{AUDE.me=(MUS.error&&MUS.error.code)+':'+MUS.src.split('/').pop();});MUS.addEventListener('playing',()=>{AUDE.pl=(AUDE.pl||0)+1;});
 {const _p=MUS.play.bind(MUS);MUS.play=function(){AUDE.np++;const r=_p();if(r&&r.catch)r.catch(e=>{AUDE.pe=(e&&e.name)||String(e);});return r;};
  const _vl=voxLoad;voxLoad=function(k){return _vl(k).then(d=>{AUDE.ok++;return d;},e=>{AUDE.ve=((e&&e.name)||String(e))+':'+k;throw e;});};
@@ -2960,9 +2947,11 @@ function shopFx(g,now){g.save();g.globalCompositeOperation='lighter';g.fillStyle
   cab2(t,sp,ts){SH.cab(t,sp,ts,true);},
   scowl(t,sp,ts){SH.close(t,ts,'dark',1.06,.5,.5,[{k:'chancelier',x:.54,act:sp==='chancelier'}],250,330);if(sp!=='chancelier'){G.save();G.globalCompositeOperation='lighter';for(let i=0;i<22;i++){const q=(t*.5+hs(i))%1,x=CW*(.3+hs(i+2)*.12)+Math.sin(t*2+i)*8*K,y=CH*(.86-q*.5);G.fillStyle='rgba(255,'+(130+hs(i+6)*90|0)+',50,'+((1-q)*.8).toFixed(2)+')';G.fillRect(x,y,2*K,2*K);}G.restore();glowAt(CW*.36,CH*.9,90*K,'rgba(255,140,50,A)',.4+.15*Math.sin(t*11));}},
   tent(t,sp,ts){uncam();G.fillStyle='#070a1c';G.fillRect(0,0,CW,CH);G.fillStyle='#fff';for(let i=0;i<40;i++){G.globalAlpha=.4+.5*Math.abs(Math.sin(t+i));G.fillRect(CW*(.3+hs(i)*.4),CH*(.5+hs(i+1)*.25),K,K);}G.globalAlpha=1;const z=1+.08*ease(cl(t/14));cam(z,.5,.6);plate('tent');G.fillStyle='rgba(20,8,4,.34)';G.fillRect(0,0,800,400);glowAt(520,300,240,'rgba(255,170,80,A)',.24+.06*Math.sin(t*9)+.04*Math.sin(t*21));if(t>1.2){const e=ease(cl((t-1.2)/1.6));sil('garde_royal',Math.floor(t*1.5),lerp(880,700,e),388,230);sil('capitaine',Math.floor(t*1.5+1),lerp(900,600,e),392,250);sil('garde_royal',Math.floor(t*1.5+2),lerp(960,770,e),394,240,true);}motes(t,20,300,150,620,330,'rgba(255,220,170,A)');vign(.6);},
+  qw(t,sp,ts){if(t<2.6){SH.hall(t);if(t>2.2){uncam();G.fillStyle='rgba(0,0,0,'+cl((t-2.2)/.4).toFixed(2)+')';G.fillRect(0,0,CW,CH);}}else{SH.queen(t-2.6,sp,ts);if(t<3.1){uncam();G.fillStyle='rgba(0,0,0,'+(1-cl((t-2.6)/.5)).toFixed(2)+')';G.fillRect(0,0,CW,CH);}}},
+  cell(t){const im=IMGEL['s_cell'];cam(1+.10*ease(cl(t/12)),.55,.5);G.imageSmoothingEnabled=true;if(im)G.drawImage(im,0,0,800,400);G.fillStyle='rgba(6,6,16,.30)';G.fillRect(0,0,800,400);glowAt(620,150,200,'rgba(255,170,80,A)',.14+.05*Math.sin(t*9)+.03*Math.sin(t*23));motes(t,16,300,80,700,330,'rgba(255,225,180,A)');vign(.6);},
   trial(t,sp,ts){SH.close(t,ts,'throneback',1.06,.5,.42,[{k:'aldric',x:.22,act:sp==='aldric'},{k:'reine',x:.5,act:sp==='reine'},{k:'chancelier',x:.78,act:sp==='chancelier'}],220,222);},
   cap(t,sp,ts){uncam();G.fillStyle='#070a1c';G.fillRect(0,0,CW,CH);SH.close(t,ts,'tent',1.5,.58,.62,[{k:'capitaine',x:.5,act:sp==='capitaine'}],520,300);}};
- const SHOT={i_logo:SH.logo,i_dawn:SH.dawn,i_bridge:SH.bridge,i_news:SH.news,i_hall:SH.hall,i_mess:SH.mess,i_queen:SH.queen,i_duo:SH.duo,i_cab:SH.cab,i_cab2:SH.cab2,i_scowl:SH.scowl,i_tent:SH.tent,i_cap:SH.cap,i_trial:SH.trial};
+ const SHOT={i_logo:SH.logo,i_dawn:SH.dawn,i_bridge:SH.bridge,i_news:SH.news,i_hall:SH.hall,i_mess:SH.mess,i_queen:SH.queen,i_duo:SH.duo,i_cab:SH.cab,i_cab2:SH.cab2,i_scowl:SH.scowl,i_tent:SH.tent,i_cap:SH.cap,i_trial:SH.trial,i_qw:SH.qw,i_field:SH.field,i_cell:SH.cell};
  for(const k in SHOT)SCENES[k]=g=>{g.fillStyle='#000';g.fillRect(0,0,400,200);};
  let cur=null,t0=0,slow=0,acc=0;
  function frame(fn,t,sp,ts,extra){G.setTransform(1,0,0,1,0,0);G.globalAlpha=1;G.globalCompositeOperation='source-over';G.imageSmoothingEnabled=true;fn(t,sp,ts,extra);G.setTransform(1,0,0,1,0,0);G.globalAlpha=1;G.globalCompositeOperation='source-over';}
