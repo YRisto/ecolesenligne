@@ -2,7 +2,7 @@
 import re, sys, io, os, json, base64, subprocess, glob
 import numpy as np
 from PIL import Image
-SWV = 42
+SWV = 43
 sys.path.insert(0, '/home/claude/work/tools'); import charte
 REPO = '/home/claude/ecolesenligne'; REL = 'public/landoflord/index.html'
 WK = '/home/claude/work'
@@ -111,6 +111,8 @@ for k, u in new.items():
     if k[:2] in ('u_', 'g_'): continue
     if k[:2] in ('s_', 'h_'): lt_IMG[k] = uri(charte.quantize(load(u).convert('RGB').resize((256, 128), Image.BOX).convert('RGBA'), dither=6))
     else: lt_IMG[k] = u
+import intro
+_ih, _il = intro.pack(charte, uri); new.update(_ih); lt_IMG.update(_il)   # plans de l'intro : 800×400 sur ordinateur, 400×200 sur mobile
 OUTD = os.path.join(REPO, 'public/landoflord')
 def pack(name, I, SI, SM):
     t = 'window.PACK={IMG:{' + ', '.join('"%s": "%s"' % kv for kv in I.items()) + '},SHEETS:{"img": {' + ', '.join('"%s": "%s"' % kv for kv in SI.items()) + '}, "meta": ' + json.dumps(SM) + '}};'
@@ -339,6 +341,8 @@ s = maj2.apply(s, rep1)
 # 11. grosse mise à jour : densités de l'original, meneurs, bestiaire par région, dormeurs, pluie, boutiques vivantes
 import maj
 s = maj.apply(s, rep1)
+# 12. intro en plans animés, calée sur l'enchaînement de l'original
+s = intro.apply(s, rep1)
 # 5. le plan façon Lands of Lore et les sorties signalées
 import carte
 s = carte.apply(s, rep1)
