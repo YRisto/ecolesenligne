@@ -1,0 +1,627 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Pointage et absences</title>
+<meta name="robots" content="noindex">
+<style>
+/* Mise en page : une colonne étroite façon feuille de présence, navigation en bas sur téléphone. */
+:root{
+  --fond:#f2f4f1; --surface:#ffffff; --encre:#17212b; --discret:#5b6672; --trait:#d9dfdc;
+  --accent:#0c6b5d; --accent-encre:#ffffff; --accent-doux:#e0efec;
+  --ok:#256b2c; --ok-doux:#e2f1e3; --attente:#8a5200; --attente-doux:#fbeed6; --refus:#a8261c; --refus-doux:#fbe4e1;
+  --corps:system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+  --chiffres:ui-monospace,"SF Mono","Cascadia Mono",Consolas,monospace;
+  color-scheme:light;
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --fond:#11171b; --surface:#1a2228; --encre:#e8edeb; --discret:#9aa6ad; --trait:#2d3940;
+    --accent:#4fbfaa; --accent-encre:#06221d; --accent-doux:#17332f;
+    --ok:#7fce86; --ok-doux:#173220; --attente:#f0b65a; --attente-doux:#3a2a0e; --refus:#f08a80; --refus-doux:#3d1a17;
+    color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --fond:#11171b; --surface:#1a2228; --encre:#e8edeb; --discret:#9aa6ad; --trait:#2d3940;
+  --accent:#4fbfaa; --accent-encre:#06221d; --accent-doux:#17332f;
+  --ok:#7fce86; --ok-doux:#173220; --attente:#f0b65a; --attente-doux:#3a2a0e; --refus:#f08a80; --refus-doux:#3d1a17;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--fond);color:var(--encre);font:16px/1.45 var(--corps);padding-bottom:84px}
+h1,h2,h3{margin:0;text-wrap:balance}
+h1{font-size:1.05rem;font-weight:700;letter-spacing:.01em}
+h2{font-size:1.25rem}
+h3{font-size:1rem}
+p{margin:0}
+.num{font-family:var(--chiffres);font-variant-numeric:tabular-nums}
+.discret{color:var(--discret);font-size:.9rem}
+header.barre{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;
+  padding:12px 16px;background:var(--surface);border-bottom:1px solid var(--trait)}
+header.barre .qui{display:flex;gap:10px;align-items:center;flex-wrap:wrap;font-size:.9rem}
+header.barre select{width:auto;max-width:100%}
+main{max-width:760px;margin:0 auto;padding:16px;display:flex;flex-direction:column;gap:16px}
+.carte{background:var(--surface);border:1px solid var(--trait);border-radius:10px;padding:16px;display:flex;flex-direction:column;gap:12px}
+.ligne{display:flex;gap:10px;align-items:center;justify-content:space-between;flex-wrap:wrap}
+.pile{display:flex;flex-direction:column;gap:8px}
+.grand{font-size:2.4rem;font-weight:700;line-height:1.1}
+button,select,input,textarea{font:inherit;color:inherit}
+button{cursor:pointer;border-radius:8px;border:1px solid var(--trait);background:var(--surface);padding:9px 14px;min-height:42px}
+button:hover{border-color:var(--accent)}
+button:disabled{opacity:.5;cursor:default}
+button.principal{background:var(--accent);color:var(--accent-encre);border-color:var(--accent);font-weight:600}
+button.geant{width:100%;font-size:1.2rem;padding:20px;min-height:72px}
+button.danger{color:var(--refus);border-color:var(--refus)}
+button.lien{border:0;background:none;padding:4px 2px;min-height:0;color:var(--accent);text-decoration:underline}
+:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+input,select,textarea{width:100%;background:var(--surface);border:1px solid var(--trait);border-radius:8px;padding:9px 10px;min-height:42px}
+label{display:flex;flex-direction:column;gap:4px;font-size:.9rem;color:var(--discret)}
+label>*{color:var(--encre);font-size:1rem}
+.grille2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.pastille{display:inline-block;padding:2px 9px;border-radius:999px;font-size:.8rem;font-weight:600;white-space:nowrap}
+.p-ok{background:var(--ok-doux);color:var(--ok)}
+.p-attente{background:var(--attente-doux);color:var(--attente)}
+.p-refus{background:var(--refus-doux);color:var(--refus)}
+.p-neutre{background:var(--accent-doux);color:var(--accent)}
+.jour{display:grid;grid-template-columns:1fr auto;gap:4px 12px;padding:10px 0;border-top:1px solid var(--trait)}
+.jour:first-child{border-top:0}
+.jour .actions{grid-column:1/-1;display:flex;gap:8px;flex-wrap:wrap}
+.jour .note{grid-column:1/-1}
+.bandeau{border-left:4px solid var(--attente);background:var(--attente-doux);color:var(--encre);padding:10px 12px;border-radius:6px;font-size:.92rem}
+.bandeau.refus{border-color:var(--refus);background:var(--refus-doux)}
+.bandeau.info{border-color:var(--accent);background:var(--accent-doux)}
+.table-zone{overflow-x:auto}
+table{border-collapse:collapse;width:100%;min-width:520px}
+th,td{text-align:left;padding:8px 10px;border-bottom:1px solid var(--trait);white-space:nowrap}
+th{font-size:.8rem;color:var(--discret);font-weight:600}
+td.d,th.d{text-align:right}
+nav.onglets{position:fixed;left:0;right:0;bottom:0;display:flex;background:var(--surface);border-top:1px solid var(--trait);z-index:5}
+nav.onglets button{flex:1;border:0;border-radius:0;border-top:3px solid transparent;padding:12px 4px;font-size:.85rem;min-height:60px;background:none}
+nav.onglets button[aria-current="page"]{border-top-color:var(--accent);color:var(--accent);font-weight:700}
+nav.onglets .compte{display:inline-block;min-width:18px;padding:0 5px;border-radius:9px;background:var(--refus);color:#fff;font-size:.72rem;margin-left:4px}
+dialog{border:1px solid var(--trait);border-radius:12px;background:var(--surface);color:var(--encre);padding:18px;width:min(460px,calc(100vw - 32px))}
+dialog::backdrop{background:rgba(0,0,0,.45)}
+dialog form{display:flex;flex-direction:column;gap:12px}
+.heures-edit{display:flex;gap:8px;align-items:center}
+#toast{position:fixed;left:16px;right:16px;bottom:96px;margin:auto;max-width:520px;background:var(--encre);color:var(--fond);padding:12px 14px;border-radius:8px;display:none;z-index:20}
+.centre{text-align:center}
+@media (max-width:420px){.grille2{grid-template-columns:1fr}.grand{font-size:2rem}}
+@media (prefers-reduced-motion:no-preference){button{transition:border-color .15s}}
+</style>
+</head>
+<body>
+<header class="barre">
+  <h1>Pointage et absences</h1>
+  <div class="qui" id="qui"></div>
+</header>
+<main id="vue"><p class="discret">Chargement…</p></main>
+<nav class="onglets" id="onglets" aria-label="Rubriques"></nav>
+<div id="toast" role="status" aria-live="polite"></div>
+<dialog id="dlg"></dialog>
+
+<script src="/kokolio/config.js"></script>
+<script>
+"use strict";
+/* ---------- Réglages et petits outils ---------- */
+const CFG = Object.assign({demo:true, rh:[], managerParDefaut:"", heuresJour:7,
+  motifs:["Congé payé","RTT","Maladie","Congé sans solde","Événement familial","Formation","Autre"]}, window.POINTAGE_CONFIG||{});
+const RH = (CFG.rh||[]).map(s=>String(s).toLowerCase());
+const L_P="Pointages", L_A="Absences";
+
+function h(tag, attrs, ...kids){
+  const e=document.createElement(tag);
+  for(const [k,v] of Object.entries(attrs||{})){
+    if(v==null||v===false) continue;
+    if(k==="class") e.className=v;
+    else if(k.startsWith("on")) e.addEventListener(k.slice(2),v);
+    else e.setAttribute(k, v===true?"":v);
+  }
+  for(const c of kids.flat(Infinity)){
+    if(c==null||c===false) continue;
+    e.append(c.nodeType?c:document.createTextNode(String(c)));
+  }
+  return e;
+}
+const pad=n=>String(n).padStart(2,"0");
+const ymd=d=>`${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
+const hm=d=>`${pad(d.getHours())}:${pad(d.getMinutes())}`;
+const dateDe=s=>{const [y,m,d]=s.split("-").map(Number);return new Date(y,m-1,d)};
+const toMin=s=>{const [a,b]=s.split(":").map(Number);return a*60+b};
+const fmtMin=m=>`${Math.floor(m/60)} h ${pad(Math.round(m)%60)}`;
+const today=()=>ymd(new Date());
+const frJour=s=>dateDe(s).toLocaleDateString("fr-FR",{weekday:"short",day:"numeric",month:"short"});
+const frLong=d=>d.toLocaleDateString("fr-FR",{weekday:"long",day:"numeric",month:"long",year:"numeric"});
+const frMois=m=>dateDe(m+"-01").toLocaleDateString("fr-FR",{month:"long",year:"numeric"});
+const decaleMois=(m,n)=>{const d=dateDe(m+"-01");d.setMonth(d.getMonth()+n);return ymd(d).slice(0,7)};
+function heuresDe(it){try{const a=JSON.parse(it.Heures||"[]");return Array.isArray(a)?a.filter(x=>/^\d\d:\d\d$/.test(x)):[]}catch(e){return[]}}
+function minutesDe(times, enCours){
+  let t=0;
+  for(let i=0;i+1<times.length;i+=2) t+=Math.max(0,toMin(times[i+1])-toMin(times[i]));
+  if(enCours && times.length%2) t+=Math.max(0,toMin(hm(new Date()))-toMin(times[times.length-1]));
+  return t;
+}
+function paires(times){
+  const out=[];
+  for(let i=0;i<times.length;i+=2) out.push(times[i]+" → "+(times[i+1]||"…"));
+  return out.join("  ·  ");
+}
+function joursOuvres(a,b,min,max){ // lundi à vendredi, bornes incluses, limité à [min,max] si fournis
+  let d=dateDe(a>(min||a)?a:(min||a)); const fin=dateDe(b<(max||b)?b:(max||b)); let n=0;
+  while(d<=fin){const j=d.getDay(); if(j!==0&&j!==6) n++; d.setDate(d.getDate()+1);}
+  return n;
+}
+function lundiDe(d){const x=new Date(d);const j=(x.getDay()+6)%7;x.setDate(x.getDate()-j);return x}
+let toastT;
+function toast(msg){const t=document.getElementById("toast");t.textContent=msg;t.style.display="block";clearTimeout(toastT);toastT=setTimeout(()=>t.style.display="none",5000)}
+async function agir(btn, fn){
+  if(btn) btn.disabled=true;
+  try{await fn()}catch(e){if(e&&e.message!=="redirection") toast(e.message||"Une erreur est survenue. Réessayez.")}
+  finally{if(btn) btn.disabled=false}
+}
+function pastille(statut){
+  const map={"Valide":["Validé","p-ok"],"A valider":["À valider","p-attente"],"En attente":["En attente","p-attente"],
+    "Refuse":["Refusé","p-refus"],"Annule":["Annulé","p-neutre"]};
+  const [txt,cls]=map[statut]||[statut||"—","p-neutre"];
+  return h("span",{class:"pastille "+cls},txt);
+}
+
+/* ---------- Fenêtre de saisie ---------- */
+function ouvrir(titre, corps, libelleOk, surOk){
+  const dlg=document.getElementById("dlg");
+  dlg.replaceChildren();
+  const err=h("p",{class:"bandeau refus",hidden:true});
+  const ok=h("button",{class:"principal",type:"submit"},libelleOk);
+  const form=h("form",{method:"dialog",onsubmit:async ev=>{
+    ev.preventDefault(); ok.disabled=true; err.hidden=true;
+    try{await surOk(); dlg.close()}catch(e){err.textContent=e.message||"Erreur";err.hidden=false}
+    finally{ok.disabled=false}
+  }}, h("h2",null,titre), corps, err,
+    h("div",{class:"ligne"}, h("button",{type:"button",onclick:()=>dlg.close()},"Annuler"), ok));
+  dlg.append(form); dlg.showModal();
+}
+
+/* ---------- Stockage : mode démonstration ---------- */
+function magasinDemo(){
+  const CLE="pointage-demo-v1";
+  const gens=[
+    {email:"camille.martin@demo.fr",name:"Camille Martin",managerEmail:"julien.bernard@demo.fr",managerName:"Julien Bernard"},
+    {email:"thomas.petit@demo.fr",name:"Thomas Petit",managerEmail:"julien.bernard@demo.fr",managerName:"Julien Bernard"},
+    {email:"julien.bernard@demo.fr",name:"Julien Bernard (manager)",managerEmail:"sophie.leroy@demo.fr",managerName:"Sophie Leroy"},
+    {email:"sophie.leroy@demo.fr",name:"Sophie Leroy (RH)",managerEmail:"sophie.leroy@demo.fr",managerName:"Sophie Leroy"}
+  ];
+  RH.push("sophie.leroy@demo.fr");
+  let db;
+  function graine(){
+    const d={seq:1,user:gens[0].email,lists:{[L_P]:[],[L_A]:[]}};
+    const modeles=[["08:30","12:15","13:15","17:30"],["08:45","12:30","13:30","17:45"],["09:00","12:00","13:00","17:10"]];
+    const cur=new Date(); cur.setDate(cur.getDate()-12); let k=0;
+    const fin=new Date(); fin.setDate(fin.getDate()-1);
+    while(cur<=fin){
+      const j=cur.getDay();
+      if(j!==0&&j!==6){
+        gens.slice(0,2).forEach((g,gi)=>{
+          const times=modeles[(k+gi)%3].slice(); const jour=ymd(cur);
+          const recent=(fin-cur)/864e5<3;
+          const it={id:String(d.seq++),Title:g.name+" "+jour,EmployeEmail:g.email,EmployeNom:g.name,Jour:jour,Mois:jour.slice(0,7),
+            Heures:JSON.stringify(times),Minutes:minutesDe(times),ManagerEmail:g.managerEmail,Statut:recent?"A valider":"Valide"};
+          if(recent&&gi===1&&k%2===0){it.Heures=JSON.stringify(times.slice(0,3));it.Minutes=minutesDe(times.slice(0,3));}
+          d.lists[L_P].push(it);
+        });
+        k++;
+      }
+      cur.setDate(cur.getDate()+1);
+    }
+    const plus=n=>{const x=new Date();x.setDate(x.getDate()+n);return ymd(x)};
+    d.lists[L_A].push({id:String(d.seq++),Title:"Thomas Petit Congé payé",EmployeEmail:gens[1].email,EmployeNom:gens[1].name,Motif:"Congé payé",
+      Debut:plus(7),Fin:plus(11),Jours:joursOuvres(plus(7),plus(11)),Commentaire:"Vacances en famille",ManagerEmail:gens[1].managerEmail,Statut:"En attente"});
+    d.lists[L_A].push({id:String(d.seq++),Title:"Camille Martin Congé payé",EmployeEmail:gens[0].email,EmployeNom:gens[0].name,Motif:"Congé payé",
+      Debut:plus(-20),Fin:plus(-18),Jours:joursOuvres(plus(-20),plus(-18)),ManagerEmail:gens[0].managerEmail,Statut:"Valide"});
+    return d;
+  }
+  function charge(){try{db=JSON.parse(localStorage.getItem(CLE))}catch(e){} if(!db||!db.lists) db=graine();}
+  function sauve(){try{localStorage.setItem(CLE,JSON.stringify(db))}catch(e){}}
+  charge();
+  return {
+    demo:true, gens,
+    async start(){return gens.find(g=>g.email===db.user)||gens[0]},
+    changer(email){db.user=email;sauve()},
+    reinit(){db=graine();sauve()},
+    async query(list,f){return db.lists[list].filter(it=>Object.entries(f||{}).every(([k,v])=>it[k]===v)).map(it=>({...it}))},
+    async add(list,fields){const it={id:String(db.seq++),...fields};db.lists[list].push(it);sauve();return {...it}},
+    async patch(list,id,fields){const it=db.lists[list].find(x=>x.id===id);if(!it) throw new Error("Élément introuvable.");Object.assign(it,fields);sauve()}
+  };
+}
+
+/* ---------- Stockage : Microsoft 365 (connexion Microsoft + listes SharePoint) ---------- */
+function magasinMicrosoft(){
+  const BASE="https://graph.microsoft.com/v1.0";
+  const PORTEES=["User.Read","User.Read.All","Sites.ReadWrite.All"];
+  let pca, compte, siteId;
+  function charger(src){return new Promise((ok,ko)=>{const s=document.createElement("script");s.src=src;s.onload=ok;s.onerror=()=>ko(new Error("Fichier msal-browser.min.js introuvable à côté de index.html."));document.head.append(s)})}
+  async function jeton(portees){
+    try{return (await pca.acquireTokenSilent({scopes:portees,account:compte})).accessToken}
+    catch(e){await pca.acquireTokenRedirect({scopes:portees,account:compte});throw new Error("redirection")}
+  }
+  async function g(chemin,opt,portees){
+    const t=await jeton(portees||PORTEES);
+    const r=await fetch(chemin.startsWith("http")?chemin:BASE+chemin,{...(opt||{}),headers:{Authorization:"Bearer "+t,"Content-Type":"application/json",
+      Prefer:"HonorNonIndexedQueriesWarningMayFailRandomly"}});
+    if(r.status===204) return null;
+    const j=await r.json().catch(()=>null);
+    if(!r.ok){
+      const e=new Error(r.status===403?"Accès refusé au site SharePoint. Demandez à être ajouté comme membre du site.":
+        (j&&j.error&&j.error.message)||("Erreur Microsoft "+r.status));
+      e.status=r.status; throw e;
+    }
+    return j;
+  }
+  async function site(){
+    if(!siteId) siteId=(await g(`/sites/${CFG.sharepointHost}:${CFG.sitePath}?$select=id`)).id;
+    return siteId;
+  }
+  const q=s=>String(s).replace(/'/g,"''");
+  return {
+    demo:false,
+    async start(){
+      await charger("/kokolio/msal-browser.min.js");
+      pca=new msal.PublicClientApplication({
+        auth:{clientId:CFG.clientId,authority:"https://login.microsoftonline.com/"+CFG.tenantId,redirectUri:location.origin+location.pathname},
+        cache:{cacheLocation:"localStorage"}});
+      await pca.initialize();
+      const rep=await pca.handleRedirectPromise();
+      compte=(rep&&rep.account)||pca.getActiveAccount()||pca.getAllAccounts()[0];
+      if(!compte) return null;
+      pca.setActiveAccount(compte);
+      const moi={email:compte.username.toLowerCase(),name:compte.name||compte.username,managerEmail:"",managerName:""};
+      try{
+        const m=await g("/me/manager?$select=displayName,userPrincipalName");
+        moi.managerEmail=(m.userPrincipalName||"").toLowerCase(); moi.managerName=m.displayName||"";
+      }catch(e){ if(e.message==="redirection") throw e; }
+      if(!moi.managerEmail){moi.managerEmail=String(CFG.managerParDefaut||RH[0]||"").toLowerCase();moi.managerName="";moi.sansManager=true;}
+      return moi;
+    },
+    async login(){await pca.loginRedirect({scopes:PORTEES})},
+    async logout(){await pca.logoutRedirect({account:compte})},
+    async query(list,f){
+      const id=await site();
+      const filtre=Object.entries(f||{}).map(([k,v])=>`fields/${k} eq '${q(v)}'`).join(" and ");
+      let url=`/sites/${id}/lists/${list}/items?$expand=fields&$top=200`+(filtre?"&$filter="+encodeURIComponent(filtre):"");
+      const out=[];
+      while(url){const j=await g(url);for(const it of j.value) out.push({...it.fields,id:it.id});url=j["@odata.nextLink"]||null;}
+      return out;
+    },
+    async add(list,fields){const id=await site();const it=await g(`/sites/${id}/lists/${list}/items`,{method:"POST",body:JSON.stringify({fields})});return {...it.fields,id:it.id}},
+    async patch(list,idItem,fields){const id=await site();await g(`/sites/${id}/lists/${list}/items/${idItem}/fields`,{method:"PATCH",body:JSON.stringify(fields)})},
+    async installer(){ // crée les deux listes ; réservé à un propriétaire du site
+      const id=await site(); const P=["User.Read","Sites.Manage.All"];
+      const txt=n=>({name:n,text:{},indexed:true}), long=n=>({name:n,text:{allowMultipleLines:true}}), nb=n=>({name:n,number:{}});
+      const defs={
+        [L_P]:[txt("EmployeEmail"),txt("EmployeNom"),txt("Jour"),txt("Mois"),long("Heures"),nb("Minutes"),txt("ManagerEmail"),txt("Statut"),txt("Corrige"),long("Commentaire"),long("MotifRefus"),txt("ValidePar")],
+        [L_A]:[txt("EmployeEmail"),txt("EmployeNom"),txt("Motif"),txt("Debut"),txt("Fin"),nb("Jours"),long("Commentaire"),txt("ManagerEmail"),txt("Statut"),long("MotifRefus"),txt("ValidePar")]
+      };
+      for(const [nom,columns] of Object.entries(defs)){
+        try{await g(`/sites/${id}/lists/${nom}?$select=id`)}
+        catch(e){ if(e.status!==404) throw e;
+          await g(`/sites/${id}/lists`,{method:"POST",body:JSON.stringify({displayName:nom,columns,list:{template:"genericList"}})},P); }
+      }
+    }
+  };
+}
+
+/* ---------- État de l'application ---------- */
+const store = CFG.demo ? magasinDemo() : magasinMicrosoft();
+const S={moi:null,onglet:"pointer",mois:today().slice(0,7),moisSynthese:today().slice(0,7),
+  miens:{},abs:[],attP:[],attA:[],estRH:false,estManager:false,synth:null};
+const vue=document.getElementById("vue");
+function pose(...k){vue.replaceChildren(...k.flat(Infinity).filter(x=>x!=null&&x!==false))}
+
+async function chargerMois(m){S.miens[m]=await store.query(L_P,{EmployeEmail:S.moi.email,Mois:m});return S.miens[m]}
+async function chargerAbs(){S.abs=(await store.query(L_A,{EmployeEmail:S.moi.email})).sort((a,b)=>b.Debut.localeCompare(a.Debut))}
+async function chargerEquipe(){
+  const fP=S.estRH?{Statut:"A valider"}:{ManagerEmail:S.moi.email,Statut:"A valider"};
+  const fA=S.estRH?{Statut:"En attente"}:{ManagerEmail:S.moi.email,Statut:"En attente"};
+  [S.attP,S.attA]=await Promise.all([store.query(L_P,fP),store.query(L_A,fA)]);
+  S.attP.sort((a,b)=>a.Jour.localeCompare(b.Jour));
+  if(!S.estRH){ // on ne se valide pas soi-même
+    S.attP=S.attP.filter(x=>x.EmployeEmail!==S.moi.email); S.attA=S.attA.filter(x=>x.EmployeEmail!==S.moi.email);
+  }
+}
+
+/* ---------- Démarrage ---------- */
+async function demarrer(){
+  try{
+    S.moi=await store.start();
+  }catch(e){
+    if(e.message==="redirection") return;
+    pose(h("div",{class:"bandeau refus"},"Connexion Microsoft impossible : "+e.message)); return;
+  }
+  if(!S.moi){
+    pose(h("div",{class:"carte centre"},h("h2",null,"Connectez-vous avec votre compte Microsoft"),
+      h("p",{class:"discret"},"Utilisez votre compte professionnel habituel."),
+      h("button",{class:"principal geant",onclick:ev=>agir(ev.currentTarget,()=>store.login())},"Se connecter avec Microsoft")));
+    return;
+  }
+  S.estRH=RH.includes(S.moi.email);
+  enTete();
+  try{
+    const m=today().slice(0,7);
+    const lun=ymd(lundiDe(new Date())).slice(0,7);
+    await Promise.all([chargerMois(m), lun!==m?chargerMois(lun):null, chargerAbs()]);
+    const equipeMois=S.estRH?[1]:await store.query(L_P,{ManagerEmail:S.moi.email,Mois:m});
+    await chargerEquipe();
+    S.estManager=S.estRH||equipeMois.some(x=>x.EmployeEmail!==S.moi.email)||S.attP.length>0||S.attA.length>0;
+  }catch(e){
+    if(e.message==="redirection") return;
+    if(e.status===404&&!store.demo){ecranInstallation();return}
+    pose(h("div",{class:"bandeau refus"},e.message)); return;
+  }
+  afficher();
+  setInterval(()=>{if(S.onglet==="pointer"&&!document.getElementById("dlg").open) afficher()},30000);
+}
+function enTete(){
+  const z=document.getElementById("qui"); z.replaceChildren();
+  if(store.demo){
+    const sel=h("select",{id:"demo-qui","aria-label":"Personne affichée (démonstration)",onchange:ev=>{store.changer(ev.target.value);location.reload()}},
+      store.gens.map(g=>h("option",{value:g.email,selected:g.email===S.moi.email},g.name)));
+    z.append(h("span",{class:"pastille p-attente"},"Démonstration"),sel,
+      h("button",{class:"lien",onclick:()=>{store.reinit();location.reload()}},"Remettre à zéro"));
+  }else{
+    z.append(h("span",null,S.moi.name),h("button",{class:"lien",onclick:()=>store.logout()},"Se déconnecter"));
+  }
+}
+function ecranInstallation(){
+  document.getElementById("onglets").replaceChildren();
+  pose(h("div",{class:"carte"},h("h2",null,"Première installation"),
+    h("p",null,"Les listes « Pointages » et « Absences » n'existent pas encore sur le site SharePoint, ou le site est introuvable."),
+    h("p",{class:"discret"},"Si vous êtes propriétaire du site, créez-les ici. Sinon, prévenez la personne qui administre l'outil."),
+    h("button",{class:"principal",onclick:ev=>agir(ev.currentTarget,async()=>{await store.installer();location.reload()})},"Créer les deux listes")));
+}
+
+/* ---------- Affichage ---------- */
+function afficher(){
+  const n=S.attP.length+S.attA.length;
+  const onglets=[["pointer","Pointer"],["heures","Mes heures"],["absences","Absences"]];
+  if(S.estManager) onglets.push(["equipe","Validation"],["synthese","Synthèse"]);
+  document.getElementById("onglets").replaceChildren(...onglets.map(([id,lib])=>
+    h("button",{"aria-current":S.onglet===id?"page":null,onclick:()=>{S.onglet=id;afficher();window.scrollTo(0,0)}},lib,
+      id==="equipe"&&n?h("span",{class:"compte"},n):null)));
+  ({pointer:vuePointer,heures:vueHeures,absences:vueAbsences,equipe:vueEquipe,synthese:vueSynthese})[S.onglet]();
+}
+function trouverJour(jour){return (S.miens[jour.slice(0,7)]||[]).find(x=>x.Jour===jour)}
+function absenceLe(jour){return S.abs.find(a=>a.Statut==="Valide"&&a.Debut<=jour&&a.Fin>=jour)}
+
+/* --- Onglet Pointer --- */
+function vuePointer(){
+  const now=new Date(), jour=today(), it=trouverJour(jour), times=it?heuresDe(it):[];
+  const present=times.length%2===1, verrou=it&&it.Statut==="Valide";
+  const lun=lundiDe(now); let semaine=0;
+  for(let i=0;i<7;i++){const d=new Date(lun);d.setDate(d.getDate()+i);const x=trouverJour(ymd(d));if(x) semaine+=minutesDe(heuresDe(x),ymd(d)===jour);}
+  const abs=absenceLe(jour);
+  const bouton=h("button",{class:"principal geant",disabled:verrou,onclick:ev=>agir(ev.currentTarget,pointer)},
+    present?"Pointer mon départ":"Pointer mon arrivée");
+  pose(
+    S.moi.sansManager?h("div",{class:"bandeau"},"Aucun responsable n'est indiqué pour vous dans l'annuaire Microsoft. Vos pointages sont envoyés à "+(S.moi.managerEmail||"personne")+"."):null,
+    abs?h("div",{class:"bandeau info"},"Absence validée aujourd'hui : "+abs.Motif+"."):null,
+    h("div",{class:"carte"},
+      h("p",{class:"discret"},frLong(now)),
+      h("div",{class:"ligne"},h("div",{class:"grand num"},hm(now)),
+        h("span",{class:"pastille "+(present?"p-ok":"p-neutre")},present?"Au travail depuis "+times[times.length-1]:(times.length?"En pause ou parti":"Pas encore pointé"))),
+      bouton,
+      verrou?h("p",{class:"discret"},"Cette journée est validée, elle ne peut plus être modifiée."):null),
+    h("div",{class:"carte"},
+      h("div",{class:"ligne"},h("h3",null,"Aujourd'hui"),h("span",{class:"num"},fmtMin(minutesDe(times,true)))),
+      h("p",{class:"num"},times.length?paires(times):"Aucun pointage"),
+      h("div",{class:"ligne"},h("h3",null,"Cette semaine"),h("span",{class:"num"},fmtMin(semaine)))));
+}
+async function pointer(){
+  const now=new Date(), jour=ymd(now), t=hm(now), m=jour.slice(0,7);
+  await chargerMois(m);
+  const it=trouverJour(jour);
+  if(!it){
+    await store.add(L_P,{Title:S.moi.name+" "+jour,EmployeEmail:S.moi.email,EmployeNom:S.moi.name,Jour:jour,Mois:m,
+      Heures:JSON.stringify([t]),Minutes:0,ManagerEmail:S.moi.managerEmail,Statut:"A valider"});
+  }else{
+    if(it.Statut==="Valide") throw new Error("Cette journée est déjà validée.");
+    const times=heuresDe(it);
+    if(times.length&&toMin(t)<toMin(times[times.length-1])) throw new Error("L'heure actuelle est antérieure au dernier pointage. Corrigez la journée dans « Mes heures ».");
+    times.push(t);
+    await store.patch(L_P,it.id,{Heures:JSON.stringify(times),Minutes:minutesDe(times),Statut:"A valider"});
+  }
+  await chargerMois(m); afficher();
+  toast(t+" enregistré.");
+}
+
+/* --- Onglet Mes heures --- */
+function navMois(cle,recharger){
+  return h("div",{class:"ligne"},
+    h("button",{"aria-label":"Mois précédent",onclick:ev=>agir(ev.currentTarget,async()=>{S[cle]=decaleMois(S[cle],-1);await recharger();afficher()})},"‹"),
+    h("h2",null,frMois(S[cle])),
+    h("button",{"aria-label":"Mois suivant",disabled:S[cle]>=today().slice(0,7),onclick:ev=>agir(ev.currentTarget,async()=>{S[cle]=decaleMois(S[cle],1);await recharger();afficher()})},"›"));
+}
+function vueHeures(){
+  const items=(S.miens[S.mois]||[]).slice().sort((a,b)=>b.Jour.localeCompare(a.Jour));
+  const total=items.reduce((s,x)=>s+minutesDe(heuresDe(x),x.Jour===today()),0);
+  pose(
+    navMois("mois",()=>chargerMois(S.mois)),
+    h("div",{class:"carte"},
+      h("div",{class:"ligne"},h("span",null,"Total du mois"),h("span",{class:"num grand"},fmtMin(total))),
+      h("p",{class:"discret"},items.filter(x=>x.Statut==="Valide").length+" jour(s) validé(s) sur "+items.length)),
+    h("div",{class:"carte"},
+      items.length?h("div",null,items.map(ligneJourPerso)):h("p",{class:"discret"},"Aucun pointage ce mois-ci."),
+      h("button",{onclick:()=>corriger(null)},"Ajouter une journée oubliée")));
+}
+function ligneJourPerso(it){
+  const times=heuresDe(it), incomplet=times.length%2===1&&it.Jour!==today();
+  return h("div",{class:"jour"},
+    h("div",null,h("strong",null,frJour(it.Jour))," ",pastille(it.Statut),it.Corrige==="oui"?h("span",{class:"discret"}," · corrigé"):null),
+    h("div",{class:"num"},fmtMin(minutesDe(times,it.Jour===today()))),
+    h("div",{class:"num discret note"},paires(times)),
+    incomplet?h("div",{class:"bandeau note"},"Il manque un pointage de départ. Corrigez la journée."):null,
+    it.Statut==="Refuse"?h("div",{class:"bandeau refus note"},"Refusé"+(it.MotifRefus?" : "+it.MotifRefus:"")+". Corrigez puis renvoyez."):null,
+    it.Statut!=="Valide"?h("div",{class:"actions"},h("button",{onclick:()=>corriger(it)},"Corriger")):null);
+}
+function corriger(it){
+  let times=it?heuresDe(it):["09:00","17:00"];
+  const zone=h("div",{class:"pile"});
+  const dateInput=h("input",{type:"date",id:"c-jour",max:today(),value:it?it.Jour:today(),disabled:!!it,required:true});
+  const com=h("textarea",{id:"c-com",rows:"2",required:true,placeholder:"Ex. : oubli de pointage au départ"});
+  function dessine(){
+    zone.replaceChildren(...times.map((t,i)=>h("div",{class:"heures-edit"},
+      h("span",{class:"discret",style:"min-width:64px"},i%2?"Départ":"Arrivée"),
+      h("input",{type:"time",id:"c-h"+i,value:t,required:true,"aria-label":(i%2?"Départ ":"Arrivée ")+(Math.floor(i/2)+1),onchange:ev=>{times[i]=ev.target.value}}),
+      h("button",{type:"button","aria-label":"Supprimer cette heure",onclick:()=>{times.splice(i,1);dessine()}},"✕"))),
+      h("button",{type:"button",onclick:()=>{times.push(times.length?times[times.length-1]:"09:00");dessine()}},"Ajouter une heure"));
+  }
+  dessine();
+  ouvrir(it?"Corriger le "+frJour(it.Jour):"Ajouter une journée",
+    h("div",{class:"pile"},h("label",null,"Jour",dateInput),zone,h("label",null,"Motif de la correction (obligatoire)",com)),
+    "Envoyer à mon responsable", async()=>{
+      const jour=dateInput.value; if(!jour||jour>today()) throw new Error("Choisissez un jour passé ou aujourd'hui.");
+      if(times.some(t=>!/^\d\d:\d\d$/.test(t))) throw new Error("Renseignez toutes les heures.");
+      if(!times.length) throw new Error("Ajoutez au moins une arrivée et un départ.");
+      for(let i=1;i<times.length;i++) if(toMin(times[i])<toMin(times[i-1])) throw new Error("Les heures doivent se suivre dans l'ordre.");
+      if(times.length%2&&jour!==today()) throw new Error("Chaque arrivée doit avoir son départ.");
+      if(!com.value.trim()) throw new Error("Indiquez le motif de la correction.");
+      const m=jour.slice(0,7); await chargerMois(m);
+      const cible=it||trouverJour(jour);
+      if(cible&&cible.Statut==="Valide") throw new Error("Cette journée est déjà validée.");
+      const champs={Heures:JSON.stringify(times),Minutes:minutesDe(times),Statut:"A valider",Corrige:"oui",Commentaire:com.value.trim(),MotifRefus:""};
+      if(cible) await store.patch(L_P,cible.id,champs);
+      else await store.add(L_P,{Title:S.moi.name+" "+jour,EmployeEmail:S.moi.email,EmployeNom:S.moi.name,Jour:jour,Mois:m,ManagerEmail:S.moi.managerEmail,...champs});
+      await chargerMois(m); if(S.mois!==m&&S.miens[S.mois]===undefined) await chargerMois(S.mois);
+      afficher(); toast("Correction envoyée pour validation.");
+    });
+}
+
+/* --- Onglet Absences --- */
+function vueAbsences(){
+  const an=String(new Date().getFullYear());
+  const cp=S.abs.filter(a=>a.Motif==="Congé payé"&&a.Debut.slice(0,4)===an);
+  const pris=cp.filter(a=>a.Statut==="Valide").reduce((s,a)=>s+(+a.Jours||0),0);
+  const att=cp.filter(a=>a.Statut==="En attente").reduce((s,a)=>s+(+a.Jours||0),0);
+  const motif=h("select",{id:"a-motif"},CFG.motifs.map(m=>h("option",{value:m},m)));
+  const deb=h("input",{type:"date",id:"a-deb",required:true}), fin=h("input",{type:"date",id:"a-fin",required:true});
+  const com=h("textarea",{id:"a-com",rows:"2"});
+  const calc=h("p",{class:"discret"},"Choisissez les dates.");
+  const maj=()=>{ if(deb.value&&!fin.value) fin.value=deb.value;
+    calc.textContent=deb.value&&fin.value&&fin.value>=deb.value?joursOuvres(deb.value,fin.value)+" jour(s) ouvré(s), du lundi au vendredi, jours fériés non déduits.":"Choisissez les dates."; };
+  deb.addEventListener("change",maj); fin.addEventListener("change",maj);
+  const form=h("form",{class:"pile",onsubmit:ev=>{ev.preventDefault();agir(ev.submitter,async()=>{
+      if(fin.value<deb.value) throw new Error("La date de fin doit suivre la date de début.");
+      const n=joursOuvres(deb.value,fin.value); if(!n) throw new Error("Cette période ne contient aucun jour ouvré.");
+      if(S.abs.some(a=>(a.Statut==="Valide"||a.Statut==="En attente")&&a.Debut<=fin.value&&a.Fin>=deb.value)) throw new Error("Vous avez déjà une absence sur cette période.");
+      await store.add(L_A,{Title:S.moi.name+" "+motif.value,EmployeEmail:S.moi.email,EmployeNom:S.moi.name,Motif:motif.value,Debut:deb.value,Fin:fin.value,
+        Jours:n,Commentaire:com.value.trim(),ManagerEmail:S.moi.managerEmail,Statut:"En attente"});
+      await chargerAbs(); afficher(); toast("Demande envoyée à votre responsable.");
+    })}},
+    h("label",null,"Motif",motif),
+    h("div",{class:"grille2"},h("label",null,"Du",deb),h("label",null,"Au",fin)),
+    calc,
+    h("label",null,"Commentaire (facultatif)",com),
+    h("button",{class:"principal",type:"submit"},"Envoyer la demande"));
+  pose(
+    h("div",{class:"carte"},h("h3",null,"Congés payés "+an),
+      h("div",{class:"ligne"},h("span",null,"Validés"),h("span",{class:"num"},pris+" j")),
+      h("div",{class:"ligne"},h("span",null,"En attente de validation"),h("span",{class:"num"},att+" j"))),
+    h("div",{class:"carte"},h("h3",null,"Déclarer une absence ou demander un congé"),form),
+    h("div",{class:"carte"},h("h3",null,"Mes demandes"),
+      S.abs.length?h("div",null,S.abs.map(a=>h("div",{class:"jour"},
+        h("div",null,h("strong",null,a.Motif)," ",pastille(a.Statut)),
+        h("div",{class:"num"},(a.Jours||0)+" j"),
+        h("div",{class:"discret note"},"Du "+frJour(a.Debut)+" au "+frJour(a.Fin)+(a.Commentaire?" · "+a.Commentaire:"")),
+        a.Statut==="Refuse"&&a.MotifRefus?h("div",{class:"bandeau refus note"},"Motif du refus : "+a.MotifRefus):null,
+        a.Statut==="En attente"?h("div",{class:"actions"},h("button",{onclick:ev=>agir(ev.currentTarget,async()=>{await store.patch(L_A,a.id,{Statut:"Annule"});await chargerAbs();afficher()})},"Annuler la demande")):null)))
+      :h("p",{class:"discret"},"Aucune demande pour l'instant.")));
+}
+
+/* --- Onglet Validation (manager, RH) --- */
+function demanderMotif(titre, surOk){
+  const m=h("textarea",{id:"r-motif",rows:"3",required:true});
+  ouvrir(titre,h("label",null,"Motif du refus (visible par le salarié)",m),"Refuser",async()=>{
+    if(!m.value.trim()) throw new Error("Indiquez un motif."); await surOk(m.value.trim());});
+}
+function vueEquipe(){
+  const jour=today(), groupes={};
+  for(const p of S.attP)(groupes[p.EmployeEmail]=groupes[p.EmployeEmail]||[]).push(p);
+  const validable=p=>heuresDe(p).length>0&&heuresDe(p).length%2===0&&p.Jour<jour;
+  const valider=async liste=>{for(const p of liste) await store.patch(L_P,p.id,{Statut:"Valide",ValidePar:S.moi.email});await chargerEquipe();afficher()};
+  const cartesA=S.attA.map(a=>h("div",{class:"jour"},
+    h("div",null,h("strong",null,a.EmployeNom)," · "+a.Motif),
+    h("div",{class:"num"},(a.Jours||0)+" j"),
+    h("div",{class:"discret note"},"Du "+frJour(a.Debut)+" au "+frJour(a.Fin)+(a.Commentaire?" · "+a.Commentaire:"")),
+    h("div",{class:"actions"},
+      h("button",{class:"principal",onclick:ev=>agir(ev.currentTarget,async()=>{await store.patch(L_A,a.id,{Statut:"Valide",ValidePar:S.moi.email});await chargerEquipe();afficher();toast("Absence validée.")})},"Valider"),
+      h("button",{class:"danger",onclick:()=>demanderMotif("Refuser la demande de "+a.EmployeNom,async motif=>{await store.patch(L_A,a.id,{Statut:"Refuse",MotifRefus:motif,ValidePar:S.moi.email});await chargerEquipe();afficher()})},"Refuser"))));
+  const cartesP=Object.values(groupes).map(liste=>{
+    const ok=liste.filter(validable);
+    return h("div",{class:"carte"},
+      h("div",{class:"ligne"},h("h3",null,liste[0].EmployeNom),
+        h("button",{class:"principal",disabled:!ok.length,onclick:ev=>agir(ev.currentTarget,async()=>{await valider(ok);toast(ok.length+" jour(s) validé(s).")})},"Valider "+ok.length+" jour(s) complet(s)")),
+      h("div",null,liste.map(p=>{
+        const times=heuresDe(p), enCours=p.Jour===jour, incomplet=times.length%2===1&&!enCours;
+        return h("div",{class:"jour"},
+          h("div",null,h("strong",null,frJour(p.Jour)),p.Corrige==="oui"?h("span",{class:"pastille p-attente",style:"margin-left:6px"},"Corrigé"):null),
+          h("div",{class:"num"},fmtMin(minutesDe(times,enCours))),
+          h("div",{class:"num discret note"},paires(times)),
+          p.Commentaire?h("div",{class:"discret note"},"Motif : "+p.Commentaire):null,
+          enCours?h("div",{class:"discret note"},"Journée en cours, validable à partir de demain."):null,
+          incomplet?h("div",{class:"bandeau note"},"Pointage de départ manquant. Refusez pour demander une correction."):null,
+          enCours?null:h("div",{class:"actions"},
+            h("button",{disabled:!validable(p),onclick:ev=>agir(ev.currentTarget,()=>valider([p]))},"Valider"),
+            h("button",{class:"danger",onclick:()=>demanderMotif("Refuser le "+frJour(p.Jour)+" de "+p.EmployeNom,async motif=>{await store.patch(L_P,p.id,{Statut:"Refuse",MotifRefus:motif,ValidePar:S.moi.email});await chargerEquipe();afficher()})},"Refuser")));
+      })));
+  });
+  pose(
+    h("div",{class:"ligne"},h("h2",null,"À valider"),h("button",{onclick:ev=>agir(ev.currentTarget,async()=>{await chargerEquipe();afficher()})},"Actualiser")),
+    h("div",{class:"carte"},h("h3",null,"Absences et congés ("+S.attA.length+")"),
+      cartesA.length?h("div",null,cartesA):h("p",{class:"discret"},"Aucune demande en attente.")),
+    h("h3",null,"Pointages ("+S.attP.length+" jour(s))"),
+    ...(cartesP.length?cartesP:[h("div",{class:"carte"},h("p",{class:"discret"},"Aucun pointage en attente."))]));
+}
+
+/* --- Onglet Synthèse (manager, RH) --- */
+async function chargerSynthese(){
+  const m=S.moisSynthese, f=S.estRH?{}:{ManagerEmail:S.moi.email};
+  const [p,a]=await Promise.all([store.query(L_P,{...f,Mois:m}),store.query(L_A,{...f,Statut:"Valide"})]);
+  const d=dateDe(m+"-01"), debut=m+"-01", finM=ymd(new Date(d.getFullYear(),d.getMonth()+1,0));
+  S.synth={mois:m,p,a:a.filter(x=>x.Debut<=finM&&x.Fin>=debut),debut,finM};
+}
+function csv(nom, lignes){
+  const txt="\ufeff"+lignes.map(l=>l.map(c=>{const s=String(c==null?"":c);return /[";\n]/.test(s)?'"'+s.replace(/"/g,'""')+'"':s}).join(";")).join("\r\n");
+  const a=h("a",{href:URL.createObjectURL(new Blob([txt],{type:"text/csv;charset=utf-8"})),download:nom});
+  document.body.append(a); a.click(); a.remove();
+}
+function vueSynthese(){
+  if(!S.synth||S.synth.mois!==S.moisSynthese){
+    pose(h("p",{class:"discret"},"Chargement…"));
+    chargerSynthese().then(afficher).catch(e=>{pose(h("div",{class:"bandeau refus"},e.message))});
+    return;
+  }
+  const {p,a,debut,finM}=S.synth, par={};
+  const de=(e,n)=>par[e]=par[e]||{nom:n,min:0,jours:0,valides:0,attente:0,abs:0};
+  for(const x of p){const r=de(x.EmployeEmail,x.EmployeNom);r.min+=+x.Minutes||0;r.jours++;if(x.Statut==="Valide")r.valides++;else r.attente++;}
+  for(const x of a){de(x.EmployeEmail,x.EmployeNom).abs+=joursOuvres(x.Debut,x.Fin,debut,finM);}
+  const lignes=Object.values(par).sort((x,y)=>x.nom.localeCompare(y.nom));
+  pose(
+    navMois("moisSynthese",async()=>{S.synth=null}),
+    h("div",{class:"carte"},
+      h("p",{class:"discret"},S.estRH?"Tous les salariés.":"Votre équipe."),
+      lignes.length?h("div",{class:"table-zone"},h("table",null,
+        h("thead",null,h("tr",null,h("th",null,"Salarié"),h("th",{class:"d"},"Heures"),h("th",{class:"d"},"Jours pointés"),h("th",{class:"d"},"Validés"),h("th",{class:"d"},"À traiter"),h("th",{class:"d"},"Absences (j)"))),
+        h("tbody",null,lignes.map(r=>h("tr",null,h("td",null,r.nom),h("td",{class:"d num"},fmtMin(r.min)),h("td",{class:"d num"},r.jours),
+          h("td",{class:"d num"},r.valides),h("td",{class:"d num"},r.attente?h("span",{class:"pastille p-attente"},r.attente):"0"),h("td",{class:"d num"},r.abs))))))
+        :h("p",{class:"discret"},"Aucune donnée pour ce mois."),
+      h("div",{class:"ligne"},
+        h("button",{disabled:!p.length,onclick:()=>csv("pointages-"+S.moisSynthese+".csv",[["Salarié","Identifiant","Jour","Pointages","Heures (décimal)","Statut","Corrigé","Commentaire"],
+          ...p.slice().sort((x,y)=>(x.EmployeNom+x.Jour).localeCompare(y.EmployeNom+y.Jour)).map(x=>[x.EmployeNom,x.EmployeEmail,x.Jour,heuresDe(x).join(" "),((+x.Minutes||0)/60).toFixed(2).replace(".",","),x.Statut,x.Corrige||"",x.Commentaire||""])])},"Exporter les pointages (CSV)"),
+        h("button",{disabled:!a.length,onclick:()=>csv("absences-"+S.moisSynthese+".csv",[["Salarié","Identifiant","Motif","Début","Fin","Jours ouvrés","Validé par"],
+          ...a.map(x=>[x.EmployeNom,x.EmployeEmail,x.Motif,x.Debut,x.Fin,x.Jours,x.ValidePar||""])])},"Exporter les absences (CSV)"))));
+}
+
+demarrer();
+</script>
+</body>
+</html>

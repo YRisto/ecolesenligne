@@ -21,6 +21,8 @@ const nextConfig = {
       { source: '/LandOfLord', destination: '/landoflord/index.html' },
       { source: '/velpo', destination: '/velpo/index.html' },
       { source: '/Velpo', destination: '/velpo/index.html' },
+      { source: '/kokolio', destination: '/kokolio/index.html' },
+      { source: '/Kokolio', destination: '/kokolio/index.html' },
     ];
   },
 };
