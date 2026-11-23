@@ -205,7 +205,8 @@ ul{margin:6px 0 12px;padding-left:20px} li{margin:3px 0}
 <script>
 "use strict";
 /* ================= Réglages et outils ================= */
-const CFG = Object.assign({demo:true, rh:[], managerParDefaut:"", pauseMin:45, pauseSeuilH:6, cpParMois:2.08, forfaitJours:218, toleranceRetardMin:10, notifications:false,
+const CFG = Object.assign({demo:true, rh:[], managerParDefaut:"", pauseMin:45, pauseSeuilH:6, cpParMois:2.08, forfaitJours:218, heuresAnnuelles:1607, teletravailMaxSemaine:2, cetMaxParAn:10,
+  anciennete:[{ans:5,jours:1},{ans:10,jours:2},{ans:15,jours:3},{ans:20,jours:4}], alertes:{essai:30,cdd:60,visite:60}, toleranceRetardMin:10, notifications:false,
   motifs:["Congé payé","RTT","Arrêt maladie","Congé sans solde","Événement familial","Formation","Autre"],
   lieux:["Bureau","Télétravail","Déplacement"], activites:["Activité courante","Réunion","Formation","Rendez-vous extérieur"],
   modeles:[{nom:"Journée",debut:"09:00",fin:"17:00"},{nom:"Matin",debut:"07:00",fin:"14:00"},{nom:"Après-midi",debut:"13:00",fin:"20:00"},{nom:"Repos"}],
@@ -275,23 +276,41 @@ function ficheDefaut(email,nom,manager){return {Title:nom,EmployeEmail:email,Emp
 const joursTrav=f=>new Set(String((f&&f.JoursTravailles)||"1,2,3,4,5").split(",").map(Number));
 const estTravaille=(f,j)=>joursTrav(f).has(dateDe(j).getDay())&&!ferieLe(j);
 const forfait=f=>f&&f.Contrat==="Forfait jours";
-const theoJour=(f,j)=>forfait(f)||!estTravaille(f,j)?0:(+f.HeuresHebdo||35)*60/joursTrav(f).size;
+const det=f=>{if(!f) return {}; if(!f._d||f._ds!==f.Details){f._d=jsonDe(f.Details,{});f._ds=f.Details} return f._d};
+function heuresSemaine(f,j){ // cycle de plusieurs semaines, sinon horaire hebdomadaire de la fiche
+  const d=det(f);
+  if(d.Organisation==="Cycle"&&d.CycleHeures){
+    const c=String(d.CycleHeures).split(/[;\/ ]+/).map(x=>+x.replace(",",".")).filter(x=>x>0);
+    if(c.length){const n=Math.round((dateDe(lundiDe(j))-dateDe(lundiDe(d.CycleDebut||j.slice(0,4)+"-01-05")))/6048e5);return c[((n%c.length)+c.length)%c.length];}
+  }
+  return +f.HeuresHebdo||35;
+}
+const theoJour=(f,j)=>forfait(f)||!estTravaille(f,j)?0:heuresSemaine(f,j)*60/joursTrav(f).size;
+function anciennete(f){
+  if(!f||!f.DateEntree) return null;
+  const a=dateDe(f.DateEntree), b=new Date(); let m=(b.getFullYear()-a.getFullYear())*12+b.getMonth()-a.getMonth()-(b.getDate()<a.getDate()?1:0); if(m<0) m=0;
+  return {ans:Math.floor(m/12),mois:m%12,total:m,texte:(Math.floor(m/12)?Math.floor(m/12)+" an"+(m>=24?"s":"")+" ":"")+(m%12)+" mois"};
+}
+function joursAnciennete(f){const a=anciennete(f); let j=0; if(a) for(const p of CFG.anciennete||[]) if(a.ans>=p.ans) j=Math.max(j,p.jours); return j}
+const estActif=f=>{const d=det(f);return !d.DateSortie||d.DateSortie>=today()};
 const pauseDe=f=>f&&f.PauseMin!==""&&f.PauseMin!=null?+f.PauseMin:CFG.pauseMin;
 function netMin(times,f,enCours){
   const brut=minutesDe(times,enCours);
   return times.length===2&&brut>CFG.pauseSeuilH*60?Math.max(0,brut-pauseDe(f)):brut;
 }
 const minDe=(it,f)=>f?netMin(heuresDe(it),f,it.Jour===today()):(+it.Minutes||0);
-const absLe=(liste,j,statuts)=>liste.find(a=>(statuts||["Valide"]).includes(a.Statut)&&a.Debut<=j&&a.Fin>=j);
+const HORS_ABS=["Télétravail","Versement CET"]; // demandes qui ne sont pas des absences
+const absLe=(liste,j,statuts)=>liste.find(a=>!HORS_ABS.includes(a.Motif)&&(statuts||["Valide"]).includes(a.Statut)&&a.Debut<=j&&a.Fin>=j);
+const ttLe=(liste,j,statuts)=>liste.find(a=>a.Motif==="Télétravail"&&(statuts||["Valide"]).includes(a.Statut)&&a.Debut<=j&&a.Fin>=j);
 function joursAbsence(f,a,min,max){
   if(a.DemiJournee) return (!min||a.Debut>=min)&&(!max||a.Debut<=max)&&estTravaille(f,a.Debut)?0.5:0;
   let j=min&&min>a.Debut?min:a.Debut; const fin=max&&max<a.Fin?max:a.Fin; let n=0;
   while(j<=fin){if(estTravaille(f,j)) n++; j=plusJours(j,1);}
   return n;
 }
-const CODE_ABS={"Congé payé":["CP","k-cp"],"RTT":["RTT","k-rtt"],"Arrêt maladie":["AM","k-am"],"Maladie":["AM","k-am"]};
+const CODE_ABS={"Congé payé":["CP","k-cp"],"RTT":["RTT","k-rtt"],"Arrêt maladie":["AM","k-am"],"Maladie":["AM","k-am"],"Télétravail":["TT","k-tt"],"Congé CET":["CET","k-rtt"],"Versement CET":["CET","k-rtt"]};
 const codeAbs=m=>CODE_ABS[m]||["AB","k-ab"];
-const SUBIES=m=>!["Congé payé","RTT","Formation"].includes(m);
+const SUBIES=m=>!["Congé payé","RTT","Formation","Congé CET"].includes(m);
 
 /* Bilan d'une personne sur une période : heures, théorique, écart, anomalies, alertes légales */
 function bilan(f, items, abs, debut, fin){
@@ -361,7 +380,7 @@ function ouvrir(titre, corps, libelleOk, surOk){
 
 /* ================= Stockage : démonstration ================= */
 function magasinDemo(){
-  const CLE="pointage-demo-v3";
+  const CLE="pointage-demo-v4";
   const G=[["camille.martin@demo.fr","Camille Martin","julien.bernard@demo.fr","Admissions",35,"1,2,3,4,5","0012"],
     ["thomas.petit@demo.fr","Thomas Petit","julien.bernard@demo.fr","Admissions",35,"1,2,3,4,5","0027"],
     ["ines.roux@demo.fr","Inès Roux","julien.bernard@demo.fr","Pédagogie",28,"1,2,3,4","0031"],
@@ -377,11 +396,22 @@ function magasinDemo(){
     let graineN=20261123; const alea=()=>{graineN=(graineN*1664525+1013904223)%4294967296;return graineN/4294967296};
     const auj=today(), y=+auj.slice(0,4), fiches={};
     G.forEach(g=>{const f={...ficheDefaut(g[0],g[1],g[2]),Equipe:g[3],HeuresHebdo:g[4],JoursTravailles:g[5],Matricule:g[6],Contrat:g[7]||"Horaire",
-      DateEntree:(y-3)+"-09-01",SoldeCP:g[0].startsWith("ines")?4:6,SoldeRTT:g[4]>35?10:0};fiches[g[0]]=f;add(L_S,f)});
+      DateEntree:(y-3)+"-09-01",SoldeCP:g[0].startsWith("ines")?4:6,SoldeRTT:g[4]>35?10:0};
+      const plus=n=>plusJours(auj,n), D={
+        "camille.martin@demo.fr":{Civilite:"Mme",Poste:"Conseillère en formation",Categorie:"Employé",TypeContrat:"CDI",Etablissement:"Siège",Telephone:"06 00 00 00 01",ContactUrgence:"Paul Martin, 06 00 00 00 02",TypeSuivi:"Simple",DerniereVisite:(y-5)+"-12-18",ProchaineVisite:plus(25),SoldeCET:3},
+        "thomas.petit@demo.fr":{Civilite:"M.",Poste:"Chargé d'admission",Categorie:"Employé",TypeContrat:"CDD",DateFinContrat:plus(40),MotifCDD:"Accroissement temporaire d'activité",Etablissement:"Siège",Organisation:"Annualisation",HeuresAnnuelles:1607},
+        "ines.roux@demo.fr":{Civilite:"Mme",Poste:"Formatrice",Categorie:"Agent de maîtrise",TypeContrat:"CDI",Etablissement:"Antenne Lyon",Organisation:"Cycle",CycleHeures:"32/24",CycleDebut:y+"-01-05",TeletravailMax:1},
+        "julien.bernard@demo.fr":{Civilite:"M.",Poste:"Responsable des admissions",Categorie:"Cadre",TypeContrat:"CDI",Etablissement:"Siège",ProchaineVisite:plus(-10),SoldeCET:8},
+        "sophie.leroy@demo.fr":{Civilite:"Mme",Poste:"Responsable RH",Categorie:"Cadre",TypeContrat:"CDI",Etablissement:"Siège"},
+        "nadia.benali@demo.fr":{Civilite:"Mme",Poste:"Responsable pédagogique",Categorie:"Cadre",TypeContrat:"CDI",Etablissement:"Siège",FinPeriodeEssai:plus(20),EssaiRenouvele:"Non"}};
+      f.Details=JSON.stringify(D[g[0]]||{});
+      if(g[0].startsWith("nadia")) f.DateEntree=plus(-100); if(g[0].startsWith("sophie")) f.DateEntree=(y-12)+"-03-01"; if(g[0].startsWith("julien")) f.DateEntree=(y-6)+"-01-15"; if(g[0].startsWith("thomas")) f.DateEntree=(y-1)+"-12-01";
+      fiches[g[0]]=f;add(L_S,f)});
     const abs=(e,motif,deb,fin,statut,extra)=>{const f=fiches[e];const a={Title:f.EmployeNom+" "+motif,EmployeEmail:e,EmployeNom:f.EmployeNom,Motif:motif,Debut:deb,Fin:fin,
       ManagerEmail:f.ManagerEmail,Statut:statut||"Valide",DemiJournee:"",...(extra||{})};a.Jours=joursAbsence(f,a);add(L_A,a)};
     const C=gens[0].email,T=gens[1].email,I=gens[2].email,J=gens[3].email,N=gens[5].email;
-    abs(N,"Congé payé",y+"-07-20",y+"-08-07"); abs(N,"Formation",y+"-03-16",y+"-03-18");
+    abs(C,"Télétravail",plusJours(lundiDe(auj),11),plusJours(lundiDe(auj),11)); abs(I,"Télétravail",plusJours(lundiDe(auj),15),plusJours(lundiDe(auj),15),"En attente");
+    abs(J,"Versement CET",y+"-06-30",y+"-06-30"); d.lists[L_A][d.lists[L_A].length-1].Jours=3;
     abs(C,"Arrêt maladie",y+"-02-09",y+"-02-13"); abs(C,"Congé payé",y+"-04-13",y+"-04-17"); abs(C,"Congé payé",y+"-08-03",y+"-08-21");
     abs(C,"Formation",y+"-06-09",y+"-06-10"); abs(C,"Congé payé",y+"-12-24",y+"-12-31");
     abs(T,"Arrêt maladie",y+"-03-02",y+"-03-04"); abs(T,"Congé payé",y+"-07-13",y+"-07-31"); abs(T,"Événement familial",y+"-10-05",y+"-10-06");
@@ -390,7 +420,7 @@ function magasinDemo(){
     abs(J,"RTT",y+"-05-15",y+"-05-15"); abs(J,"RTT",y+"-09-18",y+"-09-18"); abs(J,"Congé payé",y+"-08-10",y+"-08-28");
     const oubli=plusJours(auj,-8), sansDepart=plusJours(auj,-3), longue=plusJours(auj,-2);
     for(const e of [C,T,I,J,N]){
-      const f=fiches[e], sesAbs=d.lists[L_A].filter(a=>a.EmployeEmail===e); let j=y+"-01-01"; const hier=plusJours(auj,-1);
+      const f=fiches[e], sesAbs=d.lists[L_A].filter(a=>a.EmployeEmail===e); let j=f.DateEntree>y+"-01-01"?f.DateEntree:y+"-01-01"; const hier=plusJours(auj,-1);
       while(j<=hier){
         if(estTravaille(f,j)&&!absLe(sesAbs,j)&&!(e===T&&j===oubli)){
           const arr=500+Math.floor(alea()*45), midi=720+Math.floor(alea()*30), pause=45+Math.floor(alea()*20);
@@ -505,7 +535,7 @@ function magasinMicrosoft(){
       const defs={
         [L_P]:[txt("EmployeEmail"),txt("EmployeNom"),txt("Jour"),txt("Mois"),long("Heures"),nb("Minutes"),txt("ManagerEmail"),txt("Statut"),txt("Corrige"),txt("Lieu"),txt("Activite"),long("Commentaire"),long("MotifRefus"),txt("ValidePar")],
         [L_A]:[txt("EmployeEmail"),txt("EmployeNom"),txt("Motif"),txt("Debut"),txt("Fin"),txt("DemiJournee"),nb("Jours"),long("Commentaire"),txt("ManagerEmail"),txt("Statut"),long("MotifRefus"),txt("ValidePar"),txt("JustificatifNom"),long("JustificatifUrl")],
-        [L_S]:[txt("EmployeEmail"),txt("EmployeNom"),txt("Equipe"),txt("Contrat"),txt("DateEntree"),nb("HeuresHebdo"),txt("JoursTravailles"),nb("PauseMin"),nb("SoldeCP"),nb("SoldeRTT"),txt("Matricule"),txt("ManagerEmail"),txt("Delegue")],
+        [L_S]:[txt("EmployeEmail"),txt("EmployeNom"),txt("Equipe"),txt("Contrat"),txt("DateEntree"),nb("HeuresHebdo"),txt("JoursTravailles"),nb("PauseMin"),nb("SoldeCP"),nb("SoldeRTT"),txt("Matricule"),txt("ManagerEmail"),txt("Delegue"),long("Details")],
         [L_PL]:[txt("EmployeEmail"),txt("ManagerEmail"),txt("Semaine"),long("Affectations")],
         [L_C]:[txt("Mois"),txt("Statut"),txt("CloturePar")],
         [L_J]:[txt("Date"),txt("Auteur"),txt("Action"),txt("Cible"),long("Detail")]
@@ -523,7 +553,7 @@ function magasinMicrosoft(){
 const store = CFG.demo ? magasinDemo() : magasinMicrosoft();
 const S={moi:null,fiche:null,onglet:"pointer",sous:"validation",mois:today().slice(0,7),moisSynthese:today().slice(0,7),semaine:lundiDe(today()),
   miens:{},abs:[],attP:[],absEquipe:[],fiches:[],plan:[],planMoi:[],clotures:[],pour:[],estRH:false,estManager:false,synth:null,
-  an:null,anQui:"",anAnnee:+today().slice(0,4),journal:null,accueil:true,mode:"",joursAn:null};
+  an:null,anQui:"",anAnnee:+today().slice(0,4),journal:null,accueil:true,mode:"",joursAn:null,cumul:null};
 const vue=document.getElementById("vue");
 function pose(...k){vue.replaceChildren(...k.flat(Infinity).filter(x=>x!=null&&x!==false))}
 const estClos=m=>S.clotures.some(c=>c.Mois===m&&c.Statut==="Cloture");
@@ -583,7 +613,9 @@ async function demarrer(){
     const m=today().slice(0,7), ml=lundiDe(today()).slice(0,7);
     [S.clotures,S.planMoi]=await Promise.all([store.query(L_C,{}),store.query(L_PL,{EmployeEmail:S.moi.email}),chargerMois(m),ml!==m?chargerMois(ml):null,chargerAbs()]);
     await chargerEquipe();
-    if(forfait(S.fiche)){const y=today().slice(0,4);S.joursAn=(await store.query(L_P,{EmployeEmail:S.moi.email})).filter(x=>x.Jour.slice(0,4)===y&&heuresDe(x).length).length;}
+    if(forfait(S.fiche)||det(S.fiche).Organisation==="Annualisation"){const y=today().slice(0,4);
+      const an=(await store.query(L_P,{EmployeEmail:S.moi.email})).filter(x=>x.Jour.slice(0,4)===y&&heuresDe(x).length);
+      S.joursAn=an.length; S.cumul={min:an.reduce((t,x)=>t+minDe(x,S.fiche),0)};}
   }catch(e){
     if(e.message==="redirection") return;
     if(e.status===404&&!store.demo){ecranInstallation();return}
@@ -613,14 +645,15 @@ const MODES=[
   ["rh","RH","Tous les salariés : fiches, soldes, clôture mensuelle, export Silae, journal."],
   ["admin","Administrateur","Liste complète des fonctionnalités et historique des versions."]];
 function modeDispo(m){
-  if(store.demo) return {ok:true,note:m==="admin"?"":"Démonstration avec "+store.gens.find(g=>g.email===store.roles[m]).name};
+  if(store.demo) return {ok:true,note:m==="admin"?"":"Démonstration avec "+(demoConvient(m)?S.moi.name:store.gens.find(g=>g.email===store.roles[m]).name)};
   if(m==="salarie") return forfait(S.fiche)?{ok:false,note:"Votre fiche indique un forfait jours."}:{ok:true,note:""};
   if(m==="cadre") return forfait(S.fiche)?{ok:true,note:""}:{ok:false,note:"Votre fiche n'indique pas de forfait jours."};
   if(m==="manager") return S.estManager?{ok:true,note:""}:{ok:false,note:"Aucun salarié ne vous est rattaché."};
   return S.estRH?{ok:true,note:""}:{ok:false,note:"Réservé aux RH."};
 }
+const demoConvient=m=>m==="salarie"?!forfait(S.fiche):m==="cadre"?forfait(S.fiche):store.roles[m]===S.moi.email;
 function entrer(m){
-  if(store.demo&&m!=="admin"&&store.roles[m]!==S.moi.email){ecrireMode(m);store.changer(store.roles[m]);location.reload();return}
+  if(store.demo&&m!=="admin"&&!demoConvient(m)){ecrireMode(m);store.changer(store.roles[m]);location.reload();return}
   ecrireMode(m); S.mode=m; S.accueil=false;
   S.onglet=m==="admin"?"admin":(m==="manager"||m==="rh")?"equipe":"pointer";
   if(m==="rh") S.sous="synthese"; if(m==="manager") S.sous="validation";
@@ -630,11 +663,21 @@ function vueAccueil(){
   pose(h("div",{class:"pile bienvenue"},h("h2",null,"Bonjour "+S.moi.name.replace(/ \(.*\)$/,"").split(" ")[0]),h("p",{class:"discret"},"Choisissez votre espace.")),
     h("div",{class:"modes"},MODES.map(([id,titre,texte])=>{const d=modeDispo(id);
       return h("button",{class:"mode",disabled:!d.ok,onclick:()=>entrer(id)},h("strong",null,titre),h("i",{"aria-hidden":"true"},"→"),h("span",null,texte),d.note?h("span",{class:"discret"},d.note):null)})),
-    store.demo?h("p",{class:"discret"},"En démonstration, chaque espace ouvre un compte fictif différent. ",h("button",{class:"lien",onclick:()=>{store.reinit();ecrireMode("");location.reload()}},"Remettre les données à zéro")):null);
+    store.demo?h("label",null,"Compte fictif utilisé pour la démonstration",h("select",{id:"demo-qui",onchange:ev=>{ecrireMode("");store.changer(ev.target.value);location.reload()}},
+      store.gens.map(g=>h("option",{value:g.email,selected:g.email===S.moi.email},g.name)))):null,
+    store.demo?h("p",{class:"discret"},"Les espaces Manager et RH ouvrent toujours le compte fictif correspondant. ",h("button",{class:"lien",onclick:()=>{store.reinit();ecrireMode("");location.reload()}},"Remettre les données à zéro")):null);
 }
 
 /* ================= Administrateur : fonctionnalités et versions ================= */
 const VERSIONS=[
+  {v:"V4",date:"23/11/2026",titre:"Organisation du temps, télétravail, CET, effectifs",points:[
+    "Cycles de travail sur plusieurs semaines et annualisation, avec compteur annuel",
+    "Télétravail : demandes de jours, quota par semaine, validation par le manager, affichage au planning et dans la vue annuelle",
+    "Ancienneté calculée et congés d'ancienneté ajoutés au solde",
+    "Compte épargne-temps : versement de congés payés et prise de congés CET, validés par le manager",
+    "Fiche salarié complète : identité, poste, contrat, temps de travail, congés, santé au travail",
+    "Suivi des effectifs : effectif, équivalent temps plein, entrées et sorties, répartitions par contrat, catégorie et équipe",
+    "Échéances : fin de période d'essai, fin de CDD, visite médicale"]},
   {v:"V3.1",date:"23/11/2026",titre:"Nouveau design",points:[
     "Nouvelle identité : typographies Bricolage Grotesque et Figtree, palette encre et bleu, thème sombre revu",
     "Écran Pointer repensé : horloge et bouton en bloc principal, chiffres clés en tuiles",
@@ -656,11 +699,11 @@ const VERSIONS=[
     "Déclaration d'absence et demande de congé","Validation par le manager, avec motif en cas de refus","Synthèse mensuelle et export CSV","Mode démonstration"]}];
 const FONCTIONS=[
   ["Pointage",["Arrivée et départ en un geste, autant de fois que nécessaire dans la journée","Choix du lieu et de l'activité","Correction d'une journée ou ajout d'une journée oubliée, avec motif obligatoire","Journée verrouillée après validation ou clôture du mois"]],
-  ["Temps de travail",["Horaire prévu selon la fiche (heures par semaine, jours travaillés)","Compteur débit-crédit par semaine et par mois","Pause déduite quand aucune n'est pointée","Forfait jours : décompte des jours travaillés dans l'année","Alertes légales : 10 h par jour, 48 h par semaine, repos de 11 h","Anomalies : départ non pointé, jour sans pointage ni absence, retard sur le planning"]],
-  ["Congés et absences",["Demande de congé et déclaration d'absence par motif","Demi-journées","Jours fériés et jours non travaillés exclus du décompte","Soldes de congés payés et de RTT","Justificatif en pièce jointe","Annulation d'une demande en attente"]],
+  ["Temps de travail",["Horaire prévu selon la fiche (heures par semaine, jours travaillés)","Compteur débit-crédit par semaine et par mois","Pause déduite quand aucune n'est pointée","Forfait jours : décompte des jours travaillés dans l'année","Cycles de plusieurs semaines et annualisation","Alertes légales : 10 h par jour, 48 h par semaine, repos de 11 h","Anomalies : départ non pointé, jour sans pointage ni absence, retard sur le planning"]],
+  ["Congés et absences",["Demande de congé et déclaration d'absence par motif","Demi-journées","Jours fériés et jours non travaillés exclus du décompte","Soldes de congés payés et de RTT, congés d'ancienneté","Compte épargne-temps : versements et congés CET","Télétravail avec quota hebdomadaire","Justificatif en pièce jointe","Annulation d'une demande en attente"]],
   ["Vue annuelle",["Un an jour par jour : travaillé, télétravail, CP, RTT, arrêt maladie, autre absence, férié, à régulariser","Totaux par catégorie et heures par mois","Consultable par le manager et les RH pour chaque salarié"]],
   ["Manager",["Validation ou refus des pointages, jour par jour ou en lot","Validation ou refus des absences, avec solde et chevauchements dans l'équipe","Planning hebdomadaire par modèles d'horaires, recopie de la semaine précédente","Délégation des validations à un remplaçant","Synthèse mensuelle et tableau de bord de l'équipe"]],
-  ["RH",["Vision de tous les salariés","Fiches salariés : équipe, matricule, contrat, horaire, soldes, responsable","Clôture et réouverture d'un mois","Export Silae et exports CSV (pointages, absences, temps par activité)","Journal des actions"]],
+  ["RH",["Vision de tous les salariés","Fiche salarié complète : identité, poste, contrat, temps de travail, congés, santé au travail","Suivi des effectifs et échéances : période d'essai, fin de CDD, visite médicale","Clôture et réouverture d'un mois","Export Silae et exports CSV (pointages, absences, temps par activité)","Journal des actions"]],
   ["Technique",["Connexion Microsoft (Entra ID)","Données dans des listes SharePoint de l'entreprise","Responsable lu dans l'annuaire Microsoft","Notifications par e-mail (option)","Mode démonstration sans connexion","Utilisable sur téléphone et ordinateur, thème clair ou sombre"]]];
 function vueAdmin(){
   pose(h("div",{class:"ligne"},h("h2",null,"Administrateur"),h("span",{class:"pastille p-neutre"},"Version actuelle : "+VERSIONS[0].v+" du "+VERSIONS[0].date)),
@@ -668,7 +711,7 @@ function vueAdmin(){
       FONCTIONS.map(([t,l])=>h("div",null,h("strong",null,t),h("ul",null,l.map(x=>h("li",null,x)))))),
     h("div",{class:"carte"},h("h3",null,"Historique des versions"),
       VERSIONS.map(v=>h("div",null,h("div",{class:"ligne"},h("strong",null,v.v+" · "+v.titre),h("span",{class:"num discret"},v.date)),h("ul",null,v.points.map(x=>h("li",null,x)))))),
-    h("div",{class:"carte"},h("h3",null,"Non géré pour l'instant"),h("ul",null,["Majorations d'heures supplémentaires","Période de référence des congés du 1er juin au 31 mai","Plusieurs activités dans une même journée","Cloisonnement strict des données entre salariés"].map(x=>h("li",null,x)))));
+    h("div",{class:"carte"},h("h3",null,"Non géré pour l'instant"),h("ul",null,["Majorations d'heures supplémentaires","Numéro de sécurité sociale, coordonnées bancaires et salaire (volontairement absents de la fiche)","Période de référence des congés du 1er juin au 31 mai","Plusieurs activités dans une même journée","Cloisonnement strict des données entre salariés"].map(x=>h("li",null,x)))));
 }
 function ecranInstallation(){
   document.getElementById("onglets").replaceChildren();
@@ -697,6 +740,13 @@ function listeAlertes(titre,liste,cls){
 }
 
 /* ================= Pointer ================= */
+function tuileAnnuelle(f){
+  const d=det(f); if(d.Organisation!=="Annualisation"||!S.cumul) return null;
+  const y=today().slice(0,4), cible=+d.HeuresAnnuelles||CFG.heuresAnnuelles, hier=plusJours(today(),-1); let tot=0,ec=0,j=y+"-01-01";
+  while(j<=y+"-12-31"){if(estTravaille(f,j)){tot++;if(j<=hier) ec++;} j=plusJours(j,1);}
+  const e=S.cumul.min-cible*60*ec/tot;
+  return stat("Année "+y,fmtEcart(e),fmtMin(S.cumul.min)+" faites sur "+cible+" h",e<0?"moins":"plus");
+}
 function vuePointer(){
   const now=new Date(), jour=today(), m=jour.slice(0,7), it=trouverJour(jour), times=it?heuresDe(it):[];
   const present=times.length%2===1, verrou=(it&&it.Statut==="Valide")||estClos(m);
@@ -707,7 +757,7 @@ function vuePointer(){
   const abs=absLe(S.abs,jour), mod=modeleLe(S.moi.email,jour), fer=ferieLe(jour);
   const majJour=ch=>{ if(ch.Lieu) S.lieu=ch.Lieu; if(ch.Activite) S.activite=ch.Activite;
     const x=trouverJour(jour); if(x) agir(null,async()=>{await store.patch(L_P,x.id,ch);Object.assign(x,ch)}); };
-  const lieu=h("select",{id:"p-lieu",disabled:verrou,onchange:ev=>majJour({Lieu:ev.target.value})},CFG.lieux.map(l=>h("option",{value:l,selected:(it&&it.Lieu||S.lieu||CFG.lieux[0])===l},l)));
+  const lieu=h("select",{id:"p-lieu",disabled:verrou,onchange:ev=>majJour({Lieu:ev.target.value})},CFG.lieux.map(l=>h("option",{value:l,selected:(it&&it.Lieu||S.lieu||(ttLe(S.abs,jour)?"Télétravail":CFG.lieux[0]))===l},l)));
   const act=h("select",{id:"p-act",disabled:verrou,onchange:ev=>majJour({Activite:ev.target.value})},CFG.activites.map(l=>h("option",{value:l,selected:(it&&it.Activite||S.activite||CFG.activites[0])===l},l)));
   const theo=theoJour(S.fiche,jour)*(abs?(abs.DemiJournee?0.5:0):1), fait=netMin(times,S.fiche,true);
   pose(
@@ -725,7 +775,7 @@ function vuePointer(){
     h("div",{class:"tuiles"},
       stat("Aujourd'hui",fmtMin(fait),theo?"sur "+fmtMin(theo)+" prévues":null),
       forfait(S.fiche)?[stat("Jours travaillés",S.joursAn||0,"forfait "+jour.slice(0,4)+" : "+CFG.forfaitJours+" j"),stat("Reste à travailler",Math.max(0,CFG.forfaitJours-(S.joursAn||0))+" j")]
-        :[stat("Semaine",fmtEcart(bs.ecart),"débit-crédit",bs.ecart<0?"moins":"plus"),stat(dateDe(jour).toLocaleDateString("fr-FR",{month:"long"}),fmtEcart(bm.ecart),"débit-crédit",bm.ecart<0?"moins":"plus")]),
+        :[stat("Semaine",fmtEcart(bs.ecart),"débit-crédit",bs.ecart<0?"moins":"plus"),stat(dateDe(jour).toLocaleDateString("fr-FR",{month:"long"}),fmtEcart(bm.ecart),"débit-crédit",bm.ecart<0?"moins":"plus")],tuileAnnuelle(S.fiche)),
     h("div",{class:"carte"},h("h3",null,"Pointages du jour"),
       h("p",{class:"num",style:"font-size:1.1rem;font-weight:600"},times.length?paires(times):"Aucun pointage"),
       times.length===2&&minutesDe(times)>CFG.pauseSeuilH*60?h("p",{class:"discret"},"Pause de "+pauseDe(S.fiche)+" min déduite automatiquement (aucune pause pointée)."):null,
@@ -832,60 +882,88 @@ function soldes(f,abs){
   let debutAcq=0; if(f.DateEntree&&f.DateEntree.slice(0,4)===an) debutAcq=+f.DateEntree.slice(5,7)-(f.DateEntree.slice(8)==="01"?1:0);
   const acquis=Math.round(Math.max(0,moisCourant-debutAcq)*CFG.cpParMois*100)/100;
   const somme=(motif,statut)=>abs.filter(a=>a.Motif===motif&&a.Statut===statut&&a.Debut.slice(0,4)===an).reduce((s,a)=>s+joursAbsence(f,a),0);
-  const r={report:+f.SoldeCP||0,acquis,cpPris:somme("Congé payé","Valide"),cpAtt:somme("Congé payé","En attente"),rttDroit:+f.SoldeRTT||0,rttPris:somme("RTT","Valide"),rttAtt:somme("RTT","En attente")};
-  r.cpReste=Math.round((r.report+r.acquis-r.cpPris)*100)/100; r.rttReste=r.rttDroit-r.rttPris;
+  const nb=(motif,statut,annee)=>abs.filter(a=>a.Motif===motif&&a.Statut===statut&&(!annee||a.Debut.slice(0,4)===an)).reduce((s,a)=>s+(+a.Jours||0),0);
+  const r={report:+f.SoldeCP||0,acquis,anc:joursAnciennete(f),cpPris:somme("Congé payé","Valide"),cpAtt:somme("Congé payé","En attente"),
+    rttDroit:+f.SoldeRTT||0,rttPris:somme("RTT","Valide"),rttAtt:somme("RTT","En attente"),
+    versAn:nb("Versement CET","Valide",true),versAtt:nb("Versement CET","En attente",true)};
+  r.cpReste=Math.round((r.report+r.acquis+r.anc-r.cpPris-r.versAn)*100)/100; r.rttReste=r.rttDroit-r.rttPris;
+  r.cet=Math.round(((+det(f).SoldeCET||0)+nb("Versement CET","Valide")-nb("Congé CET","Valide"))*100)/100; r.cetAtt=nb("Congé CET","En attente");
   return r;
 }
+function joursTT(abs,lundi){ // jours de télétravail demandés ou validés dans la semaine
+  let n=0; for(let i=0;i<7;i++){const j=plusJours(lundi,i); if(estTravaille(S.fiche,j)&&ttLe(abs,j,["Valide","En attente"])) n++;} return n;
+}
+const texteDemande=a=>a.Motif==="Versement CET"?"Versement de "+(a.Jours||0)+" j de congés payés":(a.Debut===a.Fin?"Le "+frJour(a.Debut)+(a.DemiJournee?" ("+a.DemiJournee.toLowerCase()+")":""):"Du "+frJour(a.Debut)+" au "+frJour(a.Fin));
 function vueAbsences(){
-  const an=today().slice(0,4), s=soldes(S.fiche,S.abs);
-  const motif=h("select",{id:"a-motif"},CFG.motifs.map(m=>h("option",{value:m},m)));
+  const an=today().slice(0,4), s=soldes(S.fiche,S.abs), anc=anciennete(S.fiche), maxTT=+det(S.fiche).TeletravailMax||CFG.teletravailMaxSemaine;
+  const motif=h("select",{id:"a-motif"},[...CFG.motifs,...(s.cet>0?["Congé CET"]:[]),"Télétravail"].map(m=>h("option",{value:m,selected:S.preMotif===m},m)));
   const deb=h("input",{type:"date",id:"a-deb",required:true,value:S.preAbs||""}), fin=h("input",{type:"date",id:"a-fin",required:true,value:S.preAbs||""});
-  S.preAbs="";
+  S.preAbs=""; S.preMotif="";
   const demi=h("select",{id:"a-demi"},[["","Journée entière"],["Matin","Matin seulement"],["Après-midi","Après-midi seulement"]].map(([v,l])=>h("option",{value:v},l)));
   const demiLab=h("label",null,"Durée",demi);
   const piece=h("input",{type:"file",id:"a-piece",accept:"image/*,application/pdf"});
+  const pieceLab=h("label",null,"Justificatif (photo ou PDF, facultatif)",piece);
   const com=h("textarea",{id:"a-com",rows:"2"});
   const calc=h("p",{class:"discret"},"Choisissez les dates.");
-  const maj=()=>{ if(deb.value&&(!fin.value||fin.value<deb.value)) fin.value=deb.value;
-    demiLab.hidden=!(deb.value&&deb.value===fin.value); if(demiLab.hidden) demi.value="";
-    if(!(deb.value&&fin.value)){calc.textContent="Choisissez les dates.";return}
+  const maj=()=>{ const tt=motif.value==="Télétravail";
+    if(deb.value&&(!fin.value||fin.value<deb.value)) fin.value=deb.value;
+    demiLab.hidden=tt||!(deb.value&&deb.value===fin.value); if(demiLab.hidden) demi.value=""; pieceLab.hidden=tt;
+    if(!(deb.value&&fin.value)){calc.textContent=tt?"Jusqu'à "+maxTT+" jour(s) de télétravail par semaine.":"Choisissez les dates.";return}
     const n=joursAbsence(S.fiche,{Debut:deb.value,Fin:fin.value,DemiJournee:demi.value});
-    let t=n+" jour(s) décompté(s), jours fériés et jours non travaillés exclus.";
+    let t=tt?n+" jour(s) de télétravail demandé(s). Maximum : "+maxTT+" par semaine.":n+" jour(s) décompté(s), jours fériés et jours non travaillés exclus.";
     if(motif.value==="Congé payé"&&n>s.cpReste-s.cpAtt) t+=" Attention : cela dépasse votre solde disponible ("+(Math.round((s.cpReste-s.cpAtt)*100)/100)+" j).";
     if(motif.value==="RTT"&&n>s.rttReste-s.rttAtt) t+=" Attention : cela dépasse votre solde de RTT.";
+    if(motif.value==="Congé CET"&&n>s.cet-s.cetAtt) t+=" Attention : cela dépasse le solde de votre CET.";
     calc.textContent=t; };
   [deb,fin,demi,motif].forEach(x=>x.addEventListener("change",maj)); maj();
   const form=h("form",{class:"pile",onsubmit:ev=>{ev.preventDefault();agir(ev.submitter,async()=>{
+      const tt=motif.value==="Télétravail";
       if(fin.value<deb.value) throw new Error("La date de fin doit suivre la date de début.");
       const a={Debut:deb.value,Fin:fin.value,DemiJournee:demi.value}; const n=joursAbsence(S.fiche,a);
       if(!n) throw new Error("Cette période ne contient aucun jour travaillé.");
-      if(S.abs.some(x=>(x.Statut==="Valide"||x.Statut==="En attente")&&x.Debut<=fin.value&&x.Fin>=deb.value)) throw new Error("Vous avez déjà une absence sur cette période.");
-      let pj={name:"",url:""}; if(piece.files[0]){ if(piece.files[0].size>4e6) throw new Error("Le justificatif dépasse 4 Mo."); pj=await store.upload(piece.files[0]); }
+      if(S.abs.some(x=>x.Motif!=="Versement CET"&&(x.Statut==="Valide"||x.Statut==="En attente")&&x.Debut<=fin.value&&x.Fin>=deb.value)) throw new Error("Vous avez déjà une demande sur cette période.");
+      if(tt){ const futur=S.abs.concat([{Motif:"Télétravail",Statut:"En attente",...a}]);
+        for(let l=lundiDe(deb.value);l<=fin.value;l=plusJours(l,7)) if(joursTT(futur,l)>maxTT) throw new Error("Quota dépassé : "+maxTT+" jour(s) de télétravail par semaine (semaine du "+frCourt(l)+")."); }
+      if(motif.value==="Congé CET"&&n>s.cet-s.cetAtt) throw new Error("Le solde de votre CET est insuffisant.");
+      let pj={name:"",url:""}; if(!tt&&piece.files[0]){ if(piece.files[0].size>4e6) throw new Error("Le justificatif dépasse 4 Mo."); pj=await store.upload(piece.files[0]); }
       await store.add(L_A,{Title:S.moi.name+" "+motif.value,EmployeEmail:S.moi.email,EmployeNom:S.moi.name,Motif:motif.value,...a,Jours:n,
         Commentaire:com.value.trim(),ManagerEmail:S.moi.managerEmail,Statut:"En attente",JustificatifNom:pj.name,JustificatifUrl:pj.url});
-      const r=await prevenir(S.moi.managerEmail,"Demande d'absence à valider : "+S.moi.name,S.moi.name+" demande : "+motif.value+" du "+frCourt(deb.value)+" au "+frCourt(fin.value)+" ("+n+" j).");
+      const r=await prevenir(S.moi.managerEmail,"Demande à valider : "+S.moi.name,S.moi.name+" demande : "+motif.value+" du "+frCourt(deb.value)+" au "+frCourt(fin.value)+" ("+n+" j).");
       await chargerAbs(); S.an=null; afficher(); toast("Demande envoyée à votre responsable."+suffixeNotif(r));
     })}},
     h("label",null,"Motif",motif),
     h("div",{class:"grille2"},h("label",null,"Du",deb),h("label",null,"Au",fin)),
-    demiLab, calc,
-    h("label",null,"Justificatif (photo ou PDF, facultatif)",piece),
+    demiLab, calc, pieceLab,
     h("label",null,"Commentaire (facultatif)",com),
     h("button",{class:"principal",type:"submit"},"Envoyer la demande"));
   const l=(a,b)=>h("div",{class:"ligne"},h("span",null,a),h("span",{class:"num"},b));
+  const verser=()=>{
+    const dispo=Math.max(0,Math.floor(Math.min(s.cpReste-s.cpAtt,CFG.cetMaxParAn-s.versAn-s.versAtt)));
+    const n=h("input",{type:"number",id:"cet-n",min:"1",max:String(dispo),step:"1",value:String(Math.min(1,dispo)),required:true});
+    ouvrir("Verser des congés au CET",h("div",{class:"pile"},h("p",{class:"discret"},"Vous pouvez verser jusqu'à "+dispo+" jour(s) : dans la limite de votre solde de congés payés et de "+CFG.cetMaxParAn+" jours par an."),h("label",null,"Nombre de jours",n)),"Envoyer la demande",async()=>{
+      const v=+n.value; if(!(v>=1&&v<=dispo)) throw new Error("Saisissez un nombre entre 1 et "+dispo+".");
+      await store.add(L_A,{Title:S.moi.name+" Versement CET",EmployeEmail:S.moi.email,EmployeNom:S.moi.name,Motif:"Versement CET",Debut:today(),Fin:today(),DemiJournee:"",Jours:v,
+        Commentaire:"",ManagerEmail:S.moi.managerEmail,Statut:"En attente",JustificatifNom:"",JustificatifUrl:""});
+      await prevenir(S.moi.managerEmail,"Versement CET à valider : "+S.moi.name,S.moi.name+" souhaite verser "+v+" jour(s) de congés payés sur son CET.");
+      await chargerAbs(); afficher(); toast("Demande de versement envoyée.");
+    });
+  };
   pose(
-    h("div",{class:"carte"},h("h3",null,"Congés payés "+an),
-      l("Report au 1er janvier",s.report+" j"),l("Acquis depuis janvier",s.acquis+" j"),l("Pris (validés)","− "+s.cpPris+" j"),
+    h("div",{class:"tuiles"},stat("Congés payés",s.cpReste+" j",s.cpAtt?s.cpAtt+" j en attente":"solde "+an),
+      s.rttDroit?stat("RTT",s.rttReste+" j",s.rttAtt?s.rttAtt+" j en attente":"solde "+an):null,
+      stat("CET",s.cet+" j",s.versAtt?s.versAtt+" j en cours de versement":"compte épargne-temps"),
+      anc?stat("Ancienneté",anc.texte,s.anc?"+"+s.anc+" j de congé":null):null),
+    h("div",{class:"carte"},h("h3",null,"Détail des congés payés "+an),
+      l("Report au 1er janvier",s.report+" j"),l("Acquis depuis janvier",s.acquis+" j"),s.anc?l("Congés d'ancienneté","+ "+s.anc+" j"):null,
+      l("Pris (validés)","− "+s.cpPris+" j"),s.versAn?l("Versés au CET","− "+s.versAn+" j"):null,
       h("div",{class:"ligne"},h("strong",null,"Solde"),h("strong",{class:"num"},s.cpReste+" j")),
-      s.cpAtt?l("En attente de validation",s.cpAtt+" j"):null,
-      s.rttDroit?[h("h3",null,"RTT "+an),l("Droits de l'année",s.rttDroit+" j"),l("Pris","− "+s.rttPris+" j"),
-        h("div",{class:"ligne"},h("strong",null,"Solde"),h("strong",{class:"num"},s.rttReste+" j"))]:null),
-    h("div",{class:"carte"},h("h3",null,"Déclarer une absence ou demander un congé"),form),
+      h("div",{class:"ligne",style:"justify-content:flex-start"},h("button",{onclick:verser},"Verser des jours au CET"),h("button",{onclick:()=>voirFiche(S.fiche)},"Voir ma fiche"))),
+    h("div",{class:"carte"},h("h3",null,"Nouvelle demande : congé, absence ou télétravail"),form),
     h("div",{class:"carte"},h("h3",null,"Mes demandes"),
       S.abs.length?h("div",null,S.abs.map(a=>h("div",{class:"jour"},
         h("div",null,h("strong",null,a.Motif)," ",pastille(a.Statut)),
         h("div",{class:"num"},(a.Jours||0)+" j"),
-        h("div",{class:"discret note"},(a.Debut===a.Fin?"Le "+frJour(a.Debut)+(a.DemiJournee?" ("+a.DemiJournee.toLowerCase()+")":""):"Du "+frJour(a.Debut)+" au "+frJour(a.Fin))+(a.Commentaire?" · "+a.Commentaire:"")),
+        h("div",{class:"discret note"},texteDemande(a)+(a.Commentaire?" · "+a.Commentaire:"")),
         a.JustificatifNom?h("div",{class:"discret note"},"Justificatif : ",lienPiece(a)):null,
         a.Statut==="Refuse"&&a.MotifRefus?h("div",{class:"bandeau refus note"},"Motif du refus : "+a.MotifRefus):null,
         a.Statut==="En attente"?h("div",{class:"actions"},h("button",{onclick:ev=>agir(ev.currentTarget,async()=>{await store.patch(L_A,a.id,{Statut:"Annule"});await chargerAbs();S.an=null;afficher()})},"Annuler la demande")):null)))
@@ -895,13 +973,14 @@ const lienPiece=a=>/^https:\/\//.test(a.JustificatifUrl||"")?h("a",{href:a.Justi
 
 /* ================= Vue annuelle ================= */
 function classer(f,jour,it,abs){
-  const a=absLe(abs,jour), att=!a&&absLe(abs,jour,["En attente"]), fer=ferieLe(jour), auj=today();
-  if(a&&estTravaille(f,jour)){const [c,k]=codeAbs(a.Motif);return {code:a.DemiJournee?"½"+c:c,cls:k,texte:a.Motif+(a.DemiJournee?" ("+a.DemiJournee.toLowerCase()+")":""),cat:c}}
+  const a=absLe(abs,jour), att=!a&&(absLe(abs,jour,["En attente"])||ttLe(abs,jour,["En attente"])), fer=ferieLe(jour), auj=today();
+  if(a&&estTravaille(f,jour)){const [c,k]=codeAbs(a.Motif);return {code:a.DemiJournee?"½"+c:c,cls:k,texte:a.Motif+(a.DemiJournee?" ("+a.DemiJournee.toLowerCase()+")":""),cat:["CP","RTT","AM"].includes(c)?c:"AB"}}
   if(fer) return {code:"F",cls:"k-f",texte:"Férié : "+fer,cat:"F"};
   if(it){const tt=it.Lieu==="Télétravail";return {code:tt?"TT":"T",cls:tt?"k-tt":"k-t",texte:(tt?"Télétravail":"Travaillé")+" · "+paires(heuresDe(it))+" · "+fmtMin(minDe(it,f)),cat:tt?"TT":"T"}}
   if(!joursTrav(f).has(dateDe(jour).getDay())) return {code:"",cls:"k-we",texte:"Jour non travaillé",cat:""};
   if(att) return {code:"?",cls:"k-att",texte:att.Motif+" (demande en attente)",cat:"?"};
   if(jour<auj) return {code:"!",cls:"k-an",texte:"Aucun pointage ni absence",cat:"!"};
+  if(ttLe(abs,jour)) return {code:"TT",cls:"k-tt",texte:"Télétravail prévu",cat:""};
   return {code:"",cls:"",texte:"À venir",cat:""};
 }
 async function chargerAnnee(){
@@ -949,10 +1028,11 @@ function vueAnnee(){
 /* ================= Équipe ================= */
 function vueEquipe(){
   const n=S.attP.length+attA().length;
-  const sous=[["validation","Validation"],["planning","Planning"],["synthese","Synthèse"],["salaries","Salariés"]];
+  const sous=[["validation","Validation"],["planning","Planning"],["synthese","Synthèse"],["effectifs","Effectifs"],["salaries","Salariés"]];
+  const nEch=echeances(S.fiches).length;
   if(S.estRH) sous.push(["journal","Journal"]);
-  const barre=h("div",{class:"sous"},sous.map(([id,lib])=>h("button",{"aria-current":S.sous===id?"page":null,onclick:()=>{S.sous=id;afficher()}},lib,id==="validation"&&n?h("span",{class:"compte"},n):null)));
-  ({validation:vueValidation,planning:vuePlanning,synthese:vueSynthese,salaries:vueSalaries,journal:vueJournal})[S.sous](barre);
+  const barre=h("div",{class:"sous"},sous.map(([id,lib])=>h("button",{"aria-current":S.sous===id?"page":null,onclick:()=>{S.sous=id;afficher()}},lib,id==="validation"&&n?h("span",{class:"compte"},n):null,id==="effectifs"&&nEch?h("span",{class:"compte"},nEch):null)));
+  ({validation:vueValidation,planning:vuePlanning,synthese:vueSynthese,effectifs:vueEffectifs,salaries:vueSalaries,journal:vueJournal})[S.sous](barre);
 }
 function demanderMotif(titre, surOk){
   const m=h("textarea",{id:"r-motif",rows:"3",required:true});
@@ -967,18 +1047,18 @@ function vueValidation(barre){
     await journal("Validation de pointages",liste[0].EmployeNom,liste.map(p=>p.Jour).join(", "));await chargerEquipe();afficher()};
   const decider=async(a,statut,motif)=>{
     await store.patch(L_A,a.id,{Statut:statut,ValidePar:S.moi.email,MotifRefus:motif||""});
-    await journal(statut==="Valide"?"Validation d'absence":"Refus d'absence",a.EmployeNom,a.Motif+" "+a.Debut+" → "+a.Fin+(motif?" · "+motif:""));
+    await journal((statut==="Valide"?"Validation : ":"Refus : ")+a.Motif,a.EmployeNom,a.Motif+" "+a.Debut+" → "+a.Fin+(motif?" · "+motif:""));
     const r=await prevenir(a.EmployeEmail,"Votre demande d'absence a été "+(statut==="Valide"?"validée":"refusée"),a.Motif+" du "+frCourt(a.Debut)+" au "+frCourt(a.Fin)+"."+(motif?" Motif : "+motif:""));
-    await chargerEquipe(); S.an=null; afficher(); toast((statut==="Valide"?"Absence validée.":"Absence refusée.")+suffixeNotif(r)); };
+    await chargerEquipe(); S.an=null; afficher(); toast((statut==="Valide"?"Demande validée.":"Demande refusée.")+suffixeNotif(r)); };
   const cartesA=attA().map(a=>{
     const f=ficheDe(a.EmployeEmail);
-    const croise=S.absEquipe.filter(x=>x.id!==a.id&&x.EmployeEmail!==a.EmployeEmail&&(x.Statut==="Valide"||x.Statut==="En attente")&&x.Debut<=a.Fin&&x.Fin>=a.Debut&&(!f.Equipe||ficheDe(x.EmployeEmail).Equipe===f.Equipe));
-    const s=["Congé payé","RTT"].includes(a.Motif)?soldes(f,S.absEquipe.filter(x=>x.EmployeEmail===a.EmployeEmail)):null;
+    const croise=HORS_ABS.includes(a.Motif)?[]:S.absEquipe.filter(x=>!HORS_ABS.includes(x.Motif)&&x.id!==a.id&&x.EmployeEmail!==a.EmployeEmail&&(x.Statut==="Valide"||x.Statut==="En attente")&&x.Debut<=a.Fin&&x.Fin>=a.Debut&&(!f.Equipe||ficheDe(x.EmployeEmail).Equipe===f.Equipe));
+    const s=["Congé payé","RTT","Versement CET","Congé CET"].includes(a.Motif)?soldes(f,S.absEquipe.filter(x=>x.EmployeEmail===a.EmployeEmail)):null;
     return h("div",{class:"jour"},
       h("div",null,h("strong",null,a.EmployeNom)," · "+a.Motif),
       h("div",{class:"num"},(a.Jours||0)+" j"),
-      h("div",{class:"discret note"},(a.Debut===a.Fin?"Le "+frJour(a.Debut)+(a.DemiJournee?" ("+a.DemiJournee.toLowerCase()+")":""):"Du "+frJour(a.Debut)+" au "+frJour(a.Fin))+(a.Commentaire?" · "+a.Commentaire:"")),
-      s?h("div",{class:"discret note"},a.Motif==="RTT"?"Solde RTT avant cette demande : "+s.rttReste+" j":"Solde CP avant cette demande : "+s.cpReste+" j"):null,
+      h("div",{class:"discret note"},texteDemande(a)+(a.Commentaire?" · "+a.Commentaire:"")),
+      s?h("div",{class:"discret note"},a.Motif==="RTT"?"Solde RTT avant cette demande : "+s.rttReste+" j":a.Motif==="Congé CET"?"Solde CET avant cette demande : "+s.cet+" j":"Solde CP avant cette demande : "+s.cpReste+" j"):null,
       a.JustificatifNom?h("div",{class:"discret note"},"Justificatif : ",lienPiece(a)):null,
       croise.length?h("div",{class:"bandeau note"},"Chevauchement dans l'équipe : "+croise.map(x=>x.EmployeNom+" ("+codeAbs(x.Motif)[0]+(x.Statut==="En attente"?", en attente":"")+", "+frCourt(x.Debut)+" au "+frCourt(x.Fin)+")").join(" ; ")):null,
       h("div",{class:"actions"},
@@ -1014,7 +1094,7 @@ function vueValidation(barre){
   pose(barre,
     S.pour.length>1?h("div",{class:"bandeau info"},"Vous validez aussi par délégation pour : "+S.pour.slice(1).join(", ")+"."):null,
     h("div",{class:"ligne"},h("h2",null,"À valider"),h("button",{onclick:ev=>agir(ev.currentTarget,async()=>{await chargerEquipe();afficher()})},"Actualiser")),
-    h("div",{class:"carte"},h("h3",null,"Absences et congés ("+cartesA.length+")"),
+    h("div",{class:"carte"},h("h3",null,"Congés, absences, télétravail, CET ("+cartesA.length+")"),
       cartesA.length?h("div",null,cartesA):h("p",{class:"discret"},"Aucune demande en attente.")),
     h("h3",null,"Pointages ("+S.attP.length+" jour(s))"),
     cartesP.length?cartesP:h("div",{class:"carte"},h("p",{class:"discret"},"Aucun pointage en attente.")),
@@ -1046,7 +1126,7 @@ function vuePlanning(barre){
       if(a&&estTravaille(f,j)) return h("td",{class:"c "+codeAbs(a.Motif)[1]},h("b",null,codeAbs(a.Motif)[0]));
       if(fer) return h("td",{class:"c k-f"},h("b",null,"F"));
       return h("td",{class:"c"+(att?" k-att":"")},h("button",{"aria-label":f.EmployeNom+", "+frJour(j)+" : "+(mod?mod.nom:"non planifié"),onclick:()=>cycle(f,j)},
-        mod?[mod.nom,mod.debut?h("div",{class:"num discret"},mod.debut+"–"+mod.fin):null]:(joursTrav(f).has(dateDe(j).getDay())?"–":""),att?" ?":null));
+        mod?[mod.nom,mod.debut?h("div",{class:"num discret"},mod.debut+"–"+mod.fin):null]:(joursTrav(f).has(dateDe(j).getDay())?"–":""),att?" ?":null,ttLe(abs,j)?h("div",null,h("span",{class:"pastille p-neutre"},"TT")):null));
     })));
   pose(barre,
     h("div",{class:"ligne"},h("button",{"aria-label":"Semaine précédente",onclick:()=>{S.semaine=plusJours(lun,-7);afficher()}},"‹"),
@@ -1086,7 +1166,7 @@ function vueSynthese(barre){
   const theo=lignes.reduce((s,l)=>s+l.b.joursTheo,0), subis=lignes.reduce((s,l)=>s+l.b.joursSubis,0);
   const enAttente=S.synth.p.filter(x=>x.Statut!=="Valide").length;
   const tuile=stat;
-  const absMois=S.absEquipe.filter(a=>a.Statut==="Valide"&&a.Debut<=fin&&a.Fin>=debut&&equipe.some(f=>f.EmployeEmail===a.EmployeEmail));
+  const absMois=S.absEquipe.filter(a=>!HORS_ABS.includes(a.Motif)&&a.Statut==="Valide"&&a.Debut<=fin&&a.Fin>=debut&&equipe.some(f=>f.EmployeEmail===a.EmployeEmail));
   const exportSilae=()=>{
     const out=[["Matricule","Code","Valeur","Date début","Date fin"]]; let sans=0;
     for(const {f,b} of lignes){ if(!f.Matricule) sans++; const id=f.Matricule||f.EmployeEmail;
@@ -1146,37 +1226,92 @@ function detailSalarie(f,b){
     h("button",{type:"button",onclick:()=>{document.getElementById("dlg").close();S.anQui=f.EmployeEmail;S.onglet="annee";afficher()}},"Voir son année")));
 }
 
+/* --- Effectifs et échéances --- */
+function echeances(fiches){
+  const auj=today(), A=CFG.alertes||{essai:30,cdd:60,visite:60}, out=[], dans=d=>Math.round((dateDe(d)-dateDe(auj))/864e5);
+  for(const f of fiches){ const d=det(f); if(!estActif(f)) continue;
+    if(d.FinPeriodeEssai){const n=dans(d.FinPeriodeEssai); if(n>=0&&n<=A.essai) out.push({f,date:d.FinPeriodeEssai,n,type:"Fin de période d'essai"})}
+    if(d.DateFinContrat){const n=dans(d.DateFinContrat); if(n>=-30&&n<=A.cdd) out.push({f,date:d.DateFinContrat,n,type:"Fin de contrat ("+(d.TypeContrat||"CDD")+")"})}
+    if(d.ProchaineVisite){const n=dans(d.ProchaineVisite); if(n<=A.visite) out.push({f,date:d.ProchaineVisite,n,type:"Visite médicale"})}
+  }
+  return out.sort((a,b)=>a.date.localeCompare(b.date));
+}
+function vueEffectifs(barre){
+  const an=today().slice(0,4), tous=S.fiches.filter(f=>S.estRH||f.EmployeEmail!==S.moi.email), actifs=tous.filter(estActif), ech=echeances(tous);
+  const par=(cle,def)=>{const m={};for(const f of actifs){const k=cle(f)||def;m[k]=(m[k]||0)+1}return Object.entries(m).sort((a,b)=>b[1]-a[1])};
+  const etp=f=>forfait(f)?1:Math.min(1,(+f.HeuresHebdo||35)/35);
+  const anc=actifs.map(anciennete).filter(Boolean), ancMoy=anc.length?anc.reduce((t,a)=>t+a.total,0)/anc.length:0;
+  const entrees=tous.filter(f=>(f.DateEntree||"").slice(0,4)===an).length, sorties=tous.filter(f=>{const d=det(f).DateSortie;return d&&d.slice(0,4)===an&&d<today()}).length;
+  const repart=(titre,liste)=>h("div",{class:"carte"},h("h3",null,titre),liste.map(([k,n])=>h("div",{class:"ligne"},h("span",null,k),h("span",{class:"num"},n+" · "+Math.round(n/actifs.length*100)+" %"))));
+  const equipes={}; for(const f of actifs){const k=f.Equipe||"Sans équipe";equipes[k]=equipes[k]||{n:0,etp:0};equipes[k].n++;equipes[k].etp+=etp(f)}
+  pose(barre,
+    h("div",{class:"tuiles"},stat("Effectif",actifs.length,"salariés présents"),stat("Équivalent temps plein",dec(actifs.reduce((t,f)=>t+etp(f),0)),"base 35 h"),
+      stat("Entrées "+an,entrees),stat("Sorties "+an,sorties),stat("Ancienneté moyenne",Math.floor(ancMoy/12)+" ans "+Math.round(ancMoy%12)+" mois"),stat("Échéances",ech.length,"à traiter")),
+    h("div",{class:"carte"},h("h3",null,"Échéances à venir"),
+      ech.length?h("div",null,ech.map(e=>h("div",{class:"jour"},
+        h("div",null,h("strong",null,e.f.EmployeNom)," · "+e.type),
+        h("div",null,h("span",{class:"pastille "+(e.n<0?"p-refus":e.n<=15?"p-attente":"p-neutre")},e.n<0?"En retard de "+(-e.n)+" j":e.n===0?"Aujourd'hui":"Dans "+e.n+" j")),
+        h("div",{class:"discret note"},"Le "+frJour(e.date)+" "+e.date.slice(0,4)+(e.type.startsWith("Fin de période")&&det(e.f).EssaiRenouvele==="Oui"?" · période déjà renouvelée":"")),
+        h("div",{class:"actions"},h("button",{onclick:()=>S.estRH?editerFiche(e.f):voirFiche(e.f)},S.estRH?"Ouvrir la fiche":"Voir la fiche")))))
+      :h("p",{class:"discret"},"Aucune échéance dans les prochaines semaines."),
+      h("p",{class:"discret"},"Périodes d'essai sous "+CFG.alertes.essai+" jours, fins de contrat sous "+CFG.alertes.cdd+" jours, visites médicales sous "+CFG.alertes.visite+" jours ou en retard.")),
+    actifs.length?[repart("Par type de contrat",par(f=>det(f).TypeContrat,"CDI")),repart("Par catégorie",par(f=>det(f).Categorie,"Non renseignée")),
+      h("div",{class:"carte"},h("h3",null,"Par équipe"),Object.entries(equipes).sort().map(([k,v])=>h("div",{class:"ligne"},h("span",null,k),h("span",{class:"num"},v.n+" salarié(s) · "+dec(v.etp)+" ETP"))))]:null);
+}
+
 /* --- Fiches salariés --- */
+// Les clés précédées de * sont des colonnes de la liste ; les autres sont rangées dans la colonne Details.
+const CHAMPS=[
+  ["Identité",[["Civilite","Civilité","select",["","Mme","M."]],["DateNaissance","Date de naissance","date"],["Telephone","Téléphone","tel"],["EmailPerso","E-mail personnel","email"],["Adresse","Adresse","text"],["ContactUrgence","Personne à prévenir (nom et téléphone)","text"]]],
+  ["Poste",[["Poste","Intitulé du poste","text"],["Categorie","Catégorie","select",["","Employé","Agent de maîtrise","Cadre"]],["*Equipe","Équipe","text"],["Etablissement","Établissement","text"],["*Matricule","Matricule de paie (Silae)","text"],["*ManagerEmail","Responsable (identifiant Microsoft)","email"]]],
+  ["Contrat",[["TypeContrat","Type de contrat","select",["CDI","CDD","Alternance","Stage","Intérim"]],["*DateEntree","Date d'entrée","date"],["FinPeriodeEssai","Fin de la période d'essai","date"],["EssaiRenouvele","Période d'essai renouvelée","select",["Non","Oui"]],["DateFinContrat","Fin de contrat (CDD, alternance, stage)","date"],["MotifCDD","Motif du CDD","text"],["DateSortie","Date de sortie","date"],["MotifSortie","Motif de sortie","text"]]],
+  ["Temps de travail",[["*Contrat","Régime","select",["Horaire","Temps partiel","Forfait jours"]],["*HeuresHebdo","Heures par semaine (moyenne)","number"],["*PauseMin","Pause déduite (min)","number"],["Organisation","Organisation du temps","select",["Hebdomadaire","Cycle","Annualisation"]],["CycleHeures","Cycle : heures de chaque semaine (ex. 39/31)","text"],["CycleDebut","Cycle : lundi de départ","date"],["HeuresAnnuelles","Annualisation : heures par an","number"],["TeletravailMax","Télétravail : jours maximum par semaine","number"]]],
+  ["Congés",[["*SoldeCP","Report de CP au 1er janvier (j)","number"],["*SoldeRTT","Droits RTT de l'année (j)","number"],["SoldeCET","Solde initial du CET (j)","number"]]],
+  ["Santé au travail",[["TypeSuivi","Suivi médical","select",["Simple","Renforcé","Adapté"]],["DerniereVisite","Dernière visite médicale","date"],["ProchaineVisite","Prochaine visite médicale","date"]]]];
+const valeurFiche=(f,cle)=>{const v=cle[0]==="*"?f[cle.slice(1)]:det(f)[cle];return v==null?"":v};
+const JOURS_SEM=["Lun","Mar","Mer","Jeu","Ven","Sam","Dim"];
+function voirFiche(f){
+  const anc=anciennete(f), set=joursTrav(f);
+  ouvrir("Fiche de "+f.EmployeNom,h("div",{class:"pile"},
+    anc?h("p",{class:"discret"},"Ancienneté : "+anc.texte+(joursAnciennete(f)?" · "+joursAnciennete(f)+" j de congé d'ancienneté":"")):null,
+    CHAMPS.map(([titre,liste])=>h("div",{class:"pile"},h("p",{class:"eyebrow"},titre),
+      liste.map(([cle,lab,type])=>{let v=valeurFiche(f,cle); if(v===""||v===0&&type!=="number") return null; if(type==="date") v=frCourt(String(v));
+        return h("div",{class:"ligne"},h("span",{class:"discret"},lab),h("span",{class:"num"},v))}),
+      titre==="Temps de travail"?h("div",{class:"ligne"},h("span",{class:"discret"},"Jours travaillés"),h("span",null,JOURS_SEM.filter((n,i)=>set.has((i+1)%7)).join(", "))):null)),
+    h("p",{class:"discret"},"Pour corriger une information, adressez-vous aux RH.")));
+}
 function vueSalaries(barre){
   const liste=S.fiches.filter(f=>S.estRH||f.EmployeEmail!==S.moi.email);
   pose(barre,h("div",{class:"carte"},
-    h("p",{class:"discret"},S.estRH?"Touchez un nom pour modifier sa fiche. Une fiche se crée à la première connexion du salarié.":"Fiches de votre équipe (modifiables par les RH)."),
-    liste.length?h("div",{class:"table-zone"},h("table",{style:"min-width:820px"},
-      h("thead",null,h("tr",null,h("th",null,"Salarié"),h("th",null,"Équipe"),h("th",null,"Matricule"),h("th",null,"Contrat"),h("th",{class:"d"},"Heures/sem."),h("th",null,"Entrée"),h("th",{class:"d"},"Solde CP"),h("th",{class:"d"},"Solde RTT"),h("th",null,"Responsable"))),
-      h("tbody",null,liste.map(f=>{const s=soldes(f,S.absEquipe.filter(a=>a.EmployeEmail===f.EmployeEmail));
-        return h("tr",null,h("td",null,S.estRH?h("button",{class:"lien",onclick:()=>editerFiche(f)},f.EmployeNom):f.EmployeNom),h("td",null,f.Equipe||"—"),h("td",{class:"num"},f.Matricule||"—"),
-          h("td",null,f.Contrat||"—"),h("td",{class:"d num"},forfait(f)?"—":f.HeuresHebdo),h("td",{class:"num"},f.DateEntree?frCourt(f.DateEntree):"—"),
-          h("td",{class:"d num"},s.cpReste),h("td",{class:"d num"},s.rttDroit?s.rttReste:"—"),h("td",null,f.ManagerEmail||"—"))})))):h("p",{class:"discret"},"Aucune fiche.")));
+    h("p",{class:"discret"},S.estRH?"Touchez un nom pour compléter ou modifier sa fiche. Une fiche se crée à la première connexion du salarié.":"Touchez un nom pour consulter sa fiche (modifiable par les RH)."),
+    liste.length?h("div",{class:"table-zone"},h("table",{style:"min-width:980px"},
+      h("thead",null,h("tr",null,h("th",null,"Salarié"),h("th",null,"Poste"),h("th",null,"Équipe"),h("th",null,"Contrat"),h("th",null,"Régime"),h("th",{class:"d"},"H/sem."),h("th",null,"Entrée"),h("th",null,"Ancienneté"),h("th",{class:"d"},"CP"),h("th",{class:"d"},"RTT"),h("th",{class:"d"},"CET"))),
+      h("tbody",null,liste.map(f=>{const s=soldes(f,S.absEquipe.filter(a=>a.EmployeEmail===f.EmployeEmail)), d=det(f), anc=anciennete(f);
+        return h("tr",null,h("td",null,h("button",{class:"lien",onclick:()=>S.estRH?editerFiche(f):voirFiche(f)},f.EmployeNom),estActif(f)?null:h("span",{class:"pastille p-neutre",style:"margin-left:6px"},"Sorti")),
+          h("td",null,d.Poste||"—"),h("td",null,f.Equipe||"—"),h("td",null,d.TypeContrat||"CDI"),h("td",null,f.Contrat||"—"),
+          h("td",{class:"d num"},forfait(f)?"—":f.HeuresHebdo),h("td",{class:"num"},f.DateEntree?frCourt(f.DateEntree):"—"),h("td",null,anc?anc.texte:"—"),
+          h("td",{class:"d num"},s.cpReste),h("td",{class:"d num"},s.rttDroit?s.rttReste:"—"),h("td",{class:"d num"},s.cet||"—"))})))):h("p",{class:"discret"},"Aucune fiche.")));
 }
 function editerFiche(f){
-  const ch=(id,lab,attrs)=>{const i=h("input",{id:"f-"+id,value:f[id]==null?"":f[id],...attrs});return [h("label",null,lab,i),i]};
-  const [lEq,eq]=ch("Equipe","Équipe"), [lMa,ma]=ch("Matricule","Matricule de paie (Silae)"), [lEn,en]=ch("DateEntree","Date d'entrée",{type:"date"});
-  const [lHe,he]=ch("HeuresHebdo","Heures par semaine",{type:"number",min:"1",max:"48",step:"0.5"}), [lPa,pa]=ch("PauseMin","Pause déduite (min)",{type:"number",min:"0",max:"120"});
-  const [lCp,cp]=ch("SoldeCP","Report de CP au 1er janvier (j)",{type:"number",step:"0.5"}), [lRt,rt]=ch("SoldeRTT","Droits RTT de l'année (j)",{type:"number",step:"0.5"});
-  const [lMg,mg]=ch("ManagerEmail","Responsable (identifiant Microsoft)",{type:"email"});
-  const contrat=h("select",{id:"f-Contrat"},["Horaire","Temps partiel","Forfait jours"].map(c=>h("option",{value:c,selected:f.Contrat===c},c)));
-  const set=joursTrav(f), coches=["Lun","Mar","Mer","Jeu","Ven","Sam","Dim"].map((n,i)=>{const v=(i+1)%7;return [v,h("input",{type:"checkbox",id:"f-j"+v,checked:set.has(v)}),n]});
-  ouvrir("Fiche de "+f.EmployeNom,h("div",{class:"pile"},
-    h("div",{class:"grille2"},lEq,lMa),h("div",{class:"grille2"},h("label",null,"Contrat",contrat),lEn),h("div",{class:"grille2"},lHe,lPa),
-    h("div",null,h("div",{class:"discret"},"Jours travaillés"),h("div",{class:"ligne",style:"justify-content:flex-start"},coches.map(([v,c,n])=>h("label",{class:"coche"},c,n)))),
-    h("div",{class:"grille2"},lCp,lRt),lMg),"Enregistrer",async()=>{
-      const jt=coches.filter(([v,c])=>c.checked).map(([v])=>v); if(!jt.length) throw new Error("Cochez au moins un jour travaillé.");
-      const champs={Equipe:eq.value.trim(),Matricule:ma.value.trim(),DateEntree:en.value,Contrat:contrat.value,HeuresHebdo:+he.value||35,PauseMin:+pa.value||0,
-        JoursTravailles:jt.join(","),SoldeCP:+cp.value||0,SoldeRTT:+rt.value||0,ManagerEmail:mg.value.trim().toLowerCase()};
-      await store.patch(L_S,f.id,champs); Object.assign(f,champs); if(f.EmployeEmail===S.moi.email) Object.assign(S.fiche,champs);
-      await journal("Modification de fiche",f.EmployeNom,Object.entries(champs).map(([k,v])=>k+"="+v).join(" ; "));
-      S.synth=null; afficher(); toast("Fiche enregistrée.");
-    });
+  const champs={}, set=joursTrav(f);
+  const coches=JOURS_SEM.map((n,i)=>{const v=(i+1)%7;return [v,h("input",{type:"checkbox",id:"f-j"+v,checked:set.has(v)}),n]});
+  const corps=h("div",{class:"pile"},CHAMPS.map(([titre,liste])=>h("div",{class:"pile"},h("p",{class:"eyebrow",style:"margin-top:6px"},titre),
+    liste.map(([cle,lab,type,opts])=>{const id="f-"+cle.replace("*",""), v=valeurFiche(f,cle);
+      const i=type==="select"?h("select",{id},opts.map(o=>h("option",{value:o,selected:String(v)===o},o||"—"))):h("input",{id,type,value:v,step:type==="number"?"0.5":null});
+      champs[cle]=[i,type]; return h("label",null,lab,i)}),
+    titre==="Temps de travail"?h("div",null,h("div",{class:"discret"},"Jours travaillés"),h("div",{class:"ligne",style:"justify-content:flex-start"},coches.map(([v,c,n])=>h("label",{class:"coche"},c,n)))):null)));
+  ouvrir("Fiche de "+f.EmployeNom,corps,"Enregistrer",async()=>{
+    const jt=coches.filter(([v,c])=>c.checked).map(([v])=>v); if(!jt.length) throw new Error("Cochez au moins un jour travaillé.");
+    const cols={JoursTravailles:jt.join(",")}, d={...det(f)};
+    for(const [cle,[i,type]] of Object.entries(champs)){ let v=i.value.trim(); if(type==="number") v=v===""?"":+v.replace(",",".");
+      if(cle[0]==="*"){const k=cle.slice(1); cols[k]=type==="number"?(v===""?0:v):(k==="ManagerEmail"?v.toLowerCase():v)} else if(v===""||v==null) delete d[cle]; else d[cle]=v; }
+    if(!cols.HeuresHebdo) cols.HeuresHebdo=35;
+    if(d.DateFinContrat&&cols.DateEntree&&d.DateFinContrat<cols.DateEntree) throw new Error("La fin de contrat précède la date d'entrée.");
+    cols.Details=JSON.stringify(d);
+    await store.patch(L_S,f.id,cols); Object.assign(f,cols); if(f.EmployeEmail===S.moi.email) Object.assign(S.fiche,cols);
+    await journal("Modification de fiche",f.EmployeNom,"Fiche mise à jour");
+    S.synth=null; afficher(); toast("Fiche enregistrée.");
+  });
 }
 
 /* --- Journal --- */

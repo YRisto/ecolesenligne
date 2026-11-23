@@ -28,6 +28,21 @@ window.POINTAGE_CONFIG = {
   // Nombre de jours du forfait annuel des cadres au forfait jours
   forfaitJours: 218,
 
+  // Heures annuelles de référence pour les salariés annualisés
+  heuresAnnuelles: 1607,
+
+  // Télétravail : nombre maximum de jours par semaine (modifiable par salarié dans sa fiche)
+  teletravailMaxSemaine: 2,
+
+  // Compte épargne-temps : nombre maximum de jours de congés payés versés par an
+  cetMaxParAn: 10,
+
+  // Congés d'ancienneté : jours ajoutés au solde à partir d'un nombre d'années (à adapter à votre convention collective)
+  anciennete: [{ ans: 5, jours: 1 }, { ans: 10, jours: 2 }, { ans: 15, jours: 3 }, { ans: 20, jours: 4 }],
+
+  // Délais d'alerte, en jours, avant une échéance
+  alertes: { essai: 30, cdd: 60, visite: 60 },
+
   // Retard signalé au-delà de cette tolérance par rapport à l'horaire planifié (minutes)
   toleranceRetardMin: 10,
 
