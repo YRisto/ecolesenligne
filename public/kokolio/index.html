@@ -4,12 +4,11 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Kokolio</title>
-<meta name="robots" content="noindex">
 <style>
 /* Parti pris : le bleu du Centre Européen de Formation porte la pointeuse ; l'accueil et les en-têtes de blocs reprennent
    les tuiles carrées et les couleurs par domaine d'un portail RH (bleu : mon espace, vert : mon équipe, brique : RH). */
-@font-face{font-family:"Bricolage Grotesque";src:url("/kokolio/fonts/bricolage-grotesque-latin-wght-normal.woff2") format("woff2");font-weight:200 800;font-display:swap}
-@font-face{font-family:"Figtree";src:url("/kokolio/fonts/figtree-latin-wght-normal.woff2") format("woff2");font-weight:300 900;font-display:swap}
+@font-face{font-family:"Bricolage Grotesque";src:url("fonts/bricolage-grotesque-latin-wght-normal.woff2") format("woff2");font-weight:200 800;font-display:swap}
+@font-face{font-family:"Figtree";src:url("fonts/figtree-latin-wght-normal.woff2") format("woff2");font-weight:300 900;font-display:swap}
 :root{
   --fond:#ffffff; --surface:#ffffff; --encre:#14171f; --discret:#586174; --trait:#d3d9e3;
   --accent:#0b4fd1; --accent-encre:#ffffff; --accent-doux:#e2ebfd;
@@ -195,7 +194,7 @@ ul{margin:6px 0 12px;padding-left:20px} li{margin:3px 0}
 <div id="toast" role="status" aria-live="polite"></div>
 <dialog id="dlg"></dialog>
 
-<script src="/kokolio/config.js"></script>
+<script src="config.js"></script>
 <script>
 "use strict";
 /* ================= Réglages et outils ================= */
@@ -493,7 +492,7 @@ function magasinMicrosoft(){
   return {
     demo:false,
     async start(){
-      await charger("/kokolio/msal-browser.min.js");
+      await charger("msal-browser.min.js");
       pca=new msal.PublicClientApplication({
         auth:{clientId:CFG.clientId,authority:"https://login.microsoftonline.com/"+CFG.tenantId,redirectUri:location.origin+location.pathname},
         cache:{cacheLocation:"localStorage"}});
