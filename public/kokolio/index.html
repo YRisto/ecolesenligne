@@ -6,11 +6,12 @@
 <title>Pointage et absences</title>
 <meta name="robots" content="noindex">
 <style>
-/* Mise en page : une colonne étroite façon feuille de présence, navigation en bas sur téléphone. */
+/* Mise en page : une colonne façon feuille de présence, navigation en bas sur téléphone. */
 :root{
   --fond:#f2f4f1; --surface:#ffffff; --encre:#17212b; --discret:#5b6672; --trait:#d9dfdc;
   --accent:#0c6b5d; --accent-encre:#ffffff; --accent-doux:#e0efec;
   --ok:#256b2c; --ok-doux:#e2f1e3; --attente:#8a5200; --attente-doux:#fbeed6; --refus:#a8261c; --refus-doux:#fbe4e1;
+  --k-t:#cfe8d2; --k-tt:#bfe3ea; --k-cp:#c9d8f7; --k-rtt:#e0d0f3; --k-am:#f6c9c2; --k-ab:#e6dcc8; --k-f:#f7e7a6; --k-we:#e9ecea;
   --corps:system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
   --chiffres:ui-monospace,"SF Mono","Cascadia Mono",Consolas,monospace;
   color-scheme:light;
@@ -20,6 +21,7 @@
     --fond:#11171b; --surface:#1a2228; --encre:#e8edeb; --discret:#9aa6ad; --trait:#2d3940;
     --accent:#4fbfaa; --accent-encre:#06221d; --accent-doux:#17332f;
     --ok:#7fce86; --ok-doux:#173220; --attente:#f0b65a; --attente-doux:#3a2a0e; --refus:#f08a80; --refus-doux:#3d1a17;
+    --k-t:#1f4a29; --k-tt:#17474f; --k-cp:#253c6e; --k-rtt:#43306a; --k-am:#6a2a24; --k-ab:#4d4330; --k-f:#5c4f12; --k-we:#232c32;
     color-scheme:dark;
   }
 }
@@ -27,9 +29,11 @@
   --fond:#11171b; --surface:#1a2228; --encre:#e8edeb; --discret:#9aa6ad; --trait:#2d3940;
   --accent:#4fbfaa; --accent-encre:#06221d; --accent-doux:#17332f;
   --ok:#7fce86; --ok-doux:#173220; --attente:#f0b65a; --attente-doux:#3a2a0e; --refus:#f08a80; --refus-doux:#3d1a17;
+  --k-t:#1f4a29; --k-tt:#17474f; --k-cp:#253c6e; --k-rtt:#43306a; --k-am:#6a2a24; --k-ab:#4d4330; --k-f:#5c4f12; --k-we:#232c32;
   color-scheme:dark;
 }
 *{box-sizing:border-box}
+[hidden]{display:none!important}
 html,body{margin:0}
 body{background:var(--fond);color:var(--encre);font:16px/1.45 var(--corps);padding-bottom:84px}
 h1,h2,h3{margin:0;text-wrap:balance}
@@ -43,8 +47,9 @@ header.barre{display:flex;gap:12px;align-items:center;justify-content:space-betw
   padding:12px 16px;background:var(--surface);border-bottom:1px solid var(--trait)}
 header.barre .qui{display:flex;gap:10px;align-items:center;flex-wrap:wrap;font-size:.9rem}
 header.barre select{width:auto;max-width:100%}
-main{max-width:760px;margin:0 auto;padding:16px;display:flex;flex-direction:column;gap:16px}
-.carte{background:var(--surface);border:1px solid var(--trait);border-radius:10px;padding:16px;display:flex;flex-direction:column;gap:12px}
+main{max-width:980px;margin:0 auto;padding:16px;display:flex;flex-direction:column;gap:16px}
+main.etroit{max-width:760px}
+.carte{background:var(--surface);border:1px solid var(--trait);border-radius:10px;padding:16px;display:flex;flex-direction:column;gap:12px;min-width:0}
 .ligne{display:flex;gap:10px;align-items:center;justify-content:space-between;flex-wrap:wrap}
 .pile{display:flex;flex-direction:column;gap:8px}
 .grand{font-size:2.4rem;font-weight:700;line-height:1.1}
@@ -58,8 +63,10 @@ button.danger{color:var(--refus);border-color:var(--refus)}
 button.lien{border:0;background:none;padding:4px 2px;min-height:0;color:var(--accent);text-decoration:underline}
 :focus-visible{outline:3px solid var(--accent);outline-offset:2px}
 input,select,textarea{width:100%;background:var(--surface);border:1px solid var(--trait);border-radius:8px;padding:9px 10px;min-height:42px}
+input[type=checkbox]{width:auto;min-height:0}
 label{display:flex;flex-direction:column;gap:4px;font-size:.9rem;color:var(--discret)}
 label>*{color:var(--encre);font-size:1rem}
+label.coche{flex-direction:row;align-items:center;gap:6px;color:var(--encre)}
 .grille2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
 .pastille{display:inline-block;padding:2px 9px;border-radius:999px;font-size:.8rem;font-weight:600;white-space:nowrap}
 .p-ok{background:var(--ok-doux);color:var(--ok)}
@@ -74,20 +81,42 @@ label>*{color:var(--encre);font-size:1rem}
 .bandeau.refus{border-color:var(--refus);background:var(--refus-doux)}
 .bandeau.info{border-color:var(--accent);background:var(--accent-doux)}
 .table-zone{overflow-x:auto}
-table{border-collapse:collapse;width:100%;min-width:520px}
+table{border-collapse:collapse;width:100%;min-width:560px}
 th,td{text-align:left;padding:8px 10px;border-bottom:1px solid var(--trait);white-space:nowrap}
 th{font-size:.8rem;color:var(--discret);font-weight:600}
 td.d,th.d{text-align:right}
+td.c,th.c{text-align:center}
+.plus{color:var(--ok)} .moins{color:var(--refus)}
 nav.onglets{position:fixed;left:0;right:0;bottom:0;display:flex;background:var(--surface);border-top:1px solid var(--trait);z-index:5}
-nav.onglets button{flex:1;border:0;border-radius:0;border-top:3px solid transparent;padding:12px 4px;font-size:.85rem;min-height:60px;background:none}
+nav.onglets button{flex:1;border:0;border-radius:0;border-top:3px solid transparent;padding:12px 2px;font-size:.82rem;min-height:60px;background:none}
 nav.onglets button[aria-current="page"]{border-top-color:var(--accent);color:var(--accent);font-weight:700}
-nav.onglets .compte{display:inline-block;min-width:18px;padding:0 5px;border-radius:9px;background:var(--refus);color:#fff;font-size:.72rem;margin-left:4px}
-dialog{border:1px solid var(--trait);border-radius:12px;background:var(--surface);color:var(--encre);padding:18px;width:min(460px,calc(100vw - 32px))}
+.compte{display:inline-block;min-width:18px;padding:0 5px;border-radius:9px;background:var(--refus);color:#fff;font-size:.72rem;margin-left:4px}
+.sous{display:flex;gap:6px;overflow-x:auto;padding-bottom:2px}
+.sous button{white-space:nowrap;border-radius:999px;min-height:38px;padding:6px 14px}
+.sous button[aria-current="page"]{background:var(--accent);color:var(--accent-encre);border-color:var(--accent);font-weight:600}
+.tuiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px}
+.tuile{background:var(--surface);border:1px solid var(--trait);border-radius:10px;padding:12px}
+.tuile .v{font-size:1.7rem;font-weight:700}
+dialog{border:1px solid var(--trait);border-radius:12px;background:var(--surface);color:var(--encre);padding:18px;width:min(480px,calc(100vw - 32px));max-height:calc(100vh - 32px);overflow:auto}
 dialog::backdrop{background:rgba(0,0,0,.45)}
 dialog form{display:flex;flex-direction:column;gap:12px}
 .heures-edit{display:flex;gap:8px;align-items:center}
 #toast{position:fixed;left:16px;right:16px;bottom:96px;margin:auto;max-width:520px;background:var(--encre);color:var(--fond);padding:12px 14px;border-radius:8px;display:none;z-index:20}
-.centre{text-align:center}
+/* Vue annuelle */
+.annee{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:12px}
+.moisbloc{background:var(--surface);border:1px solid var(--trait);border-radius:10px;padding:10px;display:flex;flex-direction:column;gap:6px}
+.cal{display:grid;grid-template-columns:repeat(7,1fr);gap:2px}
+.cal .ent{font-size:.68rem;color:var(--discret);text-align:center}
+.cal button{min-height:0;padding:2px 0;height:34px;border-radius:5px;border:1px solid transparent;font-size:.68rem;line-height:1.15;display:flex;flex-direction:column;align-items:center;justify-content:center;background:none}
+.cal button b{font-size:.62rem;font-weight:700}
+.k-t{background:var(--k-t)!important} .k-tt{background:var(--k-tt)!important} .k-cp{background:var(--k-cp)!important} .k-rtt{background:var(--k-rtt)!important}
+.k-am{background:var(--k-am)!important} .k-ab{background:var(--k-ab)!important} .k-f{background:var(--k-f)!important} .k-we{background:var(--k-we)!important;color:var(--discret)}
+.cal button.k-an,.legende .k-an{border:2px solid var(--refus);color:var(--refus)}
+.cal button.k-att,.legende .k-att,td.k-att{border:2px dashed var(--attente)}
+.cal button.auj{outline:2px solid var(--encre);outline-offset:1px}
+.legende{display:flex;flex-wrap:wrap;gap:6px}
+.legende span{padding:3px 8px;border-radius:6px;font-size:.8rem;border:1px solid transparent}
+.plan td button{min-height:44px;width:100%;padding:4px 6px;font-size:.8rem;line-height:1.2}
 @media (max-width:420px){.grille2{grid-template-columns:1fr}.grand{font-size:2rem}}
 @media (prefers-reduced-motion:no-preference){button{transition:border-color .15s}}
 </style>
@@ -105,11 +134,15 @@ dialog form{display:flex;flex-direction:column;gap:12px}
 <script src="/kokolio/config.js"></script>
 <script>
 "use strict";
-/* ---------- Réglages et petits outils ---------- */
-const CFG = Object.assign({demo:true, rh:[], managerParDefaut:"", heuresJour:7,
-  motifs:["Congé payé","RTT","Maladie","Congé sans solde","Événement familial","Formation","Autre"]}, window.POINTAGE_CONFIG||{});
-const RH = (CFG.rh||[]).map(s=>String(s).toLowerCase());
-const L_P="Pointages", L_A="Absences";
+/* ================= Réglages et outils ================= */
+const CFG = Object.assign({demo:true, rh:[], managerParDefaut:"", pauseMin:45, pauseSeuilH:6, cpParMois:2.08, toleranceRetardMin:10, notifications:false,
+  motifs:["Congé payé","RTT","Arrêt maladie","Congé sans solde","Événement familial","Formation","Autre"],
+  lieux:["Bureau","Télétravail","Déplacement"], activites:["Activité courante","Réunion","Formation","Rendez-vous extérieur"],
+  modeles:[{nom:"Journée",debut:"09:00",fin:"17:00"},{nom:"Matin",debut:"07:00",fin:"14:00"},{nom:"Après-midi",debut:"13:00",fin:"20:00"},{nom:"Repos"}],
+  silae:{heures:"HS-HN",absences:{"Congé payé":"AB-CP","RTT":"AB-RTT","Arrêt maladie":"AB-MAL","Congé sans solde":"AB-CSS","Événement familial":"AB-EVF","Formation":"AB-FORM","Autre":"AB-ABS"}}
+}, window.POINTAGE_CONFIG||{});
+const RH=(CFG.rh||[]).map(s=>String(s).toLowerCase());
+const L_P="Pointages", L_A="Absences", L_S="Salaries", L_PL="Planning", L_C="Clotures", L_J="Journal";
 
 function h(tag, attrs, ...kids){
   const e=document.createElement(tag);
@@ -129,31 +162,99 @@ const pad=n=>String(n).padStart(2,"0");
 const ymd=d=>`${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
 const hm=d=>`${pad(d.getHours())}:${pad(d.getMinutes())}`;
 const dateDe=s=>{const [y,m,d]=s.split("-").map(Number);return new Date(y,m-1,d)};
+const plusJours=(s,n)=>{const d=dateDe(s);d.setDate(d.getDate()+n);return ymd(d)};
 const toMin=s=>{const [a,b]=s.split(":").map(Number);return a*60+b};
-const fmtMin=m=>`${Math.floor(m/60)} h ${pad(Math.round(m)%60)}`;
+const fmtMin=m=>{m=Math.round(m);return `${Math.floor(m/60)} h ${pad(m%60)}`};
+const fmtEcart=m=>(m<0?"− ":"+ ")+fmtMin(Math.abs(m));
 const today=()=>ymd(new Date());
 const frJour=s=>dateDe(s).toLocaleDateString("fr-FR",{weekday:"short",day:"numeric",month:"short"});
+const frCourt=s=>{const [y,m,d]=s.split("-");return `${d}/${m}/${y}`};
 const frLong=d=>d.toLocaleDateString("fr-FR",{weekday:"long",day:"numeric",month:"long",year:"numeric"});
 const frMois=m=>dateDe(m+"-01").toLocaleDateString("fr-FR",{month:"long",year:"numeric"});
 const decaleMois=(m,n)=>{const d=dateDe(m+"-01");d.setMonth(d.getMonth()+n);return ymd(d).slice(0,7)};
-function heuresDe(it){try{const a=JSON.parse(it.Heures||"[]");return Array.isArray(a)?a.filter(x=>/^\d\d:\d\d$/.test(x)):[]}catch(e){return[]}}
+const finDuMois=m=>{const d=dateDe(m+"-01");return ymd(new Date(d.getFullYear(),d.getMonth()+1,0))};
+const lundiDe=s=>{const d=dateDe(s);d.setDate(d.getDate()-(d.getDay()+6)%7);return ymd(d)};
+const jsonDe=(s,def)=>{try{const v=JSON.parse(s||"");return v==null?def:v}catch(e){return def}};
+function heuresDe(it){const a=jsonDe(it&&it.Heures,[]);return Array.isArray(a)?a.filter(x=>/^\d\d:\d\d$/.test(x)):[]}
 function minutesDe(times, enCours){
   let t=0;
   for(let i=0;i+1<times.length;i+=2) t+=Math.max(0,toMin(times[i+1])-toMin(times[i]));
   if(enCours && times.length%2) t+=Math.max(0,toMin(hm(new Date()))-toMin(times[times.length-1]));
   return t;
 }
-function paires(times){
-  const out=[];
-  for(let i=0;i<times.length;i+=2) out.push(times[i]+" → "+(times[i+1]||"…"));
-  return out.join("  ·  ");
+function paires(times){const out=[];for(let i=0;i<times.length;i+=2) out.push(times[i]+" → "+(times[i+1]||"…"));return out.join("  ·  ")}
+
+/* Jours fériés français (métropole) */
+const cacheFeries={};
+function feries(y){
+  if(cacheFeries[y]) return cacheFeries[y];
+  const a=y%19,b=Math.floor(y/100),c=y%100,d=Math.floor(b/4),e=b%4,f=Math.floor((b+8)/25),g=Math.floor((b-f+1)/3),
+    hh=(19*a+b-d-g+15)%30,i=Math.floor(c/4),k=c%4,l=(32+2*e+2*i-hh-k)%7,m=Math.floor((a+11*hh+22*l)/451),
+    mo=Math.floor((hh+l-7*m+114)/31),jo=((hh+l-7*m+114)%31)+1;
+  const paques=ymd(new Date(y,mo-1,jo));
+  const map={[y+"-01-01"]:"Jour de l'an",[plusJours(paques,1)]:"Lundi de Pâques",[y+"-05-01"]:"Fête du travail",[y+"-05-08"]:"Victoire 1945",
+    [plusJours(paques,39)]:"Ascension",[plusJours(paques,50)]:"Lundi de Pentecôte",[y+"-07-14"]:"Fête nationale",[y+"-08-15"]:"Assomption",
+    [y+"-11-01"]:"Toussaint",[y+"-11-11"]:"Armistice",[y+"-12-25"]:"Noël"};
+  return cacheFeries[y]=map;
 }
-function joursOuvres(a,b,min,max){ // lundi à vendredi, bornes incluses, limité à [min,max] si fournis
-  let d=dateDe(a>(min||a)?a:(min||a)); const fin=dateDe(b<(max||b)?b:(max||b)); let n=0;
-  while(d<=fin){const j=d.getDay(); if(j!==0&&j!==6) n++; d.setDate(d.getDate()+1);}
+const ferieLe=j=>feries(+j.slice(0,4))[j]||"";
+
+/* Fiche salarié : horaire théorique */
+function ficheDefaut(email,nom,manager){return {Title:nom,EmployeEmail:email,EmployeNom:nom,Equipe:"",Contrat:"Horaire",DateEntree:"",HeuresHebdo:35,
+  JoursTravailles:"1,2,3,4,5",PauseMin:CFG.pauseMin,SoldeCP:0,SoldeRTT:0,Matricule:"",ManagerEmail:manager||"",Delegue:""}}
+const joursTrav=f=>new Set(String((f&&f.JoursTravailles)||"1,2,3,4,5").split(",").map(Number));
+const estTravaille=(f,j)=>joursTrav(f).has(dateDe(j).getDay())&&!ferieLe(j);
+const forfait=f=>f&&f.Contrat==="Forfait jours";
+const theoJour=(f,j)=>forfait(f)||!estTravaille(f,j)?0:(+f.HeuresHebdo||35)*60/joursTrav(f).size;
+const pauseDe=f=>f&&f.PauseMin!==""&&f.PauseMin!=null?+f.PauseMin:CFG.pauseMin;
+function netMin(times,f,enCours){
+  const brut=minutesDe(times,enCours);
+  return times.length===2&&brut>CFG.pauseSeuilH*60?Math.max(0,brut-pauseDe(f)):brut;
+}
+const minDe=(it,f)=>f?netMin(heuresDe(it),f,it.Jour===today()):(+it.Minutes||0);
+const absLe=(liste,j,statuts)=>liste.find(a=>(statuts||["Valide"]).includes(a.Statut)&&a.Debut<=j&&a.Fin>=j);
+function joursAbsence(f,a,min,max){
+  if(a.DemiJournee) return (!min||a.Debut>=min)&&(!max||a.Debut<=max)&&estTravaille(f,a.Debut)?0.5:0;
+  let j=min&&min>a.Debut?min:a.Debut; const fin=max&&max<a.Fin?max:a.Fin; let n=0;
+  while(j<=fin){if(estTravaille(f,j)) n++; j=plusJours(j,1);}
   return n;
 }
-function lundiDe(d){const x=new Date(d);const j=(x.getDay()+6)%7;x.setDate(x.getDate()-j);return x}
+const CODE_ABS={"Congé payé":["CP","k-cp"],"RTT":["RTT","k-rtt"],"Arrêt maladie":["AM","k-am"],"Maladie":["AM","k-am"]};
+const codeAbs=m=>CODE_ABS[m]||["AB","k-ab"];
+const SUBIES=m=>!["Congé payé","RTT","Formation"].includes(m);
+
+/* Bilan d'une personne sur une période : heures, théorique, écart, anomalies, alertes légales */
+function bilan(f, items, abs, debut, fin){
+  const auj=today(), par={}; for(const it of items) par[it.Jour]=it;
+  const r={trav:0,theo:0,ecart:0,jours:0,valides:0,attente:0,joursTheo:0,joursAbs:0,joursSubis:0,anomalies:[],alertes:[]};
+  const semaines={}; let j=debut; const borne=fin<auj?fin:auj;
+  while(j<=borne){
+    const it=par[j], a=absLe(abs,j), times=it?heuresDe(it):[], ouvre=estTravaille(f,j);
+    const complet=it&&times.length&&times.length%2===0;
+    const m=it?minDe(it,f):0;
+    if(it){r.trav+=m;r.jours++;if(it.Statut==="Valide")r.valides++;else r.attente++;
+      const s=lundiDe(j);semaines[s]=(semaines[s]||0)+m;}
+    if(ouvre){r.joursTheo++; if(a){const q=a.DemiJournee?0.5:1;r.joursAbs+=q;if(SUBIES(a.Motif))r.joursSubis+=q;}}
+    if(j<auj||(j===auj&&complet)){
+      const t=theoJour(f,j)*(a?(a.DemiJournee?0.5:0):1);
+      r.theo+=t; r.ecart+=m-t;
+    }
+    if(j<auj&&ouvre&&!it&&!a) r.anomalies.push({jour:j,texte:"Aucun pointage ni absence"});
+    if(it&&times.length%2===1&&j<auj) r.anomalies.push({jour:j,texte:"Départ non pointé"});
+    if(it&&times.length){
+      const mod=modeleLe(f.EmployeEmail,j);
+      if(mod&&mod.debut){const ret=toMin(times[0])-toMin(mod.debut);if(ret>CFG.toleranceRetardMin) r.anomalies.push({jour:j,texte:"Retard de "+ret+" min (prévu "+mod.debut+")"});}
+      if(m>600) r.alertes.push({jour:j,texte:"Plus de 10 h travaillées ("+fmtMin(m)+")"});
+      const hier=par[plusJours(j,-1)], th=hier?heuresDe(hier):[];
+      if(th.length&&th.length%2===0){const repos=1440-toMin(th[th.length-1])+toMin(times[0]);
+        if(repos<660) r.alertes.push({jour:j,texte:"Repos de "+fmtMin(repos)+" seulement depuis la veille (minimum 11 h)"});}
+    }
+    j=plusJours(j,1);
+  }
+  for(const [s,m] of Object.entries(semaines)) if(m>2880) r.alertes.push({jour:s,texte:"Semaine de plus de 48 h ("+fmtMin(m)+")"});
+  return r;
+}
+
 let toastT;
 function toast(msg){const t=document.getElementById("toast");t.textContent=msg;t.style.display="block";clearTimeout(toastT);toastT=setTimeout(()=>t.style.display="none",5000)}
 async function agir(btn, fn){
@@ -167,78 +268,92 @@ function pastille(statut){
   const [txt,cls]=map[statut]||[statut||"—","p-neutre"];
   return h("span",{class:"pastille "+cls},txt);
 }
-
-/* ---------- Fenêtre de saisie ---------- */
 function ouvrir(titre, corps, libelleOk, surOk){
   const dlg=document.getElementById("dlg");
   dlg.replaceChildren();
   const err=h("p",{class:"bandeau refus",hidden:true});
-  const ok=h("button",{class:"principal",type:"submit"},libelleOk);
+  const ok=libelleOk?h("button",{class:"principal",type:"submit"},libelleOk):null;
   const form=h("form",{method:"dialog",onsubmit:async ev=>{
-    ev.preventDefault(); ok.disabled=true; err.hidden=true;
+    ev.preventDefault(); if(!ok) return; ok.disabled=true; err.hidden=true;
     try{await surOk(); dlg.close()}catch(e){err.textContent=e.message||"Erreur";err.hidden=false}
     finally{ok.disabled=false}
   }}, h("h2",null,titre), corps, err,
-    h("div",{class:"ligne"}, h("button",{type:"button",onclick:()=>dlg.close()},"Annuler"), ok));
+    h("div",{class:"ligne"}, h("button",{type:"button",onclick:()=>dlg.close()},ok?"Annuler":"Fermer"), ok));
   dlg.append(form); dlg.showModal();
 }
 
-/* ---------- Stockage : mode démonstration ---------- */
+/* ================= Stockage : démonstration ================= */
 function magasinDemo(){
-  const CLE="pointage-demo-v1";
-  const gens=[
-    {email:"camille.martin@demo.fr",name:"Camille Martin",managerEmail:"julien.bernard@demo.fr",managerName:"Julien Bernard"},
-    {email:"thomas.petit@demo.fr",name:"Thomas Petit",managerEmail:"julien.bernard@demo.fr",managerName:"Julien Bernard"},
-    {email:"julien.bernard@demo.fr",name:"Julien Bernard (manager)",managerEmail:"sophie.leroy@demo.fr",managerName:"Sophie Leroy"},
-    {email:"sophie.leroy@demo.fr",name:"Sophie Leroy (RH)",managerEmail:"sophie.leroy@demo.fr",managerName:"Sophie Leroy"}
-  ];
+  const CLE="pointage-demo-v2";
+  const G=[["camille.martin@demo.fr","Camille Martin","julien.bernard@demo.fr","Admissions",35,"1,2,3,4,5","0012"],
+    ["thomas.petit@demo.fr","Thomas Petit","julien.bernard@demo.fr","Admissions",35,"1,2,3,4,5","0027"],
+    ["ines.roux@demo.fr","Inès Roux","julien.bernard@demo.fr","Pédagogie",28,"1,2,3,4","0031"],
+    ["julien.bernard@demo.fr","Julien Bernard (manager)","sophie.leroy@demo.fr","Direction",39,"1,2,3,4,5","0004"],
+    ["sophie.leroy@demo.fr","Sophie Leroy (RH)","sophie.leroy@demo.fr","Direction",35,"1,2,3,4,5","0002"]];
+  const gens=G.map(g=>({email:g[0],name:g[1],managerEmail:g[2]}));
   RH.push("sophie.leroy@demo.fr");
   let db;
   function graine(){
-    const d={seq:1,user:gens[0].email,lists:{[L_P]:[],[L_A]:[]}};
-    const modeles=[["08:30","12:15","13:15","17:30"],["08:45","12:30","13:30","17:45"],["09:00","12:00","13:00","17:10"]];
-    const cur=new Date(); cur.setDate(cur.getDate()-12); let k=0;
-    const fin=new Date(); fin.setDate(fin.getDate()-1);
-    while(cur<=fin){
-      const j=cur.getDay();
-      if(j!==0&&j!==6){
-        gens.slice(0,2).forEach((g,gi)=>{
-          const times=modeles[(k+gi)%3].slice(); const jour=ymd(cur);
-          const recent=(fin-cur)/864e5<3;
-          const it={id:String(d.seq++),Title:g.name+" "+jour,EmployeEmail:g.email,EmployeNom:g.name,Jour:jour,Mois:jour.slice(0,7),
-            Heures:JSON.stringify(times),Minutes:minutesDe(times),ManagerEmail:g.managerEmail,Statut:recent?"A valider":"Valide"};
-          if(recent&&gi===1&&k%2===0){it.Heures=JSON.stringify(times.slice(0,3));it.Minutes=minutesDe(times.slice(0,3));}
-          d.lists[L_P].push(it);
-        });
-        k++;
+    const d={seq:1,user:gens[0].email,lists:{[L_P]:[],[L_A]:[],[L_S]:[],[L_PL]:[],[L_C]:[],[L_J]:[]}};
+    const add=(l,o)=>{d.lists[l].push({id:String(d.seq++),...o})};
+    let graineN=20261123; const alea=()=>{graineN=(graineN*1664525+1013904223)%4294967296;return graineN/4294967296};
+    const auj=today(), y=+auj.slice(0,4), fiches={};
+    G.forEach(g=>{const f={...ficheDefaut(g[0],g[1],g[2]),Equipe:g[3],HeuresHebdo:g[4],JoursTravailles:g[5],Matricule:g[6],
+      DateEntree:(y-3)+"-09-01",SoldeCP:g[0].startsWith("ines")?4:6,SoldeRTT:g[4]>35?10:0};fiches[g[0]]=f;add(L_S,f)});
+    const abs=(e,motif,deb,fin,statut,extra)=>{const f=fiches[e];const a={Title:f.EmployeNom+" "+motif,EmployeEmail:e,EmployeNom:f.EmployeNom,Motif:motif,Debut:deb,Fin:fin,
+      ManagerEmail:f.ManagerEmail,Statut:statut||"Valide",DemiJournee:"",...(extra||{})};a.Jours=joursAbsence(f,a);add(L_A,a)};
+    const C=gens[0].email,T=gens[1].email,I=gens[2].email,J=gens[3].email;
+    abs(C,"Arrêt maladie",y+"-02-09",y+"-02-13"); abs(C,"Congé payé",y+"-04-13",y+"-04-17"); abs(C,"Congé payé",y+"-08-03",y+"-08-21");
+    abs(C,"Formation",y+"-06-09",y+"-06-10"); abs(C,"Congé payé",y+"-12-24",y+"-12-31");
+    abs(T,"Arrêt maladie",y+"-03-02",y+"-03-04"); abs(T,"Congé payé",y+"-07-13",y+"-07-31"); abs(T,"Événement familial",y+"-10-05",y+"-10-06");
+    abs(T,"Congé payé",plusJours(auj,7),plusJours(auj,11),"En attente",{Commentaire:"Vacances en famille"});
+    abs(I,"Congé payé",y+"-08-10",y+"-08-21"); abs(I,"Arrêt maladie",y+"-05-18",y+"-05-21"); abs(I,"Congé payé",plusJours(auj,8),plusJours(auj,9),"En attente");
+    abs(J,"RTT",y+"-05-15",y+"-05-15"); abs(J,"RTT",y+"-09-18",y+"-09-18"); abs(J,"Congé payé",y+"-08-10",y+"-08-28");
+    const oubli=plusJours(auj,-8), sansDepart=plusJours(auj,-3), longue=plusJours(auj,-2);
+    for(const e of [C,T,I,J]){
+      const f=fiches[e], sesAbs=d.lists[L_A].filter(a=>a.EmployeEmail===e); let j=y+"-01-01"; const hier=plusJours(auj,-1);
+      while(j<=hier){
+        if(estTravaille(f,j)&&!absLe(sesAbs,j)&&!(e===T&&j===oubli)){
+          const arr=500+Math.floor(alea()*45), midi=720+Math.floor(alea()*30), pause=45+Math.floor(alea()*20);
+          const duree=Math.round(theoJour(f,j))+Math.floor(alea()*50)-22;
+          let times=[arr,midi,midi+pause,arr+pause+duree].map(m=>pad(Math.floor(m/60))+":"+pad(m%60));
+          if(e===J&&j===longue) times=["07:30","12:30","13:00","19:20"];
+          if(e===T&&j===sansDepart) times=times.slice(0,3);
+          const recent=j>=plusJours(auj,-6);
+          add(L_P,{Title:f.EmployeNom+" "+j,EmployeEmail:e,EmployeNom:f.EmployeNom,Jour:j,Mois:j.slice(0,7),Heures:JSON.stringify(times),Minutes:netMin(times,f),
+            ManagerEmail:f.ManagerEmail,Statut:recent?"A valider":"Valide",Lieu:(e===C&&dateDe(j).getDay()===5)||(e===I&&dateDe(j).getDay()===3)?"Télétravail":"Bureau",Activite:CFG.activites[0]});
+        }
+        j=plusJours(j,1);
       }
-      cur.setDate(cur.getDate()+1);
     }
-    const plus=n=>{const x=new Date();x.setDate(x.getDate()+n);return ymd(x)};
-    d.lists[L_A].push({id:String(d.seq++),Title:"Thomas Petit Congé payé",EmployeEmail:gens[1].email,EmployeNom:gens[1].name,Motif:"Congé payé",
-      Debut:plus(7),Fin:plus(11),Jours:joursOuvres(plus(7),plus(11)),Commentaire:"Vacances en famille",ManagerEmail:gens[1].managerEmail,Statut:"En attente"});
-    d.lists[L_A].push({id:String(d.seq++),Title:"Camille Martin Congé payé",EmployeEmail:gens[0].email,EmployeNom:gens[0].name,Motif:"Congé payé",
-      Debut:plus(-20),Fin:plus(-18),Jours:joursOuvres(plus(-20),plus(-18)),ManagerEmail:gens[0].managerEmail,Statut:"Valide"});
+    let m=y+"-01"; const dernier=decaleMois(auj.slice(0,7),-2);
+    while(m<=dernier){add(L_C,{Title:m,Mois:m,Statut:"Cloture",CloturePar:"sophie.leroy@demo.fr"});m=decaleMois(m,1)}
+    const lun=lundiDe(auj);
+    [C,T,I].forEach((e,k)=>{const aff={};for(let i=0;i<5;i++){const jj=plusJours(lun,i);if(estTravaille(fiches[e],jj)) aff[jj]=k===1&&i>2?"Matin":"Journée";}
+      add(L_PL,{Title:e+" "+lun,EmployeEmail:e,ManagerEmail:J,Semaine:lun,Affectations:JSON.stringify(aff)})});
+    add(L_J,{Title:"Clôture",Date:new Date().toISOString(),Auteur:"sophie.leroy@demo.fr",Action:"Clôture du mois",Cible:dernier,Detail:""});
     return d;
   }
-  function charge(){try{db=JSON.parse(localStorage.getItem(CLE))}catch(e){} if(!db||!db.lists) db=graine();}
+  function charge(){try{db=JSON.parse(localStorage.getItem(CLE))}catch(e){} if(!db||!db.lists||!db.lists[L_S]) db=graine();}
   function sauve(){try{localStorage.setItem(CLE,JSON.stringify(db))}catch(e){}}
   charge();
   return {
     demo:true, gens,
-    async start(){return gens.find(g=>g.email===db.user)||gens[0]},
+    async start(){return {...(gens.find(g=>g.email===db.user)||gens[0])}},
     changer(email){db.user=email;sauve()},
     reinit(){db=graine();sauve()},
     async query(list,f){return db.lists[list].filter(it=>Object.entries(f||{}).every(([k,v])=>it[k]===v)).map(it=>({...it}))},
     async add(list,fields){const it={id:String(db.seq++),...fields};db.lists[list].push(it);sauve();return {...it}},
-    async patch(list,id,fields){const it=db.lists[list].find(x=>x.id===id);if(!it) throw new Error("Élément introuvable.");Object.assign(it,fields);sauve()}
+    async patch(list,id,fields){const it=db.lists[list].find(x=>x.id===id);if(!it) throw new Error("Élément introuvable.");Object.assign(it,fields);sauve()},
+    async upload(file){return {name:file.name,url:""}},
+    async notify(){return "simule"}
   };
 }
 
-/* ---------- Stockage : Microsoft 365 (connexion Microsoft + listes SharePoint) ---------- */
+/* ================= Stockage : Microsoft 365 ================= */
 function magasinMicrosoft(){
   const BASE="https://graph.microsoft.com/v1.0";
-  const PORTEES=["User.Read","User.Read.All","Sites.ReadWrite.All"];
+  const PORTEES=["User.Read","User.Read.All","Sites.ReadWrite.All"].concat(CFG.notifications?["Mail.Send"]:[]);
   let pca, compte, siteId;
   function charger(src){return new Promise((ok,ko)=>{const s=document.createElement("script");s.src=src;s.onload=ok;s.onerror=()=>ko(new Error("Fichier msal-browser.min.js introuvable à côté de index.html."));document.head.append(s)})}
   async function jeton(portees){
@@ -246,13 +361,13 @@ function magasinMicrosoft(){
     catch(e){await pca.acquireTokenRedirect({scopes:portees,account:compte});throw new Error("redirection")}
   }
   async function g(chemin,opt,portees){
-    const t=await jeton(portees||PORTEES);
-    const r=await fetch(chemin.startsWith("http")?chemin:BASE+chemin,{...(opt||{}),headers:{Authorization:"Bearer "+t,"Content-Type":"application/json",
-      Prefer:"HonorNonIndexedQueriesWarningMayFailRandomly"}});
-    if(r.status===204) return null;
+    const t=await jeton(portees||PORTEES); opt=opt||{};
+    const r=await fetch(chemin.startsWith("http")?chemin:BASE+chemin,{method:opt.method,body:opt.body,headers:{Authorization:"Bearer "+t,
+      "Content-Type":opt.type||"application/json",Prefer:"HonorNonIndexedQueriesWarningMayFailRandomly"}});
+    if(r.status===204||r.status===202) return null;
     const j=await r.json().catch(()=>null);
     if(!r.ok){
-      const e=new Error(r.status===403?"Accès refusé au site SharePoint. Demandez à être ajouté comme membre du site.":
+      const e=new Error(r.status===403?"Accès refusé. Demandez à être ajouté comme membre du site SharePoint.":
         (j&&j.error&&j.error.message)||("Erreur Microsoft "+r.status));
       e.status=r.status; throw e;
     }
@@ -275,12 +390,11 @@ function magasinMicrosoft(){
       compte=(rep&&rep.account)||pca.getActiveAccount()||pca.getAllAccounts()[0];
       if(!compte) return null;
       pca.setActiveAccount(compte);
-      const moi={email:compte.username.toLowerCase(),name:compte.name||compte.username,managerEmail:"",managerName:""};
+      const moi={email:compte.username.toLowerCase(),name:compte.name||compte.username,managerEmail:""};
       try{
         const m=await g("/me/manager?$select=displayName,userPrincipalName");
-        moi.managerEmail=(m.userPrincipalName||"").toLowerCase(); moi.managerName=m.displayName||"";
+        moi.managerEmail=(m.userPrincipalName||"").toLowerCase();
       }catch(e){ if(e.message==="redirection") throw e; }
-      if(!moi.managerEmail){moi.managerEmail=String(CFG.managerParDefaut||RH[0]||"").toLowerCase();moi.managerName="";moi.sansManager=true;}
       return moi;
     },
     async login(){await pca.loginRedirect({scopes:PORTEES})},
@@ -295,12 +409,27 @@ function magasinMicrosoft(){
     },
     async add(list,fields){const id=await site();const it=await g(`/sites/${id}/lists/${list}/items`,{method:"POST",body:JSON.stringify({fields})});return {...it.fields,id:it.id}},
     async patch(list,idItem,fields){const id=await site();await g(`/sites/${id}/lists/${list}/items/${idItem}/fields`,{method:"PATCH",body:JSON.stringify(fields)})},
-    async installer(){ // crée les deux listes ; réservé à un propriétaire du site
+    async upload(file){
+      const id=await site(); const nom=Date.now()+"-"+file.name.replace(/[^\w.\-]+/g,"_");
+      const it=await g(`/sites/${id}/drive/root:/Justificatifs/${encodeURIComponent(nom)}:/content`,{method:"PUT",body:file,type:file.type||"application/octet-stream"});
+      return {name:file.name,url:(it&&it.webUrl)||""};
+    },
+    async notify(a,sujet,texte){
+      if(!CFG.notifications||!a) return "";
+      await g("/me/sendMail",{method:"POST",body:JSON.stringify({message:{subject:sujet,body:{contentType:"Text",content:texte+"\n\n"+location.origin+location.pathname},
+        toRecipients:[{emailAddress:{address:a}}]},saveToSentItems:false})});
+      return "envoye";
+    },
+    async installer(){ // crée les listes manquantes ; réservé à un propriétaire du site
       const id=await site(); const P=["User.Read","Sites.Manage.All"];
       const txt=n=>({name:n,text:{},indexed:true}), long=n=>({name:n,text:{allowMultipleLines:true}}), nb=n=>({name:n,number:{}});
       const defs={
-        [L_P]:[txt("EmployeEmail"),txt("EmployeNom"),txt("Jour"),txt("Mois"),long("Heures"),nb("Minutes"),txt("ManagerEmail"),txt("Statut"),txt("Corrige"),long("Commentaire"),long("MotifRefus"),txt("ValidePar")],
-        [L_A]:[txt("EmployeEmail"),txt("EmployeNom"),txt("Motif"),txt("Debut"),txt("Fin"),nb("Jours"),long("Commentaire"),txt("ManagerEmail"),txt("Statut"),long("MotifRefus"),txt("ValidePar")]
+        [L_P]:[txt("EmployeEmail"),txt("EmployeNom"),txt("Jour"),txt("Mois"),long("Heures"),nb("Minutes"),txt("ManagerEmail"),txt("Statut"),txt("Corrige"),txt("Lieu"),txt("Activite"),long("Commentaire"),long("MotifRefus"),txt("ValidePar")],
+        [L_A]:[txt("EmployeEmail"),txt("EmployeNom"),txt("Motif"),txt("Debut"),txt("Fin"),txt("DemiJournee"),nb("Jours"),long("Commentaire"),txt("ManagerEmail"),txt("Statut"),long("MotifRefus"),txt("ValidePar"),txt("JustificatifNom"),long("JustificatifUrl")],
+        [L_S]:[txt("EmployeEmail"),txt("EmployeNom"),txt("Equipe"),txt("Contrat"),txt("DateEntree"),nb("HeuresHebdo"),txt("JoursTravailles"),nb("PauseMin"),nb("SoldeCP"),nb("SoldeRTT"),txt("Matricule"),txt("ManagerEmail"),txt("Delegue")],
+        [L_PL]:[txt("EmployeEmail"),txt("ManagerEmail"),txt("Semaine"),long("Affectations")],
+        [L_C]:[txt("Mois"),txt("Statut"),txt("CloturePar")],
+        [L_J]:[txt("Date"),txt("Auteur"),txt("Action"),txt("Cible"),long("Detail")]
       };
       for(const [nom,columns] of Object.entries(defs)){
         try{await g(`/sites/${id}/lists/${nom}?$select=id`)}
@@ -311,130 +440,166 @@ function magasinMicrosoft(){
   };
 }
 
-/* ---------- État de l'application ---------- */
+/* ================= État ================= */
 const store = CFG.demo ? magasinDemo() : magasinMicrosoft();
-const S={moi:null,onglet:"pointer",mois:today().slice(0,7),moisSynthese:today().slice(0,7),
-  miens:{},abs:[],attP:[],attA:[],estRH:false,estManager:false,synth:null};
+const S={moi:null,fiche:null,onglet:"pointer",sous:"validation",mois:today().slice(0,7),moisSynthese:today().slice(0,7),semaine:lundiDe(today()),
+  miens:{},abs:[],attP:[],absEquipe:[],fiches:[],plan:[],planMoi:[],clotures:[],pour:[],estRH:false,estManager:false,synth:null,
+  an:null,anQui:"",anAnnee:+today().slice(0,4),journal:null};
 const vue=document.getElementById("vue");
 function pose(...k){vue.replaceChildren(...k.flat(Infinity).filter(x=>x!=null&&x!==false))}
+const estClos=m=>S.clotures.some(c=>c.Mois===m&&c.Statut==="Cloture");
+const ficheDe=e=>e===S.moi.email?S.fiche:(S.fiches.find(f=>f.EmployeEmail===e)||ficheDefaut(e,e,""));
+function modeleLe(email,jour){
+  const it=S.plan.concat(S.planMoi).find(p=>p.EmployeEmail===email&&p.Semaine===lundiDe(jour));
+  const nom=it&&jsonDe(it.Affectations,{})[jour];
+  return nom?CFG.modeles.find(m=>m.nom===nom)||{nom}:null;
+}
+async function journal(action,cible,detail){
+  try{await store.add(L_J,{Title:action,Date:new Date().toISOString(),Auteur:S.moi.email,Action:action,Cible:cible||"",Detail:detail||""});S.journal=null}catch(e){}
+}
+async function prevenir(a,sujet,texte){try{return await store.notify(a,sujet,texte)}catch(e){return ""}}
+const suffixeNotif=r=>r==="envoye"?" Un e-mail a été envoyé.":r==="simule"?" (E-mail simulé en démonstration.)":"";
 
 async function chargerMois(m){S.miens[m]=await store.query(L_P,{EmployeEmail:S.moi.email,Mois:m});return S.miens[m]}
 async function chargerAbs(){S.abs=(await store.query(L_A,{EmployeEmail:S.moi.email})).sort((a,b)=>b.Debut.localeCompare(a.Debut))}
 async function chargerEquipe(){
-  const fP=S.estRH?{Statut:"A valider"}:{ManagerEmail:S.moi.email,Statut:"A valider"};
-  const fA=S.estRH?{Statut:"En attente"}:{ManagerEmail:S.moi.email,Statut:"En attente"};
-  [S.attP,S.attA]=await Promise.all([store.query(L_P,fP),store.query(L_A,fA)]);
+  const moi=S.moi.email;
+  S.pour=[moi,...(await store.query(L_S,{Delegue:moi})).map(f=>f.EmployeEmail).filter(e=>e!==moi)];
+  if(S.estRH){
+    [S.fiches,S.absEquipe,S.attP,S.plan]=await Promise.all([store.query(L_S,{}),store.query(L_A,{}),store.query(L_P,{Statut:"A valider"}),store.query(L_PL,{})]);
+  }else{
+    const tout=await Promise.all(S.pour.map(m=>Promise.all([store.query(L_S,{ManagerEmail:m}),store.query(L_A,{ManagerEmail:m}),
+      store.query(L_P,{ManagerEmail:m,Statut:"A valider"}),store.query(L_PL,{ManagerEmail:m})])));
+    S.fiches=tout.flatMap(t=>t[0]).filter(f=>f.EmployeEmail!==moi);
+    S.absEquipe=tout.flatMap(t=>t[1]).filter(a=>a.EmployeEmail!==moi);
+    S.attP=tout.flatMap(t=>t[2]).filter(p=>p.EmployeEmail!==moi);
+    S.plan=tout.flatMap(t=>t[3]);
+  }
+  S.fiches.sort((a,b)=>a.EmployeNom.localeCompare(b.EmployeNom));
   S.attP.sort((a,b)=>a.Jour.localeCompare(b.Jour));
-  if(!S.estRH){ // on ne se valide pas soi-même
-    S.attP=S.attP.filter(x=>x.EmployeEmail!==S.moi.email); S.attA=S.attA.filter(x=>x.EmployeEmail!==S.moi.email);
-  }
+  S.estManager=S.estRH||S.fiches.some(f=>f.EmployeEmail!==moi);
+  S.synth=null;
 }
+const attA=()=>S.absEquipe.filter(a=>a.Statut==="En attente");
 
-/* ---------- Démarrage ---------- */
+/* ================= Démarrage ================= */
 async function demarrer(){
-  try{
-    S.moi=await store.start();
-  }catch(e){
-    if(e.message==="redirection") return;
-    pose(h("div",{class:"bandeau refus"},"Connexion Microsoft impossible : "+e.message)); return;
-  }
+  try{S.moi=await store.start()}
+  catch(e){ if(e.message==="redirection") return;
+    pose(h("div",{class:"bandeau refus"},"Connexion Microsoft impossible : "+e.message)); return; }
   if(!S.moi){
-    pose(h("div",{class:"carte centre"},h("h2",null,"Connectez-vous avec votre compte Microsoft"),
+    pose(h("div",{class:"carte",style:"text-align:center"},h("h2",null,"Connectez-vous avec votre compte Microsoft"),
       h("p",{class:"discret"},"Utilisez votre compte professionnel habituel."),
       h("button",{class:"principal geant",onclick:ev=>agir(ev.currentTarget,()=>store.login())},"Se connecter avec Microsoft")));
     return;
   }
-  S.estRH=RH.includes(S.moi.email);
+  S.estRH=RH.includes(S.moi.email); S.anQui=S.moi.email;
   enTete();
   try{
-    const m=today().slice(0,7);
-    const lun=ymd(lundiDe(new Date())).slice(0,7);
-    await Promise.all([chargerMois(m), lun!==m?chargerMois(lun):null, chargerAbs()]);
-    const equipeMois=S.estRH?[1]:await store.query(L_P,{ManagerEmail:S.moi.email,Mois:m});
+    const mesFiches=await store.query(L_S,{EmployeEmail:S.moi.email});
+    S.fiche=mesFiches[0];
+    if(!S.fiche) S.fiche=await store.add(L_S,ficheDefaut(S.moi.email,S.moi.name,S.moi.managerEmail||String(CFG.managerParDefaut||RH[0]||"").toLowerCase()));
+    else if(S.moi.managerEmail&&S.fiche.ManagerEmail!==S.moi.managerEmail){await store.patch(L_S,S.fiche.id,{ManagerEmail:S.moi.managerEmail});S.fiche.ManagerEmail=S.moi.managerEmail;}
+    S.moi.managerEmail=S.fiche.ManagerEmail||"";
+    const m=today().slice(0,7), ml=lundiDe(today()).slice(0,7);
+    [S.clotures,S.planMoi]=await Promise.all([store.query(L_C,{}),store.query(L_PL,{EmployeEmail:S.moi.email}),chargerMois(m),ml!==m?chargerMois(ml):null,chargerAbs()]);
     await chargerEquipe();
-    S.estManager=S.estRH||equipeMois.some(x=>x.EmployeEmail!==S.moi.email)||S.attP.length>0||S.attA.length>0;
   }catch(e){
     if(e.message==="redirection") return;
     if(e.status===404&&!store.demo){ecranInstallation();return}
     pose(h("div",{class:"bandeau refus"},e.message)); return;
   }
   afficher();
-  setInterval(()=>{if(S.onglet==="pointer"&&!document.getElementById("dlg").open) afficher()},30000);
+  setInterval(()=>{if(S.onglet==="pointer"&&!document.getElementById("dlg").open&&!["SELECT","INPUT"].includes(document.activeElement.tagName)) afficher()},30000);
 }
 function enTete(){
   const z=document.getElementById("qui"); z.replaceChildren();
   if(store.demo){
-    const sel=h("select",{id:"demo-qui","aria-label":"Personne affichée (démonstration)",onchange:ev=>{store.changer(ev.target.value);location.reload()}},
-      store.gens.map(g=>h("option",{value:g.email,selected:g.email===S.moi.email},g.name)));
-    z.append(h("span",{class:"pastille p-attente"},"Démonstration"),sel,
+    z.append(h("span",{class:"pastille p-attente"},"Démonstration"),
+      h("select",{id:"demo-qui","aria-label":"Personne affichée (démonstration)",onchange:ev=>{store.changer(ev.target.value);location.reload()}},
+        store.gens.map(g=>h("option",{value:g.email,selected:g.email===S.moi.email},g.name))),
       h("button",{class:"lien",onclick:()=>{store.reinit();location.reload()}},"Remettre à zéro"));
-  }else{
-    z.append(h("span",null,S.moi.name),h("button",{class:"lien",onclick:()=>store.logout()},"Se déconnecter"));
-  }
+  }else z.append(h("span",null,S.moi.name),h("button",{class:"lien",onclick:()=>store.logout()},"Se déconnecter"));
 }
 function ecranInstallation(){
   document.getElementById("onglets").replaceChildren();
-  pose(h("div",{class:"carte"},h("h2",null,"Première installation"),
-    h("p",null,"Les listes « Pointages » et « Absences » n'existent pas encore sur le site SharePoint, ou le site est introuvable."),
+  pose(h("div",{class:"carte"},h("h2",null,"Installation"),
+    h("p",null,"Une ou plusieurs listes de l'outil n'existent pas encore sur le site SharePoint, ou le site est introuvable."),
     h("p",{class:"discret"},"Si vous êtes propriétaire du site, créez-les ici. Sinon, prévenez la personne qui administre l'outil."),
-    h("button",{class:"principal",onclick:ev=>agir(ev.currentTarget,async()=>{await store.installer();location.reload()})},"Créer les deux listes")));
+    h("button",{class:"principal",onclick:ev=>agir(ev.currentTarget,async()=>{await store.installer();location.reload()})},"Créer les listes manquantes")));
 }
 
-/* ---------- Affichage ---------- */
+/* ================= Navigation ================= */
 function afficher(){
-  const n=S.attP.length+S.attA.length;
-  const onglets=[["pointer","Pointer"],["heures","Mes heures"],["absences","Absences"]];
-  if(S.estManager) onglets.push(["equipe","Validation"],["synthese","Synthèse"]);
+  const n=S.attP.length+attA().length;
+  const onglets=[["pointer","Pointer"],["heures","Heures"],["absences","Absences"],["annee","Année"]];
+  if(S.estManager) onglets.push(["equipe","Équipe"]);
   document.getElementById("onglets").replaceChildren(...onglets.map(([id,lib])=>
     h("button",{"aria-current":S.onglet===id?"page":null,onclick:()=>{S.onglet=id;afficher();window.scrollTo(0,0)}},lib,
       id==="equipe"&&n?h("span",{class:"compte"},n):null)));
-  ({pointer:vuePointer,heures:vueHeures,absences:vueAbsences,equipe:vueEquipe,synthese:vueSynthese})[S.onglet]();
+  vue.className=["annee","equipe"].includes(S.onglet)?"":"etroit";
+  ({pointer:vuePointer,heures:vueHeures,absences:vueAbsences,annee:vueAnnee,equipe:vueEquipe})[S.onglet]();
 }
-function trouverJour(jour){return (S.miens[jour.slice(0,7)]||[]).find(x=>x.Jour===jour)}
-function absenceLe(jour){return S.abs.find(a=>a.Statut==="Valide"&&a.Debut<=jour&&a.Fin>=jour)}
+const trouverJour=jour=>(S.miens[jour.slice(0,7)]||[]).find(x=>x.Jour===jour);
+function listeAlertes(titre,liste,cls){
+  return liste.length?h("div",{class:"bandeau "+(cls||"")},h("strong",null,titre),h("div",null,liste.map(a=>h("div",null,frJour(a.jour)+" : "+a.texte)))):null;
+}
 
-/* --- Onglet Pointer --- */
+/* ================= Pointer ================= */
 function vuePointer(){
-  const now=new Date(), jour=today(), it=trouverJour(jour), times=it?heuresDe(it):[];
-  const present=times.length%2===1, verrou=it&&it.Statut==="Valide";
-  const lun=lundiDe(now); let semaine=0;
-  for(let i=0;i<7;i++){const d=new Date(lun);d.setDate(d.getDate()+i);const x=trouverJour(ymd(d));if(x) semaine+=minutesDe(heuresDe(x),ymd(d)===jour);}
-  const abs=absenceLe(jour);
-  const bouton=h("button",{class:"principal geant",disabled:verrou,onclick:ev=>agir(ev.currentTarget,pointer)},
-    present?"Pointer mon départ":"Pointer mon arrivée");
+  const now=new Date(), jour=today(), m=jour.slice(0,7), it=trouverJour(jour), times=it?heuresDe(it):[];
+  const present=times.length%2===1, verrou=(it&&it.Statut==="Valide")||estClos(m);
+  const lun=lundiDe(jour), dim=plusJours(lun,6);
+  const tous=Object.values(S.miens).flat();
+  const bs=bilan(S.fiche,tous.filter(x=>x.Jour>=lun&&x.Jour<=dim),S.abs,lun,dim);
+  const bm=bilan(S.fiche,S.miens[m]||[],S.abs,m+"-01",finDuMois(m));
+  const abs=absLe(S.abs,jour), mod=modeleLe(S.moi.email,jour), fer=ferieLe(jour);
+  const majJour=ch=>{ if(ch.Lieu) S.lieu=ch.Lieu; if(ch.Activite) S.activite=ch.Activite;
+    const x=trouverJour(jour); if(x) agir(null,async()=>{await store.patch(L_P,x.id,ch);Object.assign(x,ch)}); };
+  const lieu=h("select",{id:"p-lieu",disabled:verrou,onchange:ev=>majJour({Lieu:ev.target.value})},CFG.lieux.map(l=>h("option",{value:l,selected:(it&&it.Lieu||S.lieu||CFG.lieux[0])===l},l)));
+  const act=h("select",{id:"p-act",disabled:verrou,onchange:ev=>majJour({Activite:ev.target.value})},CFG.activites.map(l=>h("option",{value:l,selected:(it&&it.Activite||S.activite||CFG.activites[0])===l},l)));
+  const theo=theoJour(S.fiche,jour)*(abs?(abs.DemiJournee?0.5:0):1), fait=netMin(times,S.fiche,true);
   pose(
-    S.moi.sansManager?h("div",{class:"bandeau"},"Aucun responsable n'est indiqué pour vous dans l'annuaire Microsoft. Vos pointages sont envoyés à "+(S.moi.managerEmail||"personne")+"."):null,
-    abs?h("div",{class:"bandeau info"},"Absence validée aujourd'hui : "+abs.Motif+"."):null,
+    !S.moi.managerEmail?h("div",{class:"bandeau"},"Aucun responsable n'est renseigné pour vous. Signalez-le aux RH : vos pointages ne peuvent pas être validés."):null,
+    fer?h("div",{class:"bandeau info"},"Jour férié : "+fer+"."):null,
+    abs?h("div",{class:"bandeau info"},"Absence validée aujourd'hui : "+abs.Motif+(abs.DemiJournee?" ("+abs.DemiJournee.toLowerCase()+")":"")+"."):null,
     h("div",{class:"carte"},
-      h("p",{class:"discret"},frLong(now)),
+      h("p",{class:"discret"},frLong(now)+(mod?" · Prévu : "+mod.nom+(mod.debut?" "+mod.debut+"–"+mod.fin:""):"")),
       h("div",{class:"ligne"},h("div",{class:"grand num"},hm(now)),
         h("span",{class:"pastille "+(present?"p-ok":"p-neutre")},present?"Au travail depuis "+times[times.length-1]:(times.length?"En pause ou parti":"Pas encore pointé"))),
-      bouton,
-      verrou?h("p",{class:"discret"},"Cette journée est validée, elle ne peut plus être modifiée."):null),
+      h("div",{class:"grille2"},h("label",null,"Lieu",lieu),h("label",null,"Activité",act)),
+      h("button",{class:"principal geant",disabled:verrou,onclick:ev=>agir(ev.currentTarget,()=>pointer(lieu.value,act.value))},present?"Pointer mon départ":"Pointer mon arrivée"),
+      verrou?h("p",{class:"discret"},"Cette journée est validée ou le mois est clôturé : elle ne peut plus être modifiée."):null),
     h("div",{class:"carte"},
-      h("div",{class:"ligne"},h("h3",null,"Aujourd'hui"),h("span",{class:"num"},fmtMin(minutesDe(times,true)))),
+      h("div",{class:"ligne"},h("h3",null,"Aujourd'hui"),h("span",{class:"num"},fmtMin(fait)+(theo?" / "+fmtMin(theo):""))),
       h("p",{class:"num"},times.length?paires(times):"Aucun pointage"),
-      h("div",{class:"ligne"},h("h3",null,"Cette semaine"),h("span",{class:"num"},fmtMin(semaine)))));
+      times.length===2&&minutesDe(times)>CFG.pauseSeuilH*60?h("p",{class:"discret"},"Pause de "+pauseDe(S.fiche)+" min déduite automatiquement (aucune pause pointée)."):null),
+    forfait(S.fiche)?null:h("div",{class:"carte"},h("h3",null,"Compteur débit-crédit"),
+      h("div",{class:"ligne"},h("span",null,"Cette semaine"),h("span",{class:"num "+(bs.ecart<0?"moins":"plus")},fmtEcart(bs.ecart))),
+      h("div",{class:"ligne"},h("span",null,frMois(m)),h("span",{class:"num "+(bm.ecart<0?"moins":"plus")},fmtEcart(bm.ecart))),
+      h("p",{class:"discret"},"Écart entre les heures faites et l'horaire prévu ("+(S.fiche.HeuresHebdo||35)+" h par semaine), jusqu'à hier.")),
+    listeAlertes("À régulariser",bm.anomalies),
+    listeAlertes("Durées légales",bm.alertes,"refus"));
 }
-async function pointer(){
+async function pointer(lieu,activite){
   const now=new Date(), jour=ymd(now), t=hm(now), m=jour.slice(0,7);
+  if(estClos(m)) throw new Error("Ce mois est clôturé.");
   await chargerMois(m);
   const it=trouverJour(jour);
   if(!it){
     await store.add(L_P,{Title:S.moi.name+" "+jour,EmployeEmail:S.moi.email,EmployeNom:S.moi.name,Jour:jour,Mois:m,
-      Heures:JSON.stringify([t]),Minutes:0,ManagerEmail:S.moi.managerEmail,Statut:"A valider"});
+      Heures:JSON.stringify([t]),Minutes:0,ManagerEmail:S.moi.managerEmail,Statut:"A valider",Lieu:lieu,Activite:activite});
   }else{
     if(it.Statut==="Valide") throw new Error("Cette journée est déjà validée.");
     const times=heuresDe(it);
-    if(times.length&&toMin(t)<toMin(times[times.length-1])) throw new Error("L'heure actuelle est antérieure au dernier pointage. Corrigez la journée dans « Mes heures ».");
+    if(times.length&&toMin(t)<toMin(times[times.length-1])) throw new Error("L'heure actuelle est antérieure au dernier pointage. Corrigez la journée dans « Heures ».");
     times.push(t);
-    await store.patch(L_P,it.id,{Heures:JSON.stringify(times),Minutes:minutesDe(times),Statut:"A valider"});
+    await store.patch(L_P,it.id,{Heures:JSON.stringify(times),Minutes:netMin(times,S.fiche),Statut:"A valider"});
   }
-  await chargerMois(m); afficher();
-  toast(t+" enregistré.");
+  await chargerMois(m); S.an=null; afficher(); toast(t+" enregistré.");
 }
 
-/* --- Onglet Mes heures --- */
+/* ================= Mes heures ================= */
 function navMois(cle,recharger){
   return h("div",{class:"ligne"},
     h("button",{"aria-label":"Mois précédent",onclick:ev=>agir(ev.currentTarget,async()=>{S[cle]=decaleMois(S[cle],-1);await recharger();afficher()})},"‹"),
@@ -443,30 +608,40 @@ function navMois(cle,recharger){
 }
 function vueHeures(){
   const items=(S.miens[S.mois]||[]).slice().sort((a,b)=>b.Jour.localeCompare(a.Jour));
-  const total=items.reduce((s,x)=>s+minutesDe(heuresDe(x),x.Jour===today()),0);
+  const b=bilan(S.fiche,items,S.abs,S.mois+"-01",finDuMois(S.mois)), clos=estClos(S.mois);
   pose(
     navMois("mois",()=>chargerMois(S.mois)),
+    clos?h("div",{class:"bandeau info"},"Mois clôturé par les RH : plus aucune modification possible."):null,
     h("div",{class:"carte"},
-      h("div",{class:"ligne"},h("span",null,"Total du mois"),h("span",{class:"num grand"},fmtMin(total))),
-      h("p",{class:"discret"},items.filter(x=>x.Statut==="Valide").length+" jour(s) validé(s) sur "+items.length)),
+      h("div",{class:"ligne"},h("span",null,"Heures travaillées"),h("span",{class:"num grand"},fmtMin(b.trav))),
+      forfait(S.fiche)?null:h("div",{class:"ligne"},h("span",null,"Horaire prévu à ce jour"),h("span",{class:"num"},fmtMin(b.theo))),
+      forfait(S.fiche)?null:h("div",{class:"ligne"},h("span",null,"Écart"),h("span",{class:"num "+(b.ecart<0?"moins":"plus")},fmtEcart(b.ecart))),
+      h("p",{class:"discret"},b.valides+" jour(s) validé(s) sur "+b.jours)),
+    b.anomalies.length&&!clos?h("div",{class:"carte"},h("h3",null,"À régulariser"),h("div",null,b.anomalies.map(a=>h("div",{class:"jour"},
+      h("div",null,h("strong",null,frJour(a.jour))),h("div",null),h("div",{class:"discret note"},a.texte),
+      h("div",{class:"actions"},h("button",{onclick:()=>corriger(trouverJour(a.jour)||null,a.jour)},"Corriger"),
+        a.texte.startsWith("Aucun")?h("button",{onclick:()=>{S.onglet="absences";S.preAbs=a.jour;afficher()}},"Déclarer une absence"):null))))):null,
+    listeAlertes("Durées légales",b.alertes,"refus"),
     h("div",{class:"carte"},
-      items.length?h("div",null,items.map(ligneJourPerso)):h("p",{class:"discret"},"Aucun pointage ce mois-ci."),
-      h("button",{onclick:()=>corriger(null)},"Ajouter une journée oubliée")));
+      items.length?h("div",null,items.map(it=>ligneJourPerso(it,clos))):h("p",{class:"discret"},"Aucun pointage ce mois-ci."),
+      clos?null:h("button",{onclick:()=>corriger(null)},"Ajouter une journée oubliée")));
 }
-function ligneJourPerso(it){
-  const times=heuresDe(it), incomplet=times.length%2===1&&it.Jour!==today();
+function ligneJourPerso(it,clos){
+  const times=heuresDe(it), m=minDe(it,S.fiche), a=absLe(S.abs,it.Jour);
+  const t=theoJour(S.fiche,it.Jour)*(a?(a.DemiJournee?0.5:0):1), fini=times.length&&times.length%2===0;
   return h("div",{class:"jour"},
     h("div",null,h("strong",null,frJour(it.Jour))," ",pastille(it.Statut),it.Corrige==="oui"?h("span",{class:"discret"}," · corrigé"):null),
-    h("div",{class:"num"},fmtMin(minutesDe(times,it.Jour===today()))),
+    h("div",{class:"num"},fmtMin(m),fini&&!forfait(S.fiche)?h("span",{class:"discret "+(m-t<0?"moins":"plus")},"  "+fmtEcart(m-t)):null),
     h("div",{class:"num discret note"},paires(times)),
-    incomplet?h("div",{class:"bandeau note"},"Il manque un pointage de départ. Corrigez la journée."):null,
+    h("div",{class:"discret note"},[it.Lieu,it.Activite].filter(Boolean).join(" · ")),
     it.Statut==="Refuse"?h("div",{class:"bandeau refus note"},"Refusé"+(it.MotifRefus?" : "+it.MotifRefus:"")+". Corrigez puis renvoyez."):null,
-    it.Statut!=="Valide"?h("div",{class:"actions"},h("button",{onclick:()=>corriger(it)},"Corriger")):null);
+    it.Statut!=="Valide"&&!clos?h("div",{class:"actions"},h("button",{onclick:()=>corriger(it)},"Corriger")):null);
 }
-function corriger(it){
-  let times=it?heuresDe(it):["09:00","17:00"];
+function corriger(it,jourInit){
+  let times=it?heuresDe(it):["09:00","12:30","13:30","17:00"];
   const zone=h("div",{class:"pile"});
-  const dateInput=h("input",{type:"date",id:"c-jour",max:today(),value:it?it.Jour:today(),disabled:!!it,required:true});
+  const dateInput=h("input",{type:"date",id:"c-jour",max:today(),value:it?it.Jour:(jourInit||today()),disabled:!!it,required:true});
+  const lieu=h("select",{id:"c-lieu"},CFG.lieux.map(l=>h("option",{value:l,selected:(it&&it.Lieu)===l},l)));
   const com=h("textarea",{id:"c-com",rows:"2",required:true,placeholder:"Ex. : oubli de pointage au départ"});
   function dessine(){
     zone.replaceChildren(...times.map((t,i)=>h("div",{class:"heures-edit"},
@@ -477,148 +652,393 @@ function corriger(it){
   }
   dessine();
   ouvrir(it?"Corriger le "+frJour(it.Jour):"Ajouter une journée",
-    h("div",{class:"pile"},h("label",null,"Jour",dateInput),zone,h("label",null,"Motif de la correction (obligatoire)",com)),
+    h("div",{class:"pile"},h("label",null,"Jour",dateInput),zone,h("label",null,"Lieu",lieu),h("label",null,"Motif de la correction (obligatoire)",com)),
     "Envoyer à mon responsable", async()=>{
       const jour=dateInput.value; if(!jour||jour>today()) throw new Error("Choisissez un jour passé ou aujourd'hui.");
+      const m=jour.slice(0,7); if(estClos(m)) throw new Error("Ce mois est clôturé. Adressez-vous aux RH.");
       if(times.some(t=>!/^\d\d:\d\d$/.test(t))) throw new Error("Renseignez toutes les heures.");
       if(!times.length) throw new Error("Ajoutez au moins une arrivée et un départ.");
       for(let i=1;i<times.length;i++) if(toMin(times[i])<toMin(times[i-1])) throw new Error("Les heures doivent se suivre dans l'ordre.");
       if(times.length%2&&jour!==today()) throw new Error("Chaque arrivée doit avoir son départ.");
       if(!com.value.trim()) throw new Error("Indiquez le motif de la correction.");
-      const m=jour.slice(0,7); await chargerMois(m);
+      await chargerMois(m);
       const cible=it||trouverJour(jour);
       if(cible&&cible.Statut==="Valide") throw new Error("Cette journée est déjà validée.");
-      const champs={Heures:JSON.stringify(times),Minutes:minutesDe(times),Statut:"A valider",Corrige:"oui",Commentaire:com.value.trim(),MotifRefus:""};
+      const champs={Heures:JSON.stringify(times),Minutes:netMin(times,S.fiche),Statut:"A valider",Corrige:"oui",Commentaire:com.value.trim(),MotifRefus:"",Lieu:lieu.value};
       if(cible) await store.patch(L_P,cible.id,champs);
-      else await store.add(L_P,{Title:S.moi.name+" "+jour,EmployeEmail:S.moi.email,EmployeNom:S.moi.name,Jour:jour,Mois:m,ManagerEmail:S.moi.managerEmail,...champs});
-      await chargerMois(m); if(S.mois!==m&&S.miens[S.mois]===undefined) await chargerMois(S.mois);
-      afficher(); toast("Correction envoyée pour validation.");
+      else await store.add(L_P,{Title:S.moi.name+" "+jour,EmployeEmail:S.moi.email,EmployeNom:S.moi.name,Jour:jour,Mois:m,ManagerEmail:S.moi.managerEmail,Activite:CFG.activites[0],...champs});
+      await journal("Correction de pointage",S.moi.name+" · "+jour,times.join(" ")+" · "+com.value.trim());
+      await chargerMois(m); if(S.miens[S.mois]===undefined) await chargerMois(S.mois);
+      S.an=null; afficher(); toast("Correction envoyée pour validation.");
     });
 }
 
-/* --- Onglet Absences --- */
+/* ================= Absences ================= */
+function soldes(f,abs){
+  const an=today().slice(0,4), moisCourant=+today().slice(5,7)-1;
+  let debutAcq=0; if(f.DateEntree&&f.DateEntree.slice(0,4)===an) debutAcq=+f.DateEntree.slice(5,7)-(f.DateEntree.slice(8)==="01"?1:0);
+  const acquis=Math.round(Math.max(0,moisCourant-debutAcq)*CFG.cpParMois*100)/100;
+  const somme=(motif,statut)=>abs.filter(a=>a.Motif===motif&&a.Statut===statut&&a.Debut.slice(0,4)===an).reduce((s,a)=>s+joursAbsence(f,a),0);
+  const r={report:+f.SoldeCP||0,acquis,cpPris:somme("Congé payé","Valide"),cpAtt:somme("Congé payé","En attente"),rttDroit:+f.SoldeRTT||0,rttPris:somme("RTT","Valide"),rttAtt:somme("RTT","En attente")};
+  r.cpReste=Math.round((r.report+r.acquis-r.cpPris)*100)/100; r.rttReste=r.rttDroit-r.rttPris;
+  return r;
+}
 function vueAbsences(){
-  const an=String(new Date().getFullYear());
-  const cp=S.abs.filter(a=>a.Motif==="Congé payé"&&a.Debut.slice(0,4)===an);
-  const pris=cp.filter(a=>a.Statut==="Valide").reduce((s,a)=>s+(+a.Jours||0),0);
-  const att=cp.filter(a=>a.Statut==="En attente").reduce((s,a)=>s+(+a.Jours||0),0);
+  const an=today().slice(0,4), s=soldes(S.fiche,S.abs);
   const motif=h("select",{id:"a-motif"},CFG.motifs.map(m=>h("option",{value:m},m)));
-  const deb=h("input",{type:"date",id:"a-deb",required:true}), fin=h("input",{type:"date",id:"a-fin",required:true});
+  const deb=h("input",{type:"date",id:"a-deb",required:true,value:S.preAbs||""}), fin=h("input",{type:"date",id:"a-fin",required:true,value:S.preAbs||""});
+  S.preAbs="";
+  const demi=h("select",{id:"a-demi"},[["","Journée entière"],["Matin","Matin seulement"],["Après-midi","Après-midi seulement"]].map(([v,l])=>h("option",{value:v},l)));
+  const demiLab=h("label",null,"Durée",demi);
+  const piece=h("input",{type:"file",id:"a-piece",accept:"image/*,application/pdf"});
   const com=h("textarea",{id:"a-com",rows:"2"});
   const calc=h("p",{class:"discret"},"Choisissez les dates.");
-  const maj=()=>{ if(deb.value&&!fin.value) fin.value=deb.value;
-    calc.textContent=deb.value&&fin.value&&fin.value>=deb.value?joursOuvres(deb.value,fin.value)+" jour(s) ouvré(s), du lundi au vendredi, jours fériés non déduits.":"Choisissez les dates."; };
-  deb.addEventListener("change",maj); fin.addEventListener("change",maj);
+  const maj=()=>{ if(deb.value&&(!fin.value||fin.value<deb.value)) fin.value=deb.value;
+    demiLab.hidden=!(deb.value&&deb.value===fin.value); if(demiLab.hidden) demi.value="";
+    if(!(deb.value&&fin.value)){calc.textContent="Choisissez les dates.";return}
+    const n=joursAbsence(S.fiche,{Debut:deb.value,Fin:fin.value,DemiJournee:demi.value});
+    let t=n+" jour(s) décompté(s), jours fériés et jours non travaillés exclus.";
+    if(motif.value==="Congé payé"&&n>s.cpReste-s.cpAtt) t+=" Attention : cela dépasse votre solde disponible ("+(Math.round((s.cpReste-s.cpAtt)*100)/100)+" j).";
+    if(motif.value==="RTT"&&n>s.rttReste-s.rttAtt) t+=" Attention : cela dépasse votre solde de RTT.";
+    calc.textContent=t; };
+  [deb,fin,demi,motif].forEach(x=>x.addEventListener("change",maj)); maj();
   const form=h("form",{class:"pile",onsubmit:ev=>{ev.preventDefault();agir(ev.submitter,async()=>{
       if(fin.value<deb.value) throw new Error("La date de fin doit suivre la date de début.");
-      const n=joursOuvres(deb.value,fin.value); if(!n) throw new Error("Cette période ne contient aucun jour ouvré.");
-      if(S.abs.some(a=>(a.Statut==="Valide"||a.Statut==="En attente")&&a.Debut<=fin.value&&a.Fin>=deb.value)) throw new Error("Vous avez déjà une absence sur cette période.");
-      await store.add(L_A,{Title:S.moi.name+" "+motif.value,EmployeEmail:S.moi.email,EmployeNom:S.moi.name,Motif:motif.value,Debut:deb.value,Fin:fin.value,
-        Jours:n,Commentaire:com.value.trim(),ManagerEmail:S.moi.managerEmail,Statut:"En attente"});
-      await chargerAbs(); afficher(); toast("Demande envoyée à votre responsable.");
+      const a={Debut:deb.value,Fin:fin.value,DemiJournee:demi.value}; const n=joursAbsence(S.fiche,a);
+      if(!n) throw new Error("Cette période ne contient aucun jour travaillé.");
+      if(S.abs.some(x=>(x.Statut==="Valide"||x.Statut==="En attente")&&x.Debut<=fin.value&&x.Fin>=deb.value)) throw new Error("Vous avez déjà une absence sur cette période.");
+      let pj={name:"",url:""}; if(piece.files[0]){ if(piece.files[0].size>4e6) throw new Error("Le justificatif dépasse 4 Mo."); pj=await store.upload(piece.files[0]); }
+      await store.add(L_A,{Title:S.moi.name+" "+motif.value,EmployeEmail:S.moi.email,EmployeNom:S.moi.name,Motif:motif.value,...a,Jours:n,
+        Commentaire:com.value.trim(),ManagerEmail:S.moi.managerEmail,Statut:"En attente",JustificatifNom:pj.name,JustificatifUrl:pj.url});
+      const r=await prevenir(S.moi.managerEmail,"Demande d'absence à valider : "+S.moi.name,S.moi.name+" demande : "+motif.value+" du "+frCourt(deb.value)+" au "+frCourt(fin.value)+" ("+n+" j).");
+      await chargerAbs(); S.an=null; afficher(); toast("Demande envoyée à votre responsable."+suffixeNotif(r));
     })}},
     h("label",null,"Motif",motif),
     h("div",{class:"grille2"},h("label",null,"Du",deb),h("label",null,"Au",fin)),
-    calc,
+    demiLab, calc,
+    h("label",null,"Justificatif (photo ou PDF, facultatif)",piece),
     h("label",null,"Commentaire (facultatif)",com),
     h("button",{class:"principal",type:"submit"},"Envoyer la demande"));
+  const l=(a,b)=>h("div",{class:"ligne"},h("span",null,a),h("span",{class:"num"},b));
   pose(
     h("div",{class:"carte"},h("h3",null,"Congés payés "+an),
-      h("div",{class:"ligne"},h("span",null,"Validés"),h("span",{class:"num"},pris+" j")),
-      h("div",{class:"ligne"},h("span",null,"En attente de validation"),h("span",{class:"num"},att+" j"))),
+      l("Report au 1er janvier",s.report+" j"),l("Acquis depuis janvier",s.acquis+" j"),l("Pris (validés)","− "+s.cpPris+" j"),
+      h("div",{class:"ligne"},h("strong",null,"Solde"),h("strong",{class:"num"},s.cpReste+" j")),
+      s.cpAtt?l("En attente de validation",s.cpAtt+" j"):null,
+      s.rttDroit?[h("h3",null,"RTT "+an),l("Droits de l'année",s.rttDroit+" j"),l("Pris","− "+s.rttPris+" j"),
+        h("div",{class:"ligne"},h("strong",null,"Solde"),h("strong",{class:"num"},s.rttReste+" j"))]:null),
     h("div",{class:"carte"},h("h3",null,"Déclarer une absence ou demander un congé"),form),
     h("div",{class:"carte"},h("h3",null,"Mes demandes"),
       S.abs.length?h("div",null,S.abs.map(a=>h("div",{class:"jour"},
         h("div",null,h("strong",null,a.Motif)," ",pastille(a.Statut)),
         h("div",{class:"num"},(a.Jours||0)+" j"),
-        h("div",{class:"discret note"},"Du "+frJour(a.Debut)+" au "+frJour(a.Fin)+(a.Commentaire?" · "+a.Commentaire:"")),
+        h("div",{class:"discret note"},(a.Debut===a.Fin?"Le "+frJour(a.Debut)+(a.DemiJournee?" ("+a.DemiJournee.toLowerCase()+")":""):"Du "+frJour(a.Debut)+" au "+frJour(a.Fin))+(a.Commentaire?" · "+a.Commentaire:"")),
+        a.JustificatifNom?h("div",{class:"discret note"},"Justificatif : ",lienPiece(a)):null,
         a.Statut==="Refuse"&&a.MotifRefus?h("div",{class:"bandeau refus note"},"Motif du refus : "+a.MotifRefus):null,
-        a.Statut==="En attente"?h("div",{class:"actions"},h("button",{onclick:ev=>agir(ev.currentTarget,async()=>{await store.patch(L_A,a.id,{Statut:"Annule"});await chargerAbs();afficher()})},"Annuler la demande")):null)))
+        a.Statut==="En attente"?h("div",{class:"actions"},h("button",{onclick:ev=>agir(ev.currentTarget,async()=>{await store.patch(L_A,a.id,{Statut:"Annule"});await chargerAbs();S.an=null;afficher()})},"Annuler la demande")):null)))
       :h("p",{class:"discret"},"Aucune demande pour l'instant.")));
 }
+const lienPiece=a=>/^https:\/\//.test(a.JustificatifUrl||"")?h("a",{href:a.JustificatifUrl,target:"_blank",rel:"noopener"},a.JustificatifNom):a.JustificatifNom+(store.demo?" (non conservé en démonstration)":"");
 
-/* --- Onglet Validation (manager, RH) --- */
+/* ================= Vue annuelle ================= */
+function classer(f,jour,it,abs){
+  const a=absLe(abs,jour), att=!a&&absLe(abs,jour,["En attente"]), fer=ferieLe(jour), auj=today();
+  if(a&&estTravaille(f,jour)){const [c,k]=codeAbs(a.Motif);return {code:a.DemiJournee?"½"+c:c,cls:k,texte:a.Motif+(a.DemiJournee?" ("+a.DemiJournee.toLowerCase()+")":""),cat:c}}
+  if(fer) return {code:"F",cls:"k-f",texte:"Férié : "+fer,cat:"F"};
+  if(it){const tt=it.Lieu==="Télétravail";return {code:tt?"TT":"T",cls:tt?"k-tt":"k-t",texte:(tt?"Télétravail":"Travaillé")+" · "+paires(heuresDe(it))+" · "+fmtMin(minDe(it,f)),cat:tt?"TT":"T"}}
+  if(!joursTrav(f).has(dateDe(jour).getDay())) return {code:"",cls:"k-we",texte:"Jour non travaillé",cat:""};
+  if(att) return {code:"?",cls:"k-att",texte:att.Motif+" (demande en attente)",cat:"?"};
+  if(jour<auj) return {code:"!",cls:"k-an",texte:"Aucun pointage ni absence",cat:"!"};
+  return {code:"",cls:"",texte:"À venir",cat:""};
+}
+async function chargerAnnee(){
+  const e=S.anQui, y=String(S.anAnnee);
+  const [p,a]=await Promise.all([store.query(L_P,{EmployeEmail:e}), e===S.moi.email?S.abs:store.query(L_A,{EmployeEmail:e})]);
+  S.an={qui:e,annee:S.anAnnee,p:p.filter(x=>x.Jour.slice(0,4)===y),a};
+}
+function vueAnnee(){
+  if(!S.an||S.an.qui!==S.anQui||S.an.annee!==S.anAnnee){
+    pose(h("p",{class:"discret"},"Chargement…"));
+    chargerAnnee().then(()=>{if(S.onglet==="annee") afficher()}).catch(e=>pose(h("div",{class:"bandeau refus"},e.message)));
+    return;
+  }
+  const y=S.anAnnee, f=ficheDe(S.anQui), par={}; for(const it of S.an.p) par[it.Jour]=it;
+  const compte={}, LEG=[["T","k-t","Travaillé"],["TT","k-tt","Télétravail"],["CP","k-cp","Congé payé"],["RTT","k-rtt","RTT"],["AM","k-am","Arrêt maladie"],
+    ["AB","k-ab","Autre absence"],["F","k-f","Férié"],["?","k-att","Demande en attente"],["!","k-an","À régulariser"]];
+  const blocs=[]; let totalMin=0;
+  for(let mo=0;mo<12;mo++){
+    const premier=new Date(y,mo,1), nb=new Date(y,mo+1,0).getDate(), cells=[]; let min=0;
+    for(let i=0;i<(premier.getDay()+6)%7;i++) cells.push(h("span"));
+    for(let d=1;d<=nb;d++){
+      const jour=`${y}-${pad(mo+1)}-${pad(d)}`, it=par[jour], c=classer(f,jour,it,S.an.a);
+      if(c.cat){const q=c.code.startsWith("½")?0.5:1;compte[c.cat]=(compte[c.cat]||0)+q; if(q===0.5&&it) compte.T=(compte.T||0)+0.5;}
+      if(it) min+=minDe(it,f);
+      cells.push(h("button",{class:c.cls+(jour===today()?" auj":""),"aria-label":frJour(jour)+" : "+c.texte,onclick:()=>toast(frJour(jour)+" : "+c.texte)},d,c.code?h("b",null,c.code):null));
+    }
+    totalMin+=min;
+    blocs.push(h("div",{class:"moisbloc"},
+      h("div",{class:"ligne"},h("strong",null,premier.toLocaleDateString("fr-FR",{month:"long"})),h("span",{class:"num discret"},min?fmtMin(min):"")),
+      h("div",{class:"cal"},["L","M","M","J","V","S","D"].map(x=>h("span",{class:"ent"},x)),cells)));
+  }
+  const choix=S.estManager?h("select",{id:"an-qui","aria-label":"Salarié affiché",style:"max-width:260px",onchange:ev=>{S.anQui=ev.target.value;afficher()}},
+    [S.fiche,...S.fiches.filter(x=>x.EmployeEmail!==S.moi.email)].map(x=>h("option",{value:x.EmployeEmail,selected:x.EmployeEmail===S.anQui},x.EmployeNom))):h("strong",null,S.moi.name);
+  pose(
+    h("div",{class:"ligne"},
+      h("div",{class:"ligne"},h("button",{"aria-label":"Année précédente",onclick:()=>{S.anAnnee--;afficher()}},"‹"),h("h2",{class:"num"},y),
+        h("button",{"aria-label":"Année suivante",disabled:y>=+today().slice(0,4)+1,onclick:()=>{S.anAnnee++;afficher()}},"›")),
+      choix),
+    h("div",{class:"carte"},
+      h("div",{class:"legende"},LEG.map(([c,k,l])=>h("span",{class:k},h("b",null,c)," "+l+" : "+(compte[c]||0)))),
+      h("p",{class:"discret"},"Total de l'année : "+fmtMin(totalMin)+". Touchez un jour pour voir le détail.")),
+    h("div",{class:"annee"},blocs));
+}
+
+/* ================= Équipe ================= */
+function vueEquipe(){
+  const n=S.attP.length+attA().length;
+  const sous=[["validation","Validation"],["planning","Planning"],["synthese","Synthèse"],["salaries","Salariés"]];
+  if(S.estRH) sous.push(["journal","Journal"]);
+  const barre=h("div",{class:"sous"},sous.map(([id,lib])=>h("button",{"aria-current":S.sous===id?"page":null,onclick:()=>{S.sous=id;afficher()}},lib,id==="validation"&&n?h("span",{class:"compte"},n):null)));
+  ({validation:vueValidation,planning:vuePlanning,synthese:vueSynthese,salaries:vueSalaries,journal:vueJournal})[S.sous](barre);
+}
 function demanderMotif(titre, surOk){
   const m=h("textarea",{id:"r-motif",rows:"3",required:true});
   ouvrir(titre,h("label",null,"Motif du refus (visible par le salarié)",m),"Refuser",async()=>{
     if(!m.value.trim()) throw new Error("Indiquez un motif."); await surOk(m.value.trim());});
 }
-function vueEquipe(){
+function vueValidation(barre){
   const jour=today(), groupes={};
   for(const p of S.attP)(groupes[p.EmployeEmail]=groupes[p.EmployeEmail]||[]).push(p);
-  const validable=p=>heuresDe(p).length>0&&heuresDe(p).length%2===0&&p.Jour<jour;
-  const valider=async liste=>{for(const p of liste) await store.patch(L_P,p.id,{Statut:"Valide",ValidePar:S.moi.email});await chargerEquipe();afficher()};
-  const cartesA=S.attA.map(a=>h("div",{class:"jour"},
-    h("div",null,h("strong",null,a.EmployeNom)," · "+a.Motif),
-    h("div",{class:"num"},(a.Jours||0)+" j"),
-    h("div",{class:"discret note"},"Du "+frJour(a.Debut)+" au "+frJour(a.Fin)+(a.Commentaire?" · "+a.Commentaire:"")),
-    h("div",{class:"actions"},
-      h("button",{class:"principal",onclick:ev=>agir(ev.currentTarget,async()=>{await store.patch(L_A,a.id,{Statut:"Valide",ValidePar:S.moi.email});await chargerEquipe();afficher();toast("Absence validée.")})},"Valider"),
-      h("button",{class:"danger",onclick:()=>demanderMotif("Refuser la demande de "+a.EmployeNom,async motif=>{await store.patch(L_A,a.id,{Statut:"Refuse",MotifRefus:motif,ValidePar:S.moi.email});await chargerEquipe();afficher()})},"Refuser"))));
+  const validable=p=>heuresDe(p).length>0&&heuresDe(p).length%2===0&&p.Jour<jour&&!estClos(p.Mois);
+  const valider=async liste=>{for(const p of liste) await store.patch(L_P,p.id,{Statut:"Valide",ValidePar:S.moi.email});
+    await journal("Validation de pointages",liste[0].EmployeNom,liste.map(p=>p.Jour).join(", "));await chargerEquipe();afficher()};
+  const decider=async(a,statut,motif)=>{
+    await store.patch(L_A,a.id,{Statut:statut,ValidePar:S.moi.email,MotifRefus:motif||""});
+    await journal(statut==="Valide"?"Validation d'absence":"Refus d'absence",a.EmployeNom,a.Motif+" "+a.Debut+" → "+a.Fin+(motif?" · "+motif:""));
+    const r=await prevenir(a.EmployeEmail,"Votre demande d'absence a été "+(statut==="Valide"?"validée":"refusée"),a.Motif+" du "+frCourt(a.Debut)+" au "+frCourt(a.Fin)+"."+(motif?" Motif : "+motif:""));
+    await chargerEquipe(); S.an=null; afficher(); toast((statut==="Valide"?"Absence validée.":"Absence refusée.")+suffixeNotif(r)); };
+  const cartesA=attA().map(a=>{
+    const f=ficheDe(a.EmployeEmail);
+    const croise=S.absEquipe.filter(x=>x.id!==a.id&&x.EmployeEmail!==a.EmployeEmail&&(x.Statut==="Valide"||x.Statut==="En attente")&&x.Debut<=a.Fin&&x.Fin>=a.Debut&&(!f.Equipe||ficheDe(x.EmployeEmail).Equipe===f.Equipe));
+    const s=["Congé payé","RTT"].includes(a.Motif)?soldes(f,S.absEquipe.filter(x=>x.EmployeEmail===a.EmployeEmail)):null;
+    return h("div",{class:"jour"},
+      h("div",null,h("strong",null,a.EmployeNom)," · "+a.Motif),
+      h("div",{class:"num"},(a.Jours||0)+" j"),
+      h("div",{class:"discret note"},(a.Debut===a.Fin?"Le "+frJour(a.Debut)+(a.DemiJournee?" ("+a.DemiJournee.toLowerCase()+")":""):"Du "+frJour(a.Debut)+" au "+frJour(a.Fin))+(a.Commentaire?" · "+a.Commentaire:"")),
+      s?h("div",{class:"discret note"},a.Motif==="RTT"?"Solde RTT avant cette demande : "+s.rttReste+" j":"Solde CP avant cette demande : "+s.cpReste+" j"):null,
+      a.JustificatifNom?h("div",{class:"discret note"},"Justificatif : ",lienPiece(a)):null,
+      croise.length?h("div",{class:"bandeau note"},"Chevauchement dans l'équipe : "+croise.map(x=>x.EmployeNom+" ("+codeAbs(x.Motif)[0]+(x.Statut==="En attente"?", en attente":"")+", "+frCourt(x.Debut)+" au "+frCourt(x.Fin)+")").join(" ; ")):null,
+      h("div",{class:"actions"},
+        h("button",{class:"principal",onclick:ev=>agir(ev.currentTarget,()=>decider(a,"Valide"))},"Valider"),
+        h("button",{class:"danger",onclick:()=>demanderMotif("Refuser la demande de "+a.EmployeNom,motif=>decider(a,"Refuse",motif))},"Refuser")));
+  });
   const cartesP=Object.values(groupes).map(liste=>{
-    const ok=liste.filter(validable);
+    const ok=liste.filter(validable), f=ficheDe(liste[0].EmployeEmail);
+    const b=bilan(f,liste,S.absEquipe.filter(x=>x.EmployeEmail===f.EmployeEmail),liste[0].Jour,liste[liste.length-1].Jour);
+    const notes=j=>b.anomalies.concat(b.alertes).filter(x=>x.jour===j&&!x.texte.startsWith("Aucun"));
     return h("div",{class:"carte"},
       h("div",{class:"ligne"},h("h3",null,liste[0].EmployeNom),
         h("button",{class:"principal",disabled:!ok.length,onclick:ev=>agir(ev.currentTarget,async()=>{await valider(ok);toast(ok.length+" jour(s) validé(s).")})},"Valider "+ok.length+" jour(s) complet(s)")),
       h("div",null,liste.map(p=>{
-        const times=heuresDe(p), enCours=p.Jour===jour, incomplet=times.length%2===1&&!enCours;
+        const times=heuresDe(p), enCours=p.Jour===jour, incomplet=times.length%2===1&&!enCours, m=minDe(p,f), t=theoJour(f,p.Jour);
         return h("div",{class:"jour"},
           h("div",null,h("strong",null,frJour(p.Jour)),p.Corrige==="oui"?h("span",{class:"pastille p-attente",style:"margin-left:6px"},"Corrigé"):null),
-          h("div",{class:"num"},fmtMin(minutesDe(times,enCours))),
+          h("div",{class:"num"},fmtMin(m),!enCours&&!incomplet&&!forfait(f)?h("span",{class:"discret "+(m-t<0?"moins":"plus")},"  "+fmtEcart(m-t)):null),
           h("div",{class:"num discret note"},paires(times)),
-          p.Commentaire?h("div",{class:"discret note"},"Motif : "+p.Commentaire):null,
+          h("div",{class:"discret note"},[p.Lieu,p.Activite,p.Commentaire?"Motif : "+p.Commentaire:""].filter(Boolean).join(" · ")),
+          notes(p.Jour).map(x=>h("div",{class:"bandeau note"+(x.texte.startsWith("Plus")||x.texte.startsWith("Repos")?" refus":"")},x.texte)),
           enCours?h("div",{class:"discret note"},"Journée en cours, validable à partir de demain."):null,
-          incomplet?h("div",{class:"bandeau note"},"Pointage de départ manquant. Refusez pour demander une correction."):null,
           enCours?null:h("div",{class:"actions"},
             h("button",{disabled:!validable(p),onclick:ev=>agir(ev.currentTarget,()=>valider([p]))},"Valider"),
-            h("button",{class:"danger",onclick:()=>demanderMotif("Refuser le "+frJour(p.Jour)+" de "+p.EmployeNom,async motif=>{await store.patch(L_P,p.id,{Statut:"Refuse",MotifRefus:motif,ValidePar:S.moi.email});await chargerEquipe();afficher()})},"Refuser")));
+            h("button",{class:"danger",disabled:estClos(p.Mois),onclick:()=>demanderMotif("Refuser le "+frJour(p.Jour)+" de "+p.EmployeNom,async motif=>{
+              await store.patch(L_P,p.id,{Statut:"Refuse",MotifRefus:motif,ValidePar:S.moi.email});await journal("Refus de pointage",p.EmployeNom,p.Jour+" · "+motif);
+              await prevenir(p.EmployeEmail,"Pointage du "+frCourt(p.Jour)+" à corriger",motif);await chargerEquipe();afficher()})},"Refuser")));
       })));
   });
-  pose(
+  const deleg=h("select",{id:"v-deleg",onchange:ev=>agir(null,async()=>{await store.patch(L_S,S.fiche.id,{Delegue:ev.target.value});S.fiche.Delegue=ev.target.value;
+      await journal("Délégation de validation",S.moi.name,ev.target.value||"aucune");toast(ev.target.value?"Délégation enregistrée.":"Délégation retirée.")})},
+    h("option",{value:""},"Personne"),S.fiches.filter(f=>f.EmployeEmail!==S.moi.email).map(f=>h("option",{value:f.EmployeEmail,selected:S.fiche.Delegue===f.EmployeEmail},f.EmployeNom)));
+  pose(barre,
+    S.pour.length>1?h("div",{class:"bandeau info"},"Vous validez aussi par délégation pour : "+S.pour.slice(1).join(", ")+"."):null,
     h("div",{class:"ligne"},h("h2",null,"À valider"),h("button",{onclick:ev=>agir(ev.currentTarget,async()=>{await chargerEquipe();afficher()})},"Actualiser")),
-    h("div",{class:"carte"},h("h3",null,"Absences et congés ("+S.attA.length+")"),
+    h("div",{class:"carte"},h("h3",null,"Absences et congés ("+cartesA.length+")"),
       cartesA.length?h("div",null,cartesA):h("p",{class:"discret"},"Aucune demande en attente.")),
     h("h3",null,"Pointages ("+S.attP.length+" jour(s))"),
-    ...(cartesP.length?cartesP:[h("div",{class:"carte"},h("p",{class:"discret"},"Aucun pointage en attente."))]));
+    cartesP.length?cartesP:h("div",{class:"carte"},h("p",{class:"discret"},"Aucun pointage en attente.")),
+    h("div",{class:"carte"},h("h3",null,"En mon absence"),h("label",null,"Mes validations sont déléguées à",deleg)));
 }
 
-/* --- Onglet Synthèse (manager, RH) --- */
+/* --- Planning --- */
+function vuePlanning(barre){
+  const lun=S.semaine, jours=[0,1,2,3,4,5,6].map(i=>plusJours(lun,i));
+  const equipe=S.fiches.filter(f=>S.estRH||f.EmployeEmail!==S.moi.email);
+  const item=e=>S.plan.find(p=>p.EmployeEmail===e&&p.Semaine===lun);
+  async function ecrire(f,aff){
+    const it=item(f.EmployeEmail), champs={Affectations:JSON.stringify(aff)};
+    if(it){await store.patch(L_PL,it.id,champs);it.Affectations=champs.Affectations}
+    else S.plan.push(await store.add(L_PL,{Title:f.EmployeEmail+" "+lun,EmployeEmail:f.EmployeEmail,ManagerEmail:f.ManagerEmail,Semaine:lun,...champs}));
+  }
+  const cycle=(f,j)=>agir(null,async()=>{
+    const it=item(f.EmployeEmail), aff=jsonDe(it&&it.Affectations,{}), noms=CFG.modeles.map(m=>m.nom), i=noms.indexOf(aff[j]);
+    if(i===noms.length-1) delete aff[j]; else aff[j]=noms[i+1];
+    await ecrire(f,aff); afficher(); });
+  const copier=ev=>agir(ev.currentTarget,async()=>{
+    const prec=plusJours(lun,-7); let n=0;
+    for(const f of equipe){const src=S.plan.find(p=>p.EmployeEmail===f.EmployeEmail&&p.Semaine===prec); if(!src) continue;
+      const aff={}; for(const [j,m] of Object.entries(jsonDe(src.Affectations,{}))) aff[plusJours(j,7)]=m; await ecrire(f,aff); n++;}
+    afficher(); toast(n?"Planning recopié pour "+n+" personne(s).":"Rien à recopier : la semaine précédente est vide."); });
+  const lignes=equipe.map(f=>h("tr",null,h("td",null,h("strong",null,f.EmployeNom),h("div",{class:"discret"},f.Equipe||"")),
+    jours.map(j=>{
+      const abs=S.absEquipe.filter(a=>a.EmployeEmail===f.EmployeEmail), a=absLe(abs,j), att=!a&&absLe(abs,j,["En attente"]), fer=ferieLe(j), mod=modeleLe(f.EmployeEmail,j);
+      if(a&&estTravaille(f,j)) return h("td",{class:"c "+codeAbs(a.Motif)[1]},h("b",null,codeAbs(a.Motif)[0]));
+      if(fer) return h("td",{class:"c k-f"},h("b",null,"F"));
+      return h("td",{class:"c"+(att?" k-att":"")},h("button",{"aria-label":f.EmployeNom+", "+frJour(j)+" : "+(mod?mod.nom:"non planifié"),onclick:()=>cycle(f,j)},
+        mod?[mod.nom,mod.debut?h("div",{class:"num discret"},mod.debut+"–"+mod.fin):null]:(joursTrav(f).has(dateDe(j).getDay())?"–":""),att?" ?":null));
+    })));
+  pose(barre,
+    h("div",{class:"ligne"},h("button",{"aria-label":"Semaine précédente",onclick:()=>{S.semaine=plusJours(lun,-7);afficher()}},"‹"),
+      h("h2",null,"Semaine du "+frCourt(lun)),h("button",{"aria-label":"Semaine suivante",onclick:()=>{S.semaine=plusJours(lun,7);afficher()}},"›")),
+    h("div",{class:"carte"},
+      equipe.length?h("div",{class:"table-zone"},h("table",{class:"plan",style:"min-width:760px"},
+        h("thead",null,h("tr",null,h("th",null,"Salarié"),jours.map(j=>h("th",{class:"c"},dateDe(j).toLocaleDateString("fr-FR",{weekday:"short",day:"numeric"}))))),
+        h("tbody",null,lignes))):h("p",{class:"discret"},"Aucun salarié rattaché."),
+      h("p",{class:"discret"},"Touchez une case pour changer l'horaire : "+CFG.modeles.map(m=>m.nom).join(" → ")+" → vide. Les absences validées et les jours fériés s'affichent automatiquement ; « ? » signale une demande en attente."),
+      h("button",{onclick:copier},"Recopier la semaine précédente")));
+}
+
+/* --- Synthèse, tableau de bord, clôture, exports --- */
 async function chargerSynthese(){
-  const m=S.moisSynthese, f=S.estRH?{}:{ManagerEmail:S.moi.email};
-  const [p,a]=await Promise.all([store.query(L_P,{...f,Mois:m}),store.query(L_A,{...f,Statut:"Valide"})]);
-  const d=dateDe(m+"-01"), debut=m+"-01", finM=ymd(new Date(d.getFullYear(),d.getMonth()+1,0));
-  S.synth={mois:m,p,a:a.filter(x=>x.Debut<=finM&&x.Fin>=debut),debut,finM};
+  const m=S.moisSynthese;
+  const p=S.estRH?await store.query(L_P,{Mois:m}):(await Promise.all(S.pour.map(x=>store.query(L_P,{ManagerEmail:x,Mois:m})))).flat().filter(x=>x.EmployeEmail!==S.moi.email);
+  S.synth={mois:m,p};
 }
 function csv(nom, lignes){
   const txt="\ufeff"+lignes.map(l=>l.map(c=>{const s=String(c==null?"":c);return /[";\n]/.test(s)?'"'+s.replace(/"/g,'""')+'"':s}).join(";")).join("\r\n");
   const a=h("a",{href:URL.createObjectURL(new Blob([txt],{type:"text/csv;charset=utf-8"})),download:nom});
   document.body.append(a); a.click(); a.remove();
 }
-function vueSynthese(){
+const dec=x=>String(Math.round(x*100)/100).replace(".",",");
+function vueSynthese(barre){
   if(!S.synth||S.synth.mois!==S.moisSynthese){
-    pose(h("p",{class:"discret"},"Chargement…"));
-    chargerSynthese().then(afficher).catch(e=>{pose(h("div",{class:"bandeau refus"},e.message))});
+    pose(barre,h("p",{class:"discret"},"Chargement…"));
+    chargerSynthese().then(()=>{if(S.onglet==="equipe"&&S.sous==="synthese") afficher()}).catch(e=>pose(barre,h("div",{class:"bandeau refus"},e.message)));
     return;
   }
-  const {p,a,debut,finM}=S.synth, par={};
-  const de=(e,n)=>par[e]=par[e]||{nom:n,min:0,jours:0,valides:0,attente:0,abs:0};
-  for(const x of p){const r=de(x.EmployeEmail,x.EmployeNom);r.min+=+x.Minutes||0;r.jours++;if(x.Statut==="Valide")r.valides++;else r.attente++;}
-  for(const x of a){de(x.EmployeEmail,x.EmployeNom).abs+=joursOuvres(x.Debut,x.Fin,debut,finM);}
-  const lignes=Object.values(par).sort((x,y)=>x.nom.localeCompare(y.nom));
-  pose(
+  const m=S.moisSynthese, debut=m+"-01", fin=finDuMois(m), auj=today(), courant=m===auj.slice(0,7), clos=estClos(m);
+  const equipe=S.fiches.filter(f=>S.estRH||f.EmployeEmail!==S.moi.email);
+  const lignes=equipe.map(f=>{const abs=S.absEquipe.filter(a=>a.EmployeEmail===f.EmployeEmail);
+    return {f,abs,b:bilan(f,S.synth.p.filter(x=>x.EmployeEmail===f.EmployeEmail),abs,debut,fin)}});
+  const presents=S.synth.p.filter(x=>x.Jour===auj&&heuresDe(x).length%2===1).length;
+  const absents=equipe.filter(f=>absLe(S.absEquipe.filter(a=>a.EmployeEmail===f.EmployeEmail),auj)).length;
+  const theo=lignes.reduce((s,l)=>s+l.b.joursTheo,0), subis=lignes.reduce((s,l)=>s+l.b.joursSubis,0);
+  const enAttente=S.synth.p.filter(x=>x.Statut!=="Valide").length;
+  const tuile=(l,v,note)=>h("div",{class:"tuile"},h("div",{class:"discret"},l),h("div",{class:"v num"},v),note?h("div",{class:"discret"},note):null);
+  const absMois=S.absEquipe.filter(a=>a.Statut==="Valide"&&a.Debut<=fin&&a.Fin>=debut&&equipe.some(f=>f.EmployeEmail===a.EmployeEmail));
+  const exportSilae=()=>{
+    const out=[["Matricule","Code","Valeur","Date début","Date fin"]]; let sans=0;
+    for(const {f,b} of lignes){ if(!f.Matricule) sans++; const id=f.Matricule||f.EmployeEmail;
+      if(b.trav) out.push([id,CFG.silae.heures,dec(b.trav/60),frCourt(debut),frCourt(fin)]); }
+    for(const a of absMois){const f=ficheDe(a.EmployeEmail);
+      out.push([f.Matricule||a.EmployeEmail,CFG.silae.absences[a.Motif]||CFG.silae.absences["Autre"]||"AB-ABS",dec(joursAbsence(f,a,debut,fin)),frCourt(a.Debut<debut?debut:a.Debut),frCourt(a.Fin>fin?fin:a.Fin)]);}
+    csv("silae-"+m+".csv",out);
+    if(sans) toast(sans+" salarié(s) sans matricule : complétez leur fiche avant l'import dans Silae.");
+  };
+  const cloturer=ev=>agir(ev.currentTarget,async()=>{
+    const it=S.clotures.find(c=>c.Mois===m);
+    if(clos){await store.patch(L_C,it.id,{Statut:"Rouvert",CloturePar:S.moi.email});await journal("Réouverture du mois",m);}
+    else{
+      if(enAttente) throw new Error("Impossible de clôturer : "+enAttente+" journée(s) restent à valider ou à corriger.");
+      if(it) await store.patch(L_C,it.id,{Statut:"Cloture",CloturePar:S.moi.email}); else await store.add(L_C,{Title:m,Mois:m,Statut:"Cloture",CloturePar:S.moi.email});
+      await journal("Clôture du mois",m);
+    }
+    S.clotures=await store.query(L_C,{}); afficher(); toast(clos?"Mois rouvert.":"Mois clôturé."); });
+  pose(barre,
     navMois("moisSynthese",async()=>{S.synth=null}),
+    clos?h("div",{class:"bandeau info"},"Mois clôturé."):null,
+    h("div",{class:"tuiles"},
+      courant?tuile("Présents maintenant",presents,"sur "+equipe.length):null,
+      courant?tuile("Absents aujourd'hui",absents):null,
+      tuile("À valider",S.attP.length+attA().length,"jours et demandes"),
+      tuile("Absentéisme",theo?dec(subis/theo*100)+" %":"—","hors CP, RTT, formation"),
+      tuile("Alertes légales",lignes.reduce((s,l)=>s+l.b.alertes.length,0)),
+      tuile("À régulariser",lignes.reduce((s,l)=>s+l.b.anomalies.length,0))),
     h("div",{class:"carte"},
-      h("p",{class:"discret"},S.estRH?"Tous les salariés.":"Votre équipe."),
-      lignes.length?h("div",{class:"table-zone"},h("table",null,
-        h("thead",null,h("tr",null,h("th",null,"Salarié"),h("th",{class:"d"},"Heures"),h("th",{class:"d"},"Jours pointés"),h("th",{class:"d"},"Validés"),h("th",{class:"d"},"À traiter"),h("th",{class:"d"},"Absences (j)"))),
-        h("tbody",null,lignes.map(r=>h("tr",null,h("td",null,r.nom),h("td",{class:"d num"},fmtMin(r.min)),h("td",{class:"d num"},r.jours),
-          h("td",{class:"d num"},r.valides),h("td",{class:"d num"},r.attente?h("span",{class:"pastille p-attente"},r.attente):"0"),h("td",{class:"d num"},r.abs))))))
-        :h("p",{class:"discret"},"Aucune donnée pour ce mois."),
-      h("div",{class:"ligne"},
-        h("button",{disabled:!p.length,onclick:()=>csv("pointages-"+S.moisSynthese+".csv",[["Salarié","Identifiant","Jour","Pointages","Heures (décimal)","Statut","Corrigé","Commentaire"],
-          ...p.slice().sort((x,y)=>(x.EmployeNom+x.Jour).localeCompare(y.EmployeNom+y.Jour)).map(x=>[x.EmployeNom,x.EmployeEmail,x.Jour,heuresDe(x).join(" "),((+x.Minutes||0)/60).toFixed(2).replace(".",","),x.Statut,x.Corrige||"",x.Commentaire||""])])},"Exporter les pointages (CSV)"),
-        h("button",{disabled:!a.length,onclick:()=>csv("absences-"+S.moisSynthese+".csv",[["Salarié","Identifiant","Motif","Début","Fin","Jours ouvrés","Validé par"],
-          ...a.map(x=>[x.EmployeNom,x.EmployeEmail,x.Motif,x.Debut,x.Fin,x.Jours,x.ValidePar||""])])},"Exporter les absences (CSV)"))));
+      h("p",{class:"discret"},S.estRH?"Tous les salariés. Touchez un nom pour le détail.":"Votre équipe. Touchez un nom pour le détail."),
+      lignes.length?h("div",{class:"table-zone"},h("table",{style:"min-width:760px"},
+        h("thead",null,h("tr",null,h("th",null,"Salarié"),h("th",{class:"d"},"Heures"),h("th",{class:"d"},"Prévu"),h("th",{class:"d"},"Écart"),h("th",{class:"d"},"Jours"),
+          h("th",{class:"d"},"À valider"),h("th",{class:"d"},"Absences (j)"),h("th",{class:"d"},"Alertes"),h("th",{class:"d"},"À régulariser"))),
+        h("tbody",null,lignes.map(({f,b})=>h("tr",null,
+          h("td",null,h("button",{class:"lien",onclick:()=>detailSalarie(f,b)},f.EmployeNom)),
+          h("td",{class:"d num"},fmtMin(b.trav)),h("td",{class:"d num"},forfait(f)?"forfait":fmtMin(b.theo)),
+          h("td",{class:"d num "+(b.ecart<0?"moins":"plus")},forfait(f)?"—":fmtEcart(b.ecart)),h("td",{class:"d num"},b.jours),
+          h("td",{class:"d num"},b.attente?h("span",{class:"pastille p-attente"},b.attente):"0"),h("td",{class:"d num"},b.joursAbs),
+          h("td",{class:"d num"},b.alertes.length?h("span",{class:"pastille p-refus"},b.alertes.length):"0"),
+          h("td",{class:"d num"},b.anomalies.length?h("span",{class:"pastille p-attente"},b.anomalies.length):"0"))))))
+        :h("p",{class:"discret"},"Aucun salarié rattaché."),
+      h("div",{class:"ligne",style:"justify-content:flex-start"},
+        h("button",{disabled:!S.synth.p.length,onclick:()=>csv("pointages-"+m+".csv",[["Salarié","Matricule","Jour","Pointages","Heures (décimal)","Lieu","Activité","Statut","Corrigé","Commentaire"],
+          ...S.synth.p.slice().sort((x,y)=>(x.EmployeNom+x.Jour).localeCompare(y.EmployeNom+y.Jour)).map(x=>[x.EmployeNom,ficheDe(x.EmployeEmail).Matricule||"",x.Jour,heuresDe(x).join(" "),dec(minDe(x,ficheDe(x.EmployeEmail))/60),x.Lieu||"",x.Activite||"",x.Statut,x.Corrige||"",x.Commentaire||""])])},"Pointages (CSV)"),
+        h("button",{disabled:!S.synth.p.length,onclick:()=>{const t={};for(const x of S.synth.p){const k=x.EmployeNom+"|"+(x.Activite||"Non précisée");t[k]=(t[k]||0)+minDe(x,ficheDe(x.EmployeEmail));}
+          csv("activites-"+m+".csv",[["Salarié","Activité","Heures (décimal)"],...Object.entries(t).sort().map(([k,v])=>[...k.split("|"),dec(v/60)])])}},"Temps par activité (CSV)"),
+        h("button",{disabled:!absMois.length,onclick:()=>csv("absences-"+m+".csv",[["Salarié","Matricule","Motif","Début","Fin","Jours dans le mois","Validé par"],
+          ...absMois.map(a=>[a.EmployeNom,ficheDe(a.EmployeEmail).Matricule||"",a.Motif,a.Debut,a.Fin,dec(joursAbsence(ficheDe(a.EmployeEmail),a,debut,fin)),a.ValidePar||""])])},"Absences (CSV)"),
+        S.estRH?h("button",{class:"principal",onclick:exportSilae},"Export Silae"):null,
+        S.estRH&&!courant?h("button",{class:clos?"":"danger",onclick:cloturer},clos?"Rouvrir le mois":"Clôturer le mois"):null),
+      S.estRH&&courant?h("p",{class:"discret"},"La clôture est possible une fois le mois terminé."):null));
+}
+function detailSalarie(f,b){
+  ouvrir(f.EmployeNom+" · "+frMois(S.moisSynthese),h("div",{class:"pile"},
+    b.anomalies.length||b.alertes.length?null:h("p",{class:"discret"},"Rien à signaler ce mois-ci."),
+    listeAlertes("À régulariser",b.anomalies),listeAlertes("Durées légales",b.alertes,"refus"),
+    h("button",{type:"button",onclick:()=>{document.getElementById("dlg").close();S.anQui=f.EmployeEmail;S.onglet="annee";afficher()}},"Voir son année")));
+}
+
+/* --- Fiches salariés --- */
+function vueSalaries(barre){
+  const liste=S.fiches.filter(f=>S.estRH||f.EmployeEmail!==S.moi.email);
+  pose(barre,h("div",{class:"carte"},
+    h("p",{class:"discret"},S.estRH?"Touchez un nom pour modifier sa fiche. Une fiche se crée à la première connexion du salarié.":"Fiches de votre équipe (modifiables par les RH)."),
+    liste.length?h("div",{class:"table-zone"},h("table",{style:"min-width:820px"},
+      h("thead",null,h("tr",null,h("th",null,"Salarié"),h("th",null,"Équipe"),h("th",null,"Matricule"),h("th",null,"Contrat"),h("th",{class:"d"},"Heures/sem."),h("th",null,"Entrée"),h("th",{class:"d"},"Solde CP"),h("th",{class:"d"},"Solde RTT"),h("th",null,"Responsable"))),
+      h("tbody",null,liste.map(f=>{const s=soldes(f,S.absEquipe.filter(a=>a.EmployeEmail===f.EmployeEmail));
+        return h("tr",null,h("td",null,S.estRH?h("button",{class:"lien",onclick:()=>editerFiche(f)},f.EmployeNom):f.EmployeNom),h("td",null,f.Equipe||"—"),h("td",{class:"num"},f.Matricule||"—"),
+          h("td",null,f.Contrat||"—"),h("td",{class:"d num"},forfait(f)?"—":f.HeuresHebdo),h("td",{class:"num"},f.DateEntree?frCourt(f.DateEntree):"—"),
+          h("td",{class:"d num"},s.cpReste),h("td",{class:"d num"},s.rttDroit?s.rttReste:"—"),h("td",null,f.ManagerEmail||"—"))})))):h("p",{class:"discret"},"Aucune fiche.")));
+}
+function editerFiche(f){
+  const ch=(id,lab,attrs)=>{const i=h("input",{id:"f-"+id,value:f[id]==null?"":f[id],...attrs});return [h("label",null,lab,i),i]};
+  const [lEq,eq]=ch("Equipe","Équipe"), [lMa,ma]=ch("Matricule","Matricule de paie (Silae)"), [lEn,en]=ch("DateEntree","Date d'entrée",{type:"date"});
+  const [lHe,he]=ch("HeuresHebdo","Heures par semaine",{type:"number",min:"1",max:"48",step:"0.5"}), [lPa,pa]=ch("PauseMin","Pause déduite (min)",{type:"number",min:"0",max:"120"});
+  const [lCp,cp]=ch("SoldeCP","Report de CP au 1er janvier (j)",{type:"number",step:"0.5"}), [lRt,rt]=ch("SoldeRTT","Droits RTT de l'année (j)",{type:"number",step:"0.5"});
+  const [lMg,mg]=ch("ManagerEmail","Responsable (identifiant Microsoft)",{type:"email"});
+  const contrat=h("select",{id:"f-Contrat"},["Horaire","Temps partiel","Forfait jours"].map(c=>h("option",{value:c,selected:f.Contrat===c},c)));
+  const set=joursTrav(f), coches=["Lun","Mar","Mer","Jeu","Ven","Sam","Dim"].map((n,i)=>{const v=(i+1)%7;return [v,h("input",{type:"checkbox",id:"f-j"+v,checked:set.has(v)}),n]});
+  ouvrir("Fiche de "+f.EmployeNom,h("div",{class:"pile"},
+    h("div",{class:"grille2"},lEq,lMa),h("div",{class:"grille2"},h("label",null,"Contrat",contrat),lEn),h("div",{class:"grille2"},lHe,lPa),
+    h("div",null,h("div",{class:"discret"},"Jours travaillés"),h("div",{class:"ligne",style:"justify-content:flex-start"},coches.map(([v,c,n])=>h("label",{class:"coche"},c,n)))),
+    h("div",{class:"grille2"},lCp,lRt),lMg),"Enregistrer",async()=>{
+      const jt=coches.filter(([v,c])=>c.checked).map(([v])=>v); if(!jt.length) throw new Error("Cochez au moins un jour travaillé.");
+      const champs={Equipe:eq.value.trim(),Matricule:ma.value.trim(),DateEntree:en.value,Contrat:contrat.value,HeuresHebdo:+he.value||35,PauseMin:+pa.value||0,
+        JoursTravailles:jt.join(","),SoldeCP:+cp.value||0,SoldeRTT:+rt.value||0,ManagerEmail:mg.value.trim().toLowerCase()};
+      await store.patch(L_S,f.id,champs); Object.assign(f,champs); if(f.EmployeEmail===S.moi.email) Object.assign(S.fiche,champs);
+      await journal("Modification de fiche",f.EmployeNom,Object.entries(champs).map(([k,v])=>k+"="+v).join(" ; "));
+      S.synth=null; afficher(); toast("Fiche enregistrée.");
+    });
+}
+
+/* --- Journal --- */
+function vueJournal(barre){
+  if(!S.journal){
+    pose(barre,h("p",{class:"discret"},"Chargement…"));
+    store.query(L_J,{}).then(j=>{S.journal=j.sort((a,b)=>String(b.Date).localeCompare(String(a.Date))).slice(0,200);if(S.onglet==="equipe"&&S.sous==="journal") afficher()})
+      .catch(e=>pose(barre,h("div",{class:"bandeau refus"},e.message)));
+    return;
+  }
+  pose(barre,h("div",{class:"carte"},h("p",{class:"discret"},"Les 200 dernières actions : validations, refus, corrections, fiches, clôtures."),
+    S.journal.length?h("div",null,S.journal.map(j=>h("div",{class:"jour"},
+      h("div",null,h("strong",null,j.Action)," · "+(j.Cible||"")),
+      h("div",{class:"num discret"},new Date(j.Date).toLocaleString("fr-FR",{day:"2-digit",month:"2-digit",hour:"2-digit",minute:"2-digit"})),
+      h("div",{class:"discret note"},"Par "+j.Auteur+(j.Detail?" · "+j.Detail:""))))):h("p",{class:"discret"},"Journal vide.")));
 }
 
 demarrer();

@@ -1,4 +1,4 @@
-/* Réglages de l'outil de pointage.
+/* Réglages de l'outil de pointage (V2).
    Tant que demo vaut true, l'outil fonctionne avec des données d'exemple,
    sans connexion Microsoft. Passez-le à false une fois les champs remplis. */
 window.POINTAGE_CONFIG = {
@@ -12,15 +12,43 @@ window.POINTAGE_CONFIG = {
   sharepointHost: "votreentreprise.sharepoint.com",
   sitePath: "/sites/Pointage",
 
-  // Adresses de connexion (identifiants Microsoft) des personnes RH : elles voient et valident tout
+  // Identifiants Microsoft des personnes RH : elles voient, valident, clôturent et exportent tout
   rh: ["rh@votreentreprise.fr"],
 
-  // Responsable utilisé quand l'annuaire Microsoft n'indique pas de manager pour un salarié
+  // Responsable utilisé quand ni l'annuaire Microsoft ni la fiche salarié n'en indiquent
   managerParDefaut: "rh@votreentreprise.fr",
 
-  // Durée de référence d'une journée, en heures (sert aux écarts dans la synthèse)
-  heuresJour: 7,
+  // Pause déduite automatiquement quand une journée de plus de pauseSeuilH heures ne comporte aucune pause pointée
+  pauseMin: 45,
+  pauseSeuilH: 6,
 
-  // Motifs d'absence proposés
-  motifs: ["Congé payé", "RTT", "Maladie", "Congé sans solde", "Événement familial", "Formation", "Autre"]
+  // Congés payés acquis par mois complet (en jours ouvrés)
+  cpParMois: 2.08,
+
+  // Retard signalé au-delà de cette tolérance par rapport à l'horaire planifié (minutes)
+  toleranceRetardMin: 10,
+
+  // Envoi d'e-mails (demande à valider, décision). Nécessite l'autorisation Mail.Send.
+  notifications: false,
+
+  motifs: ["Congé payé", "RTT", "Arrêt maladie", "Congé sans solde", "Événement familial", "Formation", "Autre"],
+  lieux: ["Bureau", "Télétravail", "Déplacement"],
+  activites: ["Activité courante", "Réunion", "Formation", "Rendez-vous extérieur"],
+
+  // Modèles d'horaires proposés dans le planning
+  modeles: [
+    { nom: "Journée", debut: "09:00", fin: "17:00" },
+    { nom: "Matin", debut: "07:00", fin: "14:00" },
+    { nom: "Après-midi", debut: "13:00", fin: "20:00" },
+    { nom: "Repos" }
+  ],
+
+  // Codes Silae : à faire confirmer par la personne qui gère la paie
+  silae: {
+    heures: "HS-HN",
+    absences: {
+      "Congé payé": "AB-CP", "RTT": "AB-RTT", "Arrêt maladie": "AB-MAL", "Congé sans solde": "AB-CSS",
+      "Événement familial": "AB-EVF", "Formation": "AB-FORM", "Autre": "AB-ABS"
+    }
+  }
 };
