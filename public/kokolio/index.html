@@ -11,9 +11,9 @@
 @font-face{font-family:"Bricolage Grotesque";src:url("/kokolio/fonts/bricolage-grotesque-latin-wght-normal.woff2") format("woff2");font-weight:200 800;font-display:swap}
 @font-face{font-family:"Figtree";src:url("/kokolio/fonts/figtree-latin-wght-normal.woff2") format("woff2");font-weight:300 900;font-display:swap}
 :root{
-  --fond:#f0f1f4; --surface:#ffffff; --encre:#14171f; --discret:#586174; --trait:#dcdfe6;
+  --fond:#ffffff; --surface:#ffffff; --encre:#14171f; --discret:#586174; --trait:#d3d9e3;
   --accent:#0b4fd1; --accent-encre:#ffffff; --accent-doux:#e2ebfd;
-  --bande:#14161b; --bande-encre:#ffffff; --bande-discret:#aab1c0; --bande-trait:#343945;
+  --bande:#ffffff; --bande-encre:#14171f; --bande-discret:#586174; --bande-trait:#d3d9e3;
   --hero:#0b4fd1; --hero-encre:#ffffff; --hero-discret:#c8d8fb; --hero-trait:rgba(255,255,255,.35);
   --f-bleu:#1c63d5; --f-bleu2:#17509f; --f-vert:#5f8a34; --f-vert2:#4a6d28; --f-brique:#b1502f; --f-brique2:#8b3d24; --f-nuit:#272b34;
   --ok:#1f6a35; --ok-doux:#dff2e4; --attente:#8a5200; --attente-doux:#fcefd5; --refus:#a8261c; --refus-doux:#fce5e2;
@@ -21,35 +21,13 @@
   --titre:"Bricolage Grotesque","Figtree",system-ui,sans-serif;
   --corps:"Figtree",system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;
   --t-xs:.75rem; --t-s:.875rem; --t-l:1.2rem; --t-xl:1.6rem; --t-2xl:2.25rem;
-  --ombre:0 1px 2px rgba(19,26,43,.06),0 6px 18px -10px rgba(19,26,43,.18);
+  --ombre:0 1px 2px rgba(19,26,43,.07),0 8px 20px -12px rgba(19,26,43,.22);
   color-scheme:light;
-}
-@media (prefers-color-scheme:dark){
-  :root:not([data-theme="light"]){
-    --fond:#0e1118; --surface:#171b25; --encre:#e9ecf4; --discret:#9aa3b6; --trait:#2a3040;
-    --accent:#86abff; --accent-encre:#081a44; --accent-doux:#18264a;
-    --bande:#07080b; --bande-encre:#ffffff; --bande-discret:#9aa3b6; --bande-trait:#2a3040;
-    --hero:#0b4fd1; --hero-encre:#ffffff; --hero-discret:#c8d8fb; --hero-trait:rgba(255,255,255,.35);
-    --f-bleu:#1c63d5; --f-bleu2:#17509f; --f-vert:#5f8a34; --f-vert2:#4a6d28; --f-brique:#b1502f; --f-brique2:#8b3d24; --f-nuit:#2c313c;
-    --ok:#7fd494; --ok-doux:#143222; --attente:#f0b65a; --attente-doux:#3a2a0e; --refus:#f29187; --refus-doux:#401b18;
-    --k-t:#1d4a2b; --k-tt:#15464f; --k-cp:#263d75; --k-rtt:#45316d; --k-am:#6c2b25; --k-ab:#4e4431; --k-f:#5d5013; --k-we:#1f2637;
-    --ombre:none; color-scheme:dark;
-  }
-}
-:root[data-theme="dark"]{
-  --fond:#0e1118; --surface:#171b25; --encre:#e9ecf4; --discret:#9aa3b6; --trait:#2a3040;
-    --accent:#86abff; --accent-encre:#081a44; --accent-doux:#18264a;
-    --bande:#07080b; --bande-encre:#ffffff; --bande-discret:#9aa3b6; --bande-trait:#2a3040;
-    --hero:#0b4fd1; --hero-encre:#ffffff; --hero-discret:#c8d8fb; --hero-trait:rgba(255,255,255,.35);
-    --f-bleu:#1c63d5; --f-bleu2:#17509f; --f-vert:#5f8a34; --f-vert2:#4a6d28; --f-brique:#b1502f; --f-brique2:#8b3d24; --f-nuit:#2c313c;
-  --ok:#7fd494; --ok-doux:#143222; --attente:#f0b65a; --attente-doux:#3a2a0e; --refus:#f29187; --refus-doux:#401b18;
-  --k-t:#1d4a2b; --k-tt:#15464f; --k-cp:#263d75; --k-rtt:#45316d; --k-am:#6c2b25; --k-ab:#4e4431; --k-f:#5d5013; --k-we:#1f2637;
-  --ombre:none; color-scheme:dark;
 }
 *{box-sizing:border-box}
 [hidden]{display:none!important}
 html,body{margin:0}
-body{background:var(--fond);color:var(--encre);font:400 1rem/1.5 var(--corps);padding-bottom:92px;-webkit-font-smoothing:antialiased}
+body{background:var(--fond);color:var(--encre);font:400 1rem/1.5 var(--corps);padding-bottom:108px;-webkit-font-smoothing:antialiased}
 h1,h2,h3{margin:0;text-wrap:balance;font-family:var(--titre);line-height:1.15}
 h2{font-size:var(--t-xl);font-weight:700;letter-spacing:-.01em}
 h3{font-size:1.05rem;font-weight:650}
@@ -63,12 +41,17 @@ strong{font-weight:650}
 
 /* En-tête */
 header.barre{display:flex;gap:10px 14px;align-items:center;justify-content:space-between;flex-wrap:wrap;padding:12px 16px;background:var(--bande);color:var(--bande-encre);border-bottom:4px solid var(--accent)}
-header.barre h1{font-size:1.35rem;font-weight:750;letter-spacing:-.02em;display:flex;align-items:baseline;gap:10px}
-header.barre h1 small{font-family:var(--corps);font-size:var(--t-xs);font-weight:500;letter-spacing:.02em;color:var(--bande-discret)}
-header.barre .qui{display:flex;gap:8px;align-items:center;flex-wrap:wrap;font-size:var(--t-s)}
-header.barre .pastille{background:rgba(255,255,255,.12);color:var(--bande-encre)}
-header.barre button{background:transparent;color:var(--bande-encre);border-color:var(--bande-trait);min-height:36px;padding:5px 12px;font-size:var(--t-s)}
-header.barre button.lien{border:0;color:var(--bande-discret)}
+header.barre h1{font-size:1.6rem;font-weight:750;letter-spacing:-.02em;display:flex;align-items:baseline;gap:10px}
+header.barre h1 small{font-family:var(--corps);font-size:var(--t-s);font-weight:500;letter-spacing:.02em;color:var(--bande-discret)}
+header.barre .qui{display:flex;gap:10px;align-items:center;flex-wrap:wrap;font-size:1.05rem;font-weight:600}
+header.barre .marque{display:flex;align-items:center;gap:14px}
+.logo-h{height:52px;width:auto;display:block}
+.logo-g{height:120px;width:auto;display:block;align-self:flex-start}
+.carte>.logo-g{align-self:center}
+.logo-p{height:64px;width:auto;display:block;margin:0 auto}
+header.barre .pastille{font-size:var(--t-s);padding:4px 12px}
+header.barre button{background:var(--accent);color:#fff;border-color:var(--accent);min-height:44px;padding:8px 18px;font-size:1.05rem;font-weight:650}
+header.barre button.lien{border:0;background:none;color:var(--accent);padding:4px 2px;min-height:0}
 
 main{max-width:1000px;margin:0 auto;padding:20px 16px;display:flex;flex-direction:column;gap:16px}
 main.etroit{max-width:720px}
@@ -148,15 +131,15 @@ tbody tr:last-child td{border-bottom:0}
 td.d,th.d{text-align:right} td.c,th.c{text-align:center}
 
 /* Navigation */
-nav.onglets{position:fixed;left:0;right:0;bottom:0;display:flex;justify-content:center;background:var(--surface);border-top:1px solid var(--trait);z-index:5;padding:0 4px}
-nav.onglets button{flex:1;max-width:150px;border:0;border-radius:0;padding:9px 2px 10px;font-size:.72rem;font-weight:650;min-height:62px;background:none;color:var(--discret);display:flex;flex-direction:column;align-items:center;gap:3px;position:relative}
-nav.onglets svg{width:23px;height:23px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+nav.onglets{position:fixed;left:0;right:0;bottom:0;display:flex;justify-content:center;background:var(--surface);border-top:2px solid var(--trait);box-shadow:0 -6px 18px -12px rgba(19,26,43,.25);z-index:5;padding:0 4px}
+nav.onglets button{flex:1;max-width:150px;border:0;border-radius:0;padding:9px 2px 10px;font-size:.95rem;font-weight:650;min-height:76px;background:none;color:var(--discret);display:flex;flex-direction:column;align-items:center;gap:3px;position:relative}
+nav.onglets svg{width:28px;height:28px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
 nav.onglets button[aria-current="page"]{color:var(--accent)}
 nav.onglets button[aria-current="page"]::before{content:"";position:absolute;top:0;left:22%;right:22%;height:3px;border-radius:0 0 3px 3px;background:var(--accent)}
 .compte{display:inline-block;min-width:18px;padding:0 5px;border-radius:9px;background:var(--refus);color:#fff;font-size:.7rem;font-weight:700;margin-left:4px}
 nav.onglets .compte{position:absolute;top:5px;left:calc(50% + 6px);margin:0}
 .sous{display:flex;gap:6px;overflow-x:auto;padding-bottom:2px}
-.sous button{white-space:nowrap;border-radius:999px;min-height:40px;padding:6px 16px;font-size:var(--t-s)}
+.sous button{white-space:nowrap;border-radius:999px;min-height:46px;padding:8px 18px;font-size:1.05rem}
 .sous button[aria-current="page"]{background:var(--domaine,var(--encre));color:#fff;border-color:var(--domaine,var(--encre))}
 
 /* Fenêtres */
@@ -165,7 +148,7 @@ dialog::backdrop{background:rgba(10,14,25,.55)}
 dialog form{display:flex;flex-direction:column;gap:14px}
 dialog h2{font-size:var(--t-l)}
 .heures-edit{display:flex;gap:8px;align-items:center}
-#toast{position:fixed;left:16px;right:16px;bottom:104px;margin:auto;max-width:520px;background:var(--encre);color:var(--fond);padding:12px 16px;border-radius:12px;display:none;z-index:20;font-size:var(--t-s);font-weight:550;box-shadow:0 10px 30px -10px rgba(0,0,0,.5)}
+#toast{position:fixed;left:16px;right:16px;bottom:120px;margin:auto;max-width:520px;background:var(--encre);color:var(--fond);padding:12px 16px;border-radius:12px;display:none;z-index:20;font-size:var(--t-s);font-weight:550;box-shadow:0 10px 30px -10px rgba(0,0,0,.5)}
 
 /* Accueil */
 .bienvenue h2{font-size:clamp(2rem,9vw,2.8rem);font-weight:800;letter-spacing:-.03em}
@@ -204,7 +187,7 @@ ul{margin:6px 0 12px;padding-left:20px} li{margin:3px 0}
 </head>
 <body>
 <header class="barre">
-  <h1>Kokolio <small>Pointage et absences</small></h1>
+  <div class="marque"><span id="logo-h"></span><h1>Kokolio <small>Pointage et absences</small></h1></div>
   <div class="qui" id="qui"></div>
 </header>
 <main id="vue"><p class="discret">Chargement…</p></main>
@@ -366,6 +349,11 @@ const ICONES={m_salarie:"M12 7v5l3 2M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18Z",
   equipe:"M16 19v-1a4 4 0 0 0-4-4H7a4 4 0 0 0-4 4v1M9.5 10a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7ZM21 19v-1a4 4 0 0 0-3-3.8M15.5 3.2a3.5 3.5 0 0 1 0 6.6"};
 function icone(id){const NS="http://www.w3.org/2000/svg",s=document.createElementNS(NS,"svg"),p=document.createElementNS(NS,"path");
   s.setAttribute("viewBox","0 0 24 24");s.setAttribute("aria-hidden","true");p.setAttribute("d",ICONES[id]);s.append(p);return s}
+function logo(cls){ // logo de l'entreprise, défini dans config.js ; s'efface s'il ne se charge pas
+  if(!CFG.logo) return null;
+  const i=h("img",{class:cls,src:CFG.logo,alt:CFG.logoAlt||""}); i.addEventListener("error",()=>i.remove()); return i;
+}
+{const l=logo("logo-h"); if(l) document.getElementById("logo-h").append(l);}
 let toastT;
 function toast(msg){const t=document.getElementById("toast");t.textContent=msg;t.style.display="block";clearTimeout(toastT);toastT=setTimeout(()=>t.style.display="none",5000)}
 async function agir(btn, fn){
@@ -612,7 +600,7 @@ async function demarrer(){
   catch(e){ if(e.message==="redirection") return;
     pose(h("div",{class:"bandeau refus"},"Connexion Microsoft impossible : "+e.message)); return; }
   if(!S.moi){
-    pose(h("div",{class:"carte",style:"text-align:center"},h("h2",null,"Connectez-vous avec votre compte Microsoft"),
+    pose(h("div",{class:"carte",style:"text-align:center"},logo("logo-g"),h("h2",null,"Connectez-vous avec votre compte Microsoft"),
       h("p",{class:"discret"},"Utilisez votre compte professionnel habituel."),
       h("button",{class:"principal geant",onclick:ev=>agir(ev.currentTarget,()=>store.login())},"Se connecter avec Microsoft")));
     return;
@@ -675,7 +663,7 @@ function entrer(m){
   afficher(); window.scrollTo(0,0);
 }
 function vueAccueil(){
-  pose(h("div",{class:"pile bienvenue"},h("h2",null,"Bonjour "+S.moi.name.replace(/ \(.*\)$/,"").split(" ")[0]),h("p",{class:"discret"},"Choisissez votre espace.")),
+  pose(logo("logo-g"),h("div",{class:"pile bienvenue"},h("h2",null,"Bonjour "+S.moi.name.replace(/ \(.*\)$/,"").split(" ")[0]),h("p",{class:"discret"},"Choisissez votre espace.")),
     h("div",{class:"modes"},MODES.map(([id,titre,texte])=>{const d=modeDispo(id);
       return h("button",{class:"mode m-"+id,disabled:!d.ok,title:texte,onclick:()=>entrer(id)},icone("m_"+id),h("strong",null,titre),h("span",null,d.note||texte))})),
     store.demo?h("label",null,"Compte fictif utilisé pour la démonstration",h("select",{id:"demo-qui",onchange:ev=>{ecrireMode("");store.changer(ev.target.value);location.reload()}},
@@ -685,6 +673,10 @@ function vueAccueil(){
 
 /* ================= Administrateur : fonctionnalités et versions ================= */
 const VERSIONS=[
+  {v:"V4.2",date:"23/11/2026",titre:"Fond blanc et logo",points:[
+    "Fond blanc sur tous les écrans, en-tête clair",
+    "Menus du haut et du bas agrandis : texte, pictogrammes et boutons",
+    "Logo de l'entreprise dans l'en-tête, sur l'accueil, l'écran de connexion et la page administrateur"]},
   {v:"V4.1",date:"23/11/2026",titre:"Habillage Centre Européen de Formation",points:[
     "Couleur principale : le bleu du logo du Centre Européen de Formation",
     "Accueil en tuiles carrées à pictogrammes, une couleur par domaine : bleu pour mon espace, vert pour l'équipe, brique pour les RH",
@@ -730,7 +722,7 @@ function vueAdmin(){
       FONCTIONS.map(([t,l])=>h("div",null,h("strong",null,t),h("ul",null,l.map(x=>h("li",null,x)))))),
     h("div",{class:"carte"},h("h3",null,"Historique des versions"),
       VERSIONS.map(v=>h("div",null,h("div",{class:"ligne"},h("strong",null,v.v+" · "+v.titre),h("span",{class:"num discret"},v.date)),h("ul",null,v.points.map(x=>h("li",null,x)))))),
-    h("div",{class:"carte"},h("h3",null,"Non géré pour l'instant"),h("ul",null,["Majorations d'heures supplémentaires","Numéro de sécurité sociale, coordonnées bancaires et salaire (volontairement absents de la fiche)","Période de référence des congés du 1er juin au 31 mai","Plusieurs activités dans une même journée","Cloisonnement strict des données entre salariés"].map(x=>h("li",null,x)))));
+    logo("logo-p"),h("div",{class:"carte"},h("h3",null,"Non géré pour l'instant"),h("ul",null,["Majorations d'heures supplémentaires","Numéro de sécurité sociale, coordonnées bancaires et salaire (volontairement absents de la fiche)","Période de référence des congés du 1er juin au 31 mai","Plusieurs activités dans une même journée","Cloisonnement strict des données entre salariés"].map(x=>h("li",null,x)))));
 }
 function ecranInstallation(){
   document.getElementById("onglets").replaceChildren();

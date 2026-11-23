@@ -4,6 +4,11 @@
 window.POINTAGE_CONFIG = {
   demo: true,
 
+  // Logo affiché dans l'en-tête, sur l'accueil et l'écran de connexion.
+  // Mettez de préférence un fichier déposé à côté de index.html (ex. "logo.png"). Laissez "" pour ne rien afficher.
+  logo: "https://www.centre-europeen-formation.fr/wp-content/uploads/2025/08/Logo_CEF.png",
+  logoAlt: "Centre Européen de Formation",
+
   // Identifiants de l'application enregistrée dans Microsoft Entra (voir GUIDE-INSTALLATION.md)
   clientId: "00000000-0000-0000-0000-000000000000",
   tenantId: "00000000-0000-0000-0000-000000000000",
