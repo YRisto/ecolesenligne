@@ -102,6 +102,10 @@ dialog::backdrop{background:rgba(0,0,0,.45)}
 dialog form{display:flex;flex-direction:column;gap:12px}
 .heures-edit{display:flex;gap:8px;align-items:center}
 #toast{position:fixed;left:16px;right:16px;bottom:96px;margin:auto;max-width:520px;background:var(--encre);color:var(--fond);padding:12px 14px;border-radius:8px;display:none;z-index:20}
+.modes{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:12px}
+button.mode{display:flex;flex-direction:column;align-items:flex-start;gap:6px;text-align:left;padding:16px;min-height:112px;border-left:4px solid var(--accent)}
+button.mode strong{font-size:1.1rem}
+ul{margin:6px 0 10px;padding-left:20px} li{margin:2px 0}
 /* Vue annuelle */
 .annee{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:12px}
 .moisbloc{background:var(--surface);border:1px solid var(--trait);border-radius:10px;padding:10px;display:flex;flex-direction:column;gap:6px}
@@ -135,7 +139,7 @@ dialog form{display:flex;flex-direction:column;gap:12px}
 <script>
 "use strict";
 /* ================= Réglages et outils ================= */
-const CFG = Object.assign({demo:true, rh:[], managerParDefaut:"", pauseMin:45, pauseSeuilH:6, cpParMois:2.08, toleranceRetardMin:10, notifications:false,
+const CFG = Object.assign({demo:true, rh:[], managerParDefaut:"", pauseMin:45, pauseSeuilH:6, cpParMois:2.08, forfaitJours:218, toleranceRetardMin:10, notifications:false,
   motifs:["Congé payé","RTT","Arrêt maladie","Congé sans solde","Événement familial","Formation","Autre"],
   lieux:["Bureau","Télétravail","Déplacement"], activites:["Activité courante","Réunion","Formation","Rendez-vous extérieur"],
   modeles:[{nom:"Journée",debut:"09:00",fin:"17:00"},{nom:"Matin",debut:"07:00",fin:"14:00"},{nom:"Après-midi",debut:"13:00",fin:"20:00"},{nom:"Repos"}],
@@ -284,12 +288,13 @@ function ouvrir(titre, corps, libelleOk, surOk){
 
 /* ================= Stockage : démonstration ================= */
 function magasinDemo(){
-  const CLE="pointage-demo-v2";
+  const CLE="pointage-demo-v3";
   const G=[["camille.martin@demo.fr","Camille Martin","julien.bernard@demo.fr","Admissions",35,"1,2,3,4,5","0012"],
     ["thomas.petit@demo.fr","Thomas Petit","julien.bernard@demo.fr","Admissions",35,"1,2,3,4,5","0027"],
     ["ines.roux@demo.fr","Inès Roux","julien.bernard@demo.fr","Pédagogie",28,"1,2,3,4","0031"],
     ["julien.bernard@demo.fr","Julien Bernard (manager)","sophie.leroy@demo.fr","Direction",39,"1,2,3,4,5","0004"],
-    ["sophie.leroy@demo.fr","Sophie Leroy (RH)","sophie.leroy@demo.fr","Direction",35,"1,2,3,4,5","0002"]];
+    ["sophie.leroy@demo.fr","Sophie Leroy (RH)","sophie.leroy@demo.fr","Direction",35,"1,2,3,4,5","0002"],
+    ["nadia.benali@demo.fr","Nadia Benali (cadre)","julien.bernard@demo.fr","Pédagogie",35,"1,2,3,4,5","0040","Forfait jours"]];
   const gens=G.map(g=>({email:g[0],name:g[1],managerEmail:g[2]}));
   RH.push("sophie.leroy@demo.fr");
   let db;
@@ -298,11 +303,12 @@ function magasinDemo(){
     const add=(l,o)=>{d.lists[l].push({id:String(d.seq++),...o})};
     let graineN=20261123; const alea=()=>{graineN=(graineN*1664525+1013904223)%4294967296;return graineN/4294967296};
     const auj=today(), y=+auj.slice(0,4), fiches={};
-    G.forEach(g=>{const f={...ficheDefaut(g[0],g[1],g[2]),Equipe:g[3],HeuresHebdo:g[4],JoursTravailles:g[5],Matricule:g[6],
+    G.forEach(g=>{const f={...ficheDefaut(g[0],g[1],g[2]),Equipe:g[3],HeuresHebdo:g[4],JoursTravailles:g[5],Matricule:g[6],Contrat:g[7]||"Horaire",
       DateEntree:(y-3)+"-09-01",SoldeCP:g[0].startsWith("ines")?4:6,SoldeRTT:g[4]>35?10:0};fiches[g[0]]=f;add(L_S,f)});
     const abs=(e,motif,deb,fin,statut,extra)=>{const f=fiches[e];const a={Title:f.EmployeNom+" "+motif,EmployeEmail:e,EmployeNom:f.EmployeNom,Motif:motif,Debut:deb,Fin:fin,
       ManagerEmail:f.ManagerEmail,Statut:statut||"Valide",DemiJournee:"",...(extra||{})};a.Jours=joursAbsence(f,a);add(L_A,a)};
-    const C=gens[0].email,T=gens[1].email,I=gens[2].email,J=gens[3].email;
+    const C=gens[0].email,T=gens[1].email,I=gens[2].email,J=gens[3].email,N=gens[5].email;
+    abs(N,"Congé payé",y+"-07-20",y+"-08-07"); abs(N,"Formation",y+"-03-16",y+"-03-18");
     abs(C,"Arrêt maladie",y+"-02-09",y+"-02-13"); abs(C,"Congé payé",y+"-04-13",y+"-04-17"); abs(C,"Congé payé",y+"-08-03",y+"-08-21");
     abs(C,"Formation",y+"-06-09",y+"-06-10"); abs(C,"Congé payé",y+"-12-24",y+"-12-31");
     abs(T,"Arrêt maladie",y+"-03-02",y+"-03-04"); abs(T,"Congé payé",y+"-07-13",y+"-07-31"); abs(T,"Événement familial",y+"-10-05",y+"-10-06");
@@ -310,12 +316,12 @@ function magasinDemo(){
     abs(I,"Congé payé",y+"-08-10",y+"-08-21"); abs(I,"Arrêt maladie",y+"-05-18",y+"-05-21"); abs(I,"Congé payé",plusJours(auj,8),plusJours(auj,9),"En attente");
     abs(J,"RTT",y+"-05-15",y+"-05-15"); abs(J,"RTT",y+"-09-18",y+"-09-18"); abs(J,"Congé payé",y+"-08-10",y+"-08-28");
     const oubli=plusJours(auj,-8), sansDepart=plusJours(auj,-3), longue=plusJours(auj,-2);
-    for(const e of [C,T,I,J]){
+    for(const e of [C,T,I,J,N]){
       const f=fiches[e], sesAbs=d.lists[L_A].filter(a=>a.EmployeEmail===e); let j=y+"-01-01"; const hier=plusJours(auj,-1);
       while(j<=hier){
         if(estTravaille(f,j)&&!absLe(sesAbs,j)&&!(e===T&&j===oubli)){
           const arr=500+Math.floor(alea()*45), midi=720+Math.floor(alea()*30), pause=45+Math.floor(alea()*20);
-          const duree=Math.round(theoJour(f,j))+Math.floor(alea()*50)-22;
+          const duree=Math.round(theoJour(f,j)||470)+Math.floor(alea()*50)-22;
           let times=[arr,midi,midi+pause,arr+pause+duree].map(m=>pad(Math.floor(m/60))+":"+pad(m%60));
           if(e===J&&j===longue) times=["07:30","12:30","13:00","19:20"];
           if(e===T&&j===sansDepart) times=times.slice(0,3);
@@ -338,7 +344,7 @@ function magasinDemo(){
   function sauve(){try{localStorage.setItem(CLE,JSON.stringify(db))}catch(e){}}
   charge();
   return {
-    demo:true, gens,
+    demo:true, gens, roles:{salarie:gens[0].email,cadre:gens[5].email,manager:gens[3].email,rh:gens[4].email},
     async start(){return {...(gens.find(g=>g.email===db.user)||gens[0])}},
     changer(email){db.user=email;sauve()},
     reinit(){db=graine();sauve()},
@@ -444,7 +450,7 @@ function magasinMicrosoft(){
 const store = CFG.demo ? magasinDemo() : magasinMicrosoft();
 const S={moi:null,fiche:null,onglet:"pointer",sous:"validation",mois:today().slice(0,7),moisSynthese:today().slice(0,7),semaine:lundiDe(today()),
   miens:{},abs:[],attP:[],absEquipe:[],fiches:[],plan:[],planMoi:[],clotures:[],pour:[],estRH:false,estManager:false,synth:null,
-  an:null,anQui:"",anAnnee:+today().slice(0,4),journal:null};
+  an:null,anQui:"",anAnnee:+today().slice(0,4),journal:null,accueil:true,mode:"",joursAn:null};
 const vue=document.getElementById("vue");
 function pose(...k){vue.replaceChildren(...k.flat(Infinity).filter(x=>x!=null&&x!==false))}
 const estClos=m=>S.clotures.some(c=>c.Mois===m&&c.Statut==="Cloture");
@@ -504,22 +510,87 @@ async function demarrer(){
     const m=today().slice(0,7), ml=lundiDe(today()).slice(0,7);
     [S.clotures,S.planMoi]=await Promise.all([store.query(L_C,{}),store.query(L_PL,{EmployeEmail:S.moi.email}),chargerMois(m),ml!==m?chargerMois(ml):null,chargerAbs()]);
     await chargerEquipe();
+    if(forfait(S.fiche)){const y=today().slice(0,4);S.joursAn=(await store.query(L_P,{EmployeEmail:S.moi.email})).filter(x=>x.Jour.slice(0,4)===y&&heuresDe(x).length).length;}
   }catch(e){
     if(e.message==="redirection") return;
     if(e.status===404&&!store.demo){ecranInstallation();return}
     pose(h("div",{class:"bandeau refus"},e.message)); return;
   }
-  afficher();
-  setInterval(()=>{if(S.onglet==="pointer"&&!document.getElementById("dlg").open&&!["SELECT","INPUT"].includes(document.activeElement.tagName)) afficher()},30000);
+  const memo=lireMode();
+  if(memo&&modeDispo(memo).ok) entrer(memo); else afficher();
+  setInterval(()=>{if(!S.accueil&&S.onglet==="pointer"&&!document.getElementById("dlg").open&&!["SELECT","INPUT"].includes(document.activeElement.tagName)) afficher()},30000);
 }
 function enTete(){
   const z=document.getElementById("qui"); z.replaceChildren();
-  if(store.demo){
-    z.append(h("span",{class:"pastille p-attente"},"Démonstration"),
-      h("select",{id:"demo-qui","aria-label":"Personne affichée (démonstration)",onchange:ev=>{store.changer(ev.target.value);location.reload()}},
-        store.gens.map(g=>h("option",{value:g.email,selected:g.email===S.moi.email},g.name))),
-      h("button",{class:"lien",onclick:()=>{store.reinit();location.reload()}},"Remettre à zéro"));
-  }else z.append(h("span",null,S.moi.name),h("button",{class:"lien",onclick:()=>store.logout()},"Se déconnecter"));
+  z.append(h("span",{class:"pastille p-neutre"},VERSIONS[0].v));
+  if(store.demo) z.append(h("span",{class:"pastille p-attente"},"Démonstration"));
+  z.append(h("span",null,S.moi.name));
+  if(!S.accueil) z.append(h("button",{onclick:()=>{ecrireMode("");S.accueil=true;afficher();window.scrollTo(0,0)}},"Accueil"));
+  if(!store.demo) z.append(h("button",{class:"lien",onclick:()=>store.logout()},"Se déconnecter"));
+}
+
+/* ================= Accueil : choix du mode ================= */
+const CLE_MODE="pointage-mode";
+function lireMode(){try{return sessionStorage.getItem(CLE_MODE)||""}catch(e){return ""}}
+function ecrireMode(m){try{m?sessionStorage.setItem(CLE_MODE,m):sessionStorage.removeItem(CLE_MODE)}catch(e){}}
+const MODES=[
+  ["salarie","Salarié non cadre","Pointage arrivée et départ, compteur d'heures, congés et absences, vue annuelle."],
+  ["cadre","Salarié cadre","Forfait jours : pointage, décompte des jours travaillés, repos légaux, congés."],
+  ["manager","Manager","Validation des pointages et des congés, planning, synthèse de l'équipe."],
+  ["rh","RH","Tous les salariés : fiches, soldes, clôture mensuelle, export Silae, journal."],
+  ["admin","Administrateur","Liste complète des fonctionnalités et historique des versions."]];
+function modeDispo(m){
+  if(store.demo) return {ok:true,note:m==="admin"?"":"Démonstration avec "+store.gens.find(g=>g.email===store.roles[m]).name};
+  if(m==="salarie") return forfait(S.fiche)?{ok:false,note:"Votre fiche indique un forfait jours."}:{ok:true,note:""};
+  if(m==="cadre") return forfait(S.fiche)?{ok:true,note:""}:{ok:false,note:"Votre fiche n'indique pas de forfait jours."};
+  if(m==="manager") return S.estManager?{ok:true,note:""}:{ok:false,note:"Aucun salarié ne vous est rattaché."};
+  return S.estRH?{ok:true,note:""}:{ok:false,note:"Réservé aux RH."};
+}
+function entrer(m){
+  if(store.demo&&m!=="admin"&&store.roles[m]!==S.moi.email){ecrireMode(m);store.changer(store.roles[m]);location.reload();return}
+  ecrireMode(m); S.mode=m; S.accueil=false;
+  S.onglet=m==="admin"?"admin":(m==="manager"||m==="rh")?"equipe":"pointer";
+  if(m==="rh") S.sous="synthese"; if(m==="manager") S.sous="validation";
+  afficher(); window.scrollTo(0,0);
+}
+function vueAccueil(){
+  pose(h("div",{class:"pile"},h("h2",null,"Bonjour "+S.moi.name.replace(/ \(.*\)$/,"").split(" ")[0]),h("p",{class:"discret"},"Choisissez votre espace.")),
+    h("div",{class:"modes"},MODES.map(([id,titre,texte])=>{const d=modeDispo(id);
+      return h("button",{class:"mode",disabled:!d.ok,onclick:()=>entrer(id)},h("strong",null,titre),h("span",null,texte),d.note?h("span",{class:"discret"},d.note):null)})),
+    store.demo?h("p",{class:"discret"},"En démonstration, chaque espace ouvre un compte fictif différent. ",h("button",{class:"lien",onclick:()=>{store.reinit();ecrireMode("");location.reload()}},"Remettre les données à zéro")):null);
+}
+
+/* ================= Administrateur : fonctionnalités et versions ================= */
+const VERSIONS=[
+  {v:"V3",date:"23/11/2026",titre:"Accueil par profil",points:[
+    "Écran d'accueil avec choix de l'espace : salarié non cadre, salarié cadre, manager, RH, administrateur",
+    "Espace cadre : décompte des jours travaillés au forfait, sans compteur d'heures",
+    "Page administrateur : fonctionnalités et historique des versions",
+    "Bouton Accueil et numéro de version dans l'en-tête"]},
+  {v:"V2",date:"23/11/2026",titre:"Gestion des temps complète",points:[
+    "Horaire prévu par salarié et compteur débit-crédit","Pause déduite automatiquement","Alertes légales : 10 h par jour, 48 h par semaine, repos de 11 h",
+    "Anomalies : départ oublié, jour sans pointage, retard","Lieu (bureau, télétravail, déplacement) et activité au pointage",
+    "Soldes de congés payés et de RTT, demi-journées, jours fériés français","Justificatif joint à une absence","Chevauchements d'absences signalés au manager, délégation de validation",
+    "Planning hebdomadaire avec modèles d'horaires","Tableau de bord, fiches salariés, clôture mensuelle, journal des actions",
+    "Exports Silae, pointages, absences, temps par activité","Notifications par e-mail (à activer)","Vue annuelle jour par jour"]},
+  {v:"V1",date:"23/11/2026",titre:"Première version",points:[
+    "Connexion avec le compte Microsoft, données dans SharePoint","Pointage arrivée et départ","Correction d'une journée avec motif",
+    "Déclaration d'absence et demande de congé","Validation par le manager, avec motif en cas de refus","Synthèse mensuelle et export CSV","Mode démonstration"]}];
+const FONCTIONS=[
+  ["Pointage",["Arrivée et départ en un geste, autant de fois que nécessaire dans la journée","Choix du lieu et de l'activité","Correction d'une journée ou ajout d'une journée oubliée, avec motif obligatoire","Journée verrouillée après validation ou clôture du mois"]],
+  ["Temps de travail",["Horaire prévu selon la fiche (heures par semaine, jours travaillés)","Compteur débit-crédit par semaine et par mois","Pause déduite quand aucune n'est pointée","Forfait jours : décompte des jours travaillés dans l'année","Alertes légales : 10 h par jour, 48 h par semaine, repos de 11 h","Anomalies : départ non pointé, jour sans pointage ni absence, retard sur le planning"]],
+  ["Congés et absences",["Demande de congé et déclaration d'absence par motif","Demi-journées","Jours fériés et jours non travaillés exclus du décompte","Soldes de congés payés et de RTT","Justificatif en pièce jointe","Annulation d'une demande en attente"]],
+  ["Vue annuelle",["Un an jour par jour : travaillé, télétravail, CP, RTT, arrêt maladie, autre absence, férié, à régulariser","Totaux par catégorie et heures par mois","Consultable par le manager et les RH pour chaque salarié"]],
+  ["Manager",["Validation ou refus des pointages, jour par jour ou en lot","Validation ou refus des absences, avec solde et chevauchements dans l'équipe","Planning hebdomadaire par modèles d'horaires, recopie de la semaine précédente","Délégation des validations à un remplaçant","Synthèse mensuelle et tableau de bord de l'équipe"]],
+  ["RH",["Vision de tous les salariés","Fiches salariés : équipe, matricule, contrat, horaire, soldes, responsable","Clôture et réouverture d'un mois","Export Silae et exports CSV (pointages, absences, temps par activité)","Journal des actions"]],
+  ["Technique",["Connexion Microsoft (Entra ID)","Données dans des listes SharePoint de l'entreprise","Responsable lu dans l'annuaire Microsoft","Notifications par e-mail (option)","Mode démonstration sans connexion","Utilisable sur téléphone et ordinateur, thème clair ou sombre"]]];
+function vueAdmin(){
+  pose(h("div",{class:"ligne"},h("h2",null,"Administrateur"),h("span",{class:"pastille p-neutre"},"Version actuelle : "+VERSIONS[0].v+" du "+VERSIONS[0].date)),
+    h("div",{class:"carte"},h("h3",null,"Fonctionnalités"),
+      FONCTIONS.map(([t,l])=>h("div",null,h("strong",null,t),h("ul",null,l.map(x=>h("li",null,x)))))),
+    h("div",{class:"carte"},h("h3",null,"Historique des versions"),
+      VERSIONS.map(v=>h("div",null,h("div",{class:"ligne"},h("strong",null,v.v+" · "+v.titre),h("span",{class:"num discret"},v.date)),h("ul",null,v.points.map(x=>h("li",null,x)))))),
+    h("div",{class:"carte"},h("h3",null,"Non géré pour l'instant"),h("ul",null,["Majorations d'heures supplémentaires","Période de référence des congés du 1er juin au 31 mai","Plusieurs activités dans une même journée","Cloisonnement strict des données entre salariés"].map(x=>h("li",null,x)))));
 }
 function ecranInstallation(){
   document.getElementById("onglets").replaceChildren();
@@ -531,9 +602,11 @@ function ecranInstallation(){
 
 /* ================= Navigation ================= */
 function afficher(){
+  enTete();
+  if(S.accueil||S.onglet==="admin"){document.getElementById("onglets").replaceChildren();vue.className="etroit";(S.accueil?vueAccueil:vueAdmin)();return}
   const n=S.attP.length+attA().length;
   const onglets=[["pointer","Pointer"],["heures","Heures"],["absences","Absences"],["annee","Année"]];
-  if(S.estManager) onglets.push(["equipe","Équipe"]);
+  if(S.estManager&&S.mode!=="salarie"&&S.mode!=="cadre") onglets.push(["equipe","Équipe"]);
   document.getElementById("onglets").replaceChildren(...onglets.map(([id,lib])=>
     h("button",{"aria-current":S.onglet===id?"page":null,onclick:()=>{S.onglet=id;afficher();window.scrollTo(0,0)}},lib,
       id==="equipe"&&n?h("span",{class:"compte"},n):null)));
@@ -574,6 +647,11 @@ function vuePointer(){
       h("div",{class:"ligne"},h("h3",null,"Aujourd'hui"),h("span",{class:"num"},fmtMin(fait)+(theo?" / "+fmtMin(theo):""))),
       h("p",{class:"num"},times.length?paires(times):"Aucun pointage"),
       times.length===2&&minutesDe(times)>CFG.pauseSeuilH*60?h("p",{class:"discret"},"Pause de "+pauseDe(S.fiche)+" min déduite automatiquement (aucune pause pointée)."):null),
+    forfait(S.fiche)?h("div",{class:"carte"},h("h3",null,"Forfait jours "+jour.slice(0,4)),
+      h("div",{class:"ligne"},h("span",null,"Jours travaillés"),h("span",{class:"num grand"},(S.joursAn||0))),
+      h("div",{class:"ligne"},h("span",null,"Forfait annuel"),h("span",{class:"num"},CFG.forfaitJours+" j")),
+      h("div",{class:"ligne"},h("span",null,"Reste à travailler"),h("span",{class:"num"},Math.max(0,CFG.forfaitJours-(S.joursAn||0))+" j")),
+      h("p",{class:"discret"},"Au forfait jours, aucun compteur d'heures : seuls les jours travaillés et les repos légaux sont suivis.")):null,
     forfait(S.fiche)?null:h("div",{class:"carte"},h("h3",null,"Compteur débit-crédit"),
       h("div",{class:"ligne"},h("span",null,"Cette semaine"),h("span",{class:"num "+(bs.ecart<0?"moins":"plus")},fmtEcart(bs.ecart))),
       h("div",{class:"ligne"},h("span",null,frMois(m)),h("span",{class:"num "+(bm.ecart<0?"moins":"plus")},fmtEcart(bm.ecart))),
@@ -589,6 +667,7 @@ async function pointer(lieu,activite){
   if(!it){
     await store.add(L_P,{Title:S.moi.name+" "+jour,EmployeEmail:S.moi.email,EmployeNom:S.moi.name,Jour:jour,Mois:m,
       Heures:JSON.stringify([t]),Minutes:0,ManagerEmail:S.moi.managerEmail,Statut:"A valider",Lieu:lieu,Activite:activite});
+    if(S.joursAn!=null) S.joursAn++;
   }else{
     if(it.Statut==="Valide") throw new Error("Cette journée est déjà validée.");
     const times=heuresDe(it);
@@ -780,7 +859,7 @@ function vueAnnee(){
       h("div",{class:"ligne"},h("strong",null,premier.toLocaleDateString("fr-FR",{month:"long"})),h("span",{class:"num discret"},min?fmtMin(min):"")),
       h("div",{class:"cal"},["L","M","M","J","V","S","D"].map(x=>h("span",{class:"ent"},x)),cells)));
   }
-  const choix=S.estManager?h("select",{id:"an-qui","aria-label":"Salarié affiché",style:"max-width:260px",onchange:ev=>{S.anQui=ev.target.value;afficher()}},
+  const choix=S.estManager&&S.mode!=="salarie"&&S.mode!=="cadre"?h("select",{id:"an-qui","aria-label":"Salarié affiché",style:"max-width:260px",onchange:ev=>{S.anQui=ev.target.value;afficher()}},
     [S.fiche,...S.fiches.filter(x=>x.EmployeEmail!==S.moi.email)].map(x=>h("option",{value:x.EmployeEmail,selected:x.EmployeEmail===S.anQui},x.EmployeNom))):h("strong",null,S.moi.name);
   pose(
     h("div",{class:"ligne"},

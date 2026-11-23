@@ -25,6 +25,9 @@ window.POINTAGE_CONFIG = {
   // Congés payés acquis par mois complet (en jours ouvrés)
   cpParMois: 2.08,
 
+  // Nombre de jours du forfait annuel des cadres au forfait jours
+  forfaitJours: 218,
+
   // Retard signalé au-delà de cette tolérance par rapport à l'horaire planifié (minutes)
   toleranceRetardMin: 10,
 
