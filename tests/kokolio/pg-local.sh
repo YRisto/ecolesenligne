@@ -14,7 +14,8 @@ if ! run "$BIN/pg_isready -h 127.0.0.1 -p $PORT" >/dev/null 2>&1; then
   run "$BIN/pg_ctl -D $DATA -o '-p $PORT -c listen_addresses=127.0.0.1 -c unix_socket_directories=/tmp -c fsync=off' -l /tmp/kkpg.log -w start" >/dev/null
 fi
 if [ "$1" = "reset" ]; then
-  psql -h 127.0.0.1 -p $PORT -U postgres -q -c "drop database if exists kokolio_test" -c "create database kokolio_test"
+  # « with (force) » : coupe les connexions restées ouvertes par un précédent essai, sinon la base ne peut pas être recréée
+  psql -h 127.0.0.1 -p $PORT -U postgres -q -c "drop database if exists kokolio_test with (force)" -c "create database kokolio_test"
   psql -h 127.0.0.1 -p $PORT -U postgres -q -d kokolio_test <<'SQL'
 do $$ begin
   if not exists (select 1 from pg_roles where rolname = 'anon') then create role anon nologin; end if;
