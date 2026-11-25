@@ -9,6 +9,7 @@ import * as rh from "./rh.js";
 import * as admin from "./admin.js";
 import * as planning from "./planning.js";
 import * as annuel from "./annuel.js";
+import * as suivi from "./suivi.js";
 
 const ESPACES = {
   moi: { titre: "Mon espace", onglets: [["pointer", "Pointer"], ["heures", "Heures"], ["absences", "Absences"], ["annee", "Année"]] },
@@ -88,7 +89,7 @@ function navigation(r) {
   nav.dataset.espace = r.espace;
   if (!e) { nav.replaceChildren(); document.body.classList.add("sans-nav"); return; }
   document.body.classList.remove("sans-nav");
-  const actif = { salarie: r.espace === "rh" ? "salaries" : "synthese", fiche: "salaries", import: "salaries", report: "salaries", horaires: "planning", annee: r.espace === "moi" ? "annee" : "synthese", annualisation: r.espace === "moi" ? "annee" : "synthese" }[r.onglet] || r.onglet;
+  const actif = { salarie: r.espace === "rh" ? "salaries" : "synthese", fiche: "salaries", import: "salaries", report: "salaries", horaires: "planning", annee: r.espace === "moi" ? "annee" : "synthese", annualisation: r.espace === "moi" ? "annee" : "synthese", anomalies: "synthese", presents: "synthese" }[r.onglet] || r.onglet;
   nav.replaceChildren(...e.onglets.map(([id, lib]) => h("button", { "aria-current": actif === id ? "page" : null, onclick: () => { aller(`#/${r.espace}/${id}`); window.scrollTo(0, 0); } },
     icone(id), lib, id === "validation" ? h("span", { class: "compte", hidden: true, "data-attente": r.espace === "rh" ? "rh" : "equipe" }) : null)));
   majPastilles();
@@ -104,7 +105,7 @@ function afficher() {
   v.dataset.espace = ESPACES[r.espace] ? r.espace : "";
   document.getElementById("bandeau-demo").hidden = !S.boot.demo;
   enTete(r); navigation(r);
-  const large = r.onglet === "annee" || (r.espace !== "moi" && ["synthese", "salaries", "salarie", "import", "report", "journal", "motifs", "planning", "horaires", "annualisation"].includes(r.onglet));
+  const large = r.onglet === "annee" || (r.espace !== "moi" && ["synthese", "salaries", "salarie", "import", "report", "journal", "motifs", "planning", "horaires", "annualisation", "anomalies", "presents"].includes(r.onglet));
   v.className = large ? "" : "etroit";
   const k = `${r.espace}/${r.onglet}`;
   const vues = {
@@ -116,6 +117,8 @@ function afficher() {
     "rh/validation": () => equipe.vueValidation("rh", r.a), "rh/synthese": () => equipe.vueSynthese("rh", r.a),
     "rh/salarie": () => equipe.vueSalarie("rh", r.a, r.b), "rh/annee": () => moi.vueAnnee(r.b, r.a, "rh"),
     "rh/cloture": () => rh.vueCloture(), "rh/journal": () => rh.vueJournal(r.a),
+    "equipe/anomalies": () => suivi.vueAnomalies("equipe", r.a), "rh/anomalies": () => suivi.vueAnomalies("rh", r.a),
+    "equipe/presents": () => suivi.vuePresents("equipe"), "rh/presents": () => suivi.vuePresents("rh"),
     "moi/annualisation": () => annuel.vueAnnuelSalarie("moi", null, r.a),
     "equipe/annualisation": () => (r.a === "periode" ? annuel.vueAnnuelEquipe("equipe", r.b) : r.a ? annuel.vueAnnuelSalarie("equipe", r.a, r.b) : annuel.vueAnnuelEquipe("equipe")),
     "rh/annualisation": () => (r.a === "periode" ? annuel.vueAnnuelEquipe("rh", r.b) : r.a ? annuel.vueAnnuelSalarie("rh", r.a, r.b) : annuel.vueAnnuelEquipe("rh")),

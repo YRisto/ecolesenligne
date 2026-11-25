@@ -365,6 +365,79 @@ test("annualisation : période, cycle annualisé, objectif, ajustements, effet d
   for (const quoi of ["objectif_annuel_fixe", "objectif_annuel_ajuste", "objectif_annuel_retire"]) assert.ok(j.rows.some((e) => e.action === quoi), quoi);
 });
 
+test("anomalies liées à l'horaire : calcul, niveaux, acquittement par le responsable", async () => {
+  // Camille (horaire J8 : 8 h 45 – 13 h 15, 14 h – 17 h 30) : le mardi 3, arrivée à 9 h 10 et départ à 17 h
+  await journee(camille, "2026-11-03", ["09:10", "13:15", "14:00", "17:00"]);
+  const m = await camille.ok("my/month", { month: "2026-11" });
+  assert.deepEqual(m.days.find((d) => d.date === "2026-11-03").signals.map((x) => [x.kind, x.level]), [["retard", "info"], ["depart_anticipe", "info"], ["presence_insuffisante", "info"]]);
+  assert.deepEqual(m.days.find((d) => d.date === "2026-11-02").signals, []);
+  const a = await julien.ok("team/anomalies", { month: "2026-11" });
+  const de = (rows, nom) => rows.filter((r) => r.name === nom).map((r) => [r.date.slice(8), r.kind]).sort();
+  assert.deepEqual(de(a.rows, "Camille Martin"), [["03", "depart_anticipe"], ["03", "presence_insuffisante"], ["03", "retard"], ["04", "vide"], ["05", "vide"]]);
+  assert.deepEqual(de(a.rows, "Léo Petit"), [["04", "vide"], ["05", "vide"], ["06", "vide"]]);
+  assert.deepEqual(a.counts, { corriger: 5, verifier: 0, info: 3, acquittees: 0 });
+  assert.equal(a.rows[0].level, "corriger");                                                    // les plus graves d'abord
+  assert.match(a.rows.find((r) => r.kind === "retard").text, /Arrivée à 9 h 10 pour 8 h 45 : 25 min de retard/);
+  // acquittement : le responsable de l'équipe ou les RH, jamais le salarié ni un autre responsable
+  const infos = a.rows.filter((r) => r.level === "info").map((r) => ({ user_id: r.user_id, day: r.date, kind: r.kind }));
+  await camille.fail("team/anomaly-ack", { items: infos }, "interdit", 403);
+  await camille.fail("team/anomalies", { month: "2026-11", scope: "all" }, "interdit", 403);
+  await julien.fail("team/anomaly-ack", { items: [{ user_id: ids["nadia.benali"], day: "2026-11-03", kind: "retard" }] }, "interdit", 403);
+  await julien.fail("team/anomaly-ack", { items: [{ user_id: ids["camille.martin"], day: "2026-11-03", kind: "inconnue" }] }, "requete");
+  assert.equal((await julien.ok("team/anomaly-ack", { items: infos, comment: "Rendez-vous médical prévenu" })).done, 3);
+  const b = await julien.ok("team/anomalies", { month: "2026-11" });
+  assert.deepEqual(b.counts, { corriger: 5, verifier: 0, info: 0, acquittees: 3 });
+  const ack = b.rows.find((r) => r.kind === "retard").ack;
+  assert.deepEqual([ack.comment, ack.by], ["Rendez-vous médical prévenu", "Julien Bernard"]);
+  assert.equal((await sophie.ok("team/anomaly-ack", { items: [infos[0]], undo: true })).done, 1);       // les RH annulent un acquittement
+  assert.equal((await sophie.ok("team/anomalies", { month: "2026-11", scope: "all" })).counts.acquittees, 2);
+  const jr = await sophie.ok("rh/journal", { user_id: ids["camille.martin"] });
+  assert.ok(jr.rows.some((e) => e.action === "anomalies_acquittees" && e.detail.nombre === 3) && jr.rows.some((e) => e.action === "acquittement_annule"));
+  // réglages (administrateur) : un type « non signalé » disparaît, une tolérance plus large aussi ; les oublis restent « à corriger »
+  await sophie.fail("admin/settings-save", { settings: { anomalies: { late_min: 30 } } }, "interdit", 403);
+  await admin.fail("admin/settings-save", { settings: { anomalies: { levels: { retard: "grave" } } } }, "parametre");
+  await admin.fail("admin/settings-save", { settings: { anomalies: { late_min: -5 } } }, "parametre");
+  await admin.ok("admin/settings-save", { settings: { anomalies: { late_min: 30, levels: { presence_insuffisante: "off", depart_anticipe: "verifier" } } } });
+  const c = await julien.ok("team/anomalies", { month: "2026-11" });
+  assert.deepEqual(de(c.rows, "Camille Martin"), [["03", "depart_anticipe"], ["04", "vide"], ["05", "vide"]]);
+  assert.equal(c.rows.find((r) => r.kind === "depart_anticipe").level, "verifier");
+  const regles = (await admin.ok("admin/settings")).settings.anomalies;
+  assert.deepEqual([regles.late_min, regles.levels.presence_insuffisante, regles.levels.depart_anticipe], [30, "off", "verifier"]);
+  await admin.ok("admin/settings-save", { settings: { anomalies: { late_min: 5, levels: { presence_insuffisante: "info", depart_anticipe: "info" } } } });
+  // pauses payées : quinze minutes de la pause pointée comptent comme du travail
+  const avant = (await camille.ok("my/month", { month: "2026-11" })).days.find((d) => d.date === "2026-11-03").worked;
+  await admin.fail("admin/settings-save", { settings: { break_paid_min: 500 } }, "parametre");
+  await admin.ok("admin/settings-save", { settings: { break_paid_min: 15 } });
+  assert.equal((await camille.ok("my/month", { month: "2026-11" })).days.find((d) => d.date === "2026-11-03").worked, avant + 15);
+  await admin.ok("admin/settings-save", { settings: { break_paid_min: 0 } });
+});
+
+test("tableau des présents : en poste, attendus, sans pointage, absents", async () => {
+  at("2026-11-09", "09:30");
+  await camille.ok("my/punch", { lieu: "teletravail" });
+  await sophie.ok("my/absence-request", { user_id: ids["leo.petit"], type: "maladie", start: "2026-11-09", end: "2026-11-10" });
+  const p = await julien.ok("team/presence", {});
+  assert.deepEqual(p.rows.map((r) => [r.name, r.status, r.since, r.lieu, r.detail, r.until || ""]), [["Camille Martin", "present", "09:30", "teletravail", "", ""], ["Léo Petit", "absent", "", "", "Arrêt maladie", "2026-11-10"]]);
+  assert.deepEqual([p.tiles.on_site, p.tiles.remote, p.tiles.absent, p.tiles.expected, p.tiles.total, p.hm], [0, 1, 1, 0, 2, "09:30"]);
+  // les RH voient tout le monde : la cadre et le responsable en présence automatique sont « sans pointage », la RH (au pointage) est attendue
+  const tout = await sophie.ok("team/presence", { scope: "all" });
+  assert.deepEqual(tout.rows.map((r) => [r.name, r.status]), [["Camille Martin", "present"], ["Julien Bernard", "auto"], ["Léo Petit", "absent"], ["Nadia Benali", "auto"], ["Sophie Leroy", "attendu"]]);
+  await camille.fail("team/presence", { scope: "all" }, "interdit", 403);
+  assert.deepEqual((await camille.ok("team/presence", {})).rows, []);
+  // Camille bascule sur site puis s'en va : « sortie » ; avec un horaire à plages, le retard d'un attendu est signalé
+  await camille.ok("my/lieu", { day: "2026-11-09", lieu: "bureau" });
+  assert.deepEqual([(await julien.ok("team/presence", {})).tiles.on_site, (await julien.ok("team/presence", {})).tiles.remote], [1, 0]);
+  at("2026-11-09", "17:30");
+  await camille.ok("my/punch", { lieu: "bureau" });
+  assert.deepEqual((await julien.ok("team/presence", {})).rows[0].status, "sorti");
+  at("2026-11-10", "09:30");
+  const lendemain = (await julien.ok("team/presence", {})).rows[0];
+  assert.deepEqual([lendemain.name, lendemain.status, lendemain.late, lendemain.detail], ["Camille Martin", "attendu", true, "prévu à 8 h 45"]);
+  // le mercredi 11 novembre est férié : personne n'est attendu
+  at("2026-11-11", "10:00");
+  assert.deepEqual((await sophie.ok("team/presence", { scope: "all" })).rows.filter((r) => r.status !== "repos").map((r) => r.name), []);
+});
+
 test("clôture : le planning entre dans l'empreinte du mois, puis il est figé avec lui", async () => {
   at("2026-12-01", "10:00");
   // l'empreinte change dès qu'une exception du mois change
@@ -390,7 +463,7 @@ test("clôture : le planning entre dans l'empreinte du mois, puis il est figé a
   // Camille : cycle (4 j, 5 j dont le férié du 11 et un vendredi matin, 4 j, 5 j) moins le pont du 27 ; Nadia : jours comptés d'office
   assert.equal(emp("Camille Martin").theo, 480 * 4 + (480 * 3 + 240) + 480 * 4 + 480 * 4 + 480);
   assert.deepEqual([emp("Nadia Benali").days_worked, emp("Nadia Benali").empty_days.length], [19.5, 0]);
-  assert.deepEqual([emp("Léo Petit").abs_days, emp("Léo Petit").absences[0].days], [5, 5]);
+  assert.deepEqual([emp("Léo Petit").abs_days, emp("Léo Petit").absences.map((x) => x.days)], [7, [2, 5]]);       // deux jours d'arrêt, puis la semaine de congé décomptée cinq jours
   // mois clôturé : planning figé, par l'outil comme en base
   await julien.fail("plan/set", { items: [{ user_id: ids["leo.petit"], day: "2026-11-24", minutes: 0 }] }, "cloture", 409);
   await julien.fail("plan/set", { items: [{ user_id: ids["leo.petit"], day: "2026-11-03", clear: true }] }, "cloture", 409);
@@ -474,7 +547,7 @@ test("import : début de suivi, présence et cycle à la création", async () =>
 test("autodiagnostic et journal toujours intègres", async () => {
   const st = await admin.ok("admin/selftest");
   assert.equal(st.ok, true, JSON.stringify(st.checks.filter((c) => !c.ok)));
-  assert.equal(st.count, 42);
+  assert.equal(st.count, 45);
   const v = await sophie.ok("rh/journal-verify", {});
   assert.equal(v.ok, true);
 });

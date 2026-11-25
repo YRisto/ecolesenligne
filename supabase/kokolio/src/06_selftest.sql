@@ -106,6 +106,13 @@ begin
     v_r := public.kokolio_api(jsonb_build_object('action', 'model_save', 'token', t_mgr, 'args', jsonb_build_object('create', true, 'model', jsonb_build_object('code', 'KKT', 'label', 'Test', 'minutes', 420))));
     v_checks := v_checks || jsonb_build_object('name', 'La bibliothèque d''horaires est réservée aux RH', 'ok', v_r->>'code' = 'interdit');
 
+    v_r := public.kokolio_api(jsonb_build_object('action', 'anomaly_ack', 'token', t_e1, 'args', jsonb_build_object('items', jsonb_build_array(jsonb_build_object('user_id', v_e1, 'day', '2001-01-10', 'kind', 'retard')))));
+    v_checks := v_checks || jsonb_build_object('name', 'Nul n''acquitte ses propres anomalies', 'ok', v_r->>'code' = 'interdit');
+    v_r := public.kokolio_api(jsonb_build_object('action', 'anomaly_ack', 'token', t_mgr, 'args', jsonb_build_object('items', jsonb_build_array(jsonb_build_object('user_id', v_e1, 'day', '2001-01-10', 'kind', 'retard')))));
+    v_checks := v_checks || jsonb_build_object('name', 'Le responsable acquitte une anomalie de son équipe', 'ok', (v_r #>> '{data,done}')::int = 1);
+    v_r := public.kokolio_api(jsonb_build_object('action', 'annual_goal_set', 'token', t_mgr, 'args', jsonb_build_object('user_id', v_e1, 'period_id', gen_random_uuid(), 'minutes', 60)));
+    v_checks := v_checks || jsonb_build_object('name', 'L''objectif annuel est réservé aux RH', 'ok', v_r->>'code' = 'interdit');
+
     -- 6. Clôture
     v_r := public.kokolio_api(jsonb_build_object('action', 'month_close', 'token', t_e2, 'args', jsonb_build_object('month', '2001-01')));
     v_checks := v_checks || jsonb_build_object('name', 'Seuls les RH clôturent', 'ok', v_r->>'code' = 'interdit');

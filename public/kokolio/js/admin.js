@@ -20,6 +20,11 @@ export function vueReglages() {
     const seuilPause = heures(s.pause_threshold_min), maxJour = heures(s.max_day_min), maxSemaine = heures(s.max_week_min), repos = heures(s.min_rest_min);
     const validite = h("input", { type: "number", min: 1, max: 90, value: s.activation_days });
     const nuit = h("input", { type: "time", value: s.night_until || "" });
+    // anomalies liées à l'horaire : tolérances (minutes) et niveau de chaque type ; les valeurs de départ sont celles du calcul
+    const an = { ...ANOMALIES_DEFAUT, ...(s.anomalies || {}), levels: { ...ANOMALIES_DEFAUT.levels, ...(s.anomalies?.levels || {}) } };
+    const tol = Object.fromEntries(TOLERANCES.map(([k]) => [k, h("input", { type: "number", min: 0, max: 600, step: 1, value: an[k] })]));
+    const niv = Object.fromEntries(Object.keys(TYPES_ANOMALIE).map((k) => [k, h("select", { value: an.levels[k] }, NIVEAUX.map(([v, l]) => h("option", { value: v }, l)))]));
+    const pausePayee = h("input", { type: "number", min: 0, max: 120, step: 5, value: s.break_paid_min || 0 });
     const lieux = h("div", { class: "pile" });
     const ajouteLieu = (l = { code: "", label: "" }) => {
       const row = h("div", { class: "ligne", "data-code": l.code }, h("input", { type: "text", value: l.label, maxlength: 40, "aria-label": "Nom du lieu", class: "etire" }),
@@ -43,7 +48,8 @@ export function vueReglages() {
         await api("admin/settings-save", { version: s.version, settings: {
           company: societe.value.trim(), logo_url: logoUrl.value.trim(), go_live: service.value,
           pause_threshold_min: enMinutes(seuilPause, "seuil de pause"), max_day_min: enMinutes(maxJour, "durée par jour"), max_week_min: enMinutes(maxSemaine, "durée par semaine"), min_rest_min: enMinutes(repos, "repos"),
-          activation_days: +validite.value, night_until: nuit.value || "", lieux: liste,
+          activation_days: +validite.value, night_until: nuit.value || "", lieux: liste, break_paid_min: Math.round(+pausePayee.value || 0),
+          anomalies: { ...Object.fromEntries(TOLERANCES.map(([k]) => [k, Math.round(+tol[k].value || 0)])), levels: Object.fromEntries(Object.keys(TYPES_ANOMALIE).map((k) => [k, niv[k].value])) },
           export: { hours_code: codeHeures.value.trim(), include_hours: avecHeures.checked, header: entete.checked, sep: sep.value, decimal: dec.value },
         } });
         toast("Réglages enregistrés."); await rafraichir();
@@ -56,6 +62,13 @@ export function vueReglages() {
           h("div", { class: "grille2" }, champ("Alerte au-delà de (heures par jour)", maxJour), champ("Alerte au-delà de (heures par semaine)", maxSemaine)),
           h("div", { class: "grille2" }, champ("Repos minimal entre deux journées (heures)", repos), champ("Pause déduite au-delà de (heures d'un seul tenant)", seuilPause)),
           h("p", { class: "discret" }, "La durée de la pause déduite se règle sur l'horaire de chaque salarié. Ces seuils signalent des points d'attention ; ils ne bloquent pas le pointage.")),
+        h("div", { class: "carte" }, h("h3", null, "Anomalies liées à l'horaire"),
+          h("p", { class: "discret" }, "Elles comparent les pointages à l'horaire prévu (plages du planning) et se consultent dans Synthèse › Anomalies. Elles ne bloquent ni le pointage ni la clôture."),
+          h("div", { class: "grille3" }, TOLERANCES.map(([k, lib]) => champ(lib, tol[k]))),
+          h("span", { class: "eyebrow" }, "Niveau de chaque anomalie"),
+          h("div", { class: "grille2" }, Object.entries(TYPES_ANOMALIE).map(([k, lib]) => champ(lib, niv[k]))),
+          h("p", { class: "discret" }, "Le départ non pointé et le jour sans pointage ni absence restent toujours « à corriger »."),
+          champ("Pauses payées : minutes de pause pointée comptées comme du travail, par jour", pausePayee, "0 : les pauses pointées ne sont pas payées (cas général). S'applique à tous les mois non clôturés.")),
         h("div", { class: "carte" }, h("h3", null, "Travail de nuit"),
           champ("Un départ pointé avant cette heure ferme la journée de la veille", nuit, "Vide : fonction désactivée, chaque journée s'arrête à minuit. Exemple : 06:00 pour des équipes de nuit qui finissent au petit matin (au plus tard 11:59)."),
           h("p", { class: "discret" }, "Quand elle est activée : un salarié arrivé la veille au soir et encore en poste pointe son départ après minuit, et la journée entière compte pour la veille. Au-delà de seize heures depuis l'arrivée, le pointage ouvre une nouvelle journée (le départ de la veille a été oublié).")),
@@ -68,6 +81,14 @@ export function vueReglages() {
         h("div", { class: "ligne gauche" }, ok)));
   });
 }
+
+const ANOMALIES_DEFAUT = { late_min: 5, early_min: 5, range_min: 60, short_min: 15, break_min: 20, break_max: 120,
+  levels: { retard: "info", depart_anticipe: "info", hors_plage: "corriger", presence_insuffisante: "info", travail_absence: "verifier", pause_courte: "info", pause_longue: "info", pause_non_prise: "info" } };
+const TOLERANCES = [["late_min", "Retard toléré (min)"], ["early_min", "Départ anticipé toléré (min)"], ["range_min", "Hors horaire au-delà de (min)"],
+  ["short_min", "Durée manquante tolérée (min)"], ["break_min", "Pause minimale (min)"], ["break_max", "Pause maximale (min)"]];
+const TYPES_ANOMALIE = { retard: "Retard", depart_anticipe: "Départ anticipé", hors_plage: "Pointage hors de l'horaire", presence_insuffisante: "Temps de présence insuffisant",
+  travail_absence: "Travail pendant une absence", pause_courte: "Pause trop courte", pause_longue: "Pause trop longue", pause_non_prise: "Pause non prise" };
+const NIVEAUX = [["corriger", "À corriger"], ["verifier", "À vérifier"], ["info", "Pour information"], ["off", "Ne pas signaler"]];
 
 /* ================= Motifs d'absence ================= */
 const FAMILLES = { cp: "Congés payés (déduit du solde CP)", rtt: "RTT (déduit du solde RTT)", maladie: "Maladie", autre: "Autre" };

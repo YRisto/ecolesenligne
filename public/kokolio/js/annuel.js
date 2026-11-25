@@ -13,9 +13,10 @@ function lireHeures(txt) {
 // Durée qui peut dépasser 99 heures : « 1 607 h 00 ».
 const fmtGrand = (m) => { const a = Math.abs(Math.round(m)); return `${m < 0 ? "− " : ""}${Math.floor(a / 60).toLocaleString("fr-FR")} h ${String(a % 60).padStart(2, "0")}`; };
 
-export const sousSynthese = (espace, actif) => (S.boot.annual || estRH() ? h("div", { class: "sous" },
-  h("button", { "aria-current": actif === "mois" ? "page" : null, onclick: () => aller(`#/${espace}/synthese`) }, "Mois"),
-  h("button", { "aria-current": actif === "annualisation" ? "page" : null, onclick: () => aller(`#/${espace}/annualisation`) }, "Annualisation")) : null);
+// Sous-onglets de « Synthèse » : le mois, les anomalies, les présents, et l'annualisation dès qu'une période existe (les RH la voient toujours, pour créer la première).
+export const sousSynthese = (espace, actif) => h("div", { class: "sous" },
+  [["mois", "Mois", "synthese"], ["anomalies", "Anomalies", "anomalies"], ["presents", "Présents", "presents"], ...(S.boot.annual || estRH() ? [["annualisation", "Annualisation", "annualisation"]] : [])]
+    .map(([id, lib, route]) => h("button", { "aria-current": actif === id ? "page" : null, onclick: () => aller(`#/${espace}/${route}`) }, lib)));
 export const sousAnnee = (actif) => (S.boot.annual && S.boot.me.annualise ? h("div", { class: "sous" },
   h("button", { "aria-current": actif === "annee" ? "page" : null, onclick: () => aller("#/moi/annee") }, "Calendrier"),
   h("button", { "aria-current": actif === "annualisation" ? "page" : null, onclick: () => aller("#/moi/annualisation") }, "Annualisation")) : null);

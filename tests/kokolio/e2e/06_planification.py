@@ -89,7 +89,7 @@ with sync_playwright() as p:
     # --- Administrateur : travail de nuit, versions
     ad.va("#/admin/reglages"); ad.voit("Travail de nuit"); ad.page.get_by_label("Un départ pointé avant cette heure").fill("05:00"); ad.clic("Enregistrer les réglages"); ad.voit("Réglages enregistrés"); ad.voit("Travail de nuit")
     ca.recharge(); ca.va("#/moi/heures"); ca.clic("Ajouter une journée oubliée"); ca.voit("départ le lendemain"); ca.photo("93-correction-nuit", pleine=False)
-    ad.va("#/admin/versions"); ad.voit("2.0.0 · Planification"); ad.voit("2.1.0 · Annualisation"); ad.photo("94-versions")
+    ad.va("#/admin/versions"); ad.voit("2.0.0 · Planification"); ad.voit("2.1.0 · Annualisation"); ad.voit("2.2.0 · Anomalies"); ad.photo("94-versions")
     so.va("#/rh/journal")
     for quoi in ["Planning modifié", "Cycle créé", "Horaire journalier créé"]: expect(so.page.locator(".entree", has_text=quoi).first).to_be_visible()
     so.voit("04/12 : retour au planning par défaut"); so.photo("95-journal-planning")
@@ -114,5 +114,24 @@ with sync_playwright() as p:
     ad.va("#/admin/motifs"); ad.page.locator("tr.cliquable", has_text="Formation").click()
     ad.page.locator("#dlg").get_by_label("Pour les salariés annualisés").select_option("realise"); ad.valider_fenetre("Enregistrer"); ad.voit("Motif enregistré")
     expect(ad.page.locator("tr.cliquable", has_text="Formation")).to_contain_text("Réalisé")
+
+    # --- Anomalies et présents (version 2.2)
+    ju.va("#/equipe/synthese"); ju.clic("Anomalies", exact=True); ju.voit("Anomalies de l'équipe"); ju.voit("Thomas Petit"); ju.voit("Départ non pointé"); ju.photo("100-anomalies")
+    ju.page.get_by_label("Niveau").select_option("info"); ju.page.wait_for_timeout(150)
+    ju.page.locator(".jour", has_text="Pour information").first.get_by_role("button", name="Acquitter", exact=True).click()
+    ju.page.locator("#dlg textarea").fill("Vu avec le salarié"); ju.valider_fenetre("Acquitter"); ju.voit("anomalie acquittée")
+    ju.page.get_by_label("Traitement").select_option("acquittees"); ju.voit("Vu avec le salarié"); ju.photo("101-anomalie-acquittee")
+    ju.clic("Annuler l'acquittement"); ju.voit("acquittement annulé")
+    # tableau des présents : Camille pointe, le responsable la voit en poste ; les autres sont attendus ou sans pointage
+    ca.va("#/moi/pointer"); ca.clic("Pointer mon arrivée"); ca.voit("Présent depuis 10:00")
+    ju.va("#/equipe/presents"); ju.voit("Présents dans l'équipe"); ju.voit("En poste (1)"); ju.voit("Attendus, pas encore pointés (2)"); ju.voit("en retard"); ju.voit("Présence automatique (ne pointent pas) (1)"); ju.photo("102-presents")
+    so.va("#/rh/presents"); so.voit("Présents · tous les salariés"); so.voit("En poste (1)"); so.photo("103-presents-rh")
+    so.page.evaluate("() => { window.print = () => { window.__liste = document.querySelector('.evacuation').innerText; }; }")
+    so.clic("Liste d'évacuation"); so.page.wait_for_timeout(200)
+    liste = so.page.evaluate("() => window.__liste")
+    assert "Liste d'évacuation" in liste and "Camille Martin" in liste and "1 personne en poste sur site" in liste and "présence automatique" in liste, liste
+    so.page.evaluate("() => { window.dispatchEvent(new Event('afterprint')); }"); so.ne_voit_pas("Liste d'évacuation · ")
+    # réglage d'une tolérance par l'administrateur
+    ad.va("#/admin/reglages"); ad.voit("Anomalies liées à l'horaire"); ad.page.get_by_label("Retard toléré (min)").fill("10"); ad.clic("Enregistrer les réglages"); ad.voit("Réglages enregistrés")
     nav.close()
 bilan(); print("étape 6 terminée")

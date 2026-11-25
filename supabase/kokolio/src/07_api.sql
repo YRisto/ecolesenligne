@@ -70,6 +70,7 @@ begin
     when 'model_save' then return kokolio._model_save(me, p, v_args);
     when 'cycle_save' then return kokolio._cycle_save(me, p, v_args);
     when 'plan_set' then return kokolio._plan_set(me, p, v_args);
+    when 'anomaly_ack' then return kokolio._anomaly_ack(me, p, v_args);
     when 'annual_period_save' then return kokolio._annual_period_save(me, p, v_args);
     when 'annual_goal_set' then return kokolio._annual_goal_set(me, p, v_args);
     when 'annual_entry_add' then return kokolio._annual_entry_add(me, p, v_args);
@@ -150,7 +151,7 @@ begin
 end $$;
 revoke all on function kokolio.bootstrap_admin(text, text) from public;
 
-insert into kokolio.meta (key, value) values ('schema_version', '5'::jsonb)
+insert into kokolio.meta (key, value) values ('schema_version', '6'::jsonb)
 on conflict (key) do update set value = excluded.value, updated_at = now();
 
 notify pgrst, 'reload schema';

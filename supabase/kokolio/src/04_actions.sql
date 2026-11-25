@@ -75,6 +75,10 @@ begin
     'plan', coalesce((select jsonb_agg(jsonb_build_object('user_id', q.user_id, 'day', q.day, 'model_code', q.model_code, 'label', q.label,
                                                           'minutes', q.minutes, 'ranges', q.ranges, 'note', q.note) order by q.day)
                       from kokolio.plan_days q where q.user_id = any(v_ids) and q.day between v_from and v_to), '[]'::jsonb),
+    -- anomalies acquittées sur la période, à la demande
+    'acks', case when coalesce((p_args->>'acks')::boolean, false) then coalesce((select jsonb_agg(jsonb_build_object('user_id', k.user_id, 'day', k.day, 'kind', k.kind, 'comment', k.comment,
+        'at', k.acked_at, 'by', (select trim(x.first_name || ' ' || x.last_name) from kokolio.users x where x.id = k.acked_by)))
+      from kokolio.anomaly_acks k where k.user_id = any(v_ids) and k.day between v_from and v_to), '[]'::jsonb) end,
     -- annualisation, à la demande : toutes les périodes, et pour ces salariés leurs objectifs fixés et leurs ajustements
     'annual', case when coalesce((p_args->>'annual')::boolean, false) then jsonb_build_object(
       'periods', coalesce((select jsonb_agg(to_jsonb(q) - 'created_by' - 'created_at' order by q.start_date) from kokolio.annual_periods q), '[]'::jsonb),

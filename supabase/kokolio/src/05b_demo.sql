@@ -149,6 +149,7 @@ begin
   delete from kokolio.closures;        -- d'abord les clôtures : plus aucun mois n'est verrouillé
   delete from kokolio.attachments;
   delete from kokolio.absences;
+  delete from kokolio.anomaly_acks;
   delete from kokolio.annual_entries;
   delete from kokolio.annual_goals;
   delete from kokolio.plan_days;

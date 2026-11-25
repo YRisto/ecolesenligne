@@ -164,6 +164,21 @@ create table if not exists kokolio.annual_entries (
 );
 create index if not exists annual_entries_user_idx on kokolio.annual_entries (user_id, period_id);
 
+-- ---------------------------------------------------------------------
+-- Anomalies (schéma 6). Les anomalies elles-mêmes sont calculées (retard, départ anticipé, pause…) : rien n'est stocké.
+-- Seul l'acquittement l'est : le responsable ou les RH indiquent qu'une anomalie a été vue et n'appelle pas de correction.
+-- ---------------------------------------------------------------------
+create table if not exists kokolio.anomaly_acks (
+  user_id uuid not null references kokolio.users(id),
+  day date not null,
+  kind text not null,
+  comment text not null default '',
+  acked_by uuid references kokolio.users(id),
+  acked_at timestamptz not null default now(),
+  primary key (user_id, day, kind)
+);
+create index if not exists anomaly_acks_day_idx on kokolio.anomaly_acks (day);
+
 -- Une ligne par salarié et par jour : les heures retenues et leur état de validation.
 create table if not exists kokolio.days (
   id uuid primary key default gen_random_uuid(),
@@ -339,6 +354,7 @@ alter table kokolio.plan_days enable row level security;
 alter table kokolio.annual_periods enable row level security;
 alter table kokolio.annual_goals enable row level security;
 alter table kokolio.annual_entries enable row level security;
+alter table kokolio.anomaly_acks enable row level security;
 
 -- Valeurs de départ (jamais écrasées si elles existent déjà)
 insert into kokolio.meta (key, value) values

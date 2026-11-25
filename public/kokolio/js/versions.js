@@ -1,5 +1,14 @@
 // Fonctionnalités et historique des versions. À mettre à jour à chaque mise en ligne, avec lib/kokolio/version.mjs.
 export const VERSIONS = [
+  { v: "2.2.0", date: "25/11/2026", titre: "Anomalies liées à l'horaire, pauses, tableau des présents", points: [
+    "Anomalies calculées d'après l'horaire prévu : retard, départ anticipé, pointage hors plage, temps de présence insuffisant, travail pendant une absence",
+    "Pauses pointées : trop courtes, trop longues, non prises ; pauses payées sur réglage",
+    "Trois niveaux (à corriger, à vérifier, pour information) et des tolérances, réglables par l'administrateur",
+    "Écran « Anomalies » pour le responsable et les RH : filtres, acquittement avec commentaire, correction par les RH",
+    "Tableau des présents en temps réel : en poste (sur site, télétravail, déplacement), attendus, en retard, absents",
+    "Liste d'évacuation imprimable : les personnes en poste sur site à l'instant",
+    "Base de données en version 6 (une table ajoutée, aucune donnée modifiée)",
+  ] },
   { v: "2.1.0", date: "25/11/2026", titre: "Annualisation", points: [
     "Périodes d'annualisation définies par les RH (l'année civile, ou toute période de treize mois au plus)",
     "Un cycle peut être marqué « annualisé » : les salariés qui le suivent voient leurs heures se compenser sur la période",
@@ -66,7 +75,7 @@ export const FONCTIONS = [
     "Arrivée et départ en un geste, autant de fois que nécessaire dans la journée, à l'heure du serveur",
     "Lieu de travail : bureau, télétravail, déplacement (liste réglable)",
     "Correction d'une journée ou ajout d'une journée oubliée, avec motif obligatoire, soumise au responsable",
-    "Signalement des oublis : départ non pointé, jour travaillé sans pointage ni absence",
+    "Signalement des oublis : départ non pointé, jour travaillé sans pointage ni absence ; le salarié voit aussi ses retards et écarts d'horaire",
     "Pointages d'origine consultables : ce qui a réellement été pointé, avant toute correction",
     "Journée verrouillée après validation ; mois verrouillé après clôture",
   ]],
@@ -80,6 +89,15 @@ export const FONCTIONS = [
     "Jours fériés français pris en compte",
     "Points d'attention : plus de 10 h dans la journée, plus de 48 h dans la semaine, moins de 11 h de repos",
     "Journées qui passent minuit, sur réglage : le départ pointé le lendemain matin est rattaché à la veille",
+  ]],
+  ["Anomalies et présence", [
+    "Anomalies recalculées à chaque affichage ; une journée corrigée fait disparaître les siennes",
+    "Par rapport à l'horaire prévu : retard, départ anticipé, pointage hors plage, temps de présence insuffisant",
+    "Pauses : non prise, trop courte, trop longue ; travail un jour d'absence",
+    "Niveaux et tolérances réglables ; un type peut ne pas être signalé",
+    "Traitement : à traiter ou acquittée (avec commentaire), par le responsable ou les RH, inscrit au journal",
+    "Tableau des présents mis à jour chaque minute, pour son équipe ou pour tous (RH)",
+    "Liste d'évacuation imprimable, avec les présences non pointées à vérifier",
   ]],
   ["Planification", [
     "Bibliothèque d'horaires journaliers : code, durée, plages indicatives, couleur",
@@ -133,7 +151,7 @@ export const FONCTIONS = [
   ]],
   ["Administration", [
     "Attribution des profils RH et administrateur",
-    "Réglages : entreprise, logo, date de mise en service, seuils d'alerte, travail de nuit, lieux de travail, format de l'export paie",
+    "Réglages : entreprise, logo, date de mise en service, seuils d'alerte, anomalies (tolérances, niveaux), pauses payées, travail de nuit, lieux de travail, format de l'export paie",
     "Motifs d'absence : libellé, famille, code d'export, justificatif demandé",
     "État de l'installation et autodiagnostic des règles de sécurité",
     "Mode démonstration : jeu de données fictives à charger dans un outil vide, effaçable avant la mise en service",
@@ -148,9 +166,6 @@ export const FONCTIONS = [
 
 // Ce qui est prévu, dans l'ordre des lots de la version 2.
 export const A_VENIR = [
-  "Anomalies liées à l'horaire prévu (retard, départ anticipé, pointage hors plage), avec gravité et traitement (version 2.2)",
-  "Pauses pointées : trop courtes, trop longues, non prises (version 2.2)",
-  "Tableau des présents en temps réel et liste d'évacuation (version 2.2)",
   "Télétravail sur demande, avec quota ; calendrier d'équipe et planning annuel des congés",
   "Absence à la demi-journée près dans un congé long, demande de modification ou de suppression d'une absence validée",
   "Soldes prévisionnels, congés pris par anticipation, reliquat de l'année précédente ; congés d'ancienneté ; compte épargne-temps",

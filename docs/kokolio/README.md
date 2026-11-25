@@ -113,6 +113,14 @@ Clôture : le planning entre dans l'empreinte du mois. Une fois le mois clôtur�
 - L'effet de chaque motif (`absence_types.annual` : `retire`, `realise`, `neutre`) se règle dans Administration › Motifs. Si l'objectif fixé est déjà net des congés (un « 1 607 h »), régler les congés payés sur « laissé à faire » évite de les déduire deux fois.
 - Ces chiffres sont recalculés à chaque affichage (`lib/kokolio/engine/annual.mjs`) ; ils n'entrent ni dans la clôture mensuelle ni dans l'export paie.
 
+## Anomalies et tableau des présents (depuis la version 2.2)
+
+- Les anomalies liées à l'horaire sont **calculées**, jamais stockées (`lib/kokolio/engine/signals.mjs`) : retard, départ anticipé, pointage hors plage (par rapport aux plages du planning), temps de présence insuffisant, travail pendant une absence, pause non prise, trop courte, trop longue. Elles s'ajoutent aux deux oublis déjà suivis (départ non pointé, jour sans pointage ni absence), qui restent toujours « à corriger ».
+- Tolérances et niveau de chaque type (`settings.anomalies`) se règlent dans Administration › Réglages ; sans réglage, les valeurs par défaut du moteur s'appliquent. Elles ne bloquent ni le pointage ni la clôture.
+- Seul l'**acquittement** est enregistré (`anomaly_acks`) : le responsable direct ou les RH notent qu'une anomalie a été vue ; aucun chiffre ne change.
+- **Pauses payées** (`settings.break_paid_min`, zéro par défaut) : quand des pauses sont pointées, elles comptent comme du travail dans la limite fixée par jour.
+- **Tableau des présents** : état de chacun à l'instant (en poste, sorti, attendu, présence automatique, absent, non prévu), d'après les pointages du jour, les absences et le planning. La liste d'évacuation reprend les personnes en poste sur site.
+
 ## Calculs
 
 - Heures d'une journée : somme des plages arrivée → départ. Si la journée tient en une seule plage de plus de six heures, la pause de l'horaire est déduite.
@@ -146,9 +154,9 @@ node --test tests/kokolio/engine.test.mjs      # calculs (aucune dépendance)
 bash tests/kokolio/pg-local.sh reset            # PostgreSQL 16 local jetable
 cd tests/kokolio && npm install && cd ../..     # une fois : client PostgreSQL des tests
 node --test tests/kokolio/api.test.mjs          # scénario complet contre une vraie base
-node --test tests/kokolio/planning.test.mjs     # planification : bibliothèque, cycles, planning, présence automatique, nuit, clôture
+node --test tests/kokolio/planning.test.mjs     # versions 2.0 à 2.2 : planification, annualisation, anomalies, présents, nuit, clôture
 node --test tests/kokolio/demo.test.mjs         # mise à jour de la base (version 1 → version courante) et mode démonstration (un fichier à la fois : même base locale)
-bash tests/kokolio/e2e/tout.sh                  # navigateur (Playwright) : mise en route, quotidien, RH, démonstration (outil vide, puis avec des comptes déjà créés), planification
+bash tests/kokolio/e2e/tout.sh                  # navigateur (Playwright) : mise en route, quotidien, RH, démonstration (outil vide, puis avec des comptes déjà créés), planification, annualisation, anomalies et présents
 node tests/kokolio/charge.mjs 500               # volume : 500 salariés, un mois de pointages, 200 pointages simultanés
 ```
 

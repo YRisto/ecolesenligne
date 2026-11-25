@@ -172,6 +172,21 @@ create table if not exists kokolio.annual_entries (
 );
 create index if not exists annual_entries_user_idx on kokolio.annual_entries (user_id, period_id);
 
+-- ---------------------------------------------------------------------
+-- Anomalies (schéma 6). Les anomalies elles-mêmes sont calculées (retard, départ anticipé, pause…) : rien n'est stocké.
+-- Seul l'acquittement l'est : le responsable ou les RH indiquent qu'une anomalie a été vue et n'appelle pas de correction.
+-- ---------------------------------------------------------------------
+create table if not exists kokolio.anomaly_acks (
+  user_id uuid not null references kokolio.users(id),
+  day date not null,
+  kind text not null,
+  comment text not null default '',
+  acked_by uuid references kokolio.users(id),
+  acked_at timestamptz not null default now(),
+  primary key (user_id, day, kind)
+);
+create index if not exists anomaly_acks_day_idx on kokolio.anomaly_acks (day);
+
 -- Une ligne par salarié et par jour : les heures retenues et leur état de validation.
 create table if not exists kokolio.days (
   id uuid primary key default gen_random_uuid(),
@@ -347,6 +362,7 @@ alter table kokolio.plan_days enable row level security;
 alter table kokolio.annual_periods enable row level security;
 alter table kokolio.annual_goals enable row level security;
 alter table kokolio.annual_entries enable row level security;
+alter table kokolio.anomaly_acks enable row level security;
 
 -- Valeurs de départ (jamais écrasées si elles existent déjà)
 insert into kokolio.meta (key, value) values
@@ -931,6 +947,10 @@ begin
     'plan', coalesce((select jsonb_agg(jsonb_build_object('user_id', q.user_id, 'day', q.day, 'model_code', q.model_code, 'label', q.label,
                                                           'minutes', q.minutes, 'ranges', q.ranges, 'note', q.note) order by q.day)
                       from kokolio.plan_days q where q.user_id = any(v_ids) and q.day between v_from and v_to), '[]'::jsonb),
+    -- anomalies acquittées sur la période, à la demande
+    'acks', case when coalesce((p_args->>'acks')::boolean, false) then coalesce((select jsonb_agg(jsonb_build_object('user_id', k.user_id, 'day', k.day, 'kind', k.kind, 'comment', k.comment,
+        'at', k.acked_at, 'by', (select trim(x.first_name || ' ' || x.last_name) from kokolio.users x where x.id = k.acked_by)))
+      from kokolio.anomaly_acks k where k.user_id = any(v_ids) and k.day between v_from and v_to), '[]'::jsonb) end,
     -- annualisation, à la demande : toutes les périodes, et pour ces salariés leurs objectifs fixés et leurs ajustements
     'annual', case when coalesce((p_args->>'annual')::boolean, false) then jsonb_build_object(
       'periods', coalesce((select jsonb_agg(to_jsonb(q) - 'created_by' - 'created_at' order by q.start_date) from kokolio.annual_periods q), '[]'::jsonb),
@@ -1793,6 +1813,31 @@ begin
     end if;
     v_new := jsonb_set(v_new, '{night_until}', to_jsonb(coalesce(v_in->>'night_until', '')));
   end if;
+  -- pauses payées : minutes de pause pointée comptées comme du travail, par jour (0 = les pauses ne sont pas payées)
+  if v_in ? 'break_paid_min' then
+    if jsonb_typeof(v_in->'break_paid_min') <> 'number' or (v_in->>'break_paid_min')::numeric < 0 or (v_in->>'break_paid_min')::numeric > 120
+       or (v_in->>'break_paid_min')::numeric <> trunc((v_in->>'break_paid_min')::numeric) then
+      perform kokolio._fail('parametre', 'Pause payée invalide : entre 0 et 120 minutes par jour.');
+    end if;
+    v_new := jsonb_set(v_new, '{break_paid_min}', v_in->'break_paid_min');
+  end if;
+  -- anomalies liées à l'horaire : tolérances en minutes et niveau de chaque type
+  if v_in ? 'anomalies' then
+    v_e := v_in->'anomalies';
+    if jsonb_typeof(v_e) <> 'object' or jsonb_typeof(coalesce(v_e->'levels', '{}'::jsonb)) <> 'object' then perform kokolio._fail('parametre', 'Réglage des anomalies invalide.'); end if;
+    foreach v_k in array array['late_min', 'early_min', 'range_min', 'short_min', 'break_min', 'break_max'] loop
+      if v_e ? v_k and (jsonb_typeof(v_e->v_k) <> 'number' or (v_e->>v_k)::numeric < 0 or (v_e->>v_k)::numeric > 600 or (v_e->>v_k)::numeric <> trunc((v_e->>v_k)::numeric)) then
+        perform kokolio._fail('parametre', 'Tolérance invalide (' || v_k || ') : entre 0 et 600 minutes.');
+      end if;
+    end loop;
+    if exists (select 1 from jsonb_each_text(coalesce(v_e->'levels', '{}'::jsonb)) x
+               where x.key not in ('retard', 'depart_anticipe', 'hors_plage', 'presence_insuffisante', 'travail_absence', 'pause_courte', 'pause_longue', 'pause_non_prise')
+                  or x.value not in ('corriger', 'verifier', 'info', 'off')) then
+      perform kokolio._fail('parametre', 'Niveau d''anomalie inconnu.');
+    end if;
+    v_new := jsonb_set(v_new, '{anomalies}', coalesce(v_new->'anomalies', '{}'::jsonb) || (v_e - 'levels')
+      || jsonb_build_object('levels', coalesce(v_new #> '{anomalies,levels}', '{}'::jsonb) || coalesce(v_e->'levels', '{}'::jsonb)));
+  end if;
   if (v_new->>'activation_days')::int < 1 or (v_new->>'activation_days')::int > 90 then perform kokolio._fail('parametre', 'Durée de validité des codes : entre 1 et 90 jours.'); end if;
   if v_in ? 'lieux' then
     if jsonb_typeof(v_in->'lieux') <> 'array' or jsonb_array_length(v_in->'lieux') < 1 or jsonb_array_length(v_in->'lieux') > 8 then
@@ -1817,7 +1862,7 @@ begin
   v_new := jsonb_set(v_new, '{version}', to_jsonb(coalesce((v_old->>'version')::int, 1) + 1));
   update kokolio.meta set value = v_new, updated_at = now() where key = 'settings';
   perform kokolio._audit(me.id, 'parametres_modifies', null, '',
-    kokolio._diff(v_old, v_new, array['company', 'logo_url', 'go_live', 'pause_threshold_min', 'max_day_min', 'max_week_min', 'min_rest_min', 'activation_days', 'night_until', 'lieux', 'export']),
+    kokolio._diff(v_old, v_new, array['company', 'logo_url', 'go_live', 'pause_threshold_min', 'max_day_min', 'max_week_min', 'min_rest_min', 'activation_days', 'night_until', 'break_paid_min', 'anomalies', 'lieux', 'export']),
     coalesce(p->>'ip', ''));
   return jsonb_build_object('settings', v_new);
 end $$;
@@ -2137,6 +2182,47 @@ begin
   return jsonb_build_object('entry', jsonb_build_object('id', v_id, 'user_id', v_uid, 'period_id', v_pid, 'day', v_day, 'minutes', v_min, 'reason', v_reason));
 end $$;
 -- =====================================================================
+-- Kokolio — anomalies : acquittement
+-- Acquitter, c'est noter qu'une anomalie a été vue et qu'elle n'appelle pas de correction. Cela ne change aucun chiffre.
+-- Réservé au responsable direct du salarié et aux RH, jamais au salarié lui-même.
+-- =====================================================================
+create or replace function kokolio._anomaly_ack(me kokolio.users, p jsonb, p_args jsonb) returns jsonb language plpgsql as $$
+declare
+  r jsonb; v_uid uuid; v_day date; v_kind text; v_comment text := left(trim(coalesce(p_args->>'comment', '')), 300);
+  v_undo boolean := coalesce((p_args->>'undo')::boolean, false); v_n int := 0; v_ok jsonb := '{}'::jsonb; v_touch jsonb := '{}'::jsonb; v_k text; v_login text;
+begin
+  if jsonb_typeof(p_args->'items') is distinct from 'array' or jsonb_array_length(p_args->'items') < 1 or jsonb_array_length(p_args->'items') > 1000 then
+    perform kokolio._fail('requete', 'Sélectionnez entre 1 et 1 000 anomalies.');
+  end if;
+  for r in select y.v from jsonb_array_elements(p_args->'items') with ordinality as y(v, o) order by y.o loop
+    v_uid := nullif(r->>'user_id', '')::uuid; v_day := nullif(r->>'day', '')::date; v_kind := coalesce(r->>'kind', '');
+    if v_uid is null or v_day is null then perform kokolio._fail('requete', 'Anomalie invalide.'); end if;
+    if v_kind not in ('depart', 'vide', 'retard', 'depart_anticipe', 'hors_plage', 'presence_insuffisante', 'travail_absence', 'pause_courte', 'pause_longue', 'pause_non_prise') then
+      perform kokolio._fail('requete', 'Type d''anomalie inconnu.');
+    end if;
+    if not (v_ok ? v_uid::text) then
+      if not kokolio._can_manage(me, v_uid) then perform kokolio._fail('interdit', 'Vous ne pouvez pas traiter les anomalies de ce salarié.'); end if;
+      v_ok := v_ok || jsonb_build_object(v_uid::text, true);
+    end if;
+    if v_undo then
+      delete from kokolio.anomaly_acks k where k.user_id = v_uid and k.day = v_day and k.kind = v_kind;
+      if not found then continue; end if;
+    else
+      insert into kokolio.anomaly_acks (user_id, day, kind, comment, acked_by, acked_at) values (v_uid, v_day, v_kind, v_comment, me.id, kokolio._now())
+      on conflict (user_id, day, kind) do update set comment = excluded.comment, acked_by = excluded.acked_by, acked_at = excluded.acked_at;
+    end if;
+    v_n := v_n + 1;
+    v_touch := jsonb_set(v_touch, array[v_uid::text], coalesce(v_touch->(v_uid::text), '[]'::jsonb) || jsonb_build_object('jour', v_day, 'anomalie', v_kind));
+  end loop;
+  for v_k in select jsonb_object_keys(v_touch) loop
+    select x.login into v_login from kokolio.users x where x.id = v_k::uuid;
+    perform kokolio._audit(me.id, case when v_undo then 'acquittement_annule' else 'anomalies_acquittees' end, v_k::uuid, coalesce(v_login, ''),
+      jsonb_build_object('nombre', jsonb_array_length(v_touch->v_k)) || case when v_comment <> '' then jsonb_build_object('commentaire', v_comment) else '{}'::jsonb end
+        || case when jsonb_array_length(v_touch->v_k) <= 40 then jsonb_build_object('detail', v_touch->v_k) else '{}'::jsonb end, coalesce(p->>'ip', ''));
+  end loop;
+  return jsonb_build_object('done', v_n);
+end $$;
+-- =====================================================================
 -- Kokolio — mode démonstration
 -- Un jeu de données fictives se charge dans un outil vide ou en cours d'essai, pour le découvrir ou le présenter.
 -- Tant qu'il est là, l'outil est « en mode démonstration » : c'est le seul état où tout peut être effacé.
@@ -2287,6 +2373,7 @@ begin
   delete from kokolio.closures;        -- d'abord les clôtures : plus aucun mois n'est verrouillé
   delete from kokolio.attachments;
   delete from kokolio.absences;
+  delete from kokolio.anomaly_acks;
   delete from kokolio.annual_entries;
   delete from kokolio.annual_goals;
   delete from kokolio.plan_days;
@@ -2421,6 +2508,13 @@ begin
     v_checks := v_checks || jsonb_build_object('name', 'Le responsable planifie son équipe', 'ok', (v_r #>> '{data,set}')::int = 1);
     v_r := public.kokolio_api(jsonb_build_object('action', 'model_save', 'token', t_mgr, 'args', jsonb_build_object('create', true, 'model', jsonb_build_object('code', 'KKT', 'label', 'Test', 'minutes', 420))));
     v_checks := v_checks || jsonb_build_object('name', 'La bibliothèque d''horaires est réservée aux RH', 'ok', v_r->>'code' = 'interdit');
+
+    v_r := public.kokolio_api(jsonb_build_object('action', 'anomaly_ack', 'token', t_e1, 'args', jsonb_build_object('items', jsonb_build_array(jsonb_build_object('user_id', v_e1, 'day', '2001-01-10', 'kind', 'retard')))));
+    v_checks := v_checks || jsonb_build_object('name', 'Nul n''acquitte ses propres anomalies', 'ok', v_r->>'code' = 'interdit');
+    v_r := public.kokolio_api(jsonb_build_object('action', 'anomaly_ack', 'token', t_mgr, 'args', jsonb_build_object('items', jsonb_build_array(jsonb_build_object('user_id', v_e1, 'day', '2001-01-10', 'kind', 'retard')))));
+    v_checks := v_checks || jsonb_build_object('name', 'Le responsable acquitte une anomalie de son équipe', 'ok', (v_r #>> '{data,done}')::int = 1);
+    v_r := public.kokolio_api(jsonb_build_object('action', 'annual_goal_set', 'token', t_mgr, 'args', jsonb_build_object('user_id', v_e1, 'period_id', gen_random_uuid(), 'minutes', 60)));
+    v_checks := v_checks || jsonb_build_object('name', 'L''objectif annuel est réservé aux RH', 'ok', v_r->>'code' = 'interdit');
 
     -- 6. Clôture
     v_r := public.kokolio_api(jsonb_build_object('action', 'month_close', 'token', t_e2, 'args', jsonb_build_object('month', '2001-01')));
@@ -2571,6 +2665,7 @@ begin
     when 'model_save' then return kokolio._model_save(me, p, v_args);
     when 'cycle_save' then return kokolio._cycle_save(me, p, v_args);
     when 'plan_set' then return kokolio._plan_set(me, p, v_args);
+    when 'anomaly_ack' then return kokolio._anomaly_ack(me, p, v_args);
     when 'annual_period_save' then return kokolio._annual_period_save(me, p, v_args);
     when 'annual_goal_set' then return kokolio._annual_goal_set(me, p, v_args);
     when 'annual_entry_add' then return kokolio._annual_entry_add(me, p, v_args);
@@ -2651,7 +2746,7 @@ begin
 end $$;
 revoke all on function kokolio.bootstrap_admin(text, text) from public;
 
-insert into kokolio.meta (key, value) values ('schema_version', '5'::jsonb)
+insert into kokolio.meta (key, value) values ('schema_version', '6'::jsonb)
 on conflict (key) do update set value = excluded.value, updated_at = now();
 
 notify pgrst, 'reload schema';

@@ -169,6 +169,7 @@ export function blocJour(j, { cadre, actions, notes }) {
         j.open && j.anomalies.includes("depart") ? "départ non pointé" : null].filter(Boolean).join(" · ")),
     j.corrected && j.comment ? h("div", { class: "note discret" }, `Corrigée : ${j.comment}`) : null,
     j.status === "refuse" ? h("div", { class: "note moins" }, `Refusée : ${j.refusal_reason}`) : null,
+    j.signals?.length ? h("div", { class: "note " + (j.signals.some((s) => s.level !== "info") ? "moins" : "discret") }, j.signals.map((s) => s.text).join(" · ")) : null,
     notes ? notes(j) : null,
     h("div", { class: "actions" }, j.status ? pastille(j.status) : j.credited ? etiquette("Comptée d'office", "p-ok") : j.anomalies.length ? etiquette("À régulariser", "p-refus") : null, actions ? actions(j) : null));
 }

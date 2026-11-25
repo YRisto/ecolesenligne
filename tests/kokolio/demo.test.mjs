@@ -41,7 +41,7 @@ before(async () => {
 });
 after(() => fake?.kill());
 
-test("mise à jour de la base de la version 1 à la version 5, sans rien perdre", async () => {
+test("mise à jour de la base de la version 1 à la version 6, sans rien perdre", async () => {
   const code = sql("select kokolio.bootstrap_admin('admin')");
   await admin.ok("auth/activate", { login: "admin", code, password: "Tableau-Bleu-2026" });
   await admin.ok("admin/settings-save", { settings: { company: "Entreprise d'essai" } });
@@ -83,7 +83,11 @@ test("mise à jour de la base de la version 1 à la version 5, sans rien perdre"
   assert.equal(empreinte(), avant);
   assert.equal(sql("select count(*) from kokolio.users where tracked_from is not null"), "0");
   const st = await admin.ok("admin/status");                             // la session ouverte avant la mise à jour reste valable
-  assert.deepEqual([st.schema, st.schema_expected, st.users, st.admins], [5, 5, 2, 1]);
+  assert.deepEqual([st.schema, st.schema_expected, st.users, st.admins], [6, 6, 2, 1]);
+  // réglages d'avant conservés ; les nouveautés (anomalies, pauses payées) prennent leurs valeurs par défaut sans rien écrire
+  const regl = (await admin.ok("admin/settings")).settings;
+  assert.deepEqual([regl.company, regl.anomalies, regl.break_paid_min], ["Entreprise d'essai", undefined, undefined]);
+  assert.deepEqual((await admin.ok("team/anomalies", { month: "2026-11", scope: "all" })).counts, { corriger: 0, verifier: 0, info: 0, acquittees: 0 });
   assert.equal((await admin.ok("admin/settings")).settings.company, "Entreprise d'essai");
   // l'horaire d'avant est intact ; les nouveautés arrivent à leur valeur neutre : pas de cycle, présence par pointage, bibliothèque vide, nuit désactivée
   assert.equal(horaire(), horaireAvant);
@@ -94,7 +98,7 @@ test("mise à jour de la base de la version 1 à la version 5, sans rien perdre"
   assert.deepEqual([lib.models.length, lib.cycles.length], [0, 0]);
   assert.deepEqual([(await admin.ok("boot")).settings.night_until, (await admin.ok("boot")).annual], ["", null]);
   const t = await admin.ok("admin/selftest");
-  assert.equal(t.ok, true, JSON.stringify(t.checks.filter((c) => !c.ok))); assert.equal(t.count, 42);
+  assert.equal(t.ok, true, JSON.stringify(t.checks.filter((c) => !c.ok))); assert.equal(t.count, 45);
   // la fiche d'essai n'a servi qu'à cette vérification : la suite repart d'un outil qui ne contient que l'administrateur
   sql(`delete from kokolio.contracts where user_id = '${essai.user.id}'; delete from kokolio.users where id = '${essai.user.id}'`);
 });

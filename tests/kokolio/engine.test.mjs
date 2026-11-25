@@ -475,3 +475,53 @@ test("données de démonstration : une période d'annualisation d'exemple, toujo
     assert.ok(d.cycles.some((c) => c.annualise));
   }
 });
+
+// ---------------------------------------------------------------- version 2.2 : anomalies liées à l'horaire, pauses
+import { ANOMALY_KINDS, anomalySettings, breakMinutes, levelOf } from "../../lib/kokolio/engine/signals.mjs";
+
+// lundi 2 novembre 2026, horaire J8 : 8 h 45 – 13 h 15, 14 h – 17 h 30 (8 h)
+const signaux = (times, over = {}) => buildDays({ user: USER, contracts: [CCYC], days: [day("2026-11-02", times)], absences: [], types: TYPES, settings: SETTINGS, from: "2026-11-02", to: "2026-11-02", today: "2026-11-25", ...over })[0].signals;
+const sortes = (times, over) => signaux(times, over).map((s) => s.kind);
+
+test("anomalies liées à l'horaire : retard, départ anticipé, pointage hors plage, présence insuffisante", () => {
+  assert.deepEqual(sortes(["08:45", "13:15", "14:00", "17:30"]), []);                          // à l'heure
+  assert.deepEqual(sortes(["08:49", "13:15", "14:00", "17:27"]), []);                          // dans la tolérance de cinq minutes
+  const tard = signaux(["09:05", "13:15", "14:00", "17:30"]);
+  assert.deepEqual(tard.map((s) => [s.kind, s.level, s.minutes]), [["retard", "info", 20], ["presence_insuffisante", "info", 20]]);
+  assert.equal(tard[0].text, "Arrivée à 9 h 05 pour 8 h 45 : 20 min de retard");
+  assert.deepEqual(signaux(["08:45", "13:15", "14:00", "17:00"]).map((s) => [s.kind, s.text]),
+    [["depart_anticipe", "Départ à 17 h 00 pour 17 h 30 : 30 min plus tôt"], ["presence_insuffisante", "7 h 30 travaillées pour 8 h 00 prévues"]]);
+  // plus d'une heure avant ou après l'horaire : pointage hors plage, à corriger
+  assert.deepEqual(signaux(["07:30", "13:15", "14:00", "17:30"]).map((s) => [s.kind, s.level]), [["hors_plage", "corriger"]]);
+  assert.deepEqual(sortes(["08:45", "13:15", "14:00", "18:45"]), ["hors_plage"]);
+  // une journée encore ouverte : le retard se voit déjà, pas le départ
+  assert.deepEqual(sortes(["09:30"], { days: [day("2026-11-02", ["09:30"], "a_valider")], today: "2026-11-02" }), ["retard"]);
+  // sans plages (horaire fixe), seule la durée est contrôlée, au-delà de quinze minutes d'écart
+  const fixe = (times) => run({ days: [day("2026-11-02", times)], from: "2026-11-02", to: "2026-11-02" })[0].signals.map((s) => s.kind);
+  assert.deepEqual(fixe(["10:00", "12:30", "13:30", "17:00"]), ["presence_insuffisante"]);
+  assert.deepEqual(fixe(["09:10", "12:30", "13:30", "17:00"]), []);
+  // forfait jours : pas de contrôle d'horaire ; jour d'absence pointé : signalé pour tous, et rien d'autre
+  const cadre = { ...CCYC, regime: "forfait_jours" };
+  assert.deepEqual(buildDays({ user: USER, contracts: [cadre], days: [day("2026-11-02", ["11:00", "15:00"])], absences: [], types: TYPES, settings: SETTINGS, from: "2026-11-02", to: "2026-11-02", today: "2026-11-25" })[0].signals, []);
+  const abse = signaux(["09:30", "12:00"], { absences: [abs("cp", "2026-11-02", "2026-11-02")] });
+  assert.deepEqual(abse.map((s) => [s.kind, s.level, s.text]), [["travail_absence", "verifier", "Pointage un jour d'absence (Congé payé)"]]);
+  assert.deepEqual(sortes(["14:00", "17:30"], { absences: [abs("cp", "2026-11-02", "2026-11-02", "valide", "matin")] }), []);   // demi-journée d'absence : pas de contrôle d'horaire
+});
+
+test("pauses : non prise, trop courte, trop longue ; pauses payées sur réglage", () => {
+  assert.deepEqual(sortes(["08:45", "17:30"]), ["pause_non_prise"]);                           // 8 h 45 d'un seul tenant (la pause de l'horaire est déduite)
+  assert.deepEqual(signaux(["08:45", "13:15", "13:25", "17:40"]).map((s) => [s.kind, s.minutes]), [["pause_courte", 10]]);
+  assert.deepEqual(sortes(["08:45", "11:00", "14:00", "20:15"]).sort(), ["hors_plage", "pause_longue"]);
+  assert.equal(breakMinutes(["08:45", "12:00", "12:30", "15:00", "15:10", "17:30"]), 40);
+  // réglages : tolérances et niveaux ; un type réglé sur « ne pas signaler » disparaît
+  const regle = { ...SETTINGS, anomalies: { late_min: 30, break_min: 5, levels: { presence_insuffisante: "off", depart_anticipe: "verifier" } } };
+  assert.deepEqual(signaux(["09:05", "13:15", "13:25", "17:00"], { settings: regle }).map((s) => [s.kind, s.level]), [["depart_anticipe", "verifier"]]);
+  assert.deepEqual([anomalySettings(regle).early_min, anomalySettings(regle).levels.retard, anomalySettings({}).range_min], [5, "info", 60]);
+  assert.deepEqual([levelOf("vide", regle), levelOf("depart", regle), levelOf("retard", regle), Object.keys(ANOMALY_KINDS).length], ["corriger", "corriger", "info", 10]);
+  // pauses payées : vingt minutes par jour au plus, dans la limite de la pause réellement pointée
+  const paye = { ...SETTINGS, break_paid_min: 20 };
+  assert.equal(netMinutes(["09:00", "12:00", "12:45", "17:00"], C35, paye), 435 + 20);
+  assert.equal(netMinutes(["09:00", "12:00", "12:10", "17:00"], C35, paye), 470 + 10);
+  assert.equal(netMinutes(["09:00", "12:00", "12:45", "17:00"], C35, SETTINGS), 435);          // sans le réglage, rien ne change
+  assert.equal(netMinutes(["09:00", "17:00"], C35, paye), 480 - 45);                           // sans pause pointée : la pause de l'horaire reste déduite
+});

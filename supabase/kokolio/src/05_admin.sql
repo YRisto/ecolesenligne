@@ -506,6 +506,31 @@ begin
     end if;
     v_new := jsonb_set(v_new, '{night_until}', to_jsonb(coalesce(v_in->>'night_until', '')));
   end if;
+  -- pauses payées : minutes de pause pointée comptées comme du travail, par jour (0 = les pauses ne sont pas payées)
+  if v_in ? 'break_paid_min' then
+    if jsonb_typeof(v_in->'break_paid_min') <> 'number' or (v_in->>'break_paid_min')::numeric < 0 or (v_in->>'break_paid_min')::numeric > 120
+       or (v_in->>'break_paid_min')::numeric <> trunc((v_in->>'break_paid_min')::numeric) then
+      perform kokolio._fail('parametre', 'Pause payée invalide : entre 0 et 120 minutes par jour.');
+    end if;
+    v_new := jsonb_set(v_new, '{break_paid_min}', v_in->'break_paid_min');
+  end if;
+  -- anomalies liées à l'horaire : tolérances en minutes et niveau de chaque type
+  if v_in ? 'anomalies' then
+    v_e := v_in->'anomalies';
+    if jsonb_typeof(v_e) <> 'object' or jsonb_typeof(coalesce(v_e->'levels', '{}'::jsonb)) <> 'object' then perform kokolio._fail('parametre', 'Réglage des anomalies invalide.'); end if;
+    foreach v_k in array array['late_min', 'early_min', 'range_min', 'short_min', 'break_min', 'break_max'] loop
+      if v_e ? v_k and (jsonb_typeof(v_e->v_k) <> 'number' or (v_e->>v_k)::numeric < 0 or (v_e->>v_k)::numeric > 600 or (v_e->>v_k)::numeric <> trunc((v_e->>v_k)::numeric)) then
+        perform kokolio._fail('parametre', 'Tolérance invalide (' || v_k || ') : entre 0 et 600 minutes.');
+      end if;
+    end loop;
+    if exists (select 1 from jsonb_each_text(coalesce(v_e->'levels', '{}'::jsonb)) x
+               where x.key not in ('retard', 'depart_anticipe', 'hors_plage', 'presence_insuffisante', 'travail_absence', 'pause_courte', 'pause_longue', 'pause_non_prise')
+                  or x.value not in ('corriger', 'verifier', 'info', 'off')) then
+      perform kokolio._fail('parametre', 'Niveau d''anomalie inconnu.');
+    end if;
+    v_new := jsonb_set(v_new, '{anomalies}', coalesce(v_new->'anomalies', '{}'::jsonb) || (v_e - 'levels')
+      || jsonb_build_object('levels', coalesce(v_new #> '{anomalies,levels}', '{}'::jsonb) || coalesce(v_e->'levels', '{}'::jsonb)));
+  end if;
   if (v_new->>'activation_days')::int < 1 or (v_new->>'activation_days')::int > 90 then perform kokolio._fail('parametre', 'Durée de validité des codes : entre 1 et 90 jours.'); end if;
   if v_in ? 'lieux' then
     if jsonb_typeof(v_in->'lieux') <> 'array' or jsonb_array_length(v_in->'lieux') < 1 or jsonb_array_length(v_in->'lieux') > 8 then
@@ -530,7 +555,7 @@ begin
   v_new := jsonb_set(v_new, '{version}', to_jsonb(coalesce((v_old->>'version')::int, 1) + 1));
   update kokolio.meta set value = v_new, updated_at = now() where key = 'settings';
   perform kokolio._audit(me.id, 'parametres_modifies', null, '',
-    kokolio._diff(v_old, v_new, array['company', 'logo_url', 'go_live', 'pause_threshold_min', 'max_day_min', 'max_week_min', 'min_rest_min', 'activation_days', 'night_until', 'lieux', 'export']),
+    kokolio._diff(v_old, v_new, array['company', 'logo_url', 'go_live', 'pause_threshold_min', 'max_day_min', 'max_week_min', 'min_rest_min', 'activation_days', 'night_until', 'break_paid_min', 'anomalies', 'lieux', 'export']),
     coalesce(p->>'ip', ''));
   return jsonb_build_object('settings', v_new);
 end $$;
