@@ -62,6 +62,9 @@ begin
 end $$;
 create or replace trigger days_guard before insert or update or delete on kokolio.days
   for each row execute function kokolio._guard_days();
+-- Le planning d'un mois clôturé est figé comme ses journées.
+create or replace trigger plan_days_guard before insert or update or delete on kokolio.plan_days
+  for each row execute function kokolio._guard_days();
 
 create or replace function kokolio._guard_absences() returns trigger language plpgsql as $$
 begin
@@ -167,6 +170,28 @@ create or replace function kokolio._contract_json(c kokolio.contracts) returns j
   select to_jsonb(c) - 'created_by' - 'created_at'
 $$;
 
+-- Un cycle avec ses horaires journaliers résolus : le calcul n'a plus besoin de la bibliothèque.
+create or replace function kokolio._cycle_json(p_id uuid) returns jsonb language sql stable as $$
+  select jsonb_build_object('id', c.id, 'name', c.name, 'active', c.active, 'version', c.version,
+    'weeks', (select coalesce(jsonb_agg(
+        (select jsonb_agg(case when m.code is null then 'null'::jsonb
+                               else jsonb_build_object('code', m.code, 'label', m.label, 'minutes', m.minutes, 'ranges', m.ranges, 'color', m.color) end order by d.o)
+         from jsonb_array_elements_text(w.v) with ordinality as d(code, o) left join kokolio.day_models m on m.code = d.code)
+        order by w.o), '[]'::jsonb)
+      from jsonb_array_elements(c.weeks) with ordinality as w(v, o)))
+  from kokolio.cycles c where c.id = p_id
+$$;
+-- Un cycle (ou un horaire journalier) qui a servi dans un mois clôturé ne change plus de composition : on en crée un nouveau.
+create or replace function kokolio._cycle_locked(p_id uuid) returns boolean language sql stable as $$
+  select exists (
+    select 1 from kokolio.contracts k, jsonb_array_elements_text(kokolio._closed_months()) m
+    where k.cycle_id = p_id and m >= to_char(k.start_date, 'YYYY-MM') and (k.end_date is null or m <= to_char(k.end_date, 'YYYY-MM')))
+$$;
+create or replace function kokolio._model_cycles(p_code text) returns uuid[] language sql stable as $$
+  select coalesce(array_agg(c.id), '{}') from kokolio.cycles c
+  where exists (select 1 from jsonb_array_elements(c.weeks) w, jsonb_array_elements_text(w) x where x = p_code)
+$$;
+
 -- ---------------------------------------------------------------------
 -- Sessions et droits
 -- ---------------------------------------------------------------------
@@ -228,15 +253,29 @@ create or replace function kokolio._lieu_ok(p_code text) returns boolean languag
 $$;
 
 -- Liste d'heures 'HH:MM' : format, ordre, nombre.
+-- Travail de nuit : heure du matin jusqu'à laquelle un départ est rattaché à la journée de la veille. Vide = fonction désactivée.
+create or replace function kokolio._night() returns text language sql stable as $$
+  select case when coalesce(m.value->>'night_until', '') ~ '^(0[0-9]|1[01]):[0-5][0-9]$' then m.value->>'night_until' else '' end
+  from kokolio.meta m where m.key = 'settings'
+$$;
+-- Une heure du lendemain s'écrit au-delà de 24 h : 01:30 le lendemain = « 25:30 ».
+create or replace function kokolio._plus24(p_hm text) returns text language sql immutable as $$
+  select lpad((substr(p_hm, 1, 2)::int + 24)::text, 2, '0') || substr(p_hm, 3)
+$$;
+
 create or replace function kokolio._times(p_j jsonb) returns text[] language plpgsql stable as $$
-declare v_out text[] := '{}'; v_t text; v_prev text := '';
+declare v_out text[] := '{}'; v_t text; v_prev text := ''; v_night text := coalesce(kokolio._night(), '');
 begin
   if p_j is null or jsonb_typeof(p_j) <> 'array' then
     perform kokolio._fail('heures', 'Liste d''heures invalide.');
   end if;
   for v_t in select x.v from jsonb_array_elements_text(p_j) with ordinality as x(v, o) order by x.o loop
-    if v_t !~ '^([01][0-9]|2[0-3]):[0-5][0-9]$' then
+    if v_t !~ '^([01][0-9]|2[0-9]|3[0-5]):[0-5][0-9]$' then
       perform kokolio._fail('heures', 'Heure invalide : ' || left(v_t, 10));
+    end if;
+    if v_t >= '24:00' and (v_night = '' or v_t > kokolio._plus24(v_night)) then
+      perform kokolio._fail('heures', case when v_night = '' then 'Heure invalide : ' || left(v_t, 10)
+        else 'Un départ après minuit est accepté jusqu''à ' || v_night || ' le lendemain.' end);
     end if;
     if v_t < v_prev then
       perform kokolio._fail('heures', 'Les heures doivent se suivre dans l''ordre.');
@@ -247,6 +286,25 @@ begin
   if coalesce(array_length(v_out, 1), 0) > 20 then
     perform kokolio._fail('heures', 'Trop de pointages pour une seule journée.');
   end if;
+  return v_out;
+end $$;
+
+-- Plages indicatives d'un horaire : 0 à 4 plages « début → fin » qui se suivent. Une fin au-delà de 24 h désigne le lendemain.
+create or replace function kokolio._ranges(p_j jsonb) returns jsonb language plpgsql immutable as $$
+declare v_r jsonb; v_a text; v_b text; v_prev text := ''; v_out jsonb := '[]'::jsonb;
+begin
+  if p_j is null or jsonb_typeof(p_j) = 'null' then return v_out; end if;
+  if jsonb_typeof(p_j) <> 'array' or jsonb_array_length(p_j) > 4 then perform kokolio._fail('horaire', 'Plages horaires invalides (quatre au plus).'); end if;
+  for v_r in select x.v from jsonb_array_elements(p_j) with ordinality as x(v, o) order by x.o loop
+    if jsonb_typeof(v_r) <> 'array' or jsonb_array_length(v_r) <> 2 then perform kokolio._fail('horaire', 'Plage horaire invalide.'); end if;
+    v_a := v_r->>0; v_b := v_r->>1;
+    if coalesce(v_a, '') !~ '^([01][0-9]|2[0-3]):[0-5][0-9]$' or coalesce(v_b, '') !~ '^([01][0-9]|2[0-9]|3[0-5]):[0-5][0-9]$' then
+      perform kokolio._fail('horaire', 'Heure de plage invalide.');
+    end if;
+    if v_b <= v_a or v_a < v_prev then perform kokolio._fail('horaire', 'Les plages doivent se suivre, chacune avec une fin après son début.'); end if;
+    v_out := v_out || jsonb_build_array(jsonb_build_array(v_a, v_b));
+    v_prev := v_b;
+  end loop;
   return v_out;
 end $$;
 

@@ -268,3 +268,141 @@ test("données de démonstration : cohérentes quelle que soit la date de charge
     assert.ok(d.days.filter((j) => j.day.startsWith(d.close_month)).every((j) => j.status === "valide"), "le premier mois doit pouvoir être clôturé");
   }
 });
+
+// ---------------------------------------------------------------- version 2.0 : planification
+import { planAt, planMap, rangesText, weeklyMinutesOf, cycleWeek } from "../../lib/kokolio/engine/plan.mjs";
+import { isWorkday, liveDay, weeklyMinutes } from "../../lib/kokolio/engine/model.mjs";
+import { DEMO_CYCLES, DEMO_MODELS, DEMO_USERS } from "../../lib/kokolio/engine/demo.mjs";
+
+const J8 = { code: "J8", label: "Journée 8 h", minutes: 480, ranges: [["08:45", "13:15"], ["14:00", "17:30"]], color: "violet" };
+const M4 = { code: "M4", label: "Matinée 4 h", minutes: 240, ranges: [["09:00", "13:00"]], color: "" };
+// cycle de deux semaines : quatre jours de 8 h, puis cinq jours dont un vendredi matin
+const CYCLE = { id: "k1", name: "Alternance", weeks: [[J8, J8, J8, J8, null, null, null], [J8, J8, J8, J8, M4, null, null]] };
+const CCYC = { ...C35, id: "c-cyc", cycle_id: "k1", cycle_anchor: "2026-11-02", cycle: CYCLE, presence: "pointage" };
+const exc = (d, minutes, extra = {}) => ({ user_id: "u1", day: d, model_code: "", label: minutes ? "Horaire du jour" : "Repos", minutes, ranges: [], note: "", ...extra });
+
+test("cycle de plusieurs semaines : il se répète à partir du lundi d'ancrage, avant comme après", () => {
+  const prevu = (from, to) => buildDays({ user: USER, contracts: [CCYC], days: [], absences: [], types: TYPES, settings: SETTINGS, from, to, today: "2026-12-31" }).map((r) => r.theo);
+  assert.deepEqual(prevu("2026-11-02", "2026-11-08"), [480, 480, 480, 480, 0, 0, 0]);            // semaine 1
+  assert.deepEqual(prevu("2026-11-09", "2026-11-15"), [480, 480, 0, 480, 240, 0, 0]);            // semaine 2 (mercredi 11 : férié)
+  assert.deepEqual(prevu("2026-11-16", "2026-11-22"), [480, 480, 480, 480, 0, 0, 0]);            // de nouveau la semaine 1
+  assert.deepEqual(prevu("2026-10-26", "2026-11-01"), [480, 480, 480, 480, 240, 0, 0]);          // avant l'ancrage : semaine 2
+  assert.equal(cycleWeek(CCYC, "2026-11-04"), 0); assert.equal(cycleWeek(CCYC, "2026-11-15"), 1); assert.equal(cycleWeek(CCYC, "2025-11-03"), 0);
+  // durée hebdomadaire affichée : la moyenne des semaines du cycle (32 h et 36 h → 34 h)
+  assert.equal(weeklyMinutesOf(CCYC), 2040); assert.equal(weeklyMinutes(CCYC), 2040); assert.equal(weeklyMinutes(C35), 2100);
+  // le prévu d'un jour : horaire nommé, plages, origine
+  const p = planAt(CCYC, "2026-11-13", planMap([]));
+  assert.deepEqual([p.scheduled, p.code, p.minutes, p.source, rangesText(p.ranges)], [true, "M4", 240, "cycle", "9 h – 13 h"]);
+  assert.equal(rangesText(J8.ranges), "8 h 45 – 13 h 15 · 14 h – 17 h 30");
+  assert.equal(rangesText([["21:00", "29:00"]]), "21 h – 5 h (+1)");
+  // débit-crédit : 8 h pointées un lundi du cycle = à l'équilibre ; avec l'horaire fixe de 7 h, une heure de plus
+  const jour = [day("2026-11-02", ["08:45", "13:15", "14:00", "17:30"])];
+  assert.equal(buildDays({ user: USER, contracts: [CCYC], days: jour, absences: [], types: TYPES, settings: SETTINGS, from: "2026-11-02", to: "2026-11-02", today: "2026-11-25" })[0].ecart, 0);
+  assert.equal(run({ days: jour })[0].ecart, 60);
+});
+
+test("un contrat qui suit un cycle ne se calcule pas sans ce cycle", () => {
+  const sans = { ...CCYC, cycle: null };
+  assert.throws(() => buildDays({ user: USER, contracts: [sans], days: [], absences: [], types: TYPES, settings: SETTINGS, from: "2026-11-02", to: "2026-11-02", today: "2026-11-25" }), /Cycle de travail non résolu/);
+  assert.throws(() => countAbsenceDays({ user: USER, contracts: [sans], start: "2026-11-02", end: "2026-11-03" }), /Cycle de travail non résolu/);
+});
+
+test("exception d'un jour : elle remplace le cycle ou l'horaire fixe, et seule elle fait travailler un jour férié", () => {
+  const plan = [exc("2026-11-03", 0), exc("2026-11-07", 240, { label: "Salon étudiant", ranges: [["09:00", "13:00"]] }), exc("2026-11-11", 420, { model_code: "J7", label: "Journée 7 h" })];
+  const recs = buildDays({ user: USER, contracts: [C35], days: [], absences: [], plan, types: TYPES, settings: SETTINGS, from: "2026-11-02", to: "2026-11-15", today: "2026-11-25" });
+  const par = Object.fromEntries(recs.map((r) => [r.date.slice(8), r]));
+  assert.deepEqual([par["03"].workday, par["03"].theo, par["03"].anomalies.join(), par["03"].plan.source], [false, 0, "", "exception"]);           // mardi mis au repos
+  assert.deepEqual([par["07"].workday, par["07"].theo, par["07"].anomalies.join(), par["07"].plan.label], [true, 240, "vide", "Salon étudiant"]);   // samedi travaillé
+  assert.deepEqual([par["11"].holiday, par["11"].workday, par["11"].theo], ["Armistice 1918", true, 420]);                                          // férié travaillé
+  assert.deepEqual([par["04"].workday, par["04"].theo, par["04"].plan.source], [true, 420, "contrat"]);
+  const s = summarize(recs, { from: "2026-11-02", to: "2026-11-15", settings: SETTINGS });
+  assert.equal(s.theo, 420 * 9 + 240);   // dix jours du lundi au vendredi (férié travaillé compris) moins le mardi, plus le samedi matin
+  assert.equal(s.theo_days, 10);
+  // sans exception, le 11 novembre reste férié : rien de prévu, rien d'attendu
+  assert.deepEqual(run({ from: "2026-11-11", to: "2026-11-11" }).map((r) => [r.workday, r.theo]), [[false, 0]]);
+  // la même règle vaut pour le décompte des jours travaillés
+  assert.equal(isWorkday(USER, [C35], "2026-11-11", plan), true); assert.equal(isWorkday(USER, [C35], "2026-11-11"), false);
+  assert.equal(isWorkday(USER, [C35], "2026-11-03", plan), false); assert.equal(isWorkday(USER, [C35], "2026-11-07", plan), true);
+  // vue annuelle : le férié travaillé et pointé apparaît travaillé, plus « F »
+  const y = yearView({ user: USER, contracts: [C35], days: [day("2026-11-11", ["09:00", "12:30", "13:30", "17:00"])], absences: [], plan, types: TYPES, settings: SETTINGS, year: 2026, today: "2026-11-25" });
+  assert.equal(y.months[10].cells.find((c) => c.d === 11).code, "T");
+});
+
+test("absences et soldes : le décompte suit le planning (cycle, exceptions)", () => {
+  // semaine 1 du cycle (lundi-jeudi) : un congé du lundi au vendredi compte quatre jours ; en semaine 2, cinq — moins le férié du 11
+  assert.equal(countAbsenceDays({ user: USER, contracts: [CCYC], start: "2026-11-02", end: "2026-11-06" }), 4);
+  assert.equal(countAbsenceDays({ user: USER, contracts: [CCYC], start: "2026-11-09", end: "2026-11-13" }), 4);
+  assert.equal(countAbsenceDays({ user: USER, contracts: [CCYC], start: "2026-11-16", end: "2026-11-29" }), 9);
+  // une exception « repos » sort le jour du décompte ; un samedi travaillé par exception y entre
+  const plan = [exc("2026-11-03", 0), exc("2026-11-07", 240)];
+  assert.equal(countAbsenceDays({ user: USER, contracts: [C35], plan, start: "2026-11-02", end: "2026-11-08" }), 5);
+  assert.equal(countAbsenceDays({ user: USER, contracts: [C35], start: "2026-11-02", end: "2026-11-08" }), 5);
+  assert.equal(countAbsenceDays({ user: USER, contracts: [C35], plan, start: "2026-11-03", end: "2026-11-03" }), 0);
+  assert.equal(countAbsenceDays({ user: USER, contracts: [C35], plan, start: "2026-11-07", end: "2026-11-07", half: "matin" }), 0.5);
+  const b = (p) => balances({ user: USER, contracts: [C35], entries: [], absences: [abs("cp", "2026-11-02", "2026-11-04")], plan: p, types: TYPES, settings: SETTINGS, year: 2026, today: "2026-11-25" }).cp.taken;
+  assert.equal(b([]), 3); assert.equal(b(plan), 2);
+  // clôture : mêmes jours décomptés dans la photographie du mois
+  const snap = buildSnapshot({ users: [USER], contracts: [C35], days: [], absences: [abs("cp", "2026-11-02", "2026-11-04")], plan, types: TYPES, settings: SETTINGS, month: "2026-11", today: "2026-12-10" });
+  assert.equal(snap.employees[0].abs_days, 2); assert.equal(snap.employees[0].absences[0].days, 2);
+});
+
+test("présence automatique : les jours prévus sont comptés d'office, sans pointage ni oubli signalé", () => {
+  const auto = { ...C35, presence: "automatique" };
+  const semaine = { from: "2026-11-02", to: "2026-11-08", settings: SETTINGS };
+  const recs = buildDays({ user: USER, contracts: [auto], days: [], absences: [abs("cp", "2026-11-05", "2026-11-05"), abs("rtt", "2026-11-06", "2026-11-06", "valide", "matin")], types: TYPES, settings: SETTINGS, ...semaine, today: "2026-11-25" });
+  assert.deepEqual(recs.map((r) => [r.credited, r.worked, r.anomalies.length]), [[true, 420, 0], [true, 420, 0], [true, 420, 0], [false, 0, 0], [true, 210, 0], [false, 0, 0], [false, 0, 0]]);
+  const s = summarize(recs, semaine);
+  assert.deepEqual([s.worked, s.theo, s.ecart, s.days_worked, s.credited, s.anomalies.length, s.pending], [1470, 1470, 0, 3.5, 3.5, 0, 0]);
+  // la journée en cours n'est comptée qu'une fois passée ; une journée réellement pointée garde ses heures
+  const auj = buildDays({ user: USER, contracts: [auto], days: [day("2026-11-03", ["09:00", "12:00"])], absences: [], types: TYPES, settings: SETTINGS, from: "2026-11-02", to: "2026-11-04", today: "2026-11-04" });
+  assert.deepEqual(auj.map((r) => [r.credited, r.worked]), [[true, 420], [false, 180], [false, 0]]);
+  // forfait jours : chaque jour prévu compte pour un jour travaillé, sans heures
+  const cadre = { ...C35, regime: "forfait_jours", day_minutes: [0, 0, 0, 0, 0, 0, 0], presence: "automatique" };
+  const sf = summarize(buildDays({ user: USER, contracts: [cadre], days: [], absences: [], types: TYPES, settings: SETTINGS, ...semaine, today: "2026-11-25" }), semaine);
+  assert.deepEqual([sf.days_worked, sf.worked, sf.anomalies.length], [5, 0, 0]);
+  // même salarié en pointage : cinq oublis
+  assert.equal(summarize(run({}), semaine).anomalies.length, 5);
+  // vue annuelle et clôture
+  const y = yearView({ user: USER, contracts: [auto], days: [], absences: [], types: TYPES, settings: SETTINGS, year: 2026, today: "2026-11-25" });
+  assert.equal(y.months[10].cells.find((c) => c.d === 2).code, "T");
+  const snap = buildSnapshot({ users: [USER], contracts: [auto], days: [], absences: [], types: TYPES, settings: SETTINGS, month: "2026-10", today: "2026-11-25" });
+  assert.deepEqual([snap.employees[0].worked, snap.employees[0].days_worked, snap.employees[0].empty_days.length], [22 * 420, 22, 0]);
+});
+
+test("journée qui passe minuit : le départ du lendemain s'écrit au-delà de 24 h et reste rattaché à la veille", () => {
+  const nuit = { ...SETTINGS, night_until: "06:00" };
+  assert.equal(rawMinutes(["21:00", "25:30"]), 270);
+  assert.equal(netMinutes(["21:00", "29:00"], C35, nuit), 480 - 45);   // huit heures d'un seul tenant : pause déduite
+  assert.equal(liveDay(nuit, "2026-11-04", "01:30"), "2026-11-03"); assert.equal(liveDay(nuit, "2026-11-04", "06:00"), null); assert.equal(liveDay(SETTINGS, "2026-11-04", "01:30"), null);
+  // à 1 h 30 le mercredi, la journée de mardi commencée à 21 h est encore en cours : pas d'oubli de départ
+  const enCours = { user: USER, contracts: [C35], days: [day("2026-11-03", ["21:00"], "a_valider")], absences: [], types: TYPES, settings: nuit, from: "2026-11-03", to: "2026-11-04" };
+  assert.deepEqual(buildDays({ ...enCours, today: "2026-11-04", live: "2026-11-03" })[0].anomalies, []);
+  assert.deepEqual(buildDays({ ...enCours, today: "2026-11-04", live: null })[0].anomalies, ["depart"]);
+  // une fois le départ pointé (25:30), la journée compte pour la veille ; repos calculé jusqu'à l'arrivée suivante
+  const recs = buildDays({ user: USER, contracts: [C35], days: [day("2026-11-03", ["21:00", "25:30"]), day("2026-11-04", ["09:00", "17:00"])], absences: [], types: TYPES, settings: nuit, from: "2026-11-02", to: "2026-11-08", today: "2026-11-25" });
+  assert.equal(recs[1].worked, 270); assert.equal(recs[1].counted, true);
+  const s = summarize(recs, { from: "2026-11-02", to: "2026-11-08", settings: nuit });
+  assert.ok(s.alerts.some((a) => a.kind === "repos" && a.date === "2026-11-04" && /7 h 30/.test(a.text)), JSON.stringify(s.alerts));
+});
+
+test("import : début de suivi, mode de présence et cycle de travail", () => {
+  const cycles = [{ id: "k35", name: "Semaine 35 h", active: true }, { id: "kold", name: "Ancien cycle", active: false }];
+  const p = prepareImport("nom;prenom;debut_suivi;presence;cycle\nDurand;Zoé;01/03/2027;Automatique;semaine 35 h\nMartin;Li;;;\nPetit;Tom;31/02/2027;parfois;Ancien cycle\nRoux;Ana;;pointage;Inconnu", [], cycles);
+  assert.deepEqual(p.rows.map((r) => [r.login, r.tracked_from, r.contract.presence || "", r.contract.cycle_id || "", r.errors.length]),
+    [["zoe.durand", "2027-03-01", "automatique", "k35", 0], ["li.martin", null, "", "", 0], ["tom.petit", null, "", "", 3], ["ana.roux", null, "", "", 1]]);
+  assert.match(p.rows[2].errors.join(" | "), /date illisible.*mode de présence inconnu.*désactivé/);
+  assert.match(p.rows[3].errors[0], /introuvable dans la bibliothèque/);
+});
+
+test("données de démonstration : la bibliothèque d'exemple reproduit les horaires des salariés fictifs", () => {
+  const modeles = new Map(DEMO_MODELS.map((m) => [m.code, m]));
+  for (const c of DEMO_CYCLES) for (const w of c.weeks) { assert.equal(w.length, 7); for (const code of w) assert.ok(code === null || modeles.has(code), `${c.name} : ${code}`); }
+  const d = buildDemo("2026-11-25");
+  assert.equal(d.models.length, 4); assert.equal(d.cycles.length, 3);
+  for (const u of DEMO_USERS.filter((x) => x.cycle)) {
+    const k = DEMO_CYCLES.find((c) => c.name === u.cycle);
+    assert.ok(k, `${u.login} : cycle ${u.cycle}`);
+    // chaque jour du cycle vaut l'horaire fixe du salarié : attribuer le cycle ne change aucun chiffre
+    assert.deepEqual(k.weeks[0].map((code) => (code ? modeles.get(code).minutes : 0)), u.contract.day_minutes, u.login);
+  }
+});

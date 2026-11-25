@@ -43,8 +43,9 @@ create table if not exists kokolio.users (
 create unique index if not exists users_login_key on kokolio.users (lower(login));
 create unique index if not exists users_matricule_key on kokolio.users (matricule) where matricule <> '';
 create index if not exists users_manager_idx on kokolio.users (manager_id);
--- Début de suivi propre au compte (schéma 3). Vide pour tout le monde : le suivi commence à la mise en service de l'outil.
--- Seul le chargement des données de démonstration le renseigne, sur les comptes qui existaient déjà, pour que l'historique fictif ne les concerne pas.
+-- Début de suivi propre au compte (schéma 3). Vide : le suivi commence à la mise en service de l'outil.
+-- Les RH le renseignent pour déployer l'outil équipe par équipe ; le chargement des données de démonstration le pose
+-- sur les comptes qui existaient déjà, pour que l'historique fictif ne les concerne pas.
 alter table kokolio.users add column if not exists tracked_from date;
 
 -- Horaires datés : une ligne par période. Modifier un horaire crée une nouvelle ligne, le passé reste intact.
@@ -65,6 +66,63 @@ create table if not exists kokolio.contracts (
   check (array_length(day_minutes, 1) = 7),
   unique (user_id, start_date)
 );
+
+-- ---------------------------------------------------------------------
+-- Planification (schéma 4) : horaires journaliers, cycles, exceptions d'un jour.
+-- Sans cycle, un salarié garde l'horaire fixe de son contrat : rien ne change pour lui.
+-- ---------------------------------------------------------------------
+-- Horaire journalier : une durée, et des plages indicatives (arrivée → départ) qui servent de repère au planning.
+create table if not exists kokolio.day_models (
+  code text primary key,
+  label text not null default '',
+  minutes int not null check (minutes between 1 and 960),
+  ranges jsonb not null default '[]'::jsonb,      -- [["08:45","13:15"],["14:00","18:00"]]
+  color text not null default '',
+  active boolean not null default true,
+  sort int not null default 100,
+  version int not null default 1,
+  created_by uuid references kokolio.users(id),
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+-- Cycle : une ou plusieurs semaines types qui se répètent. Chaque jour porte le code d'un horaire journalier, ou rien (repos).
+create table if not exists kokolio.cycles (
+  id uuid primary key default gen_random_uuid(),
+  name text not null,
+  weeks jsonb not null,                           -- [["J7","J7","J7","J7","J7",null,null], …] lundi → dimanche
+  active boolean not null default true,
+  version int not null default 1,
+  created_by uuid references kokolio.users(id),
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+create unique index if not exists cycles_name_key on kokolio.cycles (lower(name));
+-- Le contrat peut suivre un cycle (la semaine 1 commence le lundi « cycle_anchor ») et fixe le mode de présence :
+-- « pointage » (arrivée et départ) ou « automatique » (les jours prévus sont comptés d'office, sans pointer).
+alter table kokolio.contracts add column if not exists cycle_id uuid references kokolio.cycles(id);
+alter table kokolio.contracts add column if not exists cycle_anchor date;
+alter table kokolio.contracts add column if not exists presence text not null default 'pointage';
+do $$ begin
+  if not exists (select 1 from pg_constraint where conname = 'contracts_presence_check' and conrelid = 'kokolio.contracts'::regclass) then
+    alter table kokolio.contracts add constraint contracts_presence_check check (presence in ('pointage', 'automatique'));
+  end if;
+end $$;
+create index if not exists contracts_cycle_idx on kokolio.contracts (cycle_id) where cycle_id is not null;
+-- Exception d'un jour pour un salarié : elle remplace ce que prévoit son cycle ou son horaire fixe.
+-- La durée et les plages sont recopiées au moment de la saisie : modifier un horaire journalier ne réécrit pas ces jours-là.
+create table if not exists kokolio.plan_days (
+  user_id uuid not null references kokolio.users(id),
+  day date not null,
+  model_code text not null default '',            -- horaire journalier choisi, ou vide (saisie libre, repos)
+  label text not null default '',
+  minutes int not null check (minutes between 0 and 960),   -- 0 = repos
+  ranges jsonb not null default '[]'::jsonb,
+  note text not null default '',
+  set_by uuid references kokolio.users(id),
+  set_at timestamptz not null default now(),
+  primary key (user_id, day)
+);
+create index if not exists plan_days_day_idx on kokolio.plan_days (day);
 
 -- Une ligne par salarié et par jour : les heures retenues et leur état de validation.
 create table if not exists kokolio.days (
@@ -227,6 +285,9 @@ alter table kokolio.closures enable row level security;
 alter table kokolio.sessions enable row level security;
 alter table kokolio.throttle enable row level security;
 alter table kokolio.audit enable row level security;
+alter table kokolio.day_models enable row level security;
+alter table kokolio.cycles enable row level security;
+alter table kokolio.plan_days enable row level security;
 
 -- Valeurs de départ (jamais écrasées si elles existent déjà)
 insert into kokolio.meta (key, value) values
@@ -247,6 +308,7 @@ insert into kokolio.meta (key, value) values
     'max_week_min', 2880,
     'min_rest_min', 660,
     'activation_days', 14,
+    'night_until', '',
     'export', jsonb_build_object('hours_code', 'HS-HN', 'include_hours', true, 'sep', ';', 'decimal', ',', 'header', true)))
 on conflict (key) do nothing;
 

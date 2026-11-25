@@ -11,6 +11,7 @@ declare
   r jsonb; u kokolio.users; c kokolio.contracts; v_dec uuid; v_tz text := kokolio._tz(); v_now timestamptz := kokolio._now(); v_today date := kokolio._today();
   v_days int; v_go text := coalesce(p_args->>'go_live', ''); v_ok boolean; v_status text; v_day date; v_times text[]; v_t text; v_i int;
   v_nu int := 0; v_nd int := 0; v_na int := 0; v_ne int := 0; v_avant date;
+  v_models jsonb := '[]'::jsonb; v_cycles jsonb := '[]'::jsonb; k kokolio.cycles;
 begin
   if me.role <> 'admin' then perform kokolio._fail('interdit', 'Accès réservé aux administrateurs.'); end if;
   if exists (select 1 from kokolio.meta m where m.key = 'demo') then
@@ -41,6 +42,21 @@ begin
   update kokolio.users set tracked_from = coalesce(v_avant, v_today) where tracked_from is null;
   get diagnostics v_ne = row_count;
 
+  -- bibliothèque d'exemple : horaires journaliers et cycles, créés seulement s'ils n'existent pas déjà (on note lesquels, pour l'effacement)
+  for r in select x from jsonb_array_elements(coalesce(p_args->'models', '[]'::jsonb)) x loop
+    if not exists (select 1 from kokolio.day_models m where m.code = upper(r->>'code')) then
+      insert into kokolio.day_models (code, label, minutes, ranges, color, sort, created_by)
+      values (upper(r->>'code'), left(coalesce(r->>'label', ''), 60), (r->>'minutes')::int, kokolio._ranges(r->'ranges'), coalesce(r->>'color', ''), coalesce((r->>'sort')::int, 100), me.id);
+      v_models := v_models || to_jsonb(upper(r->>'code'));
+    end if;
+  end loop;
+  for r in select x from jsonb_array_elements(coalesce(p_args->'cycles', '[]'::jsonb)) x loop
+    if not exists (select 1 from kokolio.cycles y where lower(y.name) = lower(r->>'name')) then
+      insert into kokolio.cycles (name, weeks, created_by) values (left(r->>'name', 60), r->'weeks', me.id) returning * into k;
+      v_cycles := v_cycles || to_jsonb(k.id);
+    end if;
+  end loop;
+
   -- comptes fictifs : salariés ou RH, jamais administrateurs
   for r in select x from jsonb_array_elements(p_args->'users') x loop
     v_ok := coalesce(r->>'code_hash', '') ~ '^[0-9a-f]{64}$';
@@ -49,7 +65,10 @@ begin
             coalesce(r->>'team', ''), coalesce(r->>'job', ''), nullif(r->>'entry_date', '')::date, coalesce(r->'details', '{}'::jsonb),
             case when v_ok then r->>'code_hash' end, case when v_ok then v_now + make_interval(days => coalesce(v_days, 14)) end)
     returning * into u;
-    c := kokolio._contract_apply(u.id, coalesce(u.entry_date, date '2000-01-01'), coalesce(r->'contract', '{}'::jsonb), me.id);
+    -- un salarié fictif peut suivre un cycle de la bibliothèque (désigné par son nom)
+    select * into k from kokolio.cycles y where lower(y.name) = lower(coalesce(r->>'cycle', ''));
+    c := kokolio._contract_apply(u.id, coalesce(u.entry_date, date '2000-01-01'),
+      coalesce(r->'contract', '{}'::jsonb) || case when k.id is not null then jsonb_build_object('cycle_id', k.id) else '{}'::jsonb end, me.id);
     v_nu := v_nu + 1;
   end loop;
   for r in select x from jsonb_array_elements(p_args->'users') x loop
@@ -102,7 +121,7 @@ begin
   -- la mise en service recule au début de la période de démonstration, et l'outil passe en mode démonstration
   update kokolio.meta set value = jsonb_set(jsonb_set(value, '{go_live}', to_jsonb(v_go)), '{version}', to_jsonb(coalesce((value->>'version')::int, 1) + 1)), updated_at = now()
   where key = 'settings';
-  insert into kokolio.meta (key, value) values ('demo', jsonb_build_object('charge_le', v_now, 'par', me.id));
+  insert into kokolio.meta (key, value) values ('demo', jsonb_build_object('charge_le', v_now, 'par', me.id, 'modeles', v_models, 'cycles', v_cycles));
   perform kokolio._audit(me.id, 'donnees_demo_chargees', null, '', jsonb_build_object('comptes', v_nu, 'journees', v_nd, 'absences', v_na, 'comptes_deja_presents', v_ne), coalesce(p->>'ip', ''));
   return jsonb_build_object('users', v_nu, 'days', v_nd, 'absences', v_na, 'existing', v_ne);
 end $$;
@@ -110,10 +129,11 @@ end $$;
 -- Effacement : tout repart de zéro, sauf les comptes administrateur, les réglages et les motifs d'absence.
 -- N'existe qu'en mode démonstration : un outil qui n'a jamais chargé ces données ne peut pas être vidé par ce chemin.
 create or replace function kokolio._demo_reset(me kokolio.users, p jsonb) returns jsonb language plpgsql as $$
-declare v_users int; v_days int;
+declare v_users int; v_days int; v_demo jsonb;
 begin
   if me.role <> 'admin' then perform kokolio._fail('interdit', 'Accès réservé aux administrateurs.'); end if;
-  if not exists (select 1 from kokolio.meta m where m.key = 'demo') then
+  select m.value into v_demo from kokolio.meta m where m.key = 'demo';
+  if v_demo is null then
     perform kokolio._fail('etat', 'Cet outil n''est pas en mode démonstration : rien ne peut y être effacé.');
   end if;
   select count(*) into v_users from kokolio.users x where x.role <> 'admin';
@@ -122,6 +142,7 @@ begin
   delete from kokolio.closures;        -- d'abord les clôtures : plus aucun mois n'est verrouillé
   delete from kokolio.attachments;
   delete from kokolio.absences;
+  delete from kokolio.plan_days;
   delete from kokolio.days;
   delete from kokolio.punch_log;
   delete from kokolio.balance_entries;
@@ -132,6 +153,11 @@ begin
   delete from kokolio.throttle;
   delete from kokolio.users x where x.role <> 'admin';
   perform set_config('kokolio.purge', '', true);
+  -- la bibliothèque d'exemple apportée par la démonstration repart avec elle, sauf ce qu'un compte restant utilise encore
+  delete from kokolio.cycles c where c.id in (select (x #>> '{}')::uuid from jsonb_array_elements(coalesce(v_demo->'cycles', '[]'::jsonb)) x)
+    and not exists (select 1 from kokolio.contracts k where k.cycle_id = c.id);
+  delete from kokolio.day_models m where m.code in (select x #>> '{}' from jsonb_array_elements(coalesce(v_demo->'modeles', '[]'::jsonb)) x)
+    and coalesce(array_length(kokolio._model_cycles(m.code), 1), 0) = 0;
   update kokolio.users set tracked_from = null where tracked_from is not null;   -- les comptes qui restent repartent de la nouvelle mise en service
   update kokolio.meta set value = jsonb_build_object('seq', 0, 'hash', ''), updated_at = now() where key = 'audit_head';
   update kokolio.meta set value = jsonb_set(jsonb_set(value, '{go_live}', to_jsonb(kokolio._today()::text)), '{version}', to_jsonb(coalesce((value->>'version')::int, 1) + 1)), updated_at = now()

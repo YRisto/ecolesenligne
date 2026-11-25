@@ -46,8 +46,9 @@ create table if not exists kokolio.users (
 create unique index if not exists users_login_key on kokolio.users (lower(login));
 create unique index if not exists users_matricule_key on kokolio.users (matricule) where matricule <> '';
 create index if not exists users_manager_idx on kokolio.users (manager_id);
--- Début de suivi propre au compte (schéma 3). Vide pour tout le monde : le suivi commence à la mise en service de l'outil.
--- Seul le chargement des données de démonstration le renseigne, sur les comptes qui existaient déjà, pour que l'historique fictif ne les concerne pas.
+-- Début de suivi propre au compte (schéma 3). Vide : le suivi commence à la mise en service de l'outil.
+-- Les RH le renseignent pour déployer l'outil équipe par équipe ; le chargement des données de démonstration le pose
+-- sur les comptes qui existaient déjà, pour que l'historique fictif ne les concerne pas.
 alter table kokolio.users add column if not exists tracked_from date;
 
 -- Horaires datés : une ligne par période. Modifier un horaire crée une nouvelle ligne, le passé reste intact.
@@ -68,6 +69,63 @@ create table if not exists kokolio.contracts (
   check (array_length(day_minutes, 1) = 7),
   unique (user_id, start_date)
 );
+
+-- ---------------------------------------------------------------------
+-- Planification (schéma 4) : horaires journaliers, cycles, exceptions d'un jour.
+-- Sans cycle, un salarié garde l'horaire fixe de son contrat : rien ne change pour lui.
+-- ---------------------------------------------------------------------
+-- Horaire journalier : une durée, et des plages indicatives (arrivée → départ) qui servent de repère au planning.
+create table if not exists kokolio.day_models (
+  code text primary key,
+  label text not null default '',
+  minutes int not null check (minutes between 1 and 960),
+  ranges jsonb not null default '[]'::jsonb,      -- [["08:45","13:15"],["14:00","18:00"]]
+  color text not null default '',
+  active boolean not null default true,
+  sort int not null default 100,
+  version int not null default 1,
+  created_by uuid references kokolio.users(id),
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+-- Cycle : une ou plusieurs semaines types qui se répètent. Chaque jour porte le code d'un horaire journalier, ou rien (repos).
+create table if not exists kokolio.cycles (
+  id uuid primary key default gen_random_uuid(),
+  name text not null,
+  weeks jsonb not null,                           -- [["J7","J7","J7","J7","J7",null,null], …] lundi → dimanche
+  active boolean not null default true,
+  version int not null default 1,
+  created_by uuid references kokolio.users(id),
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+create unique index if not exists cycles_name_key on kokolio.cycles (lower(name));
+-- Le contrat peut suivre un cycle (la semaine 1 commence le lundi « cycle_anchor ») et fixe le mode de présence :
+-- « pointage » (arrivée et départ) ou « automatique » (les jours prévus sont comptés d'office, sans pointer).
+alter table kokolio.contracts add column if not exists cycle_id uuid references kokolio.cycles(id);
+alter table kokolio.contracts add column if not exists cycle_anchor date;
+alter table kokolio.contracts add column if not exists presence text not null default 'pointage';
+do $$ begin
+  if not exists (select 1 from pg_constraint where conname = 'contracts_presence_check' and conrelid = 'kokolio.contracts'::regclass) then
+    alter table kokolio.contracts add constraint contracts_presence_check check (presence in ('pointage', 'automatique'));
+  end if;
+end $$;
+create index if not exists contracts_cycle_idx on kokolio.contracts (cycle_id) where cycle_id is not null;
+-- Exception d'un jour pour un salarié : elle remplace ce que prévoit son cycle ou son horaire fixe.
+-- La durée et les plages sont recopiées au moment de la saisie : modifier un horaire journalier ne réécrit pas ces jours-là.
+create table if not exists kokolio.plan_days (
+  user_id uuid not null references kokolio.users(id),
+  day date not null,
+  model_code text not null default '',            -- horaire journalier choisi, ou vide (saisie libre, repos)
+  label text not null default '',
+  minutes int not null check (minutes between 0 and 960),   -- 0 = repos
+  ranges jsonb not null default '[]'::jsonb,
+  note text not null default '',
+  set_by uuid references kokolio.users(id),
+  set_at timestamptz not null default now(),
+  primary key (user_id, day)
+);
+create index if not exists plan_days_day_idx on kokolio.plan_days (day);
 
 -- Une ligne par salarié et par jour : les heures retenues et leur état de validation.
 create table if not exists kokolio.days (
@@ -230,6 +288,9 @@ alter table kokolio.closures enable row level security;
 alter table kokolio.sessions enable row level security;
 alter table kokolio.throttle enable row level security;
 alter table kokolio.audit enable row level security;
+alter table kokolio.day_models enable row level security;
+alter table kokolio.cycles enable row level security;
+alter table kokolio.plan_days enable row level security;
 
 -- Valeurs de départ (jamais écrasées si elles existent déjà)
 insert into kokolio.meta (key, value) values
@@ -250,6 +311,7 @@ insert into kokolio.meta (key, value) values
     'max_week_min', 2880,
     'min_rest_min', 660,
     'activation_days', 14,
+    'night_until', '',
     'export', jsonb_build_object('hours_code', 'HS-HN', 'include_hours', true, 'sep', ';', 'decimal', ',', 'header', true)))
 on conflict (key) do nothing;
 
@@ -325,6 +387,9 @@ begin
   return new;
 end $$;
 create or replace trigger days_guard before insert or update or delete on kokolio.days
+  for each row execute function kokolio._guard_days();
+-- Le planning d'un mois clôturé est figé comme ses journées.
+create or replace trigger plan_days_guard before insert or update or delete on kokolio.plan_days
   for each row execute function kokolio._guard_days();
 
 create or replace function kokolio._guard_absences() returns trigger language plpgsql as $$
@@ -431,6 +496,28 @@ create or replace function kokolio._contract_json(c kokolio.contracts) returns j
   select to_jsonb(c) - 'created_by' - 'created_at'
 $$;
 
+-- Un cycle avec ses horaires journaliers résolus : le calcul n'a plus besoin de la bibliothèque.
+create or replace function kokolio._cycle_json(p_id uuid) returns jsonb language sql stable as $$
+  select jsonb_build_object('id', c.id, 'name', c.name, 'active', c.active, 'version', c.version,
+    'weeks', (select coalesce(jsonb_agg(
+        (select jsonb_agg(case when m.code is null then 'null'::jsonb
+                               else jsonb_build_object('code', m.code, 'label', m.label, 'minutes', m.minutes, 'ranges', m.ranges, 'color', m.color) end order by d.o)
+         from jsonb_array_elements_text(w.v) with ordinality as d(code, o) left join kokolio.day_models m on m.code = d.code)
+        order by w.o), '[]'::jsonb)
+      from jsonb_array_elements(c.weeks) with ordinality as w(v, o)))
+  from kokolio.cycles c where c.id = p_id
+$$;
+-- Un cycle (ou un horaire journalier) qui a servi dans un mois clôturé ne change plus de composition : on en crée un nouveau.
+create or replace function kokolio._cycle_locked(p_id uuid) returns boolean language sql stable as $$
+  select exists (
+    select 1 from kokolio.contracts k, jsonb_array_elements_text(kokolio._closed_months()) m
+    where k.cycle_id = p_id and m >= to_char(k.start_date, 'YYYY-MM') and (k.end_date is null or m <= to_char(k.end_date, 'YYYY-MM')))
+$$;
+create or replace function kokolio._model_cycles(p_code text) returns uuid[] language sql stable as $$
+  select coalesce(array_agg(c.id), '{}') from kokolio.cycles c
+  where exists (select 1 from jsonb_array_elements(c.weeks) w, jsonb_array_elements_text(w) x where x = p_code)
+$$;
+
 -- ---------------------------------------------------------------------
 -- Sessions et droits
 -- ---------------------------------------------------------------------
@@ -492,15 +579,29 @@ create or replace function kokolio._lieu_ok(p_code text) returns boolean languag
 $$;
 
 -- Liste d'heures 'HH:MM' : format, ordre, nombre.
+-- Travail de nuit : heure du matin jusqu'à laquelle un départ est rattaché à la journée de la veille. Vide = fonction désactivée.
+create or replace function kokolio._night() returns text language sql stable as $$
+  select case when coalesce(m.value->>'night_until', '') ~ '^(0[0-9]|1[01]):[0-5][0-9]$' then m.value->>'night_until' else '' end
+  from kokolio.meta m where m.key = 'settings'
+$$;
+-- Une heure du lendemain s'écrit au-delà de 24 h : 01:30 le lendemain = « 25:30 ».
+create or replace function kokolio._plus24(p_hm text) returns text language sql immutable as $$
+  select lpad((substr(p_hm, 1, 2)::int + 24)::text, 2, '0') || substr(p_hm, 3)
+$$;
+
 create or replace function kokolio._times(p_j jsonb) returns text[] language plpgsql stable as $$
-declare v_out text[] := '{}'; v_t text; v_prev text := '';
+declare v_out text[] := '{}'; v_t text; v_prev text := ''; v_night text := coalesce(kokolio._night(), '');
 begin
   if p_j is null or jsonb_typeof(p_j) <> 'array' then
     perform kokolio._fail('heures', 'Liste d''heures invalide.');
   end if;
   for v_t in select x.v from jsonb_array_elements_text(p_j) with ordinality as x(v, o) order by x.o loop
-    if v_t !~ '^([01][0-9]|2[0-3]):[0-5][0-9]$' then
+    if v_t !~ '^([01][0-9]|2[0-9]|3[0-5]):[0-5][0-9]$' then
       perform kokolio._fail('heures', 'Heure invalide : ' || left(v_t, 10));
+    end if;
+    if v_t >= '24:00' and (v_night = '' or v_t > kokolio._plus24(v_night)) then
+      perform kokolio._fail('heures', case when v_night = '' then 'Heure invalide : ' || left(v_t, 10)
+        else 'Un départ après minuit est accepté jusqu''à ' || v_night || ' le lendemain.' end);
     end if;
     if v_t < v_prev then
       perform kokolio._fail('heures', 'Les heures doivent se suivre dans l''ordre.');
@@ -511,6 +612,25 @@ begin
   if coalesce(array_length(v_out, 1), 0) > 20 then
     perform kokolio._fail('heures', 'Trop de pointages pour une seule journée.');
   end if;
+  return v_out;
+end $$;
+
+-- Plages indicatives d'un horaire : 0 à 4 plages « début → fin » qui se suivent. Une fin au-delà de 24 h désigne le lendemain.
+create or replace function kokolio._ranges(p_j jsonb) returns jsonb language plpgsql immutable as $$
+declare v_r jsonb; v_a text; v_b text; v_prev text := ''; v_out jsonb := '[]'::jsonb;
+begin
+  if p_j is null or jsonb_typeof(p_j) = 'null' then return v_out; end if;
+  if jsonb_typeof(p_j) <> 'array' or jsonb_array_length(p_j) > 4 then perform kokolio._fail('horaire', 'Plages horaires invalides (quatre au plus).'); end if;
+  for v_r in select x.v from jsonb_array_elements(p_j) with ordinality as x(v, o) order by x.o loop
+    if jsonb_typeof(v_r) <> 'array' or jsonb_array_length(v_r) <> 2 then perform kokolio._fail('horaire', 'Plage horaire invalide.'); end if;
+    v_a := v_r->>0; v_b := v_r->>1;
+    if coalesce(v_a, '') !~ '^([01][0-9]|2[0-3]):[0-5][0-9]$' or coalesce(v_b, '') !~ '^([01][0-9]|2[0-9]|3[0-5]):[0-5][0-9]$' then
+      perform kokolio._fail('horaire', 'Heure de plage invalide.');
+    end if;
+    if v_b <= v_a or v_a < v_prev then perform kokolio._fail('horaire', 'Les plages doivent se suivre, chacune avec une fin après son début.'); end if;
+    v_out := v_out || jsonb_build_array(jsonb_build_array(v_a, v_b));
+    v_prev := v_b;
+  end loop;
   return v_out;
 end $$;
 
@@ -684,7 +804,8 @@ create or replace function kokolio._ctx(me kokolio.users) returns jsonb language
 begin
   return jsonb_build_object(
     'user', kokolio._user_json(me, true),
-    'contract', (select kokolio._contract_json(c) from kokolio.contracts c
+    'contract', (select kokolio._contract_json(c) || jsonb_build_object('cycle', case when c.cycle_id is not null then kokolio._cycle_json(c.cycle_id) end)
+                 from kokolio.contracts c
                  where c.user_id = me.id and c.start_date <= kokolio._today() and (c.end_date is null or c.end_date >= kokolio._today())
                  order by c.start_date desc limit 1),
     'reports', (select count(*) from kokolio.users r where r.manager_id = me.id and not r.disabled),
@@ -743,6 +864,13 @@ begin
     'entries', coalesce((select jsonb_agg(to_jsonb(e) order by e.created_at)
                          from kokolio.balance_entries e
                          where e.user_id = any(v_ids) and e.year between extract(year from v_from)::int and extract(year from v_to)::int), '[]'::jsonb),
+    -- planification : les cycles suivis par ces salariés (résolus), et leurs exceptions sur la période.
+    -- Toujours renvoyées, même sans les journées : le décompte d'une absence en dépend.
+    'cycles', coalesce((select jsonb_agg(kokolio._cycle_json(x.cycle_id))
+                        from (select distinct c.cycle_id from kokolio.contracts c where c.user_id = any(v_ids) and c.cycle_id is not null) x), '[]'::jsonb),
+    'plan', coalesce((select jsonb_agg(jsonb_build_object('user_id', q.user_id, 'day', q.day, 'model_code', q.model_code, 'label', q.label,
+                                                          'minutes', q.minutes, 'ranges', q.ranges, 'note', q.note) order by q.day)
+                      from kokolio.plan_days q where q.user_id = any(v_ids) and q.day between v_from and v_to), '[]'::jsonb),
     'closed', kokolio._closed_months(),
     'fingerprint', case when v_fp is not null then kokolio._month_fingerprint(v_fp) end,
     'ctx', case when coalesce((p_args->>'ctx')::boolean, false) then kokolio._ctx(me) end,
@@ -784,9 +912,31 @@ create or replace function kokolio._punch(me kokolio.users, p jsonb, p_args json
 declare
   d kokolio.days; v_day date := kokolio._today(); v_hm text := kokolio._hm(); v_now timestamptz := kokolio._now();
   v_last timestamptz; v_lieu text := nullif(trim(coalesce(p_args->>'lieu', '')), ''); v_kind text; v_n int;
+  v_night text := coalesce(kokolio._night(), ''); v_hm24 text;
 begin
-  if kokolio._month_closed(to_char(v_day, 'YYYY-MM')) then perform kokolio._fail('cloture', 'Ce mois est clôturé.'); end if;
   if v_lieu is not null and not kokolio._lieu_ok(v_lieu) then perform kokolio._fail('requete', 'Lieu inconnu.'); end if;
+  -- Travail de nuit : la journée commencée la veille et encore ouverte reçoit ce départ, noté au-delà de 24 h.
+  if v_night <> '' and v_hm < v_night then
+    select * into d from kokolio.days x where x.user_id = me.id and x.day = v_day - 1 for update;
+    -- au-delà de seize heures depuis l'arrivée, c'est un départ oublié la veille, pas une nuit de travail : le pointage ouvre la journée du jour
+    if d.id is not null and coalesce(array_length(d.times, 1), 0) % 2 = 1 and d.status <> 'valide'
+       and not kokolio._month_closed(to_char(v_day - 1, 'YYYY-MM'))
+       and (substr(v_hm, 1, 2)::int + 24) * 60 + substr(v_hm, 4, 2)::int
+           - (substr(d.times[array_length(d.times, 1)], 1, 2)::int * 60 + substr(d.times[array_length(d.times, 1)], 4, 2)::int) <= 960 then
+      select max(l.ts) into v_last from kokolio.punch_log l where l.user_id = me.id and l.day = v_day - 1;
+      if v_last is not null and v_now - v_last < interval '15 seconds' then
+        return jsonb_build_object('day', kokolio._day_json(d), 'duplicate', true, 'hm', v_hm);
+      end if;
+      v_hm24 := kokolio._plus24(v_hm);
+      update kokolio.days set times = d.times || v_hm24, status = 'a_valider', refusal_reason = '', decided_by = null, decided_at = null,
+        version = d.version + 1, updated_at = v_now
+      where id = d.id returning * into d;
+      insert into kokolio.punch_log (user_id, ts, day, hhmm, kind, ip, ua)
+      values (me.id, v_now, v_day - 1, v_hm24, 'depart', coalesce(p->>'ip', ''), left(coalesce(p->>'ua', ''), 200));
+      return jsonb_build_object('day', kokolio._day_json(d), 'kind', 'depart', 'hm', v_hm, 'veille', true);
+    end if;
+  end if;
+  if kokolio._month_closed(to_char(v_day, 'YYYY-MM')) then perform kokolio._fail('cloture', 'Ce mois est clôturé.'); end if;
   insert into kokolio.days (user_id, day, lieu) values (me.id, v_day, coalesce(v_lieu, 'bureau')) on conflict (user_id, day) do nothing;
   select * into d from kokolio.days x where x.user_id = me.id and x.day = v_day for update;
   v_n := coalesce(array_length(d.times, 1), 0);
@@ -826,7 +976,7 @@ declare
   v_uid uuid := coalesce(nullif(p_args->>'user_id', '')::uuid, me.id); v_day date := (p_args->>'day')::date;
   v_times text[] := kokolio._times(p_args->'times'); v_comment text := trim(coalesce(p_args->>'comment', ''));
   v_lieu text := nullif(trim(coalesce(p_args->>'lieu', '')), ''); d kokolio.days; v_before text[];
-  v_n int; v_today date := kokolio._today(); v_behalf boolean;
+  v_n int; v_today date := kokolio._today(); v_behalf boolean; v_night text := coalesce(kokolio._night(), ''); v_hm text := kokolio._hm();
 begin
   v_n := coalesce(array_length(v_times, 1), 0);
   v_behalf := v_uid <> me.id;
@@ -837,8 +987,14 @@ begin
     perform kokolio._fail('introuvable', 'Salarié introuvable.');
   end if;
   if v_day is null or v_day > v_today then perform kokolio._fail('date', 'Choisissez un jour passé ou aujourd''hui.'); end if;
-  if v_n % 2 = 1 and v_day <> v_today then perform kokolio._fail('heures', 'Chaque arrivée doit avoir son départ.'); end if;
-  if v_day = v_today and v_n > 0 and v_times[v_n] > kokolio._hm() then
+  -- une journée de nuit commencée la veille peut rester ouverte jusqu'à l'heure limite du matin
+  if v_n % 2 = 1 and v_day <> v_today and not (v_night <> '' and v_day = v_today - 1 and v_hm < v_night) then
+    perform kokolio._fail('heures', 'Chaque arrivée doit avoir son départ.');
+  end if;
+  if v_day = v_today and v_n > 0 and v_times[v_n] > v_hm then
+    perform kokolio._fail('heures', 'Une heure saisie est dans le futur.');
+  end if;
+  if v_day = v_today - 1 and v_n > 0 and v_times[v_n] >= '24:00' and v_times[v_n] > kokolio._plus24(v_hm) then
     perform kokolio._fail('heures', 'Une heure saisie est dans le futur.');
   end if;
   if length(v_comment) < 3 then perform kokolio._fail('motif', 'Indiquez le motif de la correction.'); end if;
@@ -1073,9 +1229,22 @@ declare
   v_regime text := coalesce(nullif(p_c->>'regime', ''), 'horaire'); v_dm int[]; v_wd int[]; v_i int; c kokolio.contracts;
   v_pause int := coalesce((p_c->>'pause_minutes')::int, 45); v_cp numeric := coalesce((p_c->>'cp_per_month')::numeric, 2.08);
   v_fd int := coalesce((p_c->>'forfait_days')::int, 218);
+  v_cycle uuid := nullif(p_c->>'cycle_id', '')::uuid; v_anchor date := nullif(p_c->>'cycle_anchor', '')::date;
+  v_presence text := coalesce(nullif(p_c->>'presence', ''), 'pointage'); k kokolio.cycles;
 begin
   if v_regime not in ('horaire', 'forfait_jours') then perform kokolio._fail('horaire', 'Régime inconnu.'); end if;
+  if v_presence not in ('pointage', 'automatique') then perform kokolio._fail('horaire', 'Mode de présence inconnu.'); end if;
   if p_start is null then perform kokolio._fail('horaire', 'Date d''effet manquante.'); end if;
+  if v_cycle is not null then
+    select * into k from kokolio.cycles x where x.id = v_cycle;
+    if k.id is null then perform kokolio._fail('horaire', 'Cycle de travail introuvable.'); end if;
+    if not k.active then perform kokolio._fail('horaire', 'Ce cycle de travail est désactivé : choisissez-en un autre.'); end if;
+    -- la semaine 1 du cycle commence un lundi : celui de la date indiquée, ou à défaut celui de la date d'effet
+    v_anchor := coalesce(v_anchor, p_start);
+    v_anchor := v_anchor - (extract(isodow from v_anchor)::int - 1);
+  else
+    v_anchor := null;
+  end if;
   if jsonb_typeof(p_c->'day_minutes') = 'array' and jsonb_array_length(p_c->'day_minutes') = 7 then
     select array_agg((x.v)::int order by x.o) into v_dm from jsonb_array_elements_text(p_c->'day_minutes') with ordinality as x(v, o);
   else
@@ -1084,14 +1253,20 @@ begin
   for v_i in 1..7 loop
     if v_dm[v_i] is null or v_dm[v_i] < 0 or v_dm[v_i] > 960 then perform kokolio._fail('horaire', 'Durée journalière invalide.'); end if;
   end loop;
-  if v_regime = 'forfait_jours' then
+  if v_cycle is not null then
+    -- avec un cycle, la semaine du contrat n'est qu'un repère : on y recopie la première semaine du cycle
+    select array_agg(coalesce(m.minutes, 0) order by d.o), array_agg(d.o::int order by d.o) filter (where m.code is not null) into v_dm, v_wd
+    from jsonb_array_elements_text(k.weeks->0) with ordinality as d(code, o) left join kokolio.day_models m on m.code = d.code;
+    v_wd := coalesce(v_wd, '{}');
+    if v_regime = 'forfait_jours' then v_dm := '{0,0,0,0,0,0,0}'; end if;
+  elsif v_regime = 'forfait_jours' then
     select array_agg(z.w order by z.w) into v_wd
     from (select distinct (y)::int as w from jsonb_array_elements_text(case when jsonb_typeof(p_c->'work_days') = 'array' then p_c->'work_days' else '[1,2,3,4,5]'::jsonb end) y) z;
     v_dm := '{0,0,0,0,0,0,0}';
   else
     select array_agg(g.i order by g.i) into v_wd from generate_series(1, 7) g(i) where v_dm[g.i] > 0;
   end if;
-  if v_wd is null or exists (select 1 from unnest(v_wd) w where w < 1 or w > 7) then
+  if v_wd is null or (v_cycle is null and coalesce(array_length(v_wd, 1), 0) = 0) or exists (select 1 from unnest(v_wd) w where w < 1 or w > 7) then
     perform kokolio._fail('horaire', 'Indiquez au moins un jour travaillé.');
   end if;
   if v_pause < 0 or v_pause > 180 or v_cp < 0 or v_cp > 5 or v_fd < 1 or v_fd > 366 then
@@ -1103,8 +1278,8 @@ begin
   end if;
   delete from kokolio.contracts x where x.user_id = p_user and x.start_date >= p_start;
   update kokolio.contracts set end_date = p_start - 1 where user_id = p_user and start_date < p_start and (end_date is null or end_date >= p_start);
-  insert into kokolio.contracts (user_id, start_date, regime, day_minutes, work_days, pause_minutes, cp_per_month, forfait_days, created_by)
-  values (p_user, p_start, v_regime, v_dm, v_wd, v_pause, v_cp, v_fd, p_by) returning * into c;
+  insert into kokolio.contracts (user_id, start_date, regime, day_minutes, work_days, pause_minutes, cp_per_month, forfait_days, cycle_id, cycle_anchor, presence, created_by)
+  values (p_user, p_start, v_regime, v_dm, v_wd, v_pause, v_cp, v_fd, v_cycle, v_anchor, v_presence, p_by) returning * into c;
   return c;
 end $$;
 
@@ -1118,6 +1293,8 @@ begin
   return jsonb_build_object(
     'user', kokolio._user_json(u, v_full),
     'contracts', coalesce((select jsonb_agg(kokolio._contract_json(c) order by c.start_date) from kokolio.contracts c where c.user_id = v_id), '[]'::jsonb),
+    'cycles', coalesce((select jsonb_agg(kokolio._cycle_json(x.cycle_id))
+                        from (select distinct c.cycle_id from kokolio.contracts c where c.user_id = v_id and c.cycle_id is not null) x), '[]'::jsonb),
     'entries', case when v_full then coalesce((select jsonb_agg(to_jsonb(e) order by e.year desc, e.created_at) from kokolio.balance_entries e where e.user_id = v_id), '[]'::jsonb) else '[]'::jsonb end,
     'today', kokolio._today());
 end $$;
@@ -1140,6 +1317,7 @@ declare
   v_role text; v_mat text := trim(coalesce(p_args->>'matricule', '')); v_details jsonb := coalesce(p_args->'details', '{}'::jsonb);
   v_entry date := nullif(p_args->>'entry_date', '')::date; v_exit date := nullif(p_args->>'exit_date', '')::date;
   v_now timestamptz := kokolio._now(); v_diff jsonb; v_days int; c kokolio.contracts;
+  v_tracked date; v_go date; v_first date; v_a date; v_b date;
 begin
   v_new := v_id is null;
   if me.role not in ('rh', 'admin') then perform kokolio._fail('interdit', 'Accès réservé aux RH.'); end if;
@@ -1163,6 +1341,18 @@ begin
   if trim(coalesce(p_args->>'last_name', '')) = '' then perform kokolio._fail('nom', 'Le nom est obligatoire.'); end if;
   if v_exit is not null and v_entry is not null and v_exit < v_entry then perform kokolio._fail('date', 'La date de sortie précède la date d''entrée.'); end if;
   if jsonb_typeof(v_details) <> 'object' or length(v_details::text) > 6000 then perform kokolio._fail('requete', 'Fiche trop volumineuse.'); end if;
+  -- Début de suivi : envoyé seulement quand les RH le modifient ; sinon la valeur en place est conservée.
+  v_tracked := case when p_args ? 'tracked_from' then nullif(p_args->>'tracked_from', '')::date when v_new then null else o.tracked_from end;
+  if not v_new and v_tracked is distinct from o.tracked_from then
+    -- Déplacer le début de suivi change ce qui est attendu entre l'ancien et le nouveau premier jour : impossible si un mois clôturé s'y trouve.
+    select case when m.value->>'go_live' ~ '^[0-9]{4}-[0-9]{2}-[0-9]{2}$' then (m.value->>'go_live')::date else date '1900-01-01' end into v_go from kokolio.meta m where m.key = 'settings';
+    select min(x.start_date) into v_first from kokolio.contracts x where x.user_id = v_id;
+    v_a := greatest(v_go, coalesce(o.tracked_from, date '1900-01-01'), coalesce(v_entry, date '1900-01-01'), coalesce(v_first, date '1900-01-01'));
+    v_b := greatest(v_go, coalesce(v_tracked, date '1900-01-01'), coalesce(v_entry, date '1900-01-01'), coalesce(v_first, date '1900-01-01'));
+    if v_a <> v_b and v_first is not null and kokolio._range_closed(least(v_a, v_b), greatest(v_a, v_b) - 1) then
+      perform kokolio._fail('cloture', 'Un mois clôturé se trouve entre l''ancien et le nouveau début de suivi : il ne peut plus être déplacé sur cette période.');
+    end if;
+  end if;
   if v_mgr is not null then
     if not exists (select 1 from kokolio.users x where x.id = v_mgr) then perform kokolio._fail('responsable', 'Responsable introuvable.'); end if;
     if not v_new then
@@ -1180,9 +1370,9 @@ begin
     end if;
   end if;
   if v_new then
-    insert into kokolio.users (login, role, first_name, last_name, matricule, email, team, job, manager_id, entry_date, exit_date, details)
+    insert into kokolio.users (login, role, first_name, last_name, matricule, email, team, job, manager_id, entry_date, exit_date, details, tracked_from)
     values (v_login, v_role, trim(coalesce(p_args->>'first_name', '')), trim(p_args->>'last_name'), v_mat, trim(coalesce(p_args->>'email', '')),
-            trim(coalesce(p_args->>'team', '')), trim(coalesce(p_args->>'job', '')), v_mgr, v_entry, v_exit, v_details)
+            trim(coalesce(p_args->>'team', '')), trim(coalesce(p_args->>'job', '')), v_mgr, v_entry, v_exit, v_details, v_tracked)
     returning * into u;
     c := kokolio._contract_apply(u.id, coalesce(v_entry, date '2000-01-01'), coalesce(p_args->'contract', '{}'::jsonb), me.id);
     if coalesce(p_args->>'code_hash', '') ~ '^[0-9a-f]{64}$' then
@@ -1196,11 +1386,11 @@ begin
     end if;
     update kokolio.users set login = v_login, role = v_role, first_name = trim(coalesce(p_args->>'first_name', '')), last_name = trim(p_args->>'last_name'),
       matricule = v_mat, email = trim(coalesce(p_args->>'email', '')), team = trim(coalesce(p_args->>'team', '')), job = trim(coalesce(p_args->>'job', '')),
-      manager_id = v_mgr, entry_date = v_entry, exit_date = v_exit, details = v_details,
+      manager_id = v_mgr, entry_date = v_entry, exit_date = v_exit, details = v_details, tracked_from = v_tracked,
       disabled = coalesce((p_args->>'disabled')::boolean, o.disabled), version = o.version + 1, updated_at = v_now
     where id = v_id returning * into u;
     if u.disabled and not o.disabled then delete from kokolio.sessions s where s.user_id = u.id; end if;
-    v_diff := kokolio._diff(to_jsonb(o), to_jsonb(u), array['login', 'role', 'first_name', 'last_name', 'matricule', 'email', 'team', 'job', 'manager_id', 'entry_date', 'exit_date', 'disabled'])
+    v_diff := kokolio._diff(to_jsonb(o), to_jsonb(u), array['login', 'role', 'first_name', 'last_name', 'matricule', 'email', 'team', 'job', 'manager_id', 'entry_date', 'exit_date', 'tracked_from', 'disabled'])
       || case when o.details is distinct from u.details then jsonb_build_object('details', (select coalesce(jsonb_agg(k), '[]'::jsonb) from (
            select k from jsonb_object_keys(o.details || u.details) k where (o.details->k) is distinct from (u.details->k)) z)) else '{}'::jsonb end;
     perform kokolio._audit(me.id, 'fiche_modifiee', u.id, u.login, v_diff, coalesce(p->>'ip', ''));
@@ -1218,7 +1408,9 @@ begin
   update kokolio.users set version = u.version + 1, updated_at = kokolio._now() where id = u.id;
   perform kokolio._audit(me.id, 'horaire_modifie', u.id, u.login,
     jsonb_build_object('a_compter_du', c.start_date, 'regime', c.regime, 'minutes_par_jour', to_jsonb(c.day_minutes), 'jours', to_jsonb(c.work_days),
-      'pause', c.pause_minutes, 'cp_par_mois', c.cp_per_month, 'forfait_jours', c.forfait_days), coalesce(p->>'ip', ''));
+      'pause', c.pause_minutes, 'cp_par_mois', c.cp_per_month, 'forfait_jours', c.forfait_days, 'presence', c.presence)
+      || case when c.cycle_id is not null then jsonb_build_object('cycle', (select x.name from kokolio.cycles x where x.id = c.cycle_id), 'semaine_1_du_cycle', c.cycle_anchor) else '{}'::jsonb end,
+    coalesce(p->>'ip', ''));
   return jsonb_build_object('contract', kokolio._contract_json(c));
 end $$;
 
@@ -1242,10 +1434,10 @@ begin
     begin
       if u.id is null then
         v_role := case when me.role = 'admin' and r->>'role' in ('rh', 'admin') then r->>'role' else 'salarie' end;
-        insert into kokolio.users (login, role, first_name, last_name, matricule, email, team, job, entry_date, exit_date, details, act_hash, act_expires)
+        insert into kokolio.users (login, role, first_name, last_name, matricule, email, team, job, entry_date, exit_date, details, tracked_from, act_hash, act_expires)
         values (v_login, v_role, trim(coalesce(r->>'first_name', '')), trim(r->>'last_name'), trim(coalesce(r->>'matricule', '')),
                 trim(coalesce(r->>'email', '')), trim(coalesce(r->>'team', '')), trim(coalesce(r->>'job', '')),
-                nullif(r->>'entry_date', '')::date, nullif(r->>'exit_date', '')::date, coalesce(r->'details', '{}'::jsonb),
+                nullif(r->>'entry_date', '')::date, nullif(r->>'exit_date', '')::date, coalesce(r->'details', '{}'::jsonb), nullif(r->>'tracked_from', '')::date,
                 case when coalesce(r->>'code_hash', '') ~ '^[0-9a-f]{64}$' then r->>'code_hash' end,
                 case when coalesce(r->>'code_hash', '') ~ '^[0-9a-f]{64}$' then v_now + make_interval(days => coalesce(v_days, 14)) end)
         returning * into u;
@@ -1363,7 +1555,11 @@ begin
     coalesce((select string_agg(d.id::text || ':' || d.version, ',' order by d.id) from kokolio.days d where d.day between v_d1 and v_d2), '') || '#' ||
     coalesce((select string_agg(a.id::text || ':' || a.version, ',' order by a.id) from kokolio.absences a where a.start_date <= v_d2 and a.end_date >= v_d1), '') || '#' ||
     coalesce((select string_agg(c.id::text || ':' || c.start_date || ':' || coalesce(c.end_date::text, ''), ',' order by c.id) from kokolio.contracts c), '') || '#' ||
-    coalesce((select string_agg(u.id::text || ':' || u.version, ',' order by u.id) from kokolio.users u), ''), 'UTF8')), 'hex') into v_s;
+    coalesce((select string_agg(u.id::text || ':' || u.version, ',' order by u.id) from kokolio.users u), '') || '#' ||
+    coalesce((select string_agg(q.user_id::text || ':' || q.day || ':' || q.minutes || ':' || extract(epoch from q.set_at), ',' order by q.user_id, q.day)
+              from kokolio.plan_days q where q.day between v_d1 and v_d2), '') || '#' ||
+    coalesce((select string_agg(k.id::text || ':' || k.version, ',' order by k.id) from kokolio.cycles k), '') || '#' ||
+    coalesce((select string_agg(m.code || ':' || m.version, ',' order by m.code) from kokolio.day_models m), ''), 'UTF8')), 'hex') into v_s;
   return v_s;
 end $$;
 
@@ -1525,6 +1721,12 @@ begin
       v_new := jsonb_set(v_new, array[v_k], v_in->v_k);
     end if;
   end loop;
+  if v_in ? 'night_until' then
+    if coalesce(v_in->>'night_until', '') <> '' and (v_in->>'night_until') !~ '^(0[0-9]|1[01]):[0-5][0-9]$' then
+      perform kokolio._fail('parametre', 'Heure limite de nuit invalide : entre 00:00 et 11:59, ou vide pour désactiver.');
+    end if;
+    v_new := jsonb_set(v_new, '{night_until}', to_jsonb(coalesce(v_in->>'night_until', '')));
+  end if;
   if (v_new->>'activation_days')::int < 1 or (v_new->>'activation_days')::int > 90 then perform kokolio._fail('parametre', 'Durée de validité des codes : entre 1 et 90 jours.'); end if;
   if v_in ? 'lieux' then
     if jsonb_typeof(v_in->'lieux') <> 'array' or jsonb_array_length(v_in->'lieux') < 1 or jsonb_array_length(v_in->'lieux') > 8 then
@@ -1549,7 +1751,7 @@ begin
   v_new := jsonb_set(v_new, '{version}', to_jsonb(coalesce((v_old->>'version')::int, 1) + 1));
   update kokolio.meta set value = v_new, updated_at = now() where key = 'settings';
   perform kokolio._audit(me.id, 'parametres_modifies', null, '',
-    kokolio._diff(v_old, v_new, array['company', 'logo_url', 'go_live', 'pause_threshold_min', 'max_day_min', 'max_week_min', 'min_rest_min', 'activation_days', 'lieux', 'export']),
+    kokolio._diff(v_old, v_new, array['company', 'logo_url', 'go_live', 'pause_threshold_min', 'max_day_min', 'max_week_min', 'min_rest_min', 'activation_days', 'night_until', 'lieux', 'export']),
     coalesce(p->>'ip', ''));
   return jsonb_build_object('settings', v_new);
 end $$;
@@ -1597,6 +1799,186 @@ begin
     'now', kokolio._now(), 'today', kokolio._today(), 'hm', kokolio._hm());
 end $$;
 -- =====================================================================
+-- Kokolio — planification : horaires journaliers, cycles, exceptions d'un jour
+-- Bibliothèque (horaires, cycles) : RH et administrateurs. Planning d'un salarié : son responsable direct, ou les RH.
+-- =====================================================================
+
+-- Bibliothèque : les horaires journaliers et les cycles, avec ce qu'il faut pour savoir s'ils sont utilisés ou figés.
+create or replace function kokolio._planning_lib(me kokolio.users) returns jsonb language plpgsql stable as $$
+declare v_today date := kokolio._today();
+begin
+  if me.role = 'salarie' and not exists (select 1 from kokolio.users r where r.manager_id = me.id) then
+    perform kokolio._fail('interdit', 'Accès réservé aux responsables et aux RH.');
+  end if;
+  return jsonb_build_object(
+    'can_edit', me.role in ('rh', 'admin'),
+    'models', coalesce((select jsonb_agg(jsonb_build_object('code', m.code, 'label', m.label, 'minutes', m.minutes, 'ranges', m.ranges, 'color', m.color,
+        'active', m.active, 'sort', m.sort, 'version', m.version,
+        'cycles', coalesce(array_length(kokolio._model_cycles(m.code), 1), 0),
+        'locked', exists (select 1 from unnest(kokolio._model_cycles(m.code)) x where kokolio._cycle_locked(x))) order by m.sort, m.code)
+      from kokolio.day_models m), '[]'::jsonb),
+    'cycles', coalesce((select jsonb_agg(kokolio._cycle_json(c.id) || jsonb_build_object('codes', c.weeks,
+        'assigned', (select count(distinct k.user_id) from kokolio.contracts k where k.cycle_id = c.id and (k.end_date is null or k.end_date >= v_today)),
+        'locked', kokolio._cycle_locked(c.id)) order by lower(c.name))
+      from kokolio.cycles c), '[]'::jsonb));
+end $$;
+
+-- Créer ou modifier un horaire journalier. Sa durée ne change plus dès qu'un cycle qui l'emploie a servi dans un mois clôturé.
+create or replace function kokolio._model_save(me kokolio.users, p jsonb, p_args jsonb) returns jsonb language plpgsql as $$
+declare
+  j jsonb := coalesce(p_args->'model', '{}'::jsonb); v_code text := upper(trim(coalesce(j->>'code', ''))); o kokolio.day_models; m kokolio.day_models;
+  v_label text := trim(coalesce(j->>'label', '')); v_min int; v_ranges jsonb; v_color text := coalesce(j->>'color', ''); v_new boolean := coalesce((p_args->>'create')::boolean, false);
+begin
+  if me.role not in ('rh', 'admin') then perform kokolio._fail('interdit', 'Accès réservé aux RH.'); end if;
+  if v_code !~ '^[A-Z0-9][A-Z0-9_-]{0,11}$' then perform kokolio._fail('horaire', 'Code invalide : 1 à 12 caractères, lettres majuscules, chiffres, tiret.'); end if;
+  if length(v_label) < 1 or length(v_label) > 60 then perform kokolio._fail('horaire', 'Donnez un nom à cet horaire (60 caractères au plus).'); end if;
+  if jsonb_typeof(j->'minutes') is distinct from 'number' or (j->>'minutes')::numeric <> trunc((j->>'minutes')::numeric)
+     or (j->>'minutes')::numeric < 1 or (j->>'minutes')::numeric > 960 then
+    perform kokolio._fail('horaire', 'Durée invalide : entre 1 minute et 16 heures.');
+  end if;
+  v_min := (j->>'minutes')::int;
+  v_ranges := kokolio._ranges(j->'ranges');
+  if v_color not in ('', 'bleu', 'vert', 'ambre', 'rose', 'violet', 'turquoise', 'brique', 'gris') then perform kokolio._fail('horaire', 'Couleur inconnue.'); end if;
+  select * into o from kokolio.day_models x where x.code = v_code for update;
+  if o.code is null then
+    if not v_new then perform kokolio._fail('introuvable', 'Horaire introuvable.'); end if;
+    insert into kokolio.day_models (code, label, minutes, ranges, color, active, sort, created_by)
+    values (v_code, v_label, v_min, v_ranges, v_color, coalesce((j->>'active')::boolean, true), coalesce((j->>'sort')::int, 100), me.id) returning * into m;
+    perform kokolio._audit(me.id, 'horaire_type_cree', null, v_code, jsonb_build_object('nom', v_label, 'minutes', v_min, 'plages', v_ranges), coalesce(p->>'ip', ''));
+  else
+    if v_new then perform kokolio._fail('horaire', 'Ce code est déjà utilisé par l''horaire « ' || o.label || ' ».'); end if;
+    if p_args ? 'version' and (p_args->>'version')::int <> o.version then
+      perform kokolio._fail('conflit', 'Cet horaire a été modifié entre-temps. Rechargez la page.');
+    end if;
+    if v_min <> o.minutes and exists (select 1 from unnest(kokolio._model_cycles(v_code)) x where kokolio._cycle_locked(x)) then
+      perform kokolio._fail('cloture', 'Cet horaire a servi dans un mois clôturé : sa durée ne peut plus changer. Créez un nouvel horaire et placez-le dans un nouveau cycle.');
+    end if;
+    update kokolio.day_models set label = v_label, minutes = v_min, ranges = v_ranges, color = v_color,
+      active = coalesce((j->>'active')::boolean, o.active), sort = coalesce((j->>'sort')::int, o.sort), version = o.version + 1, updated_at = kokolio._now()
+    where code = v_code returning * into m;
+    perform kokolio._audit(me.id, 'horaire_type_modifie', null, v_code,
+      kokolio._diff(to_jsonb(o), to_jsonb(m), array['label', 'minutes', 'ranges', 'color', 'active']), coalesce(p->>'ip', ''));
+  end if;
+  return jsonb_build_object('model', to_jsonb(m) - 'created_by' - 'created_at');
+end $$;
+
+-- Créer ou modifier un cycle. Sa composition ne change plus dès qu'il a servi dans un mois clôturé : on le duplique.
+create or replace function kokolio._cycle_save(me kokolio.users, p jsonb, p_args jsonb) returns jsonb language plpgsql as $$
+declare
+  j jsonb := coalesce(p_args->'cycle', '{}'::jsonb); v_id uuid := nullif(j->>'id', '')::uuid; o kokolio.cycles; c kokolio.cycles;
+  v_name text := trim(coalesce(j->>'name', '')); v_weeks jsonb := '[]'::jsonb; w jsonb; x jsonb; v_week jsonb; v_code text; v_n int := 0;
+begin
+  if me.role not in ('rh', 'admin') then perform kokolio._fail('interdit', 'Accès réservé aux RH.'); end if;
+  if length(v_name) < 2 or length(v_name) > 60 then perform kokolio._fail('horaire', 'Donnez un nom au cycle (2 à 60 caractères).'); end if;
+  if jsonb_typeof(j->'weeks') is distinct from 'array' or jsonb_array_length(j->'weeks') < 1 or jsonb_array_length(j->'weeks') > 12 then
+    perform kokolio._fail('horaire', 'Un cycle compte entre 1 et 12 semaines.');
+  end if;
+  for w in select y.v from jsonb_array_elements(j->'weeks') with ordinality as y(v, o) order by y.o loop
+    if jsonb_typeof(w) <> 'array' or jsonb_array_length(w) <> 7 then perform kokolio._fail('horaire', 'Chaque semaine du cycle compte sept jours.'); end if;
+    v_week := '[]'::jsonb;
+    for x in select y.v from jsonb_array_elements(w) with ordinality as y(v, o) order by y.o loop
+      v_code := upper(trim(coalesce(x #>> '{}', '')));
+      if v_code = '' then
+        v_week := v_week || 'null'::jsonb;
+      else
+        if not exists (select 1 from kokolio.day_models m where m.code = v_code) then
+          perform kokolio._fail('horaire', 'Horaire journalier inconnu : ' || left(v_code, 12));
+        end if;
+        v_week := v_week || to_jsonb(v_code);
+        v_n := v_n + 1;
+      end if;
+    end loop;
+    v_weeks := v_weeks || jsonb_build_array(v_week);
+  end loop;
+  if v_n = 0 then perform kokolio._fail('horaire', 'Le cycle doit contenir au moins un jour travaillé.'); end if;
+  if exists (select 1 from kokolio.cycles y where lower(y.name) = lower(v_name) and (v_id is null or y.id <> v_id)) then
+    perform kokolio._fail('horaire', 'Un cycle porte déjà ce nom.');
+  end if;
+  if v_id is null then
+    insert into kokolio.cycles (name, weeks, active, created_by) values (v_name, v_weeks, coalesce((j->>'active')::boolean, true), me.id) returning * into c;
+    perform kokolio._audit(me.id, 'cycle_cree', null, v_name, jsonb_build_object('semaines', jsonb_array_length(v_weeks), 'composition', v_weeks), coalesce(p->>'ip', ''));
+  else
+    select * into o from kokolio.cycles y where y.id = v_id for update;
+    if o.id is null then perform kokolio._fail('introuvable', 'Cycle introuvable.'); end if;
+    if p_args ? 'version' and (p_args->>'version')::int <> o.version then
+      perform kokolio._fail('conflit', 'Ce cycle a été modifié entre-temps. Rechargez la page.');
+    end if;
+    if o.weeks <> v_weeks and kokolio._cycle_locked(v_id) then
+      perform kokolio._fail('cloture', 'Ce cycle a servi dans un mois clôturé : sa composition ne peut plus changer. Dupliquez-le, puis attribuez le nouveau cycle à partir d''une date.');
+    end if;
+    update kokolio.cycles set name = v_name, weeks = v_weeks, active = coalesce((j->>'active')::boolean, o.active), version = o.version + 1, updated_at = kokolio._now()
+    where id = v_id returning * into c;
+    perform kokolio._audit(me.id, 'cycle_modifie', null, v_name, kokolio._diff(to_jsonb(o), to_jsonb(c), array['name', 'weeks', 'active']), coalesce(p->>'ip', ''));
+  end if;
+  return jsonb_build_object('cycle', kokolio._cycle_json(c.id) || jsonb_build_object('codes', c.weeks));
+end $$;
+
+-- Planning : poser, modifier ou retirer l'exception d'un jour pour un ou plusieurs salariés. Tout passe ou rien ne passe.
+-- Chaque élément : { user_id, day, clear } pour revenir au planning par défaut, { …, model_code } pour un horaire de la bibliothèque,
+-- ou { …, minutes, ranges, label } pour une saisie libre (0 minute = repos).
+create or replace function kokolio._plan_set(me kokolio.users, p jsonb, p_args jsonb) returns jsonb language plpgsql as $$
+declare
+  r jsonb; v_uid uuid; v_day date; v_today date := kokolio._today(); m kokolio.day_models; v_min int; v_ranges jsonb; v_label text; v_code text;
+  v_note text; v_set int := 0; v_cleared int := 0; v_n int := 0; v_ok jsonb := '{}'::jsonb; v_touch jsonb := '{}'::jsonb; v_k text; v_login text;
+begin
+  if jsonb_typeof(p_args->'items') is distinct from 'array' or jsonb_array_length(p_args->'items') < 1 or jsonb_array_length(p_args->'items') > 3000 then
+    perform kokolio._fail('requete', 'Sélectionnez entre 1 et 3 000 jours.');
+  end if;
+  for r in select y.v from jsonb_array_elements(p_args->'items') with ordinality as y(v, o) order by y.o loop
+    v_uid := nullif(r->>'user_id', '')::uuid; v_day := nullif(r->>'day', '')::date; v_n := v_n + 1;
+    if v_uid is null or v_day is null then perform kokolio._fail('requete', 'Jour de planning invalide.'); end if;
+    if not (v_ok ? v_uid::text) then
+      if not kokolio._can_manage(me, v_uid) then perform kokolio._fail('interdit', 'Vous ne pouvez pas modifier le planning de ce salarié.'); end if;
+      if not exists (select 1 from kokolio.contracts k where k.user_id = v_uid) then
+        perform kokolio._fail('horaire', 'Ce compte n''a pas d''horaire : il ne peut pas être planifié.');
+      end if;
+      v_ok := v_ok || jsonb_build_object(v_uid::text, true);
+    end if;
+    if v_day < v_today - 366 or v_day > v_today + 732 then perform kokolio._fail('date', 'Le planning se modifie sur un an en arrière et deux ans en avant.'); end if;
+    if kokolio._month_closed(to_char(v_day, 'YYYY-MM')) then
+      perform kokolio._fail('cloture', 'Le ' || to_char(v_day, 'DD/MM/YYYY') || ' est dans un mois clôturé : son planning ne change plus.');
+    end if;
+    if coalesce((r->>'clear')::boolean, false) then
+      delete from kokolio.plan_days q where q.user_id = v_uid and q.day = v_day;
+      if found then v_cleared := v_cleared + 1; v_touch := jsonb_set(v_touch, array[v_uid::text], coalesce(v_touch->(v_uid::text), '[]'::jsonb) || jsonb_build_object('jour', v_day, 'horaire', 'par défaut')); end if;
+      continue;
+    end if;
+    v_code := upper(trim(coalesce(r->>'model_code', '')));
+    v_note := left(trim(coalesce(r->>'note', '')), 200);
+    if v_code <> '' then
+      select * into m from kokolio.day_models x where x.code = v_code;
+      if m.code is null then perform kokolio._fail('horaire', 'Horaire journalier inconnu : ' || left(v_code, 12)); end if;
+      if not m.active then perform kokolio._fail('horaire', 'L''horaire « ' || m.label || ' » est désactivé.'); end if;
+      v_min := m.minutes; v_ranges := m.ranges; v_label := m.label;
+    else
+      if jsonb_typeof(r->'minutes') is distinct from 'number' or (r->>'minutes')::numeric <> trunc((r->>'minutes')::numeric)
+         or (r->>'minutes')::numeric < 0 or (r->>'minutes')::numeric > 960 then
+        perform kokolio._fail('horaire', 'Durée invalide : entre 0 et 16 heures.');
+      end if;
+      v_min := (r->>'minutes')::int;
+      v_ranges := case when v_min = 0 then '[]'::jsonb else kokolio._ranges(r->'ranges') end;
+      v_label := left(trim(coalesce(r->>'label', '')), 60);
+      if v_label = '' then v_label := case when v_min = 0 then 'Repos' else 'Horaire du jour' end; end if;
+    end if;
+    insert into kokolio.plan_days (user_id, day, model_code, label, minutes, ranges, note, set_by, set_at)
+    values (v_uid, v_day, v_code, v_label, v_min, v_ranges, v_note, me.id, kokolio._now())
+    on conflict (user_id, day) do update set model_code = excluded.model_code, label = excluded.label, minutes = excluded.minutes,
+      ranges = excluded.ranges, note = excluded.note, set_by = excluded.set_by, set_at = excluded.set_at;
+    v_set := v_set + 1;
+    v_touch := jsonb_set(v_touch, array[v_uid::text], coalesce(v_touch->(v_uid::text), '[]'::jsonb)
+      || jsonb_build_object('jour', v_day, 'horaire', case when v_code <> '' then v_code else v_label end, 'minutes', v_min));
+  end loop;
+  -- une ligne de journal par salarié concerné (le détail est borné : au-delà de soixante jours, seul le nombre est gardé)
+  for v_k in select jsonb_object_keys(v_touch) loop
+    select x.login into v_login from kokolio.users x where x.id = v_k::uuid;
+    perform kokolio._audit(me.id, 'planning_modifie', v_k::uuid, coalesce(v_login, ''),
+      jsonb_build_object('jours', jsonb_array_length(v_touch->v_k))
+        || case when jsonb_array_length(v_touch->v_k) <= 60 then jsonb_build_object('detail', v_touch->v_k) else '{}'::jsonb end,
+      coalesce(p->>'ip', ''));
+  end loop;
+  return jsonb_build_object('set', v_set, 'cleared', v_cleared, 'items', v_n);
+end $$;
+-- =====================================================================
 -- Kokolio — mode démonstration
 -- Un jeu de données fictives se charge dans un outil vide ou en cours d'essai, pour le découvrir ou le présenter.
 -- Tant qu'il est là, l'outil est « en mode démonstration » : c'est le seul état où tout peut être effacé.
@@ -1609,6 +1991,7 @@ declare
   r jsonb; u kokolio.users; c kokolio.contracts; v_dec uuid; v_tz text := kokolio._tz(); v_now timestamptz := kokolio._now(); v_today date := kokolio._today();
   v_days int; v_go text := coalesce(p_args->>'go_live', ''); v_ok boolean; v_status text; v_day date; v_times text[]; v_t text; v_i int;
   v_nu int := 0; v_nd int := 0; v_na int := 0; v_ne int := 0; v_avant date;
+  v_models jsonb := '[]'::jsonb; v_cycles jsonb := '[]'::jsonb; k kokolio.cycles;
 begin
   if me.role <> 'admin' then perform kokolio._fail('interdit', 'Accès réservé aux administrateurs.'); end if;
   if exists (select 1 from kokolio.meta m where m.key = 'demo') then
@@ -1639,6 +2022,21 @@ begin
   update kokolio.users set tracked_from = coalesce(v_avant, v_today) where tracked_from is null;
   get diagnostics v_ne = row_count;
 
+  -- bibliothèque d'exemple : horaires journaliers et cycles, créés seulement s'ils n'existent pas déjà (on note lesquels, pour l'effacement)
+  for r in select x from jsonb_array_elements(coalesce(p_args->'models', '[]'::jsonb)) x loop
+    if not exists (select 1 from kokolio.day_models m where m.code = upper(r->>'code')) then
+      insert into kokolio.day_models (code, label, minutes, ranges, color, sort, created_by)
+      values (upper(r->>'code'), left(coalesce(r->>'label', ''), 60), (r->>'minutes')::int, kokolio._ranges(r->'ranges'), coalesce(r->>'color', ''), coalesce((r->>'sort')::int, 100), me.id);
+      v_models := v_models || to_jsonb(upper(r->>'code'));
+    end if;
+  end loop;
+  for r in select x from jsonb_array_elements(coalesce(p_args->'cycles', '[]'::jsonb)) x loop
+    if not exists (select 1 from kokolio.cycles y where lower(y.name) = lower(r->>'name')) then
+      insert into kokolio.cycles (name, weeks, created_by) values (left(r->>'name', 60), r->'weeks', me.id) returning * into k;
+      v_cycles := v_cycles || to_jsonb(k.id);
+    end if;
+  end loop;
+
   -- comptes fictifs : salariés ou RH, jamais administrateurs
   for r in select x from jsonb_array_elements(p_args->'users') x loop
     v_ok := coalesce(r->>'code_hash', '') ~ '^[0-9a-f]{64}$';
@@ -1647,7 +2045,10 @@ begin
             coalesce(r->>'team', ''), coalesce(r->>'job', ''), nullif(r->>'entry_date', '')::date, coalesce(r->'details', '{}'::jsonb),
             case when v_ok then r->>'code_hash' end, case when v_ok then v_now + make_interval(days => coalesce(v_days, 14)) end)
     returning * into u;
-    c := kokolio._contract_apply(u.id, coalesce(u.entry_date, date '2000-01-01'), coalesce(r->'contract', '{}'::jsonb), me.id);
+    -- un salarié fictif peut suivre un cycle de la bibliothèque (désigné par son nom)
+    select * into k from kokolio.cycles y where lower(y.name) = lower(coalesce(r->>'cycle', ''));
+    c := kokolio._contract_apply(u.id, coalesce(u.entry_date, date '2000-01-01'),
+      coalesce(r->'contract', '{}'::jsonb) || case when k.id is not null then jsonb_build_object('cycle_id', k.id) else '{}'::jsonb end, me.id);
     v_nu := v_nu + 1;
   end loop;
   for r in select x from jsonb_array_elements(p_args->'users') x loop
@@ -1700,7 +2101,7 @@ begin
   -- la mise en service recule au début de la période de démonstration, et l'outil passe en mode démonstration
   update kokolio.meta set value = jsonb_set(jsonb_set(value, '{go_live}', to_jsonb(v_go)), '{version}', to_jsonb(coalesce((value->>'version')::int, 1) + 1)), updated_at = now()
   where key = 'settings';
-  insert into kokolio.meta (key, value) values ('demo', jsonb_build_object('charge_le', v_now, 'par', me.id));
+  insert into kokolio.meta (key, value) values ('demo', jsonb_build_object('charge_le', v_now, 'par', me.id, 'modeles', v_models, 'cycles', v_cycles));
   perform kokolio._audit(me.id, 'donnees_demo_chargees', null, '', jsonb_build_object('comptes', v_nu, 'journees', v_nd, 'absences', v_na, 'comptes_deja_presents', v_ne), coalesce(p->>'ip', ''));
   return jsonb_build_object('users', v_nu, 'days', v_nd, 'absences', v_na, 'existing', v_ne);
 end $$;
@@ -1708,10 +2109,11 @@ end $$;
 -- Effacement : tout repart de zéro, sauf les comptes administrateur, les réglages et les motifs d'absence.
 -- N'existe qu'en mode démonstration : un outil qui n'a jamais chargé ces données ne peut pas être vidé par ce chemin.
 create or replace function kokolio._demo_reset(me kokolio.users, p jsonb) returns jsonb language plpgsql as $$
-declare v_users int; v_days int;
+declare v_users int; v_days int; v_demo jsonb;
 begin
   if me.role <> 'admin' then perform kokolio._fail('interdit', 'Accès réservé aux administrateurs.'); end if;
-  if not exists (select 1 from kokolio.meta m where m.key = 'demo') then
+  select m.value into v_demo from kokolio.meta m where m.key = 'demo';
+  if v_demo is null then
     perform kokolio._fail('etat', 'Cet outil n''est pas en mode démonstration : rien ne peut y être effacé.');
   end if;
   select count(*) into v_users from kokolio.users x where x.role <> 'admin';
@@ -1720,6 +2122,7 @@ begin
   delete from kokolio.closures;        -- d'abord les clôtures : plus aucun mois n'est verrouillé
   delete from kokolio.attachments;
   delete from kokolio.absences;
+  delete from kokolio.plan_days;
   delete from kokolio.days;
   delete from kokolio.punch_log;
   delete from kokolio.balance_entries;
@@ -1730,6 +2133,11 @@ begin
   delete from kokolio.throttle;
   delete from kokolio.users x where x.role <> 'admin';
   perform set_config('kokolio.purge', '', true);
+  -- la bibliothèque d'exemple apportée par la démonstration repart avec elle, sauf ce qu'un compte restant utilise encore
+  delete from kokolio.cycles c where c.id in (select (x #>> '{}')::uuid from jsonb_array_elements(coalesce(v_demo->'cycles', '[]'::jsonb)) x)
+    and not exists (select 1 from kokolio.contracts k where k.cycle_id = c.id);
+  delete from kokolio.day_models m where m.code in (select x #>> '{}' from jsonb_array_elements(coalesce(v_demo->'modeles', '[]'::jsonb)) x)
+    and coalesce(array_length(kokolio._model_cycles(m.code), 1), 0) = 0;
   update kokolio.users set tracked_from = null where tracked_from is not null;   -- les comptes qui restent repartent de la nouvelle mise en service
   update kokolio.meta set value = jsonb_build_object('seq', 0, 'hash', ''), updated_at = now() where key = 'audit_head';
   update kokolio.meta set value = jsonb_set(jsonb_set(value, '{go_live}', to_jsonb(kokolio._today()::text)), '{version}', to_jsonb(coalesce((value->>'version')::int, 1) + 1)), updated_at = now()
@@ -1836,6 +2244,16 @@ begin
     v_r := public.kokolio_api(jsonb_build_object('action', 'absence_decide', 'token', t_mgr, 'args', jsonb_build_object('id', v_abs, 'decision', 'valide')));
     v_checks := v_checks || jsonb_build_object('name', 'Le responsable valide le congé', 'ok', v_r #>> '{data,absence,status}' = 'valide');
 
+    -- 5 bis. Planning : qui peut modifier quoi
+    v_r := public.kokolio_api(jsonb_build_object('action', 'plan_set', 'token', t_e1, 'args', jsonb_build_object('items', jsonb_build_array(jsonb_build_object('user_id', v_e1, 'day', '2001-01-15', 'minutes', 0)))));
+    v_checks := v_checks || jsonb_build_object('name', 'Nul ne modifie son propre planning', 'ok', v_r->>'code' = 'interdit');
+    v_r := public.kokolio_api(jsonb_build_object('action', 'plan_set', 'token', t_e2, 'args', jsonb_build_object('items', jsonb_build_array(jsonb_build_object('user_id', v_e1, 'day', '2001-01-15', 'minutes', 0)))));
+    v_checks := v_checks || jsonb_build_object('name', 'Un collègue ne modifie pas le planning d''un autre', 'ok', v_r->>'code' = 'interdit');
+    v_r := public.kokolio_api(jsonb_build_object('action', 'plan_set', 'token', t_mgr, 'args', jsonb_build_object('items', jsonb_build_array(jsonb_build_object('user_id', v_e1, 'day', '2001-01-15', 'minutes', 240, 'label', 'Matinée')))));
+    v_checks := v_checks || jsonb_build_object('name', 'Le responsable planifie son équipe', 'ok', (v_r #>> '{data,set}')::int = 1);
+    v_r := public.kokolio_api(jsonb_build_object('action', 'model_save', 'token', t_mgr, 'args', jsonb_build_object('create', true, 'model', jsonb_build_object('code', 'KKT', 'label', 'Test', 'minutes', 420))));
+    v_checks := v_checks || jsonb_build_object('name', 'La bibliothèque d''horaires est réservée aux RH', 'ok', v_r->>'code' = 'interdit');
+
     -- 6. Clôture
     v_r := public.kokolio_api(jsonb_build_object('action', 'month_close', 'token', t_e2, 'args', jsonb_build_object('month', '2001-01')));
     v_checks := v_checks || jsonb_build_object('name', 'Seuls les RH clôturent', 'ok', v_r->>'code' = 'interdit');
@@ -1848,6 +2266,8 @@ begin
     v_checks := v_checks || jsonb_build_object('name', 'Clôture du mois', 'ok', (v_r #>> '{data,version}')::int = 1);
     v_r := public.kokolio_api(jsonb_build_object('action', 'day_set', 'token', t_e1, 'args', jsonb_build_object('day', '2001-01-11', 'times', jsonb_build_array('09:00', '17:00'), 'comment', 'Après clôture')));
     v_checks := v_checks || jsonb_build_object('name', 'Mois clôturé : plus de saisie par l''outil', 'ok', v_r->>'code' = 'cloture');
+    v_r := public.kokolio_api(jsonb_build_object('action', 'plan_set', 'token', t_mgr, 'args', jsonb_build_object('items', jsonb_build_array(jsonb_build_object('user_id', v_e1, 'day', '2001-01-16', 'minutes', 0)))));
+    v_checks := v_checks || jsonb_build_object('name', 'Mois clôturé : planning figé', 'ok', v_r->>'code' = 'cloture');
     v_ok := false;
     begin
       update kokolio.days set comment = 'modification directe' where id = v_day;
@@ -1979,6 +2399,10 @@ begin
     when 'sessions_revoke' then
       delete from kokolio.sessions s where s.user_id = me.id and s.token_hash <> coalesce(p->>'token', '');
       return '{}'::jsonb;
+    when 'planning_lib' then return kokolio._planning_lib(me);
+    when 'model_save' then return kokolio._model_save(me, p, v_args);
+    when 'cycle_save' then return kokolio._cycle_save(me, p, v_args);
+    when 'plan_set' then return kokolio._plan_set(me, p, v_args);
     when 'demo_seed' then return kokolio._demo_seed(me, p, v_args);
     when 'demo_reset' then return kokolio._demo_reset(me, p);
     when 'selftest' then
@@ -2056,7 +2480,7 @@ begin
 end $$;
 revoke all on function kokolio.bootstrap_admin(text, text) from public;
 
-insert into kokolio.meta (key, value) values ('schema_version', '3'::jsonb)
+insert into kokolio.meta (key, value) values ('schema_version', '4'::jsonb)
 on conflict (key) do update set value = excluded.value, updated_at = now();
 
 notify pgrst, 'reload schema';

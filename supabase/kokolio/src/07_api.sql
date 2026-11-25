@@ -66,6 +66,10 @@ begin
     when 'sessions_revoke' then
       delete from kokolio.sessions s where s.user_id = me.id and s.token_hash <> coalesce(p->>'token', '');
       return '{}'::jsonb;
+    when 'planning_lib' then return kokolio._planning_lib(me);
+    when 'model_save' then return kokolio._model_save(me, p, v_args);
+    when 'cycle_save' then return kokolio._cycle_save(me, p, v_args);
+    when 'plan_set' then return kokolio._plan_set(me, p, v_args);
     when 'demo_seed' then return kokolio._demo_seed(me, p, v_args);
     when 'demo_reset' then return kokolio._demo_reset(me, p);
     when 'selftest' then
@@ -143,7 +147,7 @@ begin
 end $$;
 revoke all on function kokolio.bootstrap_admin(text, text) from public;
 
-insert into kokolio.meta (key, value) values ('schema_version', '3'::jsonb)
+insert into kokolio.meta (key, value) values ('schema_version', '4'::jsonb)
 on conflict (key) do update set value = excluded.value, updated_at = now();
 
 notify pgrst, 'reload schema';

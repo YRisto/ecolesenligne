@@ -41,12 +41,17 @@ before(async () => {
 });
 after(() => fake?.kill());
 
-test("mise à jour de la base de la version 1 à la version 3, sans rien perdre", async () => {
+test("mise à jour de la base de la version 1 à la version 4, sans rien perdre", async () => {
   const code = sql("select kokolio.bootstrap_admin('admin')");
   await admin.ok("auth/activate", { login: "admin", code, password: "Tableau-Bleu-2026" });
   await admin.ok("admin/settings-save", { settings: { company: "Entreprise d'essai" } });
   assert.equal((await admin.ok("admin/status")).schema, 1);
   await admin.fail("admin/demo-load", {}, "installation");              // l'application est en avance sur la base : message clair, rien de cassé
+  // un salarié créé avec la toute première version de la base, pour vérifier que sa fiche et son horaire traversent les mises à jour
+  const essai = await admin.ok("rh/employee-save", { login: "essai.un", first_name: "Essai", last_name: "Un", entry_date: "2026-01-01", contract: { regime: "horaire", day_minutes: [450, 450, 450, 450, 300, 0, 0], pause_minutes: 30 } });
+  const horaire = () => sql(`select regime || '|' || day_minutes::text || '|' || work_days::text || '|' || pause_minutes || '|' || start_date from kokolio.contracts where user_id = '${essai.user.id}'`);
+  const horaireAvant = horaire();
+  assert.equal(horaireAvant, "horaire|{450,450,450,450,300,0,0}|{1,2,3,4,5}|30|2026-01-01");
   // empreinte des comptes et du journal (hors colonne ajoutée par la version 3) : elle ne doit pas bouger d'une version à l'autre
   const empreinte = () => sql("select md5(string_agg((to_jsonb(u) - 'tracked_from')::text, ',' order by u.id)) || (select count(*) from kokolio.audit) from kokolio.users u");
   const avant = empreinte();
@@ -56,15 +61,31 @@ test("mise à jour de la base de la version 1 à la version 3, sans rien perdre"
   assert.equal(empreinte(), avant);
   assert.equal((await admin.ok("admin/status")).schema, 2);
   await admin.fail("admin/demo-load", {}, "installation");              // encore une version de retard : toujours refusé, toujours rien de cassé
-  // … puis la version courante
-  execFileSync("psql", [...PG, "-f", path.join(ROOT, "supabase/kokolio/install.sql")], { stdio: "ignore" });
+  // … puis la version 3, celle de la production avant la planification
+  const v3 = execFileSync("git", ["-C", ROOT, "show", "f3c2400:supabase/kokolio/install.sql"], { encoding: "utf8", maxBuffer: 32e6 });
+  execFileSync("psql", [...PG, "-f", "-"], { input: v3, stdio: ["pipe", "ignore", "ignore"] });
+  assert.equal(empreinte(), avant);
+  assert.equal((await admin.ok("admin/status")).schema, 3);
+  await admin.fail("admin/demo-load", {}, "installation");
+  // … enfin la version courante, jouée deux fois de suite : le script est rejouable
+  for (let i = 0; i < 2; i++) execFileSync("psql", [...PG, "-f", path.join(ROOT, "supabase/kokolio/install.sql")], { stdio: "ignore" });
   assert.equal(empreinte(), avant);
   assert.equal(sql("select count(*) from kokolio.users where tracked_from is not null"), "0");
   const st = await admin.ok("admin/status");                             // la session ouverte avant la mise à jour reste valable
-  assert.deepEqual([st.schema, st.schema_expected, st.users, st.admins], [3, 3, 1, 1]);
+  assert.deepEqual([st.schema, st.schema_expected, st.users, st.admins], [4, 4, 2, 1]);
   assert.equal((await admin.ok("admin/settings")).settings.company, "Entreprise d'essai");
+  // l'horaire d'avant est intact ; les nouveautés arrivent à leur valeur neutre : pas de cycle, présence par pointage, bibliothèque vide, nuit désactivée
+  assert.equal(horaire(), horaireAvant);
+  assert.equal(sql(`select presence || '|' || (cycle_id is null) || '|' || (cycle_anchor is null) from kokolio.contracts where user_id = '${essai.user.id}'`), "pointage|true|true");
+  const f = await admin.ok("rh/employee", { id: essai.user.id });
+  assert.deepEqual([f.contracts[0].presence, f.contracts[0].cycle_id, f.cycles.length, f.user.first_name], ["pointage", null, 0, "Essai"]);
+  const lib = await admin.ok("plan/lib");
+  assert.deepEqual([lib.models.length, lib.cycles.length], [0, 0]);
+  assert.equal((await admin.ok("boot")).settings.night_until, "");
   const t = await admin.ok("admin/selftest");
-  assert.equal(t.ok, true, JSON.stringify(t.checks.filter((c) => !c.ok))); assert.equal(t.count, 37);
+  assert.equal(t.ok, true, JSON.stringify(t.checks.filter((c) => !c.ok))); assert.equal(t.count, 42);
+  // la fiche d'essai n'a servi qu'à cette vérification : la suite repart d'un outil qui ne contient que l'administrateur
+  sql(`delete from kokolio.contracts where user_id = '${essai.user.id}'; delete from kokolio.users where id = '${essai.user.id}'`);
 });
 
 test("chargement des données de démonstration", async () => {
@@ -92,6 +113,14 @@ test("chargement des données de démonstration", async () => {
   assert.ok(p.total_days >= 25 && p.absences.length === 3);
   assert.equal((await admin.ok("rh/journal-verify", {})).ok, true);
   assert.equal(sql("select count(*) from kokolio.punch_log") > "0", true);
+  // bibliothèque d'exemple : quatre horaires, trois cycles ; les salariés à 35 h et à 28 h suivent un cycle
+  const lib = await admin.ok("plan/lib");
+  assert.deepEqual(lib.models.map((m) => m.code), ["J7", "J8", "M4", "S7"]);
+  assert.deepEqual(lib.cycles.map((c) => [c.name, c.assigned, c.weekly_minutes]),
+    [["Alternance 4 jours / 5 jours (36 h en moyenne)", 0, 2160], ["Semaine 35 h", 2, 2100], ["Temps partiel 28 h (lundi à jeudi)", 1, 1680]]);
+  assert.deepEqual(["camille.martin", "ines.roux", "julien.bernard"].map((l) => list.employees.find((e) => e.login === l).cycle), ["Semaine 35 h", "Temps partiel 28 h (lundi à jeudi)", ""]);
+  const g = await admin.ok("plan/grid", { scope: "all", from: "2026-11-23" });
+  assert.deepEqual(g.rows.map((r) => [r.name, r.cycle ? r.cells[0].code : "", r.total]), [["Camille Martin", "J7", 2100], ["Julien Bernard", "", 0], ["Thomas Petit", "J7", 2100], ["Sophie Leroy", "", 0], ["Inès Roux", "J7", 1680], ["Nadia Benali", "", 0]]);
 });
 
 test("chaque compte fictif s'active avec son code et retrouve ses données", async () => {
@@ -143,9 +172,17 @@ test("effacement : tout repart de zéro, sauf l'administrateur et les réglages"
   assert.equal((await new Client("camille").call("auth/login", { login: "camille.martin", password: "Bateau-Rouge-19" })).code, "identifiants");
   assert.throws(() => sql("delete from kokolio.audit"), /ajout seul/);
   await admin.fail("admin/demo-reset", { confirm: "EFFACER" }, "etat");
-  // rechargeable, puis effaçable de nouveau
+  // la bibliothèque d'exemple est repartie avec la démonstration
+  assert.deepEqual([(await admin.ok("plan/lib")).models.length, (await admin.ok("plan/lib")).cycles.length], [0, 0]);
+  // rechargeable, puis effaçable de nouveau ; ce que l'administrateur a créé lui-même dans la bibliothèque reste en place
+  await admin.ok("plan/model-save", { create: true, model: { code: "PERSO", label: "Horaire maison", minutes: 400 } });
+  await admin.ok("plan/model-save", { create: true, model: { code: "J7", label: "Journée 7 h maison", minutes: 420 } });
   assert.equal((await admin.ok("admin/demo-load")).users, 6);
+  assert.deepEqual((await admin.ok("plan/lib")).models.map((m) => [m.code, m.label]), [["J8", "Journée 8 h"], ["M4", "Matinée 4 h"], ["S7", "Soirée 7 h"], ["J7", "Journée 7 h maison"], ["PERSO", "Horaire maison"]]);
   await admin.ok("admin/demo-reset", { confirm: "EFFACER" });
+  assert.deepEqual((await admin.ok("plan/lib")).models.map((m) => m.code), ["J7", "PERSO"]);
+  assert.equal((await admin.ok("plan/lib")).cycles.length, 0);
+  assert.equal(sql("select count(*) from kokolio.plan_days"), "0");
 });
 
 test("les comptes déjà créés ne sont pas concernés par l'historique fictif", async () => {

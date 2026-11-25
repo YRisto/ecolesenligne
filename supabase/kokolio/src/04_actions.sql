@@ -6,7 +6,8 @@ create or replace function kokolio._ctx(me kokolio.users) returns jsonb language
 begin
   return jsonb_build_object(
     'user', kokolio._user_json(me, true),
-    'contract', (select kokolio._contract_json(c) from kokolio.contracts c
+    'contract', (select kokolio._contract_json(c) || jsonb_build_object('cycle', case when c.cycle_id is not null then kokolio._cycle_json(c.cycle_id) end)
+                 from kokolio.contracts c
                  where c.user_id = me.id and c.start_date <= kokolio._today() and (c.end_date is null or c.end_date >= kokolio._today())
                  order by c.start_date desc limit 1),
     'reports', (select count(*) from kokolio.users r where r.manager_id = me.id and not r.disabled),
@@ -65,6 +66,13 @@ begin
     'entries', coalesce((select jsonb_agg(to_jsonb(e) order by e.created_at)
                          from kokolio.balance_entries e
                          where e.user_id = any(v_ids) and e.year between extract(year from v_from)::int and extract(year from v_to)::int), '[]'::jsonb),
+    -- planification : les cycles suivis par ces salariés (résolus), et leurs exceptions sur la période.
+    -- Toujours renvoyées, même sans les journées : le décompte d'une absence en dépend.
+    'cycles', coalesce((select jsonb_agg(kokolio._cycle_json(x.cycle_id))
+                        from (select distinct c.cycle_id from kokolio.contracts c where c.user_id = any(v_ids) and c.cycle_id is not null) x), '[]'::jsonb),
+    'plan', coalesce((select jsonb_agg(jsonb_build_object('user_id', q.user_id, 'day', q.day, 'model_code', q.model_code, 'label', q.label,
+                                                          'minutes', q.minutes, 'ranges', q.ranges, 'note', q.note) order by q.day)
+                      from kokolio.plan_days q where q.user_id = any(v_ids) and q.day between v_from and v_to), '[]'::jsonb),
     'closed', kokolio._closed_months(),
     'fingerprint', case when v_fp is not null then kokolio._month_fingerprint(v_fp) end,
     'ctx', case when coalesce((p_args->>'ctx')::boolean, false) then kokolio._ctx(me) end,
@@ -106,9 +114,31 @@ create or replace function kokolio._punch(me kokolio.users, p jsonb, p_args json
 declare
   d kokolio.days; v_day date := kokolio._today(); v_hm text := kokolio._hm(); v_now timestamptz := kokolio._now();
   v_last timestamptz; v_lieu text := nullif(trim(coalesce(p_args->>'lieu', '')), ''); v_kind text; v_n int;
+  v_night text := coalesce(kokolio._night(), ''); v_hm24 text;
 begin
-  if kokolio._month_closed(to_char(v_day, 'YYYY-MM')) then perform kokolio._fail('cloture', 'Ce mois est clôturé.'); end if;
   if v_lieu is not null and not kokolio._lieu_ok(v_lieu) then perform kokolio._fail('requete', 'Lieu inconnu.'); end if;
+  -- Travail de nuit : la journée commencée la veille et encore ouverte reçoit ce départ, noté au-delà de 24 h.
+  if v_night <> '' and v_hm < v_night then
+    select * into d from kokolio.days x where x.user_id = me.id and x.day = v_day - 1 for update;
+    -- au-delà de seize heures depuis l'arrivée, c'est un départ oublié la veille, pas une nuit de travail : le pointage ouvre la journée du jour
+    if d.id is not null and coalesce(array_length(d.times, 1), 0) % 2 = 1 and d.status <> 'valide'
+       and not kokolio._month_closed(to_char(v_day - 1, 'YYYY-MM'))
+       and (substr(v_hm, 1, 2)::int + 24) * 60 + substr(v_hm, 4, 2)::int
+           - (substr(d.times[array_length(d.times, 1)], 1, 2)::int * 60 + substr(d.times[array_length(d.times, 1)], 4, 2)::int) <= 960 then
+      select max(l.ts) into v_last from kokolio.punch_log l where l.user_id = me.id and l.day = v_day - 1;
+      if v_last is not null and v_now - v_last < interval '15 seconds' then
+        return jsonb_build_object('day', kokolio._day_json(d), 'duplicate', true, 'hm', v_hm);
+      end if;
+      v_hm24 := kokolio._plus24(v_hm);
+      update kokolio.days set times = d.times || v_hm24, status = 'a_valider', refusal_reason = '', decided_by = null, decided_at = null,
+        version = d.version + 1, updated_at = v_now
+      where id = d.id returning * into d;
+      insert into kokolio.punch_log (user_id, ts, day, hhmm, kind, ip, ua)
+      values (me.id, v_now, v_day - 1, v_hm24, 'depart', coalesce(p->>'ip', ''), left(coalesce(p->>'ua', ''), 200));
+      return jsonb_build_object('day', kokolio._day_json(d), 'kind', 'depart', 'hm', v_hm, 'veille', true);
+    end if;
+  end if;
+  if kokolio._month_closed(to_char(v_day, 'YYYY-MM')) then perform kokolio._fail('cloture', 'Ce mois est clôturé.'); end if;
   insert into kokolio.days (user_id, day, lieu) values (me.id, v_day, coalesce(v_lieu, 'bureau')) on conflict (user_id, day) do nothing;
   select * into d from kokolio.days x where x.user_id = me.id and x.day = v_day for update;
   v_n := coalesce(array_length(d.times, 1), 0);
@@ -148,7 +178,7 @@ declare
   v_uid uuid := coalesce(nullif(p_args->>'user_id', '')::uuid, me.id); v_day date := (p_args->>'day')::date;
   v_times text[] := kokolio._times(p_args->'times'); v_comment text := trim(coalesce(p_args->>'comment', ''));
   v_lieu text := nullif(trim(coalesce(p_args->>'lieu', '')), ''); d kokolio.days; v_before text[];
-  v_n int; v_today date := kokolio._today(); v_behalf boolean;
+  v_n int; v_today date := kokolio._today(); v_behalf boolean; v_night text := coalesce(kokolio._night(), ''); v_hm text := kokolio._hm();
 begin
   v_n := coalesce(array_length(v_times, 1), 0);
   v_behalf := v_uid <> me.id;
@@ -159,8 +189,14 @@ begin
     perform kokolio._fail('introuvable', 'Salarié introuvable.');
   end if;
   if v_day is null or v_day > v_today then perform kokolio._fail('date', 'Choisissez un jour passé ou aujourd''hui.'); end if;
-  if v_n % 2 = 1 and v_day <> v_today then perform kokolio._fail('heures', 'Chaque arrivée doit avoir son départ.'); end if;
-  if v_day = v_today and v_n > 0 and v_times[v_n] > kokolio._hm() then
+  -- une journée de nuit commencée la veille peut rester ouverte jusqu'à l'heure limite du matin
+  if v_n % 2 = 1 and v_day <> v_today and not (v_night <> '' and v_day = v_today - 1 and v_hm < v_night) then
+    perform kokolio._fail('heures', 'Chaque arrivée doit avoir son départ.');
+  end if;
+  if v_day = v_today and v_n > 0 and v_times[v_n] > v_hm then
+    perform kokolio._fail('heures', 'Une heure saisie est dans le futur.');
+  end if;
+  if v_day = v_today - 1 and v_n > 0 and v_times[v_n] >= '24:00' and v_times[v_n] > kokolio._plus24(v_hm) then
     perform kokolio._fail('heures', 'Une heure saisie est dans le futur.');
   end if;
   if length(v_comment) < 3 then perform kokolio._fail('motif', 'Indiquez le motif de la correction.'); end if;

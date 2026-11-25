@@ -96,6 +96,16 @@ begin
     v_r := public.kokolio_api(jsonb_build_object('action', 'absence_decide', 'token', t_mgr, 'args', jsonb_build_object('id', v_abs, 'decision', 'valide')));
     v_checks := v_checks || jsonb_build_object('name', 'Le responsable valide le congé', 'ok', v_r #>> '{data,absence,status}' = 'valide');
 
+    -- 5 bis. Planning : qui peut modifier quoi
+    v_r := public.kokolio_api(jsonb_build_object('action', 'plan_set', 'token', t_e1, 'args', jsonb_build_object('items', jsonb_build_array(jsonb_build_object('user_id', v_e1, 'day', '2001-01-15', 'minutes', 0)))));
+    v_checks := v_checks || jsonb_build_object('name', 'Nul ne modifie son propre planning', 'ok', v_r->>'code' = 'interdit');
+    v_r := public.kokolio_api(jsonb_build_object('action', 'plan_set', 'token', t_e2, 'args', jsonb_build_object('items', jsonb_build_array(jsonb_build_object('user_id', v_e1, 'day', '2001-01-15', 'minutes', 0)))));
+    v_checks := v_checks || jsonb_build_object('name', 'Un collègue ne modifie pas le planning d''un autre', 'ok', v_r->>'code' = 'interdit');
+    v_r := public.kokolio_api(jsonb_build_object('action', 'plan_set', 'token', t_mgr, 'args', jsonb_build_object('items', jsonb_build_array(jsonb_build_object('user_id', v_e1, 'day', '2001-01-15', 'minutes', 240, 'label', 'Matinée')))));
+    v_checks := v_checks || jsonb_build_object('name', 'Le responsable planifie son équipe', 'ok', (v_r #>> '{data,set}')::int = 1);
+    v_r := public.kokolio_api(jsonb_build_object('action', 'model_save', 'token', t_mgr, 'args', jsonb_build_object('create', true, 'model', jsonb_build_object('code', 'KKT', 'label', 'Test', 'minutes', 420))));
+    v_checks := v_checks || jsonb_build_object('name', 'La bibliothèque d''horaires est réservée aux RH', 'ok', v_r->>'code' = 'interdit');
+
     -- 6. Clôture
     v_r := public.kokolio_api(jsonb_build_object('action', 'month_close', 'token', t_e2, 'args', jsonb_build_object('month', '2001-01')));
     v_checks := v_checks || jsonb_build_object('name', 'Seuls les RH clôturent', 'ok', v_r->>'code' = 'interdit');
@@ -108,6 +118,8 @@ begin
     v_checks := v_checks || jsonb_build_object('name', 'Clôture du mois', 'ok', (v_r #>> '{data,version}')::int = 1);
     v_r := public.kokolio_api(jsonb_build_object('action', 'day_set', 'token', t_e1, 'args', jsonb_build_object('day', '2001-01-11', 'times', jsonb_build_array('09:00', '17:00'), 'comment', 'Après clôture')));
     v_checks := v_checks || jsonb_build_object('name', 'Mois clôturé : plus de saisie par l''outil', 'ok', v_r->>'code' = 'cloture');
+    v_r := public.kokolio_api(jsonb_build_object('action', 'plan_set', 'token', t_mgr, 'args', jsonb_build_object('items', jsonb_build_array(jsonb_build_object('user_id', v_e1, 'day', '2001-01-16', 'minutes', 0)))));
+    v_checks := v_checks || jsonb_build_object('name', 'Mois clôturé : planning figé', 'ok', v_r->>'code' = 'cloture');
     v_ok := false;
     begin
       update kokolio.days set comment = 'modification directe' where id = v_day;
