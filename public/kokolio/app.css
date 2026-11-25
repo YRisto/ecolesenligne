@@ -49,6 +49,7 @@ header.barre button.compte-btn{background:var(--surface);color:var(--encre);bord
 header.barre button.compte-btn svg{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
 @media (max-width:520px){header.barre h1 small{display:none}.logo-h{height:40px}header.barre h1{font-size:1.35rem}header.barre .nom-long{display:none}}
 
+.bandeau-demo{margin:0;padding:8px 16px;background:var(--attente-doux);color:#5c3700;font-size:var(--t-s);font-weight:650;text-align:center;border-bottom:1px solid color-mix(in srgb,var(--attente) 30%,transparent)}
 main{max-width:1040px;margin:0 auto;padding:20px 16px;display:flex;flex-direction:column;gap:16px}
 main.etroit{max-width:720px}
 .carte{background:var(--surface);border:1px solid var(--trait);border-radius:10px;padding:18px;display:flex;flex-direction:column;gap:12px;min-width:0;box-shadow:var(--ombre)}
@@ -255,7 +256,7 @@ body.impression .imprimable{display:grid}
 /* Impression : seulement la zone marquée (fiches d'activation) */
 @media print{
   body{padding:0}
-  header.barre,nav.onglets,#toast,.sans-impression,dialog,dialog::backdrop{display:none!important}
+  header.barre,nav.onglets,#toast,.sans-impression,.bandeau-demo,dialog,dialog::backdrop{display:none!important}
   body.impression main>*:not(.imprimable){display:none!important}
   main{max-width:none;padding:0}
   .carte{box-shadow:none;border:0;padding:0}

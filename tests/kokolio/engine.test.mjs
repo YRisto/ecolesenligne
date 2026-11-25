@@ -213,3 +213,31 @@ test("mot de passe : longueur et mélange exigés", () => {
   assert.ok(passwordIssues("camille-2026!", "camille").length > 0);
   assert.ok(passwordIssues("motdepasse1", "x").length > 0);
 });
+
+// ---------------------------------------------------------------- données de démonstration
+import { buildDemo } from "../../lib/kokolio/engine/demo.mjs";
+import { holidayName as ferie, isoDow as jourIso } from "../../lib/kokolio/engine/dates.mjs";
+
+test("données de démonstration : cohérentes quelle que soit la date de chargement", () => {
+  for (const today of ["2026-11-25", "2026-12-03", "2027-01-05", "2027-03-01", "2027-05-12", "2027-08-17"]) {
+    const d = buildDemo(today), par = Object.fromEntries(d.users.map((u) => [u.login, u]));
+    assert.equal(d.users.length, 6);
+    assert.equal(d.go_live.slice(8), "01"); assert.ok(d.go_live < today); assert.equal(d.close_month, d.go_live.slice(0, 7));
+    assert.deepEqual(d, buildDemo(today), "même date, mêmes données");
+    const vus = new Set();
+    for (const j of d.days) {
+      const u = par[j.login], cle = `${j.login}|${j.day}`;
+      assert.ok(!vus.has(cle), `journée en double ${cle}`); vus.add(cle);
+      assert.ok(j.day >= d.go_live && j.day < today, `${cle} hors période`);
+      assert.ok(u.contract.work_days.includes(jourIso(j.day)) && !ferie(j.day), `${cle} n'est pas un jour travaillé`);
+      assert.ok(j.times.length >= 1 && j.times.every((t, i) => /^([01]\d|2[0-3]):[0-5]\d$/.test(t) && (i === 0 || t >= j.times[i - 1])), `${cle} heures ${j.times}`);
+      assert.ok(!d.absences.some((a) => a.login === j.login && a.status === "valide" && !a.half && a.start <= j.day && a.end >= j.day), `${cle} pointé pendant une absence`);
+    }
+    for (const a of d.absences) { assert.ok(a.days_count > 0 && a.end >= a.start && par[a.login]); if (a.status === "en_attente") assert.ok(a.start > today); else assert.ok(a.end < today); }
+    // de quoi montrer chaque écran : validations en attente, refus, correction, oublis, demandes à venir
+    assert.ok(d.days.some((j) => j.status === "a_valider") && d.days.some((j) => j.status === "valide") && d.days.some((j) => j.status === "refuse"));
+    assert.ok(d.days.some((j) => j.corrected) && d.days.some((j) => j.times.length % 2 === 1));
+    assert.ok(d.absences.filter((a) => a.status === "en_attente").length >= 2 && d.absences.some((a) => a.status === "refuse") && d.absences.some((a) => a.half));
+    assert.ok(d.days.filter((j) => j.day.startsWith(d.close_month)).every((j) => j.status === "valide"), "le premier mois doit pouvoir être clôturé");
+  }
+});

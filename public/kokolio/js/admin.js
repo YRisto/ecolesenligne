@@ -1,7 +1,8 @@
 // Administration : réglages, motifs d'absence, état de l'installation, versions et fonctionnalités.
 import { api } from "./api.js";
-import { h, pose, toast, agir, ouvrir, etiquette, tuile, champ, coche, logo, fmtNb, frHorodatage, frCourt } from "./dom.js";
+import { h, pose, toast, agir, ouvrir, confirmer, etiquette, tuile, champ, coche, logo, fmtNb, frHorodatage, frCourt, frMois } from "./dom.js";
 import { S, ecran, recharger } from "./etat.js";
+import { ecranCodes } from "./rh.js";
 import { VERSIONS, MAQUETTES, FONCTIONS, A_VENIR, NON_GERE } from "./versions.js";
 
 const slug = (s) => s.normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase().replace(/[^a-z0-9]+/g, "_").replace(/^_|_$/g, "").slice(0, 30);
@@ -122,8 +123,41 @@ export function vueEtat() {
             t.ok ? "Les règles de sécurité sont en place. Aucune donnée réelle n'a été touchée." : "Ne poursuivez pas l'utilisation avant correction : rejouez le script d'installation, puis relancez l'autodiagnostic."),
             h("ul", { class: "controles" }, t.checks.map((c) => h("li", { class: c.ok ? "" : "ko" }, c.name))));
         }) }, "Lancer l'autodiagnostic")), resultat),
+      carteDemo(d),
       h("p", { class: "discret" }, `Relevé du ${frHorodatage(d.now)}.`));
   });
+}
+
+/* ================= Mode démonstration ================= */
+function carteDemo(d) {
+  const essais = d.users - d.admins, possible = !d.closures && essais <= 10;
+  if (Number(d.schema) < 2) return h("div", { class: "carte" }, h("h3", null, "Données de démonstration"),
+    h("p", null, "Le mode démonstration demande la version 2 de la base. Rejouez le script d'installation (supabase/kokolio/install.sql) dans la console SQL, puis rechargez cette page."));
+  if (S.boot.demo) return h("div", { class: "carte" }, h("h3", null, "Données de démonstration"),
+    h("p", { class: "bandeau" }, h("strong", null, "L'outil est en mode démonstration"), "Il contient des salariés, des pointages et des absences fictifs. Avant la vraie mise en service, effacez-les : l'outil repartira vide, avec vos réglages, vos motifs d'absence et les comptes administrateur."),
+    h("div", { class: "ligne gauche" }, h("button", { class: "danger", onclick: () => {
+      const mot = h("input", { type: "text", autocomplete: "off", autocapitalize: "characters", spellcheck: "false", placeholder: "EFFACER" });
+      ouvrir("Effacer les données de démonstration", [
+        h("p", null, `Tout sera supprimé définitivement : ${d.users - d.admins} comptes, ${d.days} journées, ${d.absences} absences, les clôtures et le journal. Tout ce qui a été saisi depuis le chargement disparaît aussi, y compris d'éventuels vrais salariés.`),
+        h("p", null, "Sont conservés : les comptes administrateur, les réglages et les motifs d'absence. La date de mise en service revient à aujourd'hui."),
+        champ("Pour confirmer, saisissez le mot EFFACER", mot)], "Tout effacer", async () => {
+        const r = await api("admin/demo-reset", { confirm: mot.value.trim().toUpperCase() });
+        S.boot = await api("boot"); toast(`Données de démonstration effacées : ${r.users} comptes, ${r.days} journées.`); recharger();
+      }, { danger: true });
+    } }, "Effacer les données de démonstration")));
+  return h("div", { class: "carte" }, h("h3", null, "Données de démonstration"),
+    h("p", null, "Pour découvrir l'outil ou le présenter : six salariés fictifs (une RH, un responsable, quatre salariés dont deux cadres), deux mois de pointages, des absences, des validations en attente et un mois déjà clôturé."),
+    possible ? h("div", { class: "ligne gauche" }, h("button", { class: "domaine", onclick: () => confirmer("Charger les données de démonstration", [
+        essais ? h("p", { class: "bandeau" }, h("strong", null, `L'outil contient déjà ${essais} salarié${essais > 1 ? "s" : ""}`), "Ils sont conservés pour l'instant, mais feront partie du mode démonstration : ils seront effacés avec le reste lors de l'effacement.") : null,
+        "Six comptes fictifs et leurs données sont créés, et la date de mise en service recule de deux mois. Leurs codes d'activation s'afficheront une fois : vous pourrez vous connecter à la place de chacun.",
+        "L'outil passe en mode démonstration, signalé par un bandeau à tous les utilisateurs. Vous pourrez tout effacer d'ici avant la vraie mise en service."], "Charger", async () => {
+        const r = await api("admin/demo-load");
+        S.boot = await api("boot");
+        document.getElementById("bandeau-demo").hidden = !S.boot.demo; // l'écran des codes ne repasse pas par la navigation : le bandeau se met à jour ici
+        ecranCodes(r.accounts, `${r.users} comptes fictifs, ${r.days} journées et ${r.absences} absences créés${r.closed ? ` ; ${frMois(r.closed)} est déjà clôturé` : ""}.`,
+          h("p", { class: "bandeau info" }, h("strong", null, "Pour essayer plusieurs comptes en même temps"), "Ouvrez chacun dans une fenêtre de navigation privée, ou sur un autre appareil : une fenêtre ne garde qu'une session à la fois."));
+      }) }, "Charger les données de démonstration"))
+      : h("p", { class: "bandeau info" }, "Cet outil est en service (un mois est clôturé, ou il compte plus de dix salariés) : les données de démonstration ne peuvent plus y être chargées."));
 }
 
 /* ================= Versions et fonctionnalités ================= */

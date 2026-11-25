@@ -120,7 +120,7 @@ function codesEnMasse(liste) {
 }
 
 // Page de remise des codes : à l'écran une seule fois, avec impression et téléchargement.
-function ecranCodes(codes, titre, suite) {
+export function ecranCodes(codes, titre, suite) {
   S.jeton++;
   pose(h("h2", null, "Codes d'activation"),
     h("div", { class: "bandeau" }, h("strong", null, "Ces codes ne seront plus affichés"), `${titre} Imprimez les fiches ou téléchargez la liste avant de quitter cette page. En cas de perte, vous pourrez générer un nouveau code depuis la fiche du salarié.`),
@@ -417,10 +417,10 @@ const ACTIONS = { connexion: "Connexion", compte_active: "Compte activé", compt
   absence_demandee: "Absence demandée", absence_saisie_par_rh: "Absence saisie par les RH", absence_annulee: "Demande annulée par le salarié", absence_validee: "Absence validée", absence_refusee: "Absence refusée",
   absence_annulee_par_responsable: "Absence validée annulée", justificatif_depose: "Justificatif déposé", justificatif_consulte: "Justificatif consulté", fiche_creee: "Fiche créée", fiche_modifiee: "Fiche modifiée",
   horaire_modifie: "Horaire modifié", import_salaries: "Import de salariés", solde_ajuste: "Solde ajusté", soldes_reportes: "Soldes reportés", mois_cloture: "Mois clôturé", mois_rouvert: "Mois rouvert",
-  export_telecharge: "Export paie téléchargé", parametres_modifies: "Réglages modifiés", motif_cree: "Motif d'absence créé", motif_modifie: "Motif d'absence modifié", administrateur_initialise: "Administrateur initialisé" };
+  export_telecharge: "Export paie téléchargé", donnees_demo_chargees: "Données de démonstration chargées", donnees_demo_effacees: "Données de démonstration effacées", parametres_modifies: "Réglages modifiés", motif_cree: "Motif d'absence créé", motif_modifie: "Motif d'absence modifié", administrateur_initialise: "Administrateur initialisé" };
 const CLES = { avant: "avant", apres: "après", motif: "motif", du: "du", au: "au", demi: "demi-journée", jours: "jours", justificatif: "justificatif", annee: "année", version: "version", auto_validation: "auto-validation",
   a_compter_du: "à compter du", regime: "régime", pause: "pause", crees: "créés", mis_a_jour: "mis à jour", ecritures: "écritures", ignorees: "ignorées", nom: "nom", role: "profil", deja_active: "compte déjà activé",
-  empreinte_export: "empreinte", minutes_par_jour: "minutes par jour", cp_par_mois: "CP par mois", forfait_jours: "forfait", login: "identifiant", first_name: "prénom", last_name: "nom", matricule: "matricule", email: "e-mail",
+  empreinte_export: "empreinte", comptes: "comptes", journees: "journées", absences: "absences", minutes_par_jour: "minutes par jour", cp_par_mois: "CP par mois", forfait_jours: "forfait", login: "identifiant", first_name: "prénom", last_name: "nom", matricule: "matricule", email: "e-mail",
   team: "équipe", job: "poste", manager_id: "responsable", entry_date: "entrée", exit_date: "sortie", disabled: "désactivé", details: "fiche détaillée", company: "entreprise", go_live: "mise en service", label: "libellé",
   category: "famille", export_code: "code d'export", needs_doc: "justificatif demandé", absenteeism: "compte dans l'absentéisme", active: "actif" };
 const ORDRE = ["du", "au", "demi", "jours", "annee", "a_compter_du", "regime", "avant", "apres", "motif", "justificatif", "version"];

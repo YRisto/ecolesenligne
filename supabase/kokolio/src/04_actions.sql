@@ -14,6 +14,7 @@ begin
     'types', coalesce((select jsonb_agg(to_jsonb(t) order by t.sort, t.label) from kokolio.absence_types t), '[]'::jsonb),
     'closed', kokolio._closed_months(),
     'today', kokolio._today(), 'hm', kokolio._hm(), 'now', kokolio._now(),
+    'demo', exists (select 1 from kokolio.meta m where m.key = 'demo'),
     'schema', (select m.value from kokolio.meta m where m.key = 'schema_version'));
 end $$;
 

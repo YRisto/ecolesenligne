@@ -7,7 +7,7 @@ create or replace function kokolio.selftest() returns jsonb language plpgsql as 
 declare
   v_checks jsonb := '[]'::jsonb; v_r jsonb; v_tag text := 'kktest_' || substr(replace(gen_random_uuid()::text, '-', ''), 1, 12);
   v_rh uuid; v_mgr uuid; v_e1 uuid; v_e2 uuid; v_seq0 bigint; v_fp text; v_ok boolean; v_day uuid; v_abs uuid; c kokolio.contracts;
-  t_rh text; t_mgr text; t_e1 text; t_e2 text; v_t0 timestamptz := '2001-02-15T09:00:00+01:00';
+  t_rh text; t_mgr text; t_e1 text; t_e2 text; v_t0 timestamptz := '2001-02-15T09:00:00+01:00'; v_adm uuid; t_adm text;
 begin
   begin
     insert into kokolio.meta (key, value) values ('test_mode', 'true'::jsonb) on conflict (key) do update set value = 'true'::jsonb;
@@ -148,6 +148,17 @@ begin
       'ok', not exists (select 1 from pg_roles r where r.rolname in ('anon', 'authenticated') and has_function_privilege(r.rolname, 'public.kokolio_api(jsonb)', 'execute')));
     v_checks := v_checks || jsonb_build_object('name', 'Le schéma de données est inaccessible aux rôles de l''API',
       'ok', not exists (select 1 from pg_roles r where r.rolname in ('anon', 'authenticated', 'service_role') and has_schema_privilege(r.rolname, 'kokolio', 'usage')));
+
+    -- 9. Mode démonstration : l'effacement des données n'existe que là
+    if exists (select 1 from kokolio.meta m where m.key = 'demo') then
+      v_checks := v_checks || jsonb_build_object('name', 'Effacement des données réservé au mode démonstration (actif ici : contrôle sans objet)', 'ok', true);
+    else
+      insert into kokolio.users (login, role, last_name) values (v_tag || '_adm', 'admin', 'Test Admin') returning id into v_adm;
+      t_adm := encode(sha256(convert_to(v_tag || 'adm', 'UTF8')), 'hex');
+      insert into kokolio.sessions (token_hash, user_id, created_at, last_seen, expires_at) values (t_adm, v_adm, v_t0, v_t0, v_t0 + interval '1 day');
+      v_r := public.kokolio_api(jsonb_build_object('action', 'demo_reset', 'token', t_adm, 'args', '{}'::jsonb));
+      v_checks := v_checks || jsonb_build_object('name', 'Effacement des données impossible hors mode démonstration', 'ok', v_r->>'code' = 'etat');
+    end if;
 
     raise exception 'KKTEST:%', v_checks::text;
   exception when others then

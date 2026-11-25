@@ -117,7 +117,7 @@ export function demanderMotif(titre, texte, libelle, fn, options = {}) {
   motif.focus();
 }
 export function confirmer(titre, texte, libelle, fn, options = {}) {
-  ouvrir(titre, (Array.isArray(texte) ? texte : [texte]).map((t) => (typeof t === "string" ? h("p", null, t) : t)), libelle, fn, options);
+  ouvrir(titre, (Array.isArray(texte) ? texte : [texte]).filter((t) => t != null && t !== false).map((t) => (typeof t === "string" ? h("p", null, t) : t)), libelle, fn, options);
 }
 
 export function pastille(statut) {

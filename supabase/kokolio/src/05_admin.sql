@@ -517,6 +517,7 @@ begin
   return jsonb_build_object(
     'schema', (select m.value from kokolio.meta m where m.key = 'schema_version'),
     'users', (select count(*) from kokolio.users),
+    'admins', (select count(*) from kokolio.users u where u.role = 'admin'),
     'active_users', (select count(*) from kokolio.users u where kokolio._account_ok(u)),
     'activated', (select count(*) from kokolio.users u where u.pw_hash is not null and kokolio._account_ok(u)),
     'sessions', (select count(*) from kokolio.sessions s where s.expires_at > kokolio._now()),

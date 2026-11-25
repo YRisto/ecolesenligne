@@ -8,6 +8,7 @@ function cadre(...kids) {
   document.getElementById("onglets").replaceChildren();
   document.getElementById("qui").replaceChildren();
   const v = document.getElementById("vue"); v.className = "etroit"; v.dataset.espace = "";
+  document.getElementById("bandeau-demo").hidden = !S.info?.demo;
   pose(h("div", { class: "porte" }, h("div", { class: "carte" }, logo(S.info?.logo_url, "logo-g", S.info?.company || ""), ...kids),
     h("p", { class: "pied" }, `${S.info?.company || ""} · Kokolio ${S.info?.app || ""}`)));
 }

@@ -100,6 +100,7 @@ function afficher() {
   if (ESPACES[r.espace] && !liste.includes(r.espace)) { history.replaceState(null, "", "#/"); return afficher(); }
   if (ESPACES[r.espace] && !r.onglet) { history.replaceState(null, "", `#/${r.espace}/${ESPACES[r.espace].onglets[0][0]}`); return afficher(); }
   v.dataset.espace = ESPACES[r.espace] ? r.espace : "";
+  document.getElementById("bandeau-demo").hidden = !S.boot.demo;
   enTete(r); navigation(r);
   const large = r.onglet === "annee" || (r.espace !== "moi" && ["synthese", "salaries", "salarie", "import", "report", "journal", "motifs"].includes(r.onglet));
   v.className = large ? "" : "etroit";

@@ -5,9 +5,10 @@ import { S } from "./etat.js";
 const adresse = () => `${location.origin}/kokolio`;
 const finValidite = (iso) => (iso ? frCourt(new Intl.DateTimeFormat("en-CA", { timeZone: "Europe/Paris" }).format(new Date(iso))) : "");
 
-export function bonActivation({ name, login, code, expires }) {
+export function bonActivation({ name, login, code, expires, profil }) {
   return h("div", { class: "bon" },
-    h("h4", null, name || login), h("p", { class: "discret" }, `${S.boot.settings.company} · accès à Kokolio, l'outil de pointage et d'absences`),
+    h("h4", null, name || login), profil ? h("p", null, h("strong", null, "Compte fictif : "), profil) : null,
+    h("p", { class: "discret" }, `${S.boot.settings.company} · accès à Kokolio, l'outil de pointage et d'absences`),
     h("div", null, "Adresse : ", h("strong", null, adresse())),
     h("div", null, "Identifiant : ", h("strong", { class: "mono" }, login)),
     h("div", { class: "code-act" }, code),

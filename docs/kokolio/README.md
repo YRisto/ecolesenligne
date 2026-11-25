@@ -61,9 +61,19 @@ Des déclencheurs dans la base refusent, y compris pour une requête SQL directe
 - toute modification d'une journée ou d'une absence d'un **mois clôturé** (seule une réouverture motivée, tracée, la rend possible) ;
 - toute modification ou suppression dans le **journal**, la **trace des pointages** et les **écritures de solde** (ajout seul).
 
+Seule exception, prévue pour la découverte de l'outil : l'effacement des données de démonstration (voir plus bas). Il n'existe que pour un administrateur, dans un outil en mode démonstration ; un outil en service ne peut pas entrer dans ce mode.
+
 Le journal est chaîné : chaque ligne porte l'empreinte de la précédente. Si quelqu'un désactivait les déclencheurs pour retoucher une ligne, RH › Journal › « Vérifier l'intégrité » le détecterait. Des trous dans la numérotation des lignes sont normaux (opérations annulées) : c'est la chaîne d'empreintes qui fait foi.
 
 Limite à connaître : un administrateur de la base peut toujours, techniquement, tout supprimer ou restaurer une ancienne sauvegarde. L'outil rend les retouches visibles ; il ne remplace pas la maîtrise des accès au projet Supabase.
+
+## Mode démonstration
+
+Administration › État › « Charger les données de démonstration » crée six salariés fictifs (une RH, un responsable, quatre salariés dont deux cadres), deux mois de pointages, des absences, des validations en attente, et clôture le premier mois. Les codes d'activation des six comptes s'affichent une fois : ils permettent de se connecter à la place de chacun. La date de mise en service recule de deux mois, et un bandeau « Mode démonstration » s'affiche pour tous.
+
+- Le chargement n'est accepté que dans un outil vide ou en cours d'essai : aucun mois clôturé, dix salariés au plus. Les comptes déjà présents sont conservés, mais partiront avec le reste.
+- « Effacer les données de démonstration » (mot de confirmation exigé) supprime tout : salariés, pointages, absences, clôtures, journal. Restent les comptes administrateur, les réglages et les motifs d'absence. La date de mise en service revient au jour de l'effacement.
+- À faire avant la vraie mise en service : effacer, fixer la date de mise en service, importer les vrais salariés.
 
 ## Comptes et mots de passe
 
@@ -106,6 +116,7 @@ node --test tests/kokolio/engine.test.mjs      # calculs (aucune dépendance)
 bash tests/kokolio/pg-local.sh reset            # PostgreSQL 16 local jetable
 cd tests/kokolio && npm install && cd ../..     # une fois : client PostgreSQL des tests
 node --test tests/kokolio/api.test.mjs          # scénario complet contre une vraie base
+node --test tests/kokolio/demo.test.mjs         # mise à jour de la base et mode démonstration (un fichier à la fois : même base locale)
 bash tests/kokolio/e2e/tout.sh                  # navigateur (Playwright) : mise en route, quotidien, RH
 node tests/kokolio/charge.mjs 500               # volume : 500 salariés, un mois de pointages, 200 pointages simultanés
 ```

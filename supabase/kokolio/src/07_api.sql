@@ -17,6 +17,7 @@ begin
         'schema', (select m.value from kokolio.meta m where m.key = 'schema_version'),
         'company', (select m.value->>'company' from kokolio.meta m where m.key = 'settings'),
         'logo_url', (select m.value->>'logo_url' from kokolio.meta m where m.key = 'settings'),
+        'demo', exists (select 1 from kokolio.meta m where m.key = 'demo'),
         'today', kokolio._today());
     when 'auth_salt' then return kokolio._auth_salt(v_args);
     when 'login' then return kokolio._login(p, v_args);
@@ -65,6 +66,8 @@ begin
     when 'sessions_revoke' then
       delete from kokolio.sessions s where s.user_id = me.id and s.token_hash <> coalesce(p->>'token', '');
       return '{}'::jsonb;
+    when 'demo_seed' then return kokolio._demo_seed(me, p, v_args);
+    when 'demo_reset' then return kokolio._demo_reset(me, p);
     when 'selftest' then
       if me.role <> 'admin' then perform kokolio._fail('interdit', 'Accès réservé aux administrateurs.'); end if;
       return kokolio.selftest();
@@ -140,7 +143,7 @@ begin
 end $$;
 revoke all on function kokolio.bootstrap_admin(text, text) from public;
 
-insert into kokolio.meta (key, value) values ('schema_version', '1'::jsonb)
+insert into kokolio.meta (key, value) values ('schema_version', '2'::jsonb)
 on conflict (key) do update set value = excluded.value, updated_at = now();
 
 notify pgrst, 'reload schema';

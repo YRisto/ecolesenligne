@@ -1,5 +1,10 @@
 // Fonctionnalités et historique des versions. À mettre à jour à chaque mise en ligne, avec lib/kokolio/version.mjs.
 export const VERSIONS = [
+  { v: "1.1.0", date: "25/11/2026", titre: "Mode démonstration", points: [
+    "Données de démonstration à charger dans un outil vide : six salariés fictifs, deux mois de pointages, absences, validations en attente, un mois clôturé",
+    "Codes d'activation des comptes fictifs affichés au chargement, pour essayer chaque profil",
+    "Bandeau « Mode démonstration » visible par tous ; effacement complet avant la mise en service, réservé à ce mode",
+  ] },
   { v: "1.0.0", date: "25/11/2026", titre: "Première version de production", points: [
     "Comptes personnels : identifiant, mot de passe, activation par code à usage unique. La connexion Microsoft de la maquette est remplacée",
     "Données enregistrées sur un serveur et cloisonnées : chacun ne voit que ce que son rôle autorise, quel que soit le moyen d'accès",
@@ -83,6 +88,7 @@ export const FONCTIONS = [
     "Réglages : entreprise, logo, date de mise en service, seuils d'alerte, lieux de travail, format de l'export paie",
     "Motifs d'absence : libellé, famille, code d'export, justificatif demandé",
     "État de l'installation et autodiagnostic des règles de sécurité",
+    "Mode démonstration : jeu de données fictives à charger dans un outil vide, effaçable avant la mise en service",
   ]],
   ["Sécurité et conservation des données", [
     "Aucun accès direct aux données : tout passe par le serveur, qui contrôle la session et les droits à chaque appel",

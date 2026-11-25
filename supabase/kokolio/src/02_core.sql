@@ -86,6 +86,11 @@ create or replace trigger absences_guard before insert or update or delete on ko
 -- ---------------------------------------------------------------------
 create or replace function kokolio._append_only() returns trigger language plpgsql as $$
 begin
+  -- Seule exception : l'effacement des données de démonstration, qui pose ce drapeau le temps de sa transaction
+  -- (voir _demo_reset : administrateur, et uniquement si l'outil est en mode démonstration).
+  if tg_op = 'DELETE' and current_setting('kokolio.purge', true) = '1' then
+    return old;
+  end if;
   raise exception 'KK:journal:Cette table est en ajout seul : aucune modification ni suppression.';
 end $$;
 create or replace trigger audit_append_only before update or delete on kokolio.audit
