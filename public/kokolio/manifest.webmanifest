@@ -1,0 +1,16 @@
+{
+  "name": "Kokolio · pointage et absences",
+  "short_name": "Kokolio",
+  "description": "Pointage, heures et absences des salariés.",
+  "lang": "fr",
+  "start_url": "/kokolio",
+  "scope": "/kokolio",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#0b4fd1",
+  "icons": [
+    { "src": "/kokolio/icone-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "/kokolio/icone-512.png", "sizes": "512x512", "type": "image/png" },
+    { "src": "/kokolio/icone-masque-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}

@@ -1,0 +1,7 @@
+{
+  "name": "kokolio-tests",
+  "private": true,
+  "type": "module",
+  "description": "Outils de test de Kokolio : faux serveur PostgREST branché sur une base PostgreSQL locale. Hors du site : rien ici n'est déployé.",
+  "dependencies": { "pg": "^8.13.0" }
+}
