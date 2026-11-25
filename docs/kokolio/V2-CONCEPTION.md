@@ -37,10 +37,26 @@ Le serveur résout cycles et exceptions dès la lecture (`attachPlan`) : chaque 
 Verrous : un horaire ou un cycle qui a servi dans un mois clôturé ne peut plus changer de durée ni de composition (on en crée un nouveau) ; `plan_days` est figé avec le mois clôturé.
 Droits : bibliothèque et cycles = RH et administrateurs ; planning = responsable direct, RH, administrateurs ; jamais soi-même.
 
-## 2.1 — annualisation (à préciser en construisant)
+## 2.1 — annualisation (construite)
 
-Période commune (réglage). Par salarié : objectif initial (saisi, importé, ou proposé = heures planifiées sur la période) + écritures datées. Par motif d'absence : « compte comme réalisé » ou « retire de l'objectif ». Réalisé = heures faites + absences comptées. Projection = réalisé + planifié restant.
+Période commune créée par les RH (`annual_periods`). Sont annualisés les salariés qui suivent un cycle marqué « annualisé ». Objectif = objectif fixé (`annual_goals`) ou heures planifiées, plus ajustements datés (`annual_entries`), moins les absences « retirées ». Chaque motif d'absence dit son effet (`absence_types.annual`). Détail dans le README, calcul dans `engine/annual.mjs`.
 
-## 2.2 — anomalies et présence (à préciser en construisant)
+## 2.2 — anomalies et présence (construite)
 
-Calculées à partir des plages prévues : retard, départ anticipé, pointage hors plage, présence insuffisante, travail pendant une absence, pause trop courte / trop longue / non prise. Tolérances et gravité réglables. Traitement : table d'acquittement (salarié, jour, type) avec commentaire. Tableau des présents : état en direct d'après les pointages, les absences et le planning ; liste d'évacuation imprimable.
+Anomalies calculées à partir des plages prévues (`engine/signals.mjs`), niveaux et tolérances dans les réglages, acquittement dans `anomaly_acks`. Tableau des présents et liste d'évacuation dans `server/suivi.mjs` et `public/kokolio/js/suivi.js`.
+
+## Mise en ligne (à faire dès que Chrome est joignable sur le PC)
+
+Les trois versions sont sur la branche `kokolio-2-0`. `main` (la production) est resté en 1.1.1, base en schéma 3. L'ordre compte : **la base d'abord**, l'application ensuite — l'application 1.1.1 fonctionne avec une base en schéma 6, l'inverse non.
+
+1. **Base** — dans l'éditeur SQL du projet Supabase (onglet déjà ouvert dans Chrome) :
+   - contrôle avant : `select value from kokolio.meta where key = 'schema_version'` (attendu : 3), et le nombre de lignes de `users`, `days`, `absences`, `audit` ;
+   - charger `supabase/kokolio/install.sql` depuis `https://raw.githubusercontent.com/YRisto/ecolesenligne/<SHA de la branche>/supabase/kokolio/install.sql`, vérifier son empreinte (SHA-256 du texte, fins de ligne normalisées, espaces de fin retirés) contre celle calculée dans le dépôt, puis exécuter ;
+   - contrôle après : schéma 6, mêmes nombres de lignes, `select kokolio.selftest()->>'ok'` vrai.
+2. **Application** — `git push origin kokolio-2-0:main` (avance rapide), attendre le déploiement, puis `GET /api/kokolio/health` : application 2.2.0, schéma 6 attendu et constaté.
+3. **Démonstration en production** (l'outil y est en mode démonstration, données chargées en 1.1.1 : ne pas l'effacer, les comptes `demo.manager` et `demo.salarie` y sont rattachés) — avec la session administrateur, par les écrans de l'outil :
+   - Planning › Horaires et cycles : J7 (7 h, 9 h – 12 h 30 / 13 h 30 – 17 h), J8 (8 h, 8 h 45 – 13 h 15 / 14 h – 17 h 30), M4 (4 h, 9 h – 13 h), S7 (7 h, 12 h – 15 h 30 / 16 h 30 – 20 h) ;
+   - cycles : « Semaine 35 h » (annualisé), « Temps partiel 28 h (lundi à jeudi) », « Alternance 4 jours / 5 jours » (annualisé) ;
+   - fiches : cycle « Semaine 35 h » pour Camille Martin, Thomas Petit et Salarié Test à compter du 01/10/2026 (septembre est clôturé), cycle 28 h pour Inès Roux, présence automatique pour Nadia Benali ;
+   - Synthèse › Annualisation : période « Annualisation 2026 », du 01/09/2026 au 31/12/2026.
+4. Mettre à jour la date des versions dans `public/kokolio/js/versions.js` si la mise en ligne n'a pas lieu le 25/11/2026.
