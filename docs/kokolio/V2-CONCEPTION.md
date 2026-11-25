@@ -45,18 +45,18 @@ Période commune créée par les RH (`annual_periods`). Sont annualisés les sal
 
 Anomalies calculées à partir des plages prévues (`engine/signals.mjs`), niveaux et tolérances dans les réglages, acquittement dans `anomaly_acks`. Tableau des présents et liste d'évacuation dans `server/suivi.mjs` et `public/kokolio/js/suivi.js`.
 
-## Mise en ligne (à faire dès que Chrome est joignable sur le PC)
+## Mise en ligne
 
-Les trois versions sont sur la branche `kokolio-2-0`. `main` (la production) est resté en 1.1.1, base en schéma 3. L'ordre compte : **la base d'abord**, l'application ensuite — l'application 1.1.1 fonctionne avec une base en schéma 6, l'inverse non.
+Faite le 25/11/2026 vers 18 h 45, dans cet ordre :
 
-1. **Base** — dans l'éditeur SQL du projet Supabase (onglet déjà ouvert dans Chrome) :
-   - contrôle avant : `select value from kokolio.meta where key = 'schema_version'` (attendu : 3), et le nombre de lignes de `users`, `days`, `absences`, `audit` ;
-   - charger `supabase/kokolio/install.sql` depuis `https://raw.githubusercontent.com/YRisto/ecolesenligne/<SHA de la branche>/supabase/kokolio/install.sql`, vérifier son empreinte (SHA-256 du texte, fins de ligne normalisées, espaces de fin retirés) contre celle calculée dans le dépôt, puis exécuter ;
-   - contrôle après : schéma 6, mêmes nombres de lignes, `select kokolio.selftest()->>'ok'` vrai.
-2. **Application** — `git push origin kokolio-2-0:main` (avance rapide), attendre le déploiement, puis `GET /api/kokolio/health` : application 2.2.0, schéma 6 attendu et constaté.
-3. **Démonstration en production** (l'outil y est en mode démonstration, données chargées en 1.1.1 : ne pas l'effacer, les comptes `demo.manager` et `demo.salarie` y sont rattachés) — avec la session administrateur, par les écrans de l'outil :
-   - Planning › Horaires et cycles : J7 (7 h, 9 h – 12 h 30 / 13 h 30 – 17 h), J8 (8 h, 8 h 45 – 13 h 15 / 14 h – 17 h 30), M4 (4 h, 9 h – 13 h), S7 (7 h, 12 h – 15 h 30 / 16 h 30 – 20 h) ;
-   - cycles : « Semaine 35 h » (annualisé), « Temps partiel 28 h (lundi à jeudi) », « Alternance 4 jours / 5 jours » (annualisé) ;
-   - fiches : cycle « Semaine 35 h » pour Camille Martin, Thomas Petit et Salarié Test à compter du 01/10/2026 (septembre est clôturé), cycle 28 h pour Inès Roux, présence automatique pour Nadia Benali ;
-   - Synthèse › Annualisation : période « Annualisation 2026 », du 01/09/2026 au 31/12/2026.
-4. Mettre à jour la date des versions dans `public/kokolio/js/versions.js` si la mise en ligne n'a pas lieu le 25/11/2026.
+1. **Base** : script `supabase/kokolio/install.sql` joué dans l'éditeur SQL de Supabase après vérification de son empreinte. Contrôles avant et après identiques (9 comptes, 8 horaires, 336 journées, 11 absences, 15 lignes de journal, 1 clôture, 916 pointages), schéma passé de 3 à 6, aucun horaire modifié, nouvelles tables vides, autodiagnostic vrai (45 contrôles).
+2. **Application** : `main` avancé sur la version 2.2.0 ; `GET /api/kokolio/health` répond application 2.2.0, schéma 6 attendu et constaté.
+
+Reste à faire — **préparer la démonstration en production** (l'outil y est en mode démonstration, données chargées en 1.1.1 : ne pas l'effacer, les comptes `demo.manager` et `demo.salarie` y sont rattachés). Avec la session administrateur, par les écrans de l'outil :
+
+- Planning › Horaires et cycles : J7 (7 h, 9 h – 12 h 30 / 13 h 30 – 17 h), J8 (8 h, 8 h 45 – 13 h 15 / 14 h – 17 h 30), M4 (4 h, 9 h – 13 h), S7 (7 h, 12 h – 15 h 30 / 16 h 30 – 20 h) ;
+- cycles : « Semaine 35 h » (annualisé), « Temps partiel 28 h (lundi à jeudi) », « Alternance 4 jours / 5 jours » (annualisé) ;
+- fiches : cycle « Semaine 35 h » pour Camille Martin, Thomas Petit et Salarié Test à compter du 01/10/2026 (septembre est clôturé), cycle 28 h pour Inès Roux, présence automatique pour Nadia Benali ;
+- Synthèse › Annualisation : période « Annualisation 2026 », du 01/09/2026 au 31/12/2026.
+
+Le soir de la mise en ligne, le navigateur du PC refusait le site (`ERR_CERT_AUTHORITY_INVALID`) alors qu'il répondait normalement de l'extérieur : un filtrage du réseau ou d'un logiciel de sécurité de ce poste, pas un défaut du site. La préparation ci-dessus attend que ce poste atteigne de nouveau le site.
