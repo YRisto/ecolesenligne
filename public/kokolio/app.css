@@ -182,6 +182,8 @@ dialog h2{font-size:var(--t-l)}
 dialog img.apercu{max-width:100%;border-radius:8px;border:1px solid var(--trait)}
 .heures-edit{display:grid;grid-template-columns:1fr auto 1fr auto;gap:8px;align-items:center}
 .heures-edit button{min-width:44px;padding:8px}
+.heures-edit input{min-width:0}
+.heures-edit .lendemain{grid-column:1/-1;font-size:var(--t-s);color:var(--discret)}
 #toast{position:fixed;left:16px;right:16px;bottom:calc(120px + env(safe-area-inset-bottom));margin:auto;max-width:520px;background:var(--encre);color:var(--fond);padding:12px 16px;border-radius:12px;display:none;z-index:20;font-size:var(--t-s);font-weight:550;box-shadow:0 10px 30px -10px rgba(0,0,0,.5)}
 #toast.erreur{background:var(--refus)}
 body.sans-nav #toast{bottom:24px}
@@ -252,6 +254,55 @@ ul{margin:6px 0 12px;padding-left:20px} li{margin:3px 0}
 body.impression .imprimable{display:grid}
 
 @media (max-width:420px){.tuiles{grid-template-columns:1fr 1fr}}
+
+/* Planning : une case par salarié et par jour. La couleur de l'horaire tient dans le liseré de gauche ; le fond dit l'état du jour. */
+table.plan{min-width:0;border-collapse:separate;border-spacing:0}
+table.plan th,table.plan td{padding:4px;white-space:nowrap;vertical-align:middle}
+table.plan thead th{text-align:center} table.plan thead th:first-child{text-align:left} table.plan thead th.d{text-align:right}
+table.plan thead th small{display:block;font-weight:700;color:var(--attente);text-transform:none;letter-spacing:0}
+table.plan thead th.auj button{color:var(--encre);text-decoration-thickness:3px}
+table.plan th[scope=row]{position:sticky;left:0;z-index:1;background:var(--surface);min-width:150px;max-width:220px;white-space:normal;text-align:left;
+  font-size:.95rem;font-weight:600;letter-spacing:0;text-transform:none;color:var(--encre);box-shadow:6px 0 6px -6px rgba(19,26,43,.18)}
+table.plan th[scope=row] small{display:block;margin-top:2px;color:var(--discret);font-size:var(--t-xs);font-weight:400}
+table.plan td.d{font-weight:650;padding-left:10px}
+.pc{position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;width:100%;min-width:60px;min-height:50px;padding:4px 6px;
+  border-radius:8px;border:1px solid var(--trait);border-left:5px solid var(--trait);background:var(--surface);color:var(--encre);font-size:.86rem;font-weight:400;line-height:1.1}
+.pc b{font-weight:700} .pc small{font-size:.68rem;color:var(--discret)}
+.pc.repos{background:var(--creux);color:var(--discret)} .pc.repos b{font-weight:500}
+.pc.hors{background:none;border-color:transparent;color:var(--discret)}
+.pc.ferie{background:var(--k-f);border-color:transparent}
+.pc.abs{border-color:transparent} .pc.abs small{color:var(--encre)}
+.pc.exc::after,.pc-l.exc::before{content:"";width:7px;height:7px;border-radius:50%;background:var(--accent)}
+.pc.exc::after{position:absolute;top:4px;right:4px} .pc-l.exc::before{display:inline-block;margin-right:6px}
+.pc.clos{opacity:.55}
+.pc.auj{box-shadow:0 0 0 2px var(--encre)}
+.pc.sel{background:var(--accent-doux);border-color:var(--accent);box-shadow:0 0 0 2px var(--accent)}
+.hm-bleu{border-left-color:#2f6fe0!important} .hm-vert{border-left-color:#2f9e55!important} .hm-turquoise{border-left-color:#1798b5!important} .hm-violet{border-left-color:#8a55d6!important}
+.hm-rose{border-left-color:#d9577a!important} .hm-ambre{border-left-color:#d79a00!important} .hm-brique{border-left-color:#b1502f!important} .hm-gris{border-left-color:#7a8496!important}
+.legende .pc-l{border:1px solid var(--trait);border-left:5px solid var(--trait);background:var(--surface)} .legende .pc-l.repos{background:var(--creux)} .legende .pc-l.k-f,.legende .pc-l.k-cp{border-color:transparent}
+.plan-barre{position:sticky;bottom:calc(88px + env(safe-area-inset-bottom));z-index:4;display:flex;gap:8px;flex-wrap:wrap;align-items:center;background:var(--surface);
+  border:2px solid var(--accent);border-radius:12px;padding:10px 12px;box-shadow:0 10px 30px -12px rgba(19,26,43,.45)}
+.plan-barre button{min-height:40px;padding:6px 14px}
+.code-h{display:inline-flex;align-items:center;justify-content:center;min-width:36px;padding:3px 7px;border-radius:6px;border:1px solid var(--trait);border-left:5px solid var(--trait);
+  background:var(--surface);font-size:.8rem;font-weight:700;line-height:1.2}
+.code-h.vide-h{background:var(--creux);color:var(--discret);font-weight:400;border-left-width:1px}
+.cycle-apercu{display:flex;flex-direction:column;gap:4px;margin-top:4px}
+.cycle-apercu .sem{display:flex;gap:4px;align-items:center;flex-wrap:wrap}
+.cycle-apercu .sem small{width:26px;color:var(--discret);font-weight:700}
+.cycle-sem{border:1px solid var(--trait);border-radius:10px;padding:10px;display:flex;flex-direction:column;gap:8px}
+.cycle-sem .grille7 select{padding:8px 2px;font-size:.85rem;text-align:center}
+button.choix-h{display:grid;grid-template-columns:auto 1fr;gap:2px 12px;align-items:baseline;text-align:left;border-left:6px solid var(--trait);width:100%}
+button.choix-h b{grid-row:1/3;align-self:center;font-family:var(--titre);font-size:1.15rem;min-width:44px}
+button.choix-h small{color:var(--discret);font-weight:400}
+.prevu{display:flex;flex-direction:column;gap:2px;padding:10px 12px;border-radius:10px;background:var(--accent-doux);font-size:var(--t-s)}
+.hero .prevu{background:rgba(255,255,255,.14);color:var(--hero-encre);text-align:center}
+.agenda{display:grid;grid-template-columns:auto 1fr auto;gap:8px 12px;align-items:baseline;font-size:var(--t-s)}
+.agenda .off{color:var(--discret)}
+.agenda small{display:block;color:var(--discret)}
+@media (max-width:560px){table.plan th[scope=row]{min-width:108px;max-width:128px;font-size:.86rem} .pc{min-width:52px;min-height:46px;padding:4px 3px}}
+nav.onglets{overflow-x:auto;justify-content:safe center}
+nav.onglets button{min-width:60px}
+@media (max-width:480px){nav.onglets[data-espace="rh"] button{font-size:.76rem}}
 
 /* Impression : seulement la zone marquée (fiches d'activation) */
 @media print{

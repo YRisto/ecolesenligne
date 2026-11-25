@@ -19,3 +19,8 @@ bash tests/kokolio/e2e/serveur-local.sh 3111 2>&1 | tail -1 > /tmp/kk-setup.txt
 CODE=$(grep CODE_ADMIN /tmp/kk-setup.txt | cut -d= -f2)
 if ! python3 tests/kokolio/e2e/05_demonstration_comptes_existants.py "$CODE" > /tmp/kk-05_demonstration_comptes_existants.log 2>&1; then echo "ÉCHEC à l'étape 05_demonstration_comptes_existants"; grep -n "in <module>\|Expect \|waiting for\|AssertionError" /tmp/kk-05_demonstration_comptes_existants.log | head -8; exit 1; fi
 tail -n 2 /tmp/kk-05_demonstration_comptes_existants.log
+# … enfin la planification, sur les données de démonstration : nouvel environnement
+bash tests/kokolio/e2e/serveur-local.sh 3111 2>&1 | tail -1 > /tmp/kk-setup.txt
+CODE=$(grep CODE_ADMIN /tmp/kk-setup.txt | cut -d= -f2)
+if ! python3 tests/kokolio/e2e/06_planification.py "$CODE" > /tmp/kk-06_planification.log 2>&1; then echo "ÉCHEC à l'étape 06_planification"; grep -n "in <module>\|Expect \|waiting for\|AssertionError" /tmp/kk-06_planification.log | head -8; exit 1; fi
+tail -n 2 /tmp/kk-06_planification.log

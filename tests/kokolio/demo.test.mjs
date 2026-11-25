@@ -119,7 +119,8 @@ test("chargement des données de démonstration", async () => {
   assert.deepEqual(lib.cycles.map((c) => [c.name, c.assigned, c.weekly_minutes]),
     [["Alternance 4 jours / 5 jours (36 h en moyenne)", 0, 2160], ["Semaine 35 h", 2, 2100], ["Temps partiel 28 h (lundi à jeudi)", 1, 1680]]);
   assert.deepEqual(["camille.martin", "ines.roux", "julien.bernard"].map((l) => list.employees.find((e) => e.login === l).cycle), ["Semaine 35 h", "Temps partiel 28 h (lundi à jeudi)", ""]);
-  const g = await admin.ok("plan/grid", { scope: "all", from: "2026-11-23" });
+  const { normaliserGrille } = await import(path.join(ROOT, "public/kokolio/js/grille.js"));
+  const g = normaliserGrille(await admin.ok("plan/grid", { scope: "all", from: "2026-11-23" }));
   assert.deepEqual(g.rows.map((r) => [r.name, r.cycle ? r.cells[0].code : "", r.total]), [["Camille Martin", "J7", 2100], ["Julien Bernard", "", 0], ["Thomas Petit", "J7", 2100], ["Sophie Leroy", "", 0], ["Inès Roux", "J7", 1680], ["Nadia Benali", "", 0]]);
 });
 

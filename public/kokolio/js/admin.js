@@ -19,6 +19,7 @@ export function vueReglages() {
     const heures = (min) => h("input", { type: "text", inputmode: "decimal", value: fmtNb(min / 60) });
     const seuilPause = heures(s.pause_threshold_min), maxJour = heures(s.max_day_min), maxSemaine = heures(s.max_week_min), repos = heures(s.min_rest_min);
     const validite = h("input", { type: "number", min: 1, max: 90, value: s.activation_days });
+    const nuit = h("input", { type: "time", value: s.night_until || "" });
     const lieux = h("div", { class: "pile" });
     const ajouteLieu = (l = { code: "", label: "" }) => {
       const row = h("div", { class: "ligne", "data-code": l.code }, h("input", { type: "text", value: l.label, maxlength: 40, "aria-label": "Nom du lieu", class: "etire" }),
@@ -42,7 +43,7 @@ export function vueReglages() {
         await api("admin/settings-save", { version: s.version, settings: {
           company: societe.value.trim(), logo_url: logoUrl.value.trim(), go_live: service.value,
           pause_threshold_min: enMinutes(seuilPause, "seuil de pause"), max_day_min: enMinutes(maxJour, "durée par jour"), max_week_min: enMinutes(maxSemaine, "durée par semaine"), min_rest_min: enMinutes(repos, "repos"),
-          activation_days: +validite.value, lieux: liste,
+          activation_days: +validite.value, night_until: nuit.value || "", lieux: liste,
           export: { hours_code: codeHeures.value.trim(), include_hours: avecHeures.checked, header: entete.checked, sep: sep.value, decimal: dec.value },
         } });
         toast("Réglages enregistrés."); await rafraichir();
@@ -55,6 +56,9 @@ export function vueReglages() {
           h("div", { class: "grille2" }, champ("Alerte au-delà de (heures par jour)", maxJour), champ("Alerte au-delà de (heures par semaine)", maxSemaine)),
           h("div", { class: "grille2" }, champ("Repos minimal entre deux journées (heures)", repos), champ("Pause déduite au-delà de (heures d'un seul tenant)", seuilPause)),
           h("p", { class: "discret" }, "La durée de la pause déduite se règle sur l'horaire de chaque salarié. Ces seuils signalent des points d'attention ; ils ne bloquent pas le pointage.")),
+        h("div", { class: "carte" }, h("h3", null, "Travail de nuit"),
+          champ("Un départ pointé avant cette heure ferme la journée de la veille", nuit, "Vide : fonction désactivée, chaque journée s'arrête à minuit. Exemple : 06:00 pour des équipes de nuit qui finissent au petit matin (au plus tard 11:59)."),
+          h("p", { class: "discret" }, "Quand elle est activée : un salarié arrivé la veille au soir et encore en poste pointe son départ après minuit, et la journée entière compte pour la veille. Au-delà de seize heures depuis l'arrivée, le pointage ouvre une nouvelle journée (le départ de la veille a été oublié).")),
         h("div", { class: "carte" }, h("h3", null, "Lieux de travail"), lieux, h("div", { class: "ligne gauche" }, h("button", { type: "button", onclick: () => ajouteLieu() }, "Ajouter un lieu")),
           h("p", { class: "discret" }, "Le lieu nommé « Télétravail » alimente le code TT de la vue annuelle.")),
         h("div", { class: "carte" }, h("h3", null, "Export paie (Silae)"),
@@ -170,7 +174,7 @@ export function vueVersions(publique) {
     h("div", { class: "carte" }, h("h3", null, "Historique des versions"),
       VERSIONS.map((x) => h("div", null, h("div", { class: "ligne" }, h("strong", null, `${x.v} · ${x.titre}`), h("span", { class: "num discret" }, x.date)), h("ul", null, x.points.map((p) => h("li", null, p))))),
       h("div", null, h("strong", null, "Maquettes de préparation (données fictives)"), h("ul", null, MAQUETTES.map((m) => h("li", null, `${m.v} · ${m.titre} · ${m.date}`))))),
-    h("div", { class: "carte" }, h("h3", null, "Prévu pour la suite"), h("p", { class: "discret" }, "Présent dans la maquette, pas encore dans la version de production."), h("ul", null, A_VENIR.map((x) => h("li", null, x)))),
+    h("div", { class: "carte" }, h("h3", null, "Prévu pour la suite"), h("p", { class: "discret" }, "Les prochaines versions, dans l'ordre prévu."), h("ul", null, A_VENIR.map((x) => h("li", null, x)))),
     h("div", { class: "carte" }, h("h3", null, "Non géré"), h("ul", null, NON_GERE.map((x) => h("li", null, x)))),
     logo(S.boot.settings.logo_url, "logo-p", S.boot.settings.company),
     h("p", { class: "pied" }, h("a", { href: "/kokolio/demo" }, "Voir la maquette de démonstration (V4.3, données fictives)")));

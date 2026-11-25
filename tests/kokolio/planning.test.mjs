@@ -58,6 +58,9 @@ async function embauche(client, login, first, last, extra) {
   await client.ok("auth/activate", { login, code: r.code, password: PW });
   return r;
 }
+// la grille arrive allégée : on la remet à plat comme le fait l'écran du planning
+const { normaliserGrille } = await import(path.join(ROOT, "public/kokolio/js/grille.js"));
+const grille = async (client, body) => normaliserGrille(await client.ok("plan/grid", body));
 const cellule = (grid, login, date) => grid.rows.find((r) => r.user_id === ids[login])?.cells.find((c) => c.date === date);
 const journee = (c, day, times) => c.ok("my/correct", { day, times, lieu: "bureau", comment: "Saisie de test" });
 
@@ -160,7 +163,7 @@ test("attribuer un cycle à un salarié : ce qui est prévu chaque jour suit le 
 });
 
 test("planning d'équipe : le responsable pose des exceptions, sur son équipe seulement", async () => {
-  const g = await julien.ok("plan/grid", { from: "2026-11-04", weeks: 2 });
+  const g = await grille(julien, { from: "2026-11-04", weeks: 2 });
   assert.deepEqual([g.from, g.to, g.days.length, g.can_lib], ["2026-11-02", "2026-11-15", 14, false]);
   assert.deepEqual(g.rows.map((r) => [r.name, r.cycle, r.can_edit, r.total]), [["Camille Martin", "Alternance 4 / 5 jours", true, 480 * 7 + 240], ["Léo Petit", "", true, 420 * 9]]);
   assert.deepEqual(g.models.map((m) => m.code), ["J7", "J8", "M4", "N8"]);
@@ -174,7 +177,7 @@ test("planning d'équipe : le responsable pose des exceptions, sur son équipe s
     { user_id: ids["leo.petit"], day: "2026-11-05", minutes: 360, ranges: [["10:00", "13:00"], ["14:00", "17:00"]], label: "Journée courte" },
   ] });
   assert.deepEqual([r.set, r.cleared], [3, 0]);
-  const g2 = await julien.ok("plan/grid", { from: "2026-11-02", weeks: 1 });
+  const g2 = await grille(julien, { from: "2026-11-02", weeks: 1 });
   assert.deepEqual(["2026-11-03", "2026-11-05", "2026-11-07"].map((d) => { const x = cellule(g2, "leo.petit", d); return [x.work, x.code, x.label, x.minutes, x.source]; }),
     [[false, "", "", 0, "exception"], [true, "", "Journée courte", 360, "exception"], [true, "M4", "Matinée 4 h", 240, "exception"]]);
   assert.equal(cellule(g2, "leo.petit", "2026-11-07").note, "Salon étudiant");
@@ -190,9 +193,9 @@ test("planning d'équipe : le responsable pose des exceptions, sur son équipe s
   await julien.fail("plan/set", { items: [{ user_id: ids.admin, day: "2026-11-06", minutes: 0 }] }, "interdit", 403);
   // tout ou rien : un élément refusé annule le lot entier
   await julien.fail("plan/set", { items: [{ user_id: ids["leo.petit"], day: "2026-11-06", minutes: 0 }, { user_id: ids["nadia.benali"], day: "2026-11-06", minutes: 0 }] }, "interdit", 403);
-  assert.equal(cellule(await julien.ok("plan/grid", { from: "2026-11-02" }), "leo.petit", "2026-11-06").source, "contrat");
+  assert.equal(cellule(await grille(julien, { from: "2026-11-02" }), "leo.petit", "2026-11-06").source, "contrat");
   // les RH voient tout le monde, et planifient chacun sauf eux-mêmes
-  const all = await sophie.ok("plan/grid", { scope: "all", from: "2026-11-02" });
+  const all = await grille(sophie, { scope: "all", from: "2026-11-02" });
   assert.deepEqual(all.rows.map((x) => [x.name, x.can_edit, x.presence]), [["Camille Martin", true, "pointage"], ["Julien Bernard", true, "pointage"], ["Léo Petit", true, "pointage"], ["Sophie Leroy", false, "pointage"], ["Nadia Benali", true, "automatique"]]);
   await julien.fail("plan/grid", { scope: "all" }, "interdit", 403);
   await sophie.fail("plan/set", { items: [{ user_id: ids["sophie.leroy"], day: "2026-11-06", minutes: 0 }] }, "interdit", 403);
@@ -200,7 +203,7 @@ test("planning d'équipe : le responsable pose des exceptions, sur son équipe s
   // revenir au planning par défaut
   const back = await julien.ok("plan/set", { items: [{ user_id: ids["leo.petit"], day: "2026-11-05", clear: true }, { user_id: ids["leo.petit"], day: "2026-11-04", clear: true }] });
   assert.deepEqual([back.set, back.cleared], [0, 1]);
-  assert.deepEqual([cellule(await julien.ok("plan/grid", { from: "2026-11-02" }), "leo.petit", "2026-11-05").source], ["contrat"]);
+  assert.deepEqual([cellule(await grille(julien, { from: "2026-11-02" }), "leo.petit", "2026-11-05").source], ["contrat"]);
   // chaque modification est inscrite au journal, au nom de son auteur
   const j = await sophie.ok("rh/journal", { action: "planning_modifie" });
   assert.ok(j.rows.length >= 3 && j.rows.some((e) => e.detail.jours === 3 && e.detail.detail.some((d) => d.horaire === "M4")), JSON.stringify(j.rows[0]));
@@ -242,7 +245,7 @@ test("effets sur les heures : prévu, écart, oublis et décompte des absences s
   await julien.ok("team/decide-absence", { id: p.absences[0].id, decision: "valide", version: p.absences[0].version });
   assert.equal((await leo.ok("my/absences")).balances.cp.taken, 5);
   // l'absence apparaît dans la grille, par-dessus ce qui était prévu
-  const g = await julien.ok("plan/grid", { from: "2026-11-16" });
+  const g = await grille(julien, { from: "2026-11-16" });
   assert.deepEqual([cellule(g, "leo.petit", "2026-11-18").absence.code, cellule(g, "leo.petit", "2026-11-18").work], ["CP", true]);
 });
 
@@ -318,7 +321,7 @@ test("clôture : le planning entre dans l'empreinte du mois, puis il est figé a
   await julien.fail("plan/set", { items: [{ user_id: ids["leo.petit"], day: "2026-11-03", clear: true }] }, "cloture", 409);
   assert.match(sqlFails("update kokolio.plan_days set minutes = 1 where day = '2026-11-03'"), /KK:cloture/);
   assert.match(sqlFails("delete from kokolio.plan_days where day = '2026-11-03'"), /KK:cloture/);
-  assert.equal(cellule(await julien.ok("plan/grid", { from: "2026-11-23" }), "leo.petit", "2026-11-24").closed, true);
+  assert.equal(cellule(await grille(julien, { from: "2026-11-23" }), "leo.petit", "2026-11-24").closed, true);
   // un horaire journalier et un cycle qui ont servi dans ce mois ne changent plus de durée ni de composition
   const l = await sophie.ok("plan/lib");
   assert.deepEqual(l.cycles.map((c) => [c.name, c.locked]), [["Alternance 4 / 5 jours", true], ["Semaine 35 h", false]]);

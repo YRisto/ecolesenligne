@@ -38,7 +38,22 @@ export const frHorodatage = (iso) => new Date(iso).toLocaleString("fr-FR", { tim
 export const plusMois = (m, n) => { const d = new Date(+m.slice(0, 4), +m.slice(5, 7) - 1 + n, 1); return `${d.getFullYear()}-${pad(d.getMonth() + 1)}`; };
 export const plusJours = (s, n) => { const d = dateDe(s); d.setDate(d.getDate() + n); return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`; };
 export const jourSemaine = (s) => (dateDe(s).getDay() + 6) % 7; // 0 = lundi
-export const paires = (times) => { const out = []; for (let i = 0; i < times.length; i += 2) out.push(`${times[i]} → ${times[i + 1] || "…"}`); return out.join("  ·  "); };
+// Une heure du lendemain est enregistrée au-delà de 24 h (« 25:30 ») : elle s'affiche « 01:30 (+1) ».
+export const hmAff = (t) => (t && t >= "24:00" ? `${pad(+t.slice(0, 2) - 24)}${t.slice(2)} (+1)` : t || "");
+export const paires = (times) => { const out = []; for (let i = 0; i < times.length; i += 2) out.push(`${hmAff(times[i])} → ${times[i + 1] ? hmAff(times[i + 1]) : "…"}`); return out.join("  ·  "); };
+// Durées saisies à la main : « 7 », « 7:30 », « 7h30 », « 7,5 » → minutes (NaN si illisible, 0 si vide).
+export function lireDuree(txt) {
+  const s = String(txt ?? "").trim().toLowerCase().replace(/\s/g, "");
+  if (!s) return 0;
+  let m = s.match(/^(\d{1,2})(?:[:h](\d{1,2})?)?$/);
+  if (m) return +m[1] * 60 + +(m[2] || 0);
+  m = s.match(/^(\d{1,2})[.,](\d{1,2})$/);
+  if (m) return Math.round(parseFloat(`${m[1]}.${m[2]}`) * 60);
+  return NaN;
+}
+export const ecrireDuree = (min) => (min ? `${Math.floor(min / 60)}:${pad(min % 60)}` : "");
+// Durée courte pour une case de planning : « 7 h », « 7 h 30 ».
+export const fmtCourt = (m) => `${Math.floor(m / 60)} h${m % 60 ? " " + pad(m % 60) : ""}`;
 export const periode = (a, b, half) => (a === b ? frJour(a) + (half ? (half === "matin" ? " (matin)" : " (après-midi)") : "") : `${frJour(a)} → ${frJour(b)}`);
 export const classeEcart = (m) => (m > 0 ? "plus" : m < 0 ? "moins" : "");
 
@@ -55,6 +70,7 @@ const ICONES = {
   annee: "M4 9h16M8 3v4M16 3v4M5 5h14a1 1 0 0 1 1 1v13a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1ZM8 13h.01M12 13h.01M16 13h.01M8 17h.01M12 17h.01",
   validation: "M9 12l2 2 4-4M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18Z",
   synthese: "M4 20V10M10 20V4M16 20v-7M22 20H2",
+  planning: "M4 5h16a1 1 0 0 1 1 1v13a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1ZM3 10h18M9 5v15M15 5v15M3 15h18",
   salaries: "M16 19v-1a4 4 0 0 0-4-4H7a4 4 0 0 0-4 4v1M9.5 10a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7ZM21 19v-1a4 4 0 0 0-3-3.8M15.5 3.2a3.5 3.5 0 0 1 0 6.6",
   cloture: "M7 11V8a5 5 0 0 1 10 0v3M6 11h12a1 1 0 0 1 1 1v8a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1v-8a1 1 0 0 1 1-1ZM12 15v2",
   journal: "M6 3h9l4 4v13a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1ZM14 3v5h5M9 13h6M9 17h6",

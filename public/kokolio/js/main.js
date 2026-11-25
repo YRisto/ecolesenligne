@@ -7,11 +7,12 @@ import * as moi from "./moi.js";
 import * as equipe from "./equipe.js";
 import * as rh from "./rh.js";
 import * as admin from "./admin.js";
+import * as planning from "./planning.js";
 
 const ESPACES = {
   moi: { titre: "Mon espace", onglets: [["pointer", "Pointer"], ["heures", "Heures"], ["absences", "Absences"], ["annee", "Année"]] },
-  equipe: { titre: "Mon équipe", onglets: [["validation", "Validation"], ["synthese", "Synthèse"]] },
-  rh: { titre: "Ressources humaines", onglets: [["salaries", "Salariés"], ["validation", "Validation"], ["synthese", "Synthèse"], ["cloture", "Clôture"], ["journal", "Journal"]] },
+  equipe: { titre: "Mon équipe", onglets: [["validation", "Validation"], ["planning", "Planning"], ["synthese", "Synthèse"]] },
+  rh: { titre: "Ressources humaines", onglets: [["salaries", "Salariés"], ["validation", "Validation"], ["planning", "Planning"], ["synthese", "Synthèse"], ["cloture", "Clôture"], ["journal", "Journal"]] },
   admin: { titre: "Administration", onglets: [["versions", "Versions"], ["reglages", "Réglages"], ["motifs", "Motifs"], ["etat", "État"]] },
 };
 const ROLES = { salarie: "Salarié", rh: "Ressources humaines", admin: "Administrateur" };
@@ -86,7 +87,7 @@ function navigation(r) {
   nav.dataset.espace = r.espace;
   if (!e) { nav.replaceChildren(); document.body.classList.add("sans-nav"); return; }
   document.body.classList.remove("sans-nav");
-  const actif = { salarie: r.espace === "rh" ? "salaries" : "synthese", fiche: "salaries", import: "salaries", report: "salaries", annee: r.espace === "moi" ? "annee" : "synthese" }[r.onglet] || r.onglet;
+  const actif = { salarie: r.espace === "rh" ? "salaries" : "synthese", fiche: "salaries", import: "salaries", report: "salaries", horaires: "planning", annee: r.espace === "moi" ? "annee" : "synthese" }[r.onglet] || r.onglet;
   nav.replaceChildren(...e.onglets.map(([id, lib]) => h("button", { "aria-current": actif === id ? "page" : null, onclick: () => { aller(`#/${r.espace}/${id}`); window.scrollTo(0, 0); } },
     icone(id), lib, id === "validation" ? h("span", { class: "compte", hidden: true, "data-attente": r.espace === "rh" ? "rh" : "equipe" }) : null)));
   majPastilles();
@@ -102,7 +103,7 @@ function afficher() {
   v.dataset.espace = ESPACES[r.espace] ? r.espace : "";
   document.getElementById("bandeau-demo").hidden = !S.boot.demo;
   enTete(r); navigation(r);
-  const large = r.onglet === "annee" || (r.espace !== "moi" && ["synthese", "salaries", "salarie", "import", "report", "journal", "motifs"].includes(r.onglet));
+  const large = r.onglet === "annee" || (r.espace !== "moi" && ["synthese", "salaries", "salarie", "import", "report", "journal", "motifs", "planning", "horaires"].includes(r.onglet));
   v.className = large ? "" : "etroit";
   const k = `${r.espace}/${r.onglet}`;
   const vues = {
@@ -114,6 +115,7 @@ function afficher() {
     "rh/validation": () => equipe.vueValidation("rh", r.a), "rh/synthese": () => equipe.vueSynthese("rh", r.a),
     "rh/salarie": () => equipe.vueSalarie("rh", r.a, r.b), "rh/annee": () => moi.vueAnnee(r.b, r.a, "rh"),
     "rh/cloture": () => rh.vueCloture(), "rh/journal": () => rh.vueJournal(r.a),
+    "equipe/planning": () => planning.vuePlanning("equipe", r.a), "rh/planning": () => planning.vuePlanning("rh", r.a), "rh/horaires": () => planning.vueBibliotheque(),
     "admin/reglages": () => admin.vueReglages(), "admin/motifs": () => admin.vueMotifs(), "admin/etat": () => admin.vueEtat(), "admin/versions": () => admin.vueVersions(false),
   };
   (vues[k] || (() => { history.replaceState(null, "", "#/"); afficher(); }))();
@@ -129,8 +131,8 @@ function vueAccueil() {
   const cadre = me.regime === "forfait_jours";
   const tuiles = {
     moi: ["Mon espace", cadre ? "Forfait jours : pointer, suivre mes journées, demander un congé" : `${fmtMin(me.weekly_minutes)} par semaine : pointer, voir mes heures, demander un congé`, cadre ? "cadre" : "salarie", cadre ? "m-cadre" : ""],
-    equipe: ["Mon équipe", "Valider les pointages et les congés, suivre le mois", "equipe", "m-equipe"],
-    rh: ["Ressources humaines", "Salariés, validations, clôture et export paie, journal", "rh", "m-rh"],
+    equipe: ["Mon équipe", "Valider les pointages et les congés, planifier, suivre le mois", "equipe", "m-equipe"],
+    rh: ["Ressources humaines", "Salariés, validations, planning et cycles, clôture et export paie, journal", "rh", "m-rh"],
     admin: ["Administration", "Fonctionnalités et versions, réglages, motifs d'absence, état de l'outil", "admin", "m-admin"],
   };
   pose(h("div", { class: "bienvenue pile" }, logo(S.boot.settings.logo_url, "logo-g", S.boot.settings.company),
@@ -157,7 +159,9 @@ function vueCompte() {
       h("div", { class: "carte" }, h("h3", null, u.name),
         ligne("Identifiant", u.login), ligne("Profil", ROLES[u.role] + (S.boot.me.is_manager ? " · responsable d'équipe" : "")), ligne("Matricule", u.matricule), ligne("Équipe", u.team), ligne("Poste", u.job),
         ligne("Responsable", u.manager_name), ligne("Date d'entrée", frCourt(u.entry_date)),
-        ligne("Temps de travail", c ? (c.regime === "forfait_jours" ? `Forfait de ${c.forfait_days} jours par an` : `${fmtMin(c.day_minutes.reduce((s, m) => s + m, 0))} par semaine`) : "—"),
+        ligne("Temps de travail", c ? (c.regime === "forfait_jours" ? `Forfait de ${c.forfait_days} jours par an` : `${fmtMin(S.boot.me.weekly_minutes)} par semaine${c.cycle ? " en moyenne" : ""}`) : "—"),
+        c?.cycle ? ligne("Cycle de travail", c.cycle.name) : null,
+        c?.presence === "automatique" ? ligne("Présence", "automatique : vous ne pointez pas") : null,
         h("p", { class: "discret" }, "Une information est inexacte ? Signalez-le au service RH.")),
       h("div", { class: "carte" }, h("h3", null, "Mot de passe"),
         h("form", { class: "pile", novalidate: true, onsubmit: (ev) => { ev.preventDefault(); agir(ok, async () => {

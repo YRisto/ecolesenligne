@@ -1,9 +1,10 @@
 // Ressources humaines : salariés et fiches, import, report des congés, clôture et export paie, journal.
 import { api } from "./api.js";
 import { h, pose, remplir, toast, agir, ouvrir, confirmer, demanderMotif, etiquette, tuile, champ, telecharger, pad,
-  fmtMin, fmtJ, fmtNb, frCourt, frMois, frHorodatage } from "./dom.js";
+  fmtMin, fmtJ, fmtNb, frCourt, frMois, frHorodatage, lireDuree, ecrireDuree, plusJours, jourSemaine } from "./dom.js";
 import { S, ecran, aller, recharger, estAdmin } from "./etat.js";
 import { montrerCode, bonActivation, imprimerBons } from "./codes.js";
+import { apercuCycle } from "./planning.js";
 
 const val = (el) => el.value.trim();
 const csvLigne = (l) => l.map((c) => { const s = String(c ?? ""); return /[;"\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s; }).join(";");
@@ -11,54 +12,68 @@ const ROLES = { salarie: "Salarié", rh: "RH", admin: "Administrateur" };
 const JOURS = ["Lun", "Mar", "Mer", "Jeu", "Ven", "Sam", "Dim"];
 
 /* ---------- durées et horaires ---------- */
-function lireDuree(txt) {
-  const s = String(txt ?? "").trim().toLowerCase().replace(/\s/g, "");
-  if (!s) return 0;
-  let m = s.match(/^(\d{1,2})(?:[:h](\d{1,2})?)?$/);
-  if (m) return +m[1] * 60 + +(m[2] || 0);
-  m = s.match(/^(\d{1,2})[.,](\d{1,2})$/);
-  if (m) return Math.round(parseFloat(`${m[1]}.${m[2]}`) * 60);
-  return NaN;
-}
-const ecrireDuree = (min) => (min ? `${Math.floor(min / 60)}:${pad(min % 60)}` : "");
-const resumeHoraire = (c) => (!c ? "—" : c.regime === "forfait_jours" ? `Forfait de ${c.forfait_days} jours par an (${c.work_days.map((d) => JOURS[d - 1].toLowerCase()).join(", ")})`
-  : `${fmtMin(c.day_minutes.reduce((s, m) => s + m, 0))} par semaine (${c.day_minutes.map((m, i) => (m ? `${JOURS[i].toLowerCase()} ${ecrireDuree(m)}` : null)).filter(Boolean).join(", ")}), pause ${c.pause_minutes} min`);
+const lundiDe = (s) => plusJours(s, -jourSemaine(s));
+const presenceLib = (c) => (c?.presence === "automatique" ? " · présence automatique (ne pointe pas)" : "");
+const moyenneCycle = (k) => Math.round(k.weeks.reduce((s, w) => s + w.reduce((t, e) => t + (e ? e.minutes : 0), 0), 0) / k.weeks.length);
+const resumeHoraire = (c) => (!c ? "—"
+  : c.cycle ? `Cycle « ${c.cycle.name} » (${c.cycle.weeks.length > 1 ? `${c.cycle.weeks.length} semaines, ` : ""}${c.regime === "forfait_jours" ? `forfait de ${c.forfait_days} jours par an` : `${fmtMin(moyenneCycle(c.cycle))} par semaine${c.cycle.weeks.length > 1 ? " en moyenne" : ""}`})${c.cycle.weeks.length > 1 && c.cycle_anchor ? `, semaine 1 le lundi ${frCourt(c.cycle_anchor)}` : ""}${c.regime === "horaire" ? `, pause ${c.pause_minutes} min` : ""}${presenceLib(c)}`
+  : c.regime === "forfait_jours" ? `Forfait de ${c.forfait_days} jours par an (${c.work_days.map((d) => JOURS[d - 1].toLowerCase()).join(", ")})${presenceLib(c)}`
+  : `${fmtMin(c.day_minutes.reduce((s, m) => s + m, 0))} par semaine (${c.day_minutes.map((m, i) => (m ? `${JOURS[i].toLowerCase()} ${ecrireDuree(m)}` : null)).filter(Boolean).join(", ")}), pause ${c.pause_minutes} min${presenceLib(c)}`);
 
-// Éditeur d'horaire : régime, durée de chaque jour (ou jours travaillés au forfait), pause, acquisition de congés.
-function editeurHoraire(c) {
-  c = c || { regime: "horaire", day_minutes: [420, 420, 420, 420, 420, 0, 0], work_days: [1, 2, 3, 4, 5], pause_minutes: 45, cp_per_month: 2.08, forfait_days: 218 };
+// Éditeur d'horaire : régime, organisation du temps (semaine fixe ou cycle de la bibliothèque), présence, pause, acquisition de congés.
+// cycles : cycles de la bibliothèque ; dateEffet : fonction qui renvoie la date d'effet choisie (pour proposer le lundi de la semaine 1).
+function editeurHoraire(c, cycles = [], dateEffet = () => "") {
+  c = c || { regime: "horaire", day_minutes: [420, 420, 420, 420, 420, 0, 0], work_days: [1, 2, 3, 4, 5], pause_minutes: 45, cp_per_month: 2.08, forfait_days: 218, presence: "pointage" };
   const regime = h("select", { value: c.regime }, h("option", { value: "horaire" }, "Horaire (heures par semaine)"), h("option", { value: "forfait_jours" }, "Forfait jours (cadre)"));
+  const proposes = cycles.filter((k) => k.active || k.id === c.cycle_id);
+  const orga = h("select", { value: c.cycle_id || "" }, h("option", { value: "" }, "Semaine fixe : la même toute l'année"),
+    proposes.map((k) => h("option", { value: k.id }, `Cycle : ${k.name}${k.active ? "" : " (désactivé)"}`)));
+  const ancre = h("input", { type: "date", value: c.cycle_anchor || "" });
+  const apercu = h("div", { class: "pile" });
+  const presence = h("select", { value: c.presence || "pointage" }, h("option", { value: "pointage" }, "Pointage : arrivée et départ"), h("option", { value: "automatique" }, "Présence automatique : ne pointe pas"));
   const durees = JOURS.map((j, i) => h("input", { type: "text", inputmode: "decimal", value: ecrireDuree(c.day_minutes[i]), placeholder: "—", "aria-label": `Durée du ${j}` }));
   const total = h("strong", { class: "num" });
   const coches = JOURS.map((j, i) => h("input", { type: "checkbox", checked: c.work_days.includes(i + 1), "aria-label": j }));
   const pause = h("input", { type: "number", min: 0, max: 180, step: 5, value: c.pause_minutes });
   const cp = h("input", { type: "text", inputmode: "decimal", value: fmtNb(c.cp_per_month) });
   const forfait = h("input", { type: "number", min: 1, max: 366, value: c.forfait_days });
-  const blocH = h("div", { class: "pile" }, h("span", { class: "eyebrow" }, "Durée prévue chaque jour (exemples : 7, 7:30, 7,5 ; vide = non travaillé)"),
-    h("div", { class: "grille7" }, JOURS.map((j, i) => h("label", null, j, durees[i]))), h("div", { class: "ligne" }, h("span", { class: "discret" }, "Total hebdomadaire"), total),
-    champ("Pause déduite (minutes)", pause, "Déduite d'une journée de plus de six heures pointée d'un seul tenant, sans pause pointée."));
-  const blocF = h("div", { class: "pile" }, h("span", { class: "eyebrow" }, "Jours travaillés"),
-    h("div", { class: "segments" }, JOURS.map((j, i) => h("label", null, coches[i], j))), champ("Jours du forfait annuel", forfait));
+  const champPause = champ("Pause déduite (minutes)", pause, "Déduite d'une journée de plus de six heures pointée d'un seul tenant, sans pause pointée.");
+  const blocDurees = h("div", { class: "pile" }, h("span", { class: "eyebrow" }, "Durée prévue chaque jour (exemples : 7, 7:30, 7,5 ; vide = non travaillé)"),
+    h("div", { class: "grille7" }, JOURS.map((j, i) => h("label", null, j, durees[i]))), h("div", { class: "ligne" }, h("span", { class: "discret" }, "Total hebdomadaire"), total));
+  const blocJours = h("div", { class: "pile" }, h("span", { class: "eyebrow" }, "Jours travaillés"), h("div", { class: "segments" }, JOURS.map((j, i) => h("label", null, coches[i], j))));
+  const champForfait = champ("Jours du forfait annuel", forfait);
+  const blocCycle = h("div", { class: "pile" }, apercu, champ("Semaine 1 du cycle : semaine du", ancre, "N'importe quel jour de la semaine voulue. Vide : la semaine de la date d'effet."));
   const maj = () => {
-    const f = regime.value === "forfait_jours"; blocH.hidden = f; blocF.hidden = !f;
+    const f = regime.value === "forfait_jours", k = proposes.find((x) => x.id === orga.value);
+    blocDurees.hidden = f || !!k; blocJours.hidden = !f || !!k; champForfait.hidden = !f; champPause.hidden = f; blocCycle.hidden = !k;
+    if (k) remplir(apercu, h("span", { class: "eyebrow" }, `${k.weeks.length} semaine${k.weeks.length > 1 ? "s" : ""}${f ? "" : ` · ${fmtMin(moyenneCycle(k))} par semaine${k.weeks.length > 1 ? " en moyenne" : ""}`}`), apercuCycle(k),
+      f ? h("small", { class: "discret" }, "Au forfait jours, le cycle dit seulement quels jours sont travaillés.") : null);
     const mins = durees.map((d) => lireDuree(d.value));
     total.textContent = mins.some(Number.isNaN) ? "durée illisible" : fmtMin(mins.reduce((s, m) => s + m, 0));
   };
-  regime.addEventListener("change", maj); for (const d of durees) d.addEventListener("input", maj); maj();
+  regime.addEventListener("change", maj); orga.addEventListener("change", maj); for (const d of durees) d.addEventListener("input", maj); maj();
   return {
-    noeud: h("div", { class: "pile" }, champ("Régime", regime), blocH, blocF, champ("Congés payés acquis par mois complet (jours)", cp)),
+    noeud: h("div", { class: "pile" }, h("div", { class: "grille2" }, champ("Régime", regime), champ("Présence", presence, "Automatique : les jours prévus sont comptés d'office, seules les absences se déclarent.")),
+      proposes.length ? champ("Organisation du temps", orga) : null, blocCycle, blocDurees, blocJours, champForfait, champPause, champ("Congés payés acquis par mois complet (jours)", cp)),
     lire() {
       const cpv = Number(val(cp).replace(",", "."));
       if (!Number.isFinite(cpv) || cpv < 0 || cpv > 5) throw new Error("Acquisition de congés invalide (entre 0 et 5 jours par mois).");
-      if (regime.value === "forfait_jours") {
+      const f = regime.value === "forfait_jours";
+      const commun = { cp_per_month: cpv, presence: presence.value, forfait_days: f ? +forfait.value || 218 : 218, pause_minutes: f ? 0 : +pause.value || 0 };
+      if (orga.value) {
+        // la semaine du contrat n'est alors qu'un repère : la base y recopie la première semaine du cycle
+        return { regime: regime.value, day_minutes: f ? [0, 0, 0, 0, 0, 0, 0] : [420, 420, 420, 420, 420, 0, 0], work_days: [1, 2, 3, 4, 5], ...commun,
+          cycle_id: orga.value, cycle_anchor: ancre.value ? lundiDe(ancre.value) : dateEffet() ? lundiDe(dateEffet()) : "" };
+      }
+      if (f) {
         const wd = coches.map((x, i) => (x.checked ? i + 1 : 0)).filter(Boolean);
         if (!wd.length) throw new Error("Cochez au moins un jour travaillé.");
-        return { regime: "forfait_jours", day_minutes: [0, 0, 0, 0, 0, 0, 0], work_days: wd, pause_minutes: 0, cp_per_month: cpv, forfait_days: +forfait.value || 218 };
+        return { regime: "forfait_jours", day_minutes: [0, 0, 0, 0, 0, 0, 0], work_days: wd, ...commun };
       }
       const mins = durees.map((d) => lireDuree(d.value));
       if (mins.some((m) => Number.isNaN(m) || m > 960)) throw new Error("Une durée journalière est illisible. Écrivez par exemple 7, 7:30 ou 7,5.");
       if (!mins.some((m) => m > 0)) throw new Error("Indiquez au moins un jour travaillé.");
-      return { regime: "horaire", day_minutes: mins, work_days: mins.map((m, i) => (m ? i + 1 : 0)).filter(Boolean), pause_minutes: +pause.value || 0, cp_per_month: cpv, forfait_days: 218 };
+      return { regime: "horaire", day_minutes: mins, work_days: mins.map((m, i) => (m ? i + 1 : 0)).filter(Boolean), ...commun };
     },
   };
 }
@@ -87,7 +102,7 @@ export function vueSalaries() {
       corps.replaceChildren(...rows.slice(0, 600).map((e) => h("tr", { class: "cliquable", tabindex: 0, onclick: () => aller(`#/rh/fiche/${e.id}`), onkeydown: (ev) => { if (ev.key === "Enter") aller(`#/rh/fiche/${e.id}`); } },
         h("td", null, h("strong", null, e.name), e.role !== "salarie" ? h("span", { class: "pastille p-neutre ml" }, ROLES[e.role]) : null),
         h("td", { class: "num" }, e.matricule || h("span", { class: "moins" }, "manquant")), h("td", null, e.team || "—"), h("td", null, e.manager_name || "—"),
-        h("td", { class: "num" }, !e.tracked ? "Hors pointage" : e.regime === "forfait_jours" ? "Forfait jours" : fmtMin(e.weekly_minutes)), h("td", null, etatCompte(e)))));
+        h("td", { class: "num" }, !e.tracked ? "Hors pointage" : [e.regime === "forfait_jours" ? "Forfait jours" : fmtMin(e.weekly_minutes), e.cycle ? "cycle" : null, e.presence === "automatique" ? "sans pointage" : null].filter(Boolean).join(" · ")), h("td", null, etatCompte(e)))));
       if (!rows.length) corps.append(h("tr", null, h("td", { colspan: 6, class: "vide" }, "Aucune fiche.")));
     };
     filtre.addEventListener("input", dessine); quoi.addEventListener("change", dessine); dessine();
@@ -135,14 +150,16 @@ export function ecranCodes(codes, titre, suite) {
 /* ================= Fiche ================= */
 export function vueFiche(id) {
   const nouveau = id === "nouveau";
-  ecran(() => Promise.all([nouveau ? null : api("rh/employee", { id }), api("rh/employees")]), ([f, liste]) => {
+  ecran(() => Promise.all([nouveau ? null : api("rh/employee", { id }), api("rh/employees"), nouveau ? api("plan/lib") : null]), ([f, liste, lib]) => {
     const u = f?.user || { role: "salarie", details: {} }, det = u.details || {};
+    const cycles = f?.cycles || lib?.cycles || [];
     const champs = {
       first_name: h("input", { type: "text", value: u.first_name || "", autocomplete: "off" }), last_name: h("input", { type: "text", value: u.last_name || "", required: true, autocomplete: "off" }),
       login: h("input", { type: "text", value: u.login || "", required: true, autocapitalize: "none", spellcheck: "false", autocomplete: "off", placeholder: "prenom.nom" }),
       matricule: h("input", { type: "text", value: u.matricule || "", autocomplete: "off" }), email: h("input", { type: "email", value: u.email || "", autocomplete: "off" }),
       team: h("input", { type: "text", value: u.team || "", list: "kk-equipes", autocomplete: "off" }), job: h("input", { type: "text", value: u.job || "", autocomplete: "off" }),
       entry_date: h("input", { type: "date", value: u.entry_date || "" }), exit_date: h("input", { type: "date", value: u.exit_date || "" }),
+      tracked_from: h("input", { type: "date", value: u.tracked_from || "" }),
     };
     const responsable = h("select", { value: u.manager_id || "" }, h("option", { value: "" }, "Aucun (validé par les RH)"),
       liste.employees.filter((e) => e.id !== u.id && (e.active || e.id === u.manager_id)).map((e) => h("option", { value: e.id }, `${e.name}${e.team ? ` · ${e.team}` : ""}`)));
@@ -154,7 +171,7 @@ export function vueFiche(id) {
       categorie: h("select", { value: det.categorie || "" }, ["", "Employé", "Agent de maîtrise", "Cadre"].map((x) => h("option", { value: x }, x || "—"))),
       etablissement: h("input", { type: "text", value: det.etablissement || "", autocomplete: "off" }),
     };
-    const horaire = nouveau ? editeurHoraire(null) : null;
+    const horaire = nouveau ? editeurHoraire(null, cycles, () => val(champs.entry_date)) : null;
     // identifiant proposé à partir du prénom et du nom
     if (nouveau) {
       const propose = () => { if (champs.login.dataset.touche) return; const p = (s) => s.normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase().replace(/[^a-z0-9]+/g, ""); const a = p(champs.first_name.value), b = p(champs.last_name.value); champs.login.value = a && b ? `${a}.${b}` : a || b; };
@@ -191,6 +208,7 @@ export function vueFiche(id) {
       h("datalist", { id: "kk-equipes" }, [...new Set(liste.employees.map((e) => e.team).filter(Boolean))].sort().map((t) => h("option", { value: t }))),
       champ("Responsable (valide les pointages et les congés)", responsable),
       h("div", { class: "grille2" }, champ("Date d'entrée", champs.entry_date), champ("Date de sortie", champs.exit_date, "Le compte se ferme seul le lendemain.")),
+      champ("Début du suivi dans Kokolio", champs.tracked_from, `Vide : le suivi commence à la mise en service de l'outil${f?.go_live ? ` (${frCourt(f.go_live)})` : ""}, ou à l'entrée du salarié. Une date plus tardive permet de déployer équipe par équipe : rien n'est attendu de ce salarié avant.`),
       h("div", { class: "grille3" }, champ("Civilité", details.civilite), champ("Type de contrat", details.type_contrat), champ("Catégorie", details.categorie)),
       h("div", { class: "grille2" }, champ("Téléphone", details.telephone), champ("Établissement", details.etablissement)),
       h("div", { class: "grille2" }, champ("E-mail", champs.email), champ("Profil", role, estAdmin() ? "RH : voit et gère tous les salariés. Administrateur : en plus, les réglages et les profils." : "Seul un administrateur peut le modifier.")),
@@ -220,8 +238,10 @@ export function vueFiche(id) {
           : h("p", { class: "bandeau info" }, h("strong", null, "Compte hors pointage"), "Aucun horaire n'est défini : rien n'est attendu de ce compte au pointage et il n'entre pas dans la clôture. Définissez un horaire pour qu'il pointe comme les autres."),
         f.contracts.length > 1 ? h("div", { class: "pile" }, h("span", { class: "eyebrow" }, "Historique"),
           [...f.contracts].reverse().map((c) => h("div", { class: "ligne" }, h("span", null, c.start_date > f.today ? `À partir du ${frCourt(c.start_date)}` : `${frCourt(c.start_date)} → ${c.end_date ? frCourt(c.end_date) : "aujourd'hui"}`), h("span", { class: "discret" }, resumeHoraire(c))))) : null,
-        h("div", { class: "ligne gauche" }, h("button", { onclick: () => dialogueHoraire(u, courant || f.contracts[f.contracts.length - 1], f) }, f.contracts.length ? "Changer l'horaire à partir d'une date" : "Définir un horaire")),
-        h("p", { class: "discret" }, "Un changement d'horaire s'applique à partir de sa date d'effet : les mois passés gardent l'horaire de l'époque.")),
+        courant?.cycle ? apercuCycle(courant.cycle) : null,
+        h("div", { class: "ligne gauche" }, h("button", { onclick: () => dialogueHoraire(u, courant || f.contracts[f.contracts.length - 1], f) }, f.contracts.length ? "Changer l'horaire à partir d'une date" : "Définir un horaire"),
+          f.contracts.length ? h("button", { onclick: () => aller("#/rh/planning") }, "Voir le planning") : null),
+        h("p", { class: "discret" }, "Un changement d'horaire, de cycle ou de mode de présence s'applique à partir de sa date d'effet : les mois passés gardent l'horaire de l'époque. Les cycles se créent dans Planning › Horaires et cycles.")),
       h("div", { class: "carte" }, h("h3", null, `Soldes ${f.year}`),
         ligne("Congés payés : report et ajustements", fmtJ(cp.entries)), ligne("Congés payés acquis depuis janvier", fmtJ(cp.accrued)), ligne("Congés payés pris", fmtJ(cp.taken)),
         cp.waiting ? ligne("Demandes en attente", fmtJ(cp.waiting)) : null, h("div", { class: "ligne" }, h("strong", null, "Solde de congés payés"), h("strong", { class: "num" }, fmtJ(cp.balance))),
@@ -234,10 +254,10 @@ export function vueFiche(id) {
 }
 // Champs d'une fiche tels qu'enregistrés, pour un changement qui ne touche qu'un interrupteur.
 const corpsOrigine = (u) => ({ id: u.id, version: u.version, login: u.login, first_name: u.first_name, last_name: u.last_name, matricule: u.matricule, email: u.email || "", team: u.team, job: u.job,
-  manager_id: u.manager_id || "", entry_date: u.entry_date || "", exit_date: u.exit_date || "" });
+  manager_id: u.manager_id || "", entry_date: u.entry_date || "", exit_date: u.exit_date || "" });   // le début de suivi n'est pas envoyé : il est conservé tel quel
 
 function dialogueHoraire(u, actuel, f) {
-  const ed = editeurHoraire(actuel);
+  const ed = editeurHoraire(actuel, f.cycles || [], () => date.value);
   const dernierClos = f.closed.length ? f.closed[f.closed.length - 1] : "";
   const [y, m] = dernierClos ? dernierClos.split("-").map(Number) : [0, 0];
   const min = dernierClos ? `${m === 12 ? y + 1 : y}-${pad(m === 12 ? 1 : m + 1)}-01` : "";
@@ -284,9 +304,10 @@ export function vueImport() {
       p.errors.length ? h("p", { class: "bandeau refus" }, p.errors.join(" ")) : null,
       p.unknown_columns.length ? h("p", { class: "bandeau" }, `Colonnes ignorées (nom non reconnu) : ${p.unknown_columns.join(", ")}.`) : null,
       p.rows.length ? h("div", { class: "tuiles" }, tuile("À créer", String(p.create)), tuile("À mettre à jour", String(p.update), "mot de passe inchangé"), tuile("Lignes en erreur", String(p.invalid), p.invalid ? "à corriger dans le fichier" : "aucune", p.invalid ? "moins" : "")) : null,
-      p.rows.length ? h("div", { class: "table-zone" }, h("table", null, h("thead", null, h("tr", null, ["Ligne", "Nom", "Identifiant", "Matricule", "Équipe", "Responsable", "Temps de travail", "CP", "RTT", "Résultat"].map((x) => h("th", null, x)))),
+      p.rows.length ? h("div", { class: "table-zone" }, h("table", null, h("thead", null, h("tr", null, ["Ligne", "Nom", "Identifiant", "Matricule", "Équipe", "Responsable", "Temps de travail", "Début du suivi", "CP", "RTT", "Résultat"].map((x) => h("th", null, x)))),
         h("tbody", null, p.rows.map((r) => h("tr", { class: r.errors.length ? "erreur" : "" }, h("td", { class: "num" }, r.line), h("td", null, r.name), h("td", { class: "mono" }, r.login), h("td", { class: "num" }, r.matricule || "—"), h("td", null, r.team || "—"),
-          h("td", { class: "mono" }, r.manager_login || "—"), h("td", { class: "num" }, r.regime === "forfait_jours" ? "Forfait jours" : fmtMin(r.weekly_minutes)), h("td", { class: "num" }, r.cp == null ? "—" : fmtNb(r.cp)), h("td", { class: "num" }, r.rtt == null ? "—" : fmtNb(r.rtt)),
+          h("td", { class: "mono" }, r.manager_login || "—"), h("td", { class: "num" }, [r.cycle ? `Cycle « ${r.cycle} »` : r.regime === "forfait_jours" ? "Forfait jours" : fmtMin(r.weekly_minutes), r.presence === "automatique" ? "sans pointage" : null].filter(Boolean).join(" · ")),
+          h("td", { class: "num" }, r.tracked_from ? frCourt(r.tracked_from) : "—"), h("td", { class: "num" }, r.cp == null ? "—" : fmtNb(r.cp)), h("td", { class: "num" }, r.rtt == null ? "—" : fmtNb(r.rtt)),
           h("td", { class: "large" }, r.errors.length ? r.errors.join(" ; ") : r.exists ? "Mise à jour" : "Création")))))) : null,
       bloque ? (p.rows.length ? h("p", { class: "bandeau refus" }, "L'import est tout ou rien : corrigez les lignes en erreur dans le fichier, puis vérifiez de nouveau.") : null)
         : h("div", { class: "ligne gauche" }, h("button", { class: "domaine", onclick: (ev) => agir(ev.currentTarget, async () => {
@@ -299,9 +320,10 @@ export function vueImport() {
   pose(h("div", { class: "ligne" }, h("h2", null, "Importer des salariés"), h("button", { onclick: () => aller("#/rh/salaries") }, "‹ Salariés")),
     h("div", { class: "carte" }, h("h3", null, "1. Préparer le fichier"),
       h("p", null, "Un tableau avec une ligne d'en-tête et une ligne par salarié, enregistré au format CSV. Seule la colonne « nom » est obligatoire."),
-      h("ul", null, h("li", null, "Colonnes reconnues : identifiant, nom, prenom, matricule, email, equipe, poste, responsable (son identifiant), date_entree, date_sortie, regime (horaire ou forfait), heures_hebdo, jours_travailles (exemple : lun-ven), pause, solde_cp, droits_rtt."),
+      h("ul", null, h("li", null, "Colonnes reconnues : identifiant, nom, prenom, matricule, email, equipe, poste, responsable (son identifiant), date_entree, date_sortie, regime (horaire ou forfait), heures_hebdo, jours_travailles (exemple : lun-ven), pause, solde_cp, droits_rtt, debut_suivi, presence (pointage ou automatique), cycle (son nom dans la bibliothèque)."),
         h("li", null, "Sans colonne identifiant, il est fabriqué : prenom.nom."), h("li", null, "Un salarié déjà présent (même identifiant) est mis à jour ; son mot de passe, son horaire et ses soldes ne changent pas."),
-        h("li", null, "solde_cp : jours de congés restant à prendre à la date de mise en service. droits_rtt : droits de l'année.")),
+        h("li", null, "solde_cp : jours de congés restant à prendre à la date de mise en service. droits_rtt : droits de l'année."),
+        h("li", null, "debut_suivi : premier jour où le salarié est suivi, pour déployer équipe par équipe (pris en compte à la création de la fiche).")),
       h("div", { class: "ligne gauche" }, h("button", { onclick: (ev) => agir(ev.currentTarget, async () => { const t = await api("rh/import-template"); telecharger(t.filename, t.text); }) }, "Télécharger le modèle (CSV)"))),
     h("div", { class: "carte" }, h("h3", null, "2. Vérifier"), h("label", null, "Fichier CSV", fichier), texte, h("div", { class: "ligne gauche" }, bouton),
       h("p", { class: "discret" }, "Rien n'est enregistré à cette étape : vous voyez d'abord ce qui sera créé ou modifié.")),
@@ -406,7 +428,7 @@ async function detailCloture(month, version) {
   ouvrir(`${frMois(month)} · version ${version}`, [
     h("p", { class: "discret" }, `Chiffres figés le ${frHorodatage(c.closed_at)}.`),
     h("div", { class: "table-zone" }, h("table", null, h("thead", null, h("tr", null, h("th", null, "Salarié"), h("th", null, "Matricule"), h("th", { class: "d" }, "Travaillé"), h("th", { class: "d" }, "Prévu"), h("th", { class: "d" }, "Absences"))),
-      h("tbody", null, s.employees.map((e) => h("tr", null, h("td", null, e.name), h("td", { class: "num" }, e.matricule || "—"), h("td", { class: "d num" }, e.regime === "forfait_jours" ? `${e.days_worked} j` : fmtMin(e.worked)),
+      h("tbody", null, s.employees.map((e) => h("tr", null, h("td", null, e.name), h("td", { class: "num" }, e.matricule || "—"), h("td", { class: "d num" }, e.regime === "forfait_jours" ? `${fmtNb(e.days_worked)} j` : fmtMin(e.worked)),
         h("td", { class: "d num" }, e.regime === "forfait_jours" ? "forfait" : fmtMin(e.theo)), h("td", { class: "d num" }, e.abs_days ? fmtJ(e.abs_days) : "—")))))),
   ], null, null, { large: true });
 }
@@ -417,12 +439,15 @@ const ACTIONS = { connexion: "Connexion", compte_active: "Compte activé", compt
   absence_demandee: "Absence demandée", absence_saisie_par_rh: "Absence saisie par les RH", absence_annulee: "Demande annulée par le salarié", absence_validee: "Absence validée", absence_refusee: "Absence refusée",
   absence_annulee_par_responsable: "Absence validée annulée", justificatif_depose: "Justificatif déposé", justificatif_consulte: "Justificatif consulté", fiche_creee: "Fiche créée", fiche_modifiee: "Fiche modifiée",
   horaire_modifie: "Horaire modifié", import_salaries: "Import de salariés", solde_ajuste: "Solde ajusté", soldes_reportes: "Soldes reportés", mois_cloture: "Mois clôturé", mois_rouvert: "Mois rouvert",
-  export_telecharge: "Export paie téléchargé", donnees_demo_chargees: "Données de démonstration chargées", donnees_demo_effacees: "Données de démonstration effacées", parametres_modifies: "Réglages modifiés", motif_cree: "Motif d'absence créé", motif_modifie: "Motif d'absence modifié", administrateur_initialise: "Administrateur initialisé" };
+  export_telecharge: "Export paie téléchargé", donnees_demo_chargees: "Données de démonstration chargées", donnees_demo_effacees: "Données de démonstration effacées", parametres_modifies: "Réglages modifiés", motif_cree: "Motif d'absence créé", motif_modifie: "Motif d'absence modifié", administrateur_initialise: "Administrateur initialisé",
+  planning_modifie: "Planning modifié", horaire_type_cree: "Horaire journalier créé", horaire_type_modifie: "Horaire journalier modifié", cycle_cree: "Cycle créé", cycle_modifie: "Cycle modifié" };
 const CLES = { avant: "avant", apres: "après", motif: "motif", du: "du", au: "au", demi: "demi-journée", jours: "jours", justificatif: "justificatif", annee: "année", version: "version", auto_validation: "auto-validation",
   a_compter_du: "à compter du", regime: "régime", pause: "pause", crees: "créés", mis_a_jour: "mis à jour", ecritures: "écritures", ignorees: "ignorées", nom: "nom", role: "profil", deja_active: "compte déjà activé",
   empreinte_export: "empreinte", comptes: "comptes", journees: "journées", absences: "absences", minutes_par_jour: "minutes par jour", cp_par_mois: "CP par mois", forfait_jours: "forfait", login: "identifiant", first_name: "prénom", last_name: "nom", matricule: "matricule", email: "e-mail",
   team: "équipe", job: "poste", manager_id: "responsable", entry_date: "entrée", exit_date: "sortie", disabled: "désactivé", details: "fiche détaillée", company: "entreprise", go_live: "mise en service", label: "libellé",
-  category: "famille", export_code: "code d'export", needs_doc: "justificatif demandé", absenteeism: "compte dans l'absentéisme", active: "actif" };
+  category: "famille", export_code: "code d'export", needs_doc: "justificatif demandé", absenteeism: "compte dans l'absentéisme", active: "actif",
+  tracked_from: "début du suivi", presence: "présence", cycle: "cycle", semaine_1_du_cycle: "semaine 1 du cycle", night_until: "limite de nuit", minutes: "durée (minutes)", plages: "plages", ranges: "plages",
+  semaines: "semaines", composition: "composition", weeks: "composition", name: "nom", color: "couleur", detail: "détail", comptes_deja_presents: "comptes déjà présents" };
 const ORDRE = ["du", "au", "demi", "jours", "annee", "a_compter_du", "regime", "avant", "apres", "motif", "justificatif", "version"];
 function texteDetail(r) {
   const horaire = r.action === "horaire_modifie";
@@ -434,6 +459,7 @@ function texteDetail(r) {
     }
     if (v == null || v === "") return "—";
     if (typeof v === "boolean") return v ? "oui" : "non";
+    if (typeof v === "object" && v.jour) return `${frCourt(v.jour).slice(0, 5)} : ${v.horaire === "par défaut" ? "retour au planning par défaut" : v.minutes === 0 ? "repos" : v.horaire}`;
     if (typeof v === "object") return "…";
     if (typeof v === "number") return fmtNb(v);
     const t = String(v);
@@ -443,9 +469,14 @@ function texteDetail(r) {
   return Object.entries(r.detail || {}).filter(([, v]) => v != null).sort((a, b) => rang(a[0]) - rang(b[0])).map(([k, v]) => {
     const lib = CLES[k] || k;
     // modification d'une fiche ou d'un réglage : ancienne valeur → nouvelle valeur
-    if (Array.isArray(v) && v.length === 2 && ["fiche_modifiee", "parametres_modifies", "motif_cree", "motif_modifie"].includes(r.action) && k !== "details") return `${lib} : ${dit(v[0], k)} → ${dit(v[1], k)}`;
+    if (Array.isArray(v) && v.length === 2 && ["fiche_modifiee", "parametres_modifies", "motif_cree", "motif_modifie", "horaire_type_modifie", "cycle_modifie"].includes(r.action) && k !== "details") {
+      // un cycle ou des plages : la composition complète ne tient pas sur une ligne, on signale seulement le changement
+      if (k === "weeks" || k === "ranges") return `${lib} : modifiée`;
+      return `${lib} : ${dit(v[0], k)} → ${dit(v[1], k)}`;
+    }
+    if (k === "composition" || k === "plages") return null;
     return `${lib} : ${dit(v, k)}`;
-  }).join(" · ");
+  }).filter(Boolean).join(" · ");
 }
 // Ce sur quoi porte l'action, en clair : un motif d'absence, un compteur, un jour, un mois.
 function cible(r) {

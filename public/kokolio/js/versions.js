@@ -1,5 +1,15 @@
 // Fonctionnalités et historique des versions. À mettre à jour à chaque mise en ligne, avec lib/kokolio/version.mjs.
 export const VERSIONS = [
+  { v: "2.0.0", date: "25/11/2026", titre: "Planification : horaires à plages, cycles, planning d'équipe", points: [
+    "Horaires journaliers avec plages (exemple : 8 h 45 – 13 h 15, 14 h – 18 h), réunis dans une bibliothèque tenue par les RH",
+    "Cycles d'une ou plusieurs semaines, attribués à un salarié à partir d'une date : le prévu, l'écart, les oublis et le décompte des absences suivent le cycle",
+    "Planning d'équipe : exception d'un jour (autre horaire, repos, jour férié travaillé), sélection de plusieurs jours, copier-coller, recopie d'une semaine sur la suivante, retour au planning par défaut",
+    "Présence automatique pour les salariés qui ne pointent pas : leurs jours prévus sont comptés d'office, seules les absences se déclarent",
+    "Début de suivi propre à chaque salarié, réglable par les RH et à l'import, pour déployer l'outil équipe par équipe",
+    "Journées qui passent minuit (réglage, désactivé au départ) : le départ du lendemain ferme la journée de la veille",
+    "Le salarié voit son horaire du jour et son planning des quatorze jours à venir",
+    "Rien ne change pour un salarié sans cycle : il garde son horaire fixe. Base de données en version 4 (trois tables et trois colonnes ajoutées, aucune donnée modifiée)",
+  ] },
   { v: "1.1.1", date: "25/11/2026", titre: "Démonstration sans effet sur les comptes déjà créés", points: [
     "Correction : au chargement des données de démonstration, les comptes déjà présents se retrouvaient avec deux mois de journées sans pointage, jusque dans le mois clôturé. Leur suivi reste désormais celui d'avant le chargement",
     "Chaque compte porte son premier jour suivi : « Mes heures » et la saisie d'une journée oubliée ne remontent pas plus loin",
@@ -53,11 +63,24 @@ export const FONCTIONS = [
   ]],
   ["Temps de travail", [
     "Horaire par salarié, jour par jour : temps plein, temps partiel, forfait jours",
-    "Horaires datés : un changement s'applique à partir de sa date d'effet",
+    "Horaires datés : un changement d'horaire, de cycle ou de mode de présence s'applique à partir de sa date d'effet",
+    "Présence par pointage, ou automatique pour ceux qui ne pointent pas (jours prévus comptés d'office)",
+    "Début de suivi propre à chaque salarié : rien n'est attendu de lui avant",
     "Compteur débit-crédit par semaine et par mois ; forfait jours : décompte des journées dans l'année",
     "Pause déduite d'une longue journée pointée sans pause",
     "Jours fériés français pris en compte",
     "Points d'attention : plus de 10 h dans la journée, plus de 48 h dans la semaine, moins de 11 h de repos",
+    "Journées qui passent minuit, sur réglage : le départ pointé le lendemain matin est rattaché à la veille",
+  ]],
+  ["Planification", [
+    "Bibliothèque d'horaires journaliers : code, durée, plages indicatives, couleur",
+    "Cycles d'une à douze semaines construits avec ces horaires ; ils se répètent à partir d'un lundi de départ",
+    "Planning d'équipe semaine par semaine (une, deux ou quatre semaines) : ce qui est prévu pour chacun, avec les absences et les jours fériés",
+    "Exception d'un jour : autre horaire, horaire libre, repos, jour férié travaillé ; note visible sur la case",
+    "Modification en masse : sélection de jours, de lignes ou de colonnes, copier-coller d'une journée, recopie d'une semaine sur la suivante",
+    "Retour au planning par défaut ; chaque modification est inscrite au journal",
+    "Un cycle ou un horaire qui a servi dans un mois clôturé ne change plus de durée : on le duplique",
+    "Chaque salarié voit son horaire du jour et ses quatorze prochains jours",
   ]],
   ["Congés et absences", [
     "Demande par motif, sur une période ou une demi-journée ; décompte en jours travaillés, hors jours fériés",
@@ -76,12 +99,14 @@ export const FONCTIONS = [
     "Validation ou refus des demandes d'absence, avec le solde et les autres absents de l'équipe sur la période",
     "Réouverture d'une journée validée, annulation d'une absence validée, toujours avec motif",
     "Synthèse mensuelle de l'équipe, détail par salarié, export CSV",
+    "Planning de son équipe : il le consulte et le modifie, sauf le sien",
     "Nouveau code d'activation pour un salarié de son équipe qui a oublié son mot de passe",
     "Nul ne valide ses propres journées ni ses propres congés",
   ]],
   ["RH", [
-    "Fiche salarié : identité, poste, responsable, dates d'entrée et de sortie, horaire, soldes",
-    "Import de salariés par fichier CSV, avec aperçu avant enregistrement",
+    "Fiche salarié : identité, poste, responsable, dates d'entrée et de sortie, début de suivi, horaire ou cycle, mode de présence, soldes",
+    "Import de salariés par fichier CSV, avec aperçu avant enregistrement (début de suivi, cycle et mode de présence compris)",
+    "Bibliothèque des horaires journaliers et des cycles ; planning de tous les salariés",
     "Vision et validation pour l'ensemble des salariés",
     "Clôture mensuelle : contrôle, figement des chiffres, réouverture motivée, versions successives",
     "Export paie pour Silae : codes et séparateurs réglables",
@@ -90,7 +115,7 @@ export const FONCTIONS = [
   ]],
   ["Administration", [
     "Attribution des profils RH et administrateur",
-    "Réglages : entreprise, logo, date de mise en service, seuils d'alerte, lieux de travail, format de l'export paie",
+    "Réglages : entreprise, logo, date de mise en service, seuils d'alerte, travail de nuit, lieux de travail, format de l'export paie",
     "Motifs d'absence : libellé, famille, code d'export, justificatif demandé",
     "État de l'installation et autodiagnostic des règles de sécurité",
     "Mode démonstration : jeu de données fictives à charger dans un outil vide, effaçable avant la mise en service",
@@ -98,28 +123,31 @@ export const FONCTIONS = [
   ["Sécurité et conservation des données", [
     "Aucun accès direct aux données : tout passe par le serveur, qui contrôle la session et les droits à chaque appel",
     "Mots de passe jamais stockés en clair ; session dans un cookie inaccessible aux scripts",
-    "Mois clôturé, journal et écritures de solde protégés contre toute modification, y compris par une requête directe sur la base",
+    "Mois clôturé (journées, absences, planning), journal et écritures de solde protégés contre toute modification, y compris par une requête directe sur la base",
     "Mises à jour sans perte : le script d'installation est rejouable et ne supprime aucune donnée",
   ]],
 ];
 
+// Ce qui est prévu, dans l'ordre des lots de la version 2.
 export const A_VENIR = [
-  "Planning hebdomadaire par modèles d'horaires",
-  "Télétravail sur demande, avec quota par semaine",
-  "Compte épargne-temps",
-  "Cycles de plusieurs semaines et annualisation",
-  "Congés d'ancienneté",
-  "Suivi des effectifs et des échéances : période d'essai, fin de CDD, visite médicale",
-  "Délégation des validations à un remplaçant",
-  "Notifications par e-mail",
-  "Temps par activité",
+  "Annualisation : objectif annuel, réalisé, reste à faire, solde semaine par semaine (version 2.1)",
+  "Anomalies liées à l'horaire prévu (retard, départ anticipé, pointage hors plage), avec gravité et traitement (version 2.2)",
+  "Pauses pointées : trop courtes, trop longues, non prises (version 2.2)",
+  "Tableau des présents en temps réel et liste d'évacuation (version 2.2)",
+  "Télétravail sur demande, avec quota ; calendrier d'équipe et planning annuel des congés",
+  "Absence à la demi-journée près dans un congé long, demande de modification ou de suppression d'une absence validée",
+  "Soldes prévisionnels, congés pris par anticipation, reliquat de l'année précédente ; congés d'ancienneté ; compte épargne-temps",
+  "Heures supplémentaires et complémentaires ; heures de nuit, du dimanche et des jours fériés ; astreintes ; tickets restaurant",
+  "Temps par activité ; sites et organigramme ; délégation des validations, validation à plusieurs niveaux",
+  "Notifications par e-mail ; connexion avec le compte Microsoft",
+  "Fiche RH complète et échéances (période d'essai, fin de CDD, visite médicale) ; états standards et sur mesure ; absentéisme par salarié",
 ];
 
 export const NON_GERE = [
   "Heures supplémentaires majorées et repos compensateur",
-  "Travail de nuit, du dimanche, astreintes",
-  "Journées de travail qui passent minuit",
+  "Majorations de nuit, du dimanche et des jours fériés ; astreintes",
   "Période de référence des congés du 1er juin au 31 mai (les soldes sont tenus en année civile)",
   "Validation à plusieurs niveaux",
   "Connexion avec le compte Microsoft",
+  "Badgeuses et contrôle d'accès : le pointage se fait dans l'outil",
 ];

@@ -58,7 +58,7 @@ Règles appliquées dans la base, quel que soit le chemin d'accès : nul ne vali
 
 Des déclencheurs dans la base refusent, y compris pour une requête SQL directe du propriétaire :
 
-- toute modification d'une journée ou d'une absence d'un **mois clôturé** (seule une réouverture motivée, tracée, la rend possible) ;
+- toute modification d'une journée, d'une absence ou du planning d'un **mois clôturé** (seule une réouverture motivée, tracée, la rend possible) ;
 - toute modification ou suppression dans le **journal**, la **trace des pointages** et les **écritures de solde** (ajout seul).
 
 Seule exception, prévue pour la découverte de l'outil : l'effacement des données de démonstration (voir plus bas). Il n'existe que pour un administrateur, dans un outil en mode démonstration ; un outil en service ne peut pas entrer dans ce mode.
@@ -84,14 +84,34 @@ Administration › État › « Charger les données de démonstration » crée 
 - Session : cookie `HttpOnly`, `Secure`, `SameSite=Strict`, limité à `/api/kokolio`. Trente jours sans activité, ou quatre-vingt-dix jours au plus, puis reconnexion.
 - **Mot de passe administrateur perdu** : rejouer `select kokolio.bootstrap_admin('admin');` dans la console SQL, qui renvoie un nouveau code.
 
+## Planification (depuis la version 2.0)
+
+Trois niveaux, du plus général au plus précis ; le plus précis l'emporte :
+
+1. **l'horaire fixe du contrat** (la même semaine toute l'année) — c'est le cas de tout salarié tant qu'on ne lui attribue pas de cycle ;
+2. **un cycle** : une à douze semaines types, faites d'horaires journaliers pris dans la bibliothèque (code, durée, plages indicatives). Il se répète à partir d'un lundi de départ et s'attribue depuis la fiche du salarié, à partir d'une date ;
+3. **l'exception d'un jour**, posée sur le planning par le responsable ou les RH : autre horaire, horaire libre, repos, jour férié travaillé. La durée et les plages sont recopiées au moment de la saisie.
+
+Tables : `day_models` (horaires journaliers), `cycles`, `plan_days` (exceptions), et trois colonnes sur `contracts` (`cycle_id`, `cycle_anchor`, `presence`). Le calcul d'un jour est dans `lib/kokolio/engine/plan.mjs`. La base renvoie les cycles déjà résolus avec les contrats ; le moteur refuse de calculer un contrat à cycle sans son cycle, plutôt que de retomber en silence sur l'horaire fixe.
+
+Droits : la bibliothèque (horaires, cycles) appartient aux RH ; le planning d'un salarié se modifie par son responsable direct ou les RH, jamais par lui-même. Chaque modification est inscrite au journal.
+
+Clôture : le planning entre dans l'empreinte du mois. Une fois le mois clôturé, ses exceptions sont figées, et un cycle ou un horaire journalier qui y a servi ne change plus de durée ni de composition (on le duplique ; son nom, ses plages et sa couleur restent modifiables).
+
+**Présence automatique** (`contracts.presence`) : pour les salariés qui ne pointent pas. Un jour prévu, passé et sans pointage est compté d'office comme travaillé (moitié en cas de demi-journée d'absence) ; aucun oubli n'est signalé. Une journée réellement pointée garde ses heures.
+
+**Début de suivi** (`users.tracked_from`) : réglable par les RH sur la fiche, ou à l'import (colonne `debut_suivi`). Il retarde le premier jour suivi d'un salarié, pour déployer équipe par équipe. Il ne se déplace pas à travers un mois clôturé.
+
+**Journées qui passent minuit** : réglage `night_until` (Administration › Réglages, vide par défaut). Quand il est renseigné, un départ pointé avant cette heure ferme la journée de la veille restée ouverte ; l'heure est enregistrée au-delà de 24 h (`25:30` = 1 h 30 le lendemain). Au-delà de seize heures depuis l'arrivée, le pointage ouvre une nouvelle journée.
+
 ## Calculs
 
 - Heures d'une journée : somme des plages arrivée → départ. Si la journée tient en une seule plage de plus de six heures, la pause de l'horaire est déduite.
-- Prévu : durée du jour selon l'horaire en vigueur à cette date, zéro les jours fériés et les jours d'absence validée (moitié pour une demi-journée). Rien n'est prévu avant la date de mise en service ni avant la date d'entrée.
+- Prévu : durée du jour selon le planning (exception, sinon cycle, sinon horaire fixe) en vigueur à cette date, zéro les jours fériés (sauf exception qui les fait travailler) et les jours d'absence validée (moitié pour une demi-journée). Rien n'est prévu avant la date de mise en service, avant la date d'entrée, ni avant le début de suivi du salarié.
 - Écart : travaillé moins prévu, sur les jours passés et, pour le jour même, seulement quand la journée est terminée.
-- Forfait jours : pas d'écart en heures, décompte des journées pointées dans l'année.
+- Forfait jours : pas d'écart en heures, décompte des journées pointées (ou comptées d'office, en présence automatique) dans l'année.
 - Congés payés (année civile) : écritures de l'année (report, ajustements) + acquisition par mois complet terminé depuis la mise en service − jours pris. RTT : droits saisis par les RH − jours pris.
-- Décompte d'une absence : jours travaillés de l'horaire en vigueur, hors jours fériés.
+- Décompte d'une absence : jours travaillés selon le planning du salarié (cycle et exceptions compris), hors jours fériés.
 - Jours fériés : les onze jours fériés de métropole. L'Alsace-Moselle et l'outre-mer ne sont pas gérés.
 
 ## Clôture et export paie
@@ -117,8 +137,9 @@ node --test tests/kokolio/engine.test.mjs      # calculs (aucune dépendance)
 bash tests/kokolio/pg-local.sh reset            # PostgreSQL 16 local jetable
 cd tests/kokolio && npm install && cd ../..     # une fois : client PostgreSQL des tests
 node --test tests/kokolio/api.test.mjs          # scénario complet contre une vraie base
-node --test tests/kokolio/demo.test.mjs         # mise à jour de la base et mode démonstration (un fichier à la fois : même base locale)
-bash tests/kokolio/e2e/tout.sh                  # navigateur (Playwright) : mise en route, quotidien, RH, démonstration (outil vide, puis avec des comptes déjà créés)
+node --test tests/kokolio/planning.test.mjs     # planification : bibliothèque, cycles, planning, présence automatique, nuit, clôture
+node --test tests/kokolio/demo.test.mjs         # mise à jour de la base (version 1 → version courante) et mode démonstration (un fichier à la fois : même base locale)
+bash tests/kokolio/e2e/tout.sh                  # navigateur (Playwright) : mise en route, quotidien, RH, démonstration (outil vide, puis avec des comptes déjà créés), planification
 node tests/kokolio/charge.mjs 500               # volume : 500 salariés, un mois de pointages, 200 pointages simultanés
 ```
 
@@ -126,4 +147,5 @@ Dans l'outil : Administration › État › « Lancer l'autodiagnostic » rejoue
 
 ## Non géré dans cette version
 
-Heures supplémentaires majorées, travail de nuit ou du dimanche, astreintes, journées passant minuit, période de référence des congés du 1er juin au 31 mai, validation à plusieurs niveaux, connexion Microsoft. Prévus ensuite (présents dans la maquette) : planning, télétravail avec quota, compte épargne-temps, cycles et annualisation, congés d'ancienneté, effectifs et échéances, délégation, notifications par e-mail, temps par activité.
+Heures supplémentaires majorées, majorations de nuit ou du dimanche, astreintes, période de référence des congés du 1er juin au 31 mai, validation à plusieurs niveaux, connexion Microsoft, badgeuses.
+La suite prévue (annualisation, anomalies liées à l'horaire, pauses, tableau des présents, puis télétravail, compteurs, activités…) est tenue à jour dans l'outil : Administration › Versions. Le découpage des lots 1 et 2 de la version 2 est décrit dans `docs/kokolio/V2-CONCEPTION.md`.

@@ -52,6 +52,12 @@ await call("rh", "auth/activate", { login: "s0000", code: codes.s0000, password:
 await call("chef", "auth/activate", { login: "s0020", code: codes.s0020, password: "Cactus#Mauve77" });
 await call("sal", "auth/activate", { login: "s0021", code: codes.s0021, password: "Bateau-Rouge-19" });
 
+// planification : un horaire journalier et un cycle, suivi par un salarié sur deux (attribué directement, pour aller vite)
+await call("rh", "plan/model-save", { create: true, model: { code: "J7", label: "Journée 7 h", minutes: 420, ranges: [["09:00", "12:30"], ["13:30", "17:00"]], color: "bleu" } });
+const cycle = (await call("rh", "plan/cycle-save", { cycle: { name: "Semaine 35 h", weeks: [["J7", "J7", "J7", "J7", "J7", null, null]] } })).data.cycle;
+sql(`update kokolio.contracts c set cycle_id = '${cycle.id}', cycle_anchor = '2026-09-28' from kokolio.users u
+     where u.id = c.user_id and u.login like 's%' and c.regime = 'horaire' and right(u.login, 1) in ('1', '3', '5', '7', '9')`);
+
 // un mois d'octobre complet pour tout le monde, saisi directement (22 jours ouvrés)
 sql(`insert into kokolio.days (user_id, day, times, status)
      select u.id, d::date, array['09:0' || (extract(day from d)::int % 10), '12:30', '13:15', '17:4' || (extract(day from d)::int % 10)], 'a_valider'
@@ -75,10 +81,14 @@ console.log("--- un responsable de 19 personnes");
 const pend = await mesure("Validation de l'équipe (418 journées)", "chef", "team/pending", {});
 await mesure("Validation en lot de l'équipe", "chef", "team/decide-days", { decision: "valide", items: pend.groups.flatMap((g) => g.days.map((d) => ({ id: d.id, version: d.version }))) });
 await mesure("Synthèse de l'équipe", "chef", "team/month", { month: "2026-10" });
+const grille = await mesure("Planning de l'équipe (une semaine)", "chef", "plan/grid", { from: "2026-11-09" });
+await mesure("Planning : 95 jours modifiés d'un coup", "chef", "plan/set", { items: grille.rows.flatMap((r) => grille.days.slice(0, 5).map((j) => ({ user_id: r.user_id, day: j.date, minutes: 360, label: "Inventaire" }))) });
 console.log(`--- les RH, ${N} salariés`);
 await mesure("Liste des salariés", "rh", "rh/employees");
 await mesure("Validation, tous les salariés (résumé)", "rh", "team/pending", { scope: "all" });
 await mesure("Synthèse d'octobre, tous les salariés", "rh", "team/month", { month: "2026-10", scope: "all" });
+await mesure("Planning d'une semaine, tous les salariés", "rh", "plan/grid", { scope: "all", from: "2026-10-05", weeks: 1 });
+await mesure("Planning de quatre semaines, tous les salariés", "rh", "plan/grid", { scope: "all", from: "2026-10-05", weeks: 4 });
 await mesure("Clôture : contrôle", "rh", "rh/closure-check", { month: "2026-10" });
 sql("update kokolio.days set status = 'valide' where status <> 'valide' and day < '2026-11-01'");
 await mesure("Clôture d'octobre", "rh", "rh/close", { month: "2026-10" });
