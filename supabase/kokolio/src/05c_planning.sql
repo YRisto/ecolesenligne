@@ -95,8 +95,9 @@ begin
     perform kokolio._fail('horaire', 'Un cycle porte déjà ce nom.');
   end if;
   if v_id is null then
-    insert into kokolio.cycles (name, weeks, active, created_by) values (v_name, v_weeks, coalesce((j->>'active')::boolean, true), me.id) returning * into c;
-    perform kokolio._audit(me.id, 'cycle_cree', null, v_name, jsonb_build_object('semaines', jsonb_array_length(v_weeks), 'composition', v_weeks), coalesce(p->>'ip', ''));
+    insert into kokolio.cycles (name, weeks, active, annualise, created_by)
+    values (v_name, v_weeks, coalesce((j->>'active')::boolean, true), coalesce((j->>'annualise')::boolean, false), me.id) returning * into c;
+    perform kokolio._audit(me.id, 'cycle_cree', null, v_name, jsonb_build_object('semaines', jsonb_array_length(v_weeks), 'composition', v_weeks, 'annualise', c.annualise), coalesce(p->>'ip', ''));
   else
     select * into o from kokolio.cycles y where y.id = v_id for update;
     if o.id is null then perform kokolio._fail('introuvable', 'Cycle introuvable.'); end if;
@@ -106,9 +107,10 @@ begin
     if o.weeks <> v_weeks and kokolio._cycle_locked(v_id) then
       perform kokolio._fail('cloture', 'Ce cycle a servi dans un mois clôturé : sa composition ne peut plus changer. Dupliquez-le, puis attribuez le nouveau cycle à partir d''une date.');
     end if;
-    update kokolio.cycles set name = v_name, weeks = v_weeks, active = coalesce((j->>'active')::boolean, o.active), version = o.version + 1, updated_at = kokolio._now()
+    update kokolio.cycles set name = v_name, weeks = v_weeks, active = coalesce((j->>'active')::boolean, o.active),
+      annualise = coalesce((j->>'annualise')::boolean, o.annualise), version = o.version + 1, updated_at = kokolio._now()
     where id = v_id returning * into c;
-    perform kokolio._audit(me.id, 'cycle_modifie', null, v_name, kokolio._diff(to_jsonb(o), to_jsonb(c), array['name', 'weeks', 'active']), coalesce(p->>'ip', ''));
+    perform kokolio._audit(me.id, 'cycle_modifie', null, v_name, kokolio._diff(to_jsonb(o), to_jsonb(c), array['name', 'weeks', 'active', 'annualise']), coalesce(p->>'ip', ''));
   end if;
   return jsonb_build_object('cycle', kokolio._cycle_json(c.id) || jsonb_build_object('codes', c.weeks));
 end $$;

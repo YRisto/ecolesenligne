@@ -4,6 +4,7 @@ import { api } from "./api.js";
 import { h, pose, toast, agir, ouvrir, pastille, etiquette, tuile, champ, listeAlertes, navMois, telecharger, base64VersBlob, pad,
   fmtMin, fmtEcart, fmtJ, fmtCourt, frJour, frJourLong, frMois, frMoisSeul, paires, hmAff, periode, classeEcart, jourSemaine } from "./dom.js";
 import { S, ecran, aller, recharger, calerHorloge, heureServeur, minutesServeur, moisCourant } from "./etat.js";
+import { sousAnnee } from "./annuel.js";
 
 const lieuLib = (code) => S.boot.settings.lieux.find((l) => l.code === code)?.label || code || "";
 const memo = { get: (k) => { try { return localStorage.getItem(k); } catch { return null; } }, set: (k, v) => { try { localStorage.setItem(k, v); } catch { /* stockage indisponible */ } } };
@@ -334,7 +335,7 @@ export function vueAnnee(annee, userId, espace) {
   const base = userId ? `#/${espace}/annee/${userId}` : "#/moi/annee";
   ecran(() => api("my/year", { year: y, user_id: userId || "" }), (d) => {
     const min = +(S.boot.settings.go_live || String(courant)).slice(0, 4);
-    pose(h("div", { class: "ligne" },
+    pose(userId ? null : sousAnnee("annee"), h("div", { class: "ligne" },
         h("div", { class: "pile" }, userId ? h("button", { class: "lien", onclick: () => aller(`#/${espace}/salarie/${userId}`) }, `‹ ${d.user.name}`) : null, h("h2", null, userId ? `Année de ${d.user.name}` : "Mon année")),
         h("div", { class: "mois-nav" }, h("button", { "aria-label": "Année précédente", disabled: y <= min, onclick: () => aller(`${base}/${y - 1}`) }, "‹"), h("strong", { class: "num" }, String(y)),
           h("button", { "aria-label": "Année suivante", disabled: y >= courant + 1, onclick: () => aller(`${base}/${y + 1}`) }, "›"))),

@@ -11,7 +11,7 @@ declare
   r jsonb; u kokolio.users; c kokolio.contracts; v_dec uuid; v_tz text := kokolio._tz(); v_now timestamptz := kokolio._now(); v_today date := kokolio._today();
   v_days int; v_go text := coalesce(p_args->>'go_live', ''); v_ok boolean; v_status text; v_day date; v_times text[]; v_t text; v_i int;
   v_nu int := 0; v_nd int := 0; v_na int := 0; v_ne int := 0; v_avant date;
-  v_models jsonb := '[]'::jsonb; v_cycles jsonb := '[]'::jsonb; k kokolio.cycles;
+  v_models jsonb := '[]'::jsonb; v_cycles jsonb := '[]'::jsonb; v_periods jsonb := '[]'::jsonb; k kokolio.cycles;
 begin
   if me.role <> 'admin' then perform kokolio._fail('interdit', 'Accès réservé aux administrateurs.'); end if;
   if exists (select 1 from kokolio.meta m where m.key = 'demo') then
@@ -52,7 +52,7 @@ begin
   end loop;
   for r in select x from jsonb_array_elements(coalesce(p_args->'cycles', '[]'::jsonb)) x loop
     if not exists (select 1 from kokolio.cycles y where lower(y.name) = lower(r->>'name')) then
-      insert into kokolio.cycles (name, weeks, created_by) values (left(r->>'name', 60), r->'weeks', me.id) returning * into k;
+      insert into kokolio.cycles (name, weeks, annualise, created_by) values (left(r->>'name', 60), r->'weeks', coalesce((r->>'annualise')::boolean, false), me.id) returning * into k;
       v_cycles := v_cycles || to_jsonb(k.id);
     end if;
   end loop;
@@ -121,7 +121,14 @@ begin
   -- la mise en service recule au début de la période de démonstration, et l'outil passe en mode démonstration
   update kokolio.meta set value = jsonb_set(jsonb_set(value, '{go_live}', to_jsonb(v_go)), '{version}', to_jsonb(coalesce((value->>'version')::int, 1) + 1)), updated_at = now()
   where key = 'settings';
-  insert into kokolio.meta (key, value) values ('demo', jsonb_build_object('charge_le', v_now, 'par', me.id, 'modeles', v_models, 'cycles', v_cycles));
+  -- période d'annualisation d'exemple, seulement si aucune ne recouvre déjà ces dates
+  if p_args ? 'annual_period' and not exists (select 1 from kokolio.annual_periods q
+       where q.start_date <= (p_args #>> '{annual_period,end}')::date and q.end_date >= (p_args #>> '{annual_period,start}')::date) then
+    insert into kokolio.annual_periods (label, start_date, end_date, created_by)
+    values (left(p_args #>> '{annual_period,label}', 60), (p_args #>> '{annual_period,start}')::date, (p_args #>> '{annual_period,end}')::date, me.id) returning id into v_dec;
+    v_periods := v_periods || to_jsonb(v_dec);
+  end if;
+  insert into kokolio.meta (key, value) values ('demo', jsonb_build_object('charge_le', v_now, 'par', me.id, 'modeles', v_models, 'cycles', v_cycles, 'periodes', v_periods));
   perform kokolio._audit(me.id, 'donnees_demo_chargees', null, '', jsonb_build_object('comptes', v_nu, 'journees', v_nd, 'absences', v_na, 'comptes_deja_presents', v_ne), coalesce(p->>'ip', ''));
   return jsonb_build_object('users', v_nu, 'days', v_nd, 'absences', v_na, 'existing', v_ne);
 end $$;
@@ -142,6 +149,8 @@ begin
   delete from kokolio.closures;        -- d'abord les clôtures : plus aucun mois n'est verrouillé
   delete from kokolio.attachments;
   delete from kokolio.absences;
+  delete from kokolio.annual_entries;
+  delete from kokolio.annual_goals;
   delete from kokolio.plan_days;
   delete from kokolio.days;
   delete from kokolio.punch_log;
@@ -153,6 +162,7 @@ begin
   delete from kokolio.throttle;
   delete from kokolio.users x where x.role <> 'admin';
   perform set_config('kokolio.purge', '', true);
+  delete from kokolio.annual_periods q where q.id in (select (x #>> '{}')::uuid from jsonb_array_elements(coalesce(v_demo->'periodes', '[]'::jsonb)) x);
   -- la bibliothèque d'exemple apportée par la démonstration repart avec elle, sauf ce qu'un compte restant utilise encore
   delete from kokolio.cycles c where c.id in (select (x #>> '{}')::uuid from jsonb_array_elements(coalesce(v_demo->'cycles', '[]'::jsonb)) x)
     and not exists (select 1 from kokolio.contracts k where k.cycle_id = c.id);

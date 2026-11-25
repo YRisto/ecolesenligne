@@ -132,6 +132,46 @@ create table if not exists kokolio.plan_days (
 );
 create index if not exists plan_days_day_idx on kokolio.plan_days (day);
 
+-- ---------------------------------------------------------------------
+-- Annualisation (schéma 5) : les heures se compensent sur une période de référence au lieu de la semaine.
+-- Un salarié est annualisé quand il suit un cycle annualisé. Sans période ni cycle annualisé, rien ne change.
+-- ---------------------------------------------------------------------
+alter table kokolio.cycles add column if not exists annualise boolean not null default false;
+-- Périodes de référence (elles ne se chevauchent pas).
+create table if not exists kokolio.annual_periods (
+  id uuid primary key default gen_random_uuid(),
+  label text not null,
+  start_date date not null,
+  end_date date not null,
+  version int not null default 1,
+  created_by uuid references kokolio.users(id),
+  created_at timestamptz not null default now(),
+  check (end_date >= start_date),
+  check (end_date - start_date <= 400)
+);
+-- Objectif d'un salarié pour une période, quand les RH le fixent. Sans ligne ici, l'objectif est le total des heures planifiées.
+create table if not exists kokolio.annual_goals (
+  user_id uuid not null references kokolio.users(id),
+  period_id uuid not null references kokolio.annual_periods(id),
+  minutes int not null check (minutes between 0 and 300000),
+  note text not null default '',
+  set_by uuid references kokolio.users(id),
+  set_at timestamptz not null default now(),
+  primary key (user_id, period_id)
+);
+-- Ajustements datés de l'objectif (ajout ou retrait), en ajout seul comme les écritures de solde.
+create table if not exists kokolio.annual_entries (
+  id bigserial primary key,
+  user_id uuid not null references kokolio.users(id),
+  period_id uuid not null references kokolio.annual_periods(id),
+  day date not null,
+  minutes int not null check (minutes between -60000 and 60000 and minutes <> 0),
+  reason text not null,
+  created_by uuid references kokolio.users(id),
+  created_at timestamptz not null default now()
+);
+create index if not exists annual_entries_user_idx on kokolio.annual_entries (user_id, period_id);
+
 -- Une ligne par salarié et par jour : les heures retenues et leur état de validation.
 create table if not exists kokolio.days (
   id uuid primary key default gen_random_uuid(),
@@ -198,6 +238,14 @@ create table if not exists kokolio.absences (
   check (end_date >= start_date),
   check (half = '' or start_date = end_date)
 );
+-- Effet d'un motif d'absence sur l'annualisation (schéma 5) : « retire » = le temps prévu ce jour-là sort de l'objectif ;
+-- « realise » = il compte comme du temps fait ; « neutre » = l'objectif ne bouge pas, le temps reste à faire.
+alter table kokolio.absence_types add column if not exists annual text not null default 'retire';
+do $$ begin
+  if not exists (select 1 from pg_constraint where conname = 'absence_types_annual_check' and conrelid = 'kokolio.absence_types'::regclass) then
+    alter table kokolio.absence_types add constraint absence_types_annual_check check (annual in ('retire', 'realise', 'neutre'));
+  end if;
+end $$;
 create index if not exists absences_user_idx on kokolio.absences (user_id, start_date);
 create index if not exists absences_dates_idx on kokolio.absences (start_date, end_date);
 create index if not exists absences_pending_idx on kokolio.absences (user_id) where status = 'en_attente';
@@ -296,6 +344,9 @@ alter table kokolio.audit enable row level security;
 alter table kokolio.day_models enable row level security;
 alter table kokolio.cycles enable row level security;
 alter table kokolio.plan_days enable row level security;
+alter table kokolio.annual_periods enable row level security;
+alter table kokolio.annual_goals enable row level security;
+alter table kokolio.annual_entries enable row level security;
 
 -- Valeurs de départ (jamais écrasées si elles existent déjà)
 insert into kokolio.meta (key, value) values
@@ -435,6 +486,8 @@ create or replace trigger punch_log_append_only before update or delete on kokol
   for each row execute function kokolio._append_only();
 create or replace trigger punch_log_no_truncate before truncate on kokolio.punch_log
   for each statement execute function kokolio._append_only();
+create or replace trigger annual_entries_append_only before update or delete on kokolio.annual_entries
+  for each row execute function kokolio._append_only();
 create or replace trigger balance_append_only before update or delete on kokolio.balance_entries
   for each row execute function kokolio._append_only();
 
@@ -503,7 +556,7 @@ $$;
 
 -- Un cycle avec ses horaires journaliers résolus : le calcul n'a plus besoin de la bibliothèque.
 create or replace function kokolio._cycle_json(p_id uuid) returns jsonb language sql stable as $$
-  select jsonb_build_object('id', c.id, 'name', c.name, 'active', c.active, 'version', c.version,
+  select jsonb_build_object('id', c.id, 'name', c.name, 'active', c.active, 'version', c.version, 'annualise', c.annualise,
     'weeks', (select coalesce(jsonb_agg(
         (select jsonb_agg(case when m.code is null then 'null'::jsonb
                                else jsonb_build_object('code', m.code, 'label', m.label, 'minutes', m.minutes, 'ranges', m.ranges, 'color', m.color) end order by d.o)
@@ -818,6 +871,8 @@ begin
     'types', coalesce((select jsonb_agg(to_jsonb(t) order by t.sort, t.label) from kokolio.absence_types t), '[]'::jsonb),
     'closed', kokolio._closed_months(),
     'today', kokolio._today(), 'hm', kokolio._hm(), 'now', kokolio._now(),
+    -- période d'annualisation qui contient aujourd'hui, s'il y en a une
+    'annual_period', (select to_jsonb(q) - 'created_by' - 'created_at' from kokolio.annual_periods q where kokolio._today() between q.start_date and q.end_date limit 1),
     'demo', exists (select 1 from kokolio.meta m where m.key = 'demo'),
     'schema', (select m.value from kokolio.meta m where m.key = 'schema_version'));
 end $$;
@@ -876,6 +931,12 @@ begin
     'plan', coalesce((select jsonb_agg(jsonb_build_object('user_id', q.user_id, 'day', q.day, 'model_code', q.model_code, 'label', q.label,
                                                           'minutes', q.minutes, 'ranges', q.ranges, 'note', q.note) order by q.day)
                       from kokolio.plan_days q where q.user_id = any(v_ids) and q.day between v_from and v_to), '[]'::jsonb),
+    -- annualisation, à la demande : toutes les périodes, et pour ces salariés leurs objectifs fixés et leurs ajustements
+    'annual', case when coalesce((p_args->>'annual')::boolean, false) then jsonb_build_object(
+      'periods', coalesce((select jsonb_agg(to_jsonb(q) - 'created_by' - 'created_at' order by q.start_date) from kokolio.annual_periods q), '[]'::jsonb),
+      'goals', coalesce((select jsonb_agg(jsonb_build_object('user_id', g.user_id, 'period_id', g.period_id, 'minutes', g.minutes, 'note', g.note, 'set_at', g.set_at)) from kokolio.annual_goals g where g.user_id = any(v_ids)), '[]'::jsonb),
+      'entries', coalesce((select jsonb_agg(jsonb_build_object('id', e.id, 'user_id', e.user_id, 'period_id', e.period_id, 'day', e.day, 'minutes', e.minutes, 'reason', e.reason, 'created_at', e.created_at) order by e.day, e.id)
+                           from kokolio.annual_entries e where e.user_id = any(v_ids)), '[]'::jsonb)) end,
     'closed', kokolio._closed_months(),
     'fingerprint', case when v_fp is not null then kokolio._month_fingerprint(v_fp) end,
     'ctx', case when coalesce((p_args->>'ctx')::boolean, false) then kokolio._ctx(me) end,
@@ -1770,16 +1831,18 @@ begin
   if length(trim(coalesce(v_t->>'label', ''))) < 2 or length(v_t->>'label') > 60 then perform kokolio._fail('parametre', 'Libellé de motif invalide.'); end if;
   if coalesce(v_t->>'category', 'autre') not in ('cp', 'rtt', 'maladie', 'autre') then perform kokolio._fail('parametre', 'Catégorie inconnue.'); end if;
   if length(coalesce(v_t->>'export_code', '')) > 30 then perform kokolio._fail('parametre', 'Code d''export trop long.'); end if;
+  if coalesce(v_t->>'annual', 'retire') not in ('retire', 'realise', 'neutre') then perform kokolio._fail('parametre', 'Effet sur l''annualisation inconnu.'); end if;
   select * into o from kokolio.absence_types x where x.code = v_code;
-  insert into kokolio.absence_types as x (code, label, category, export_code, needs_doc, absenteeism, active, sort)
+  -- l'effet sur l'annualisation n'est modifié que s'il est envoyé : sinon il garde sa valeur
+  insert into kokolio.absence_types as x (code, label, category, export_code, needs_doc, absenteeism, active, sort, annual)
   values (v_code, trim(v_t->>'label'), coalesce(v_t->>'category', 'autre'), trim(coalesce(v_t->>'export_code', '')),
           coalesce((v_t->>'needs_doc')::boolean, false), coalesce((v_t->>'absenteeism')::boolean, true),
-          coalesce((v_t->>'active')::boolean, true), coalesce((v_t->>'sort')::int, 100))
+          coalesce((v_t->>'active')::boolean, true), coalesce((v_t->>'sort')::int, 100), coalesce(v_t->>'annual', o.annual, 'retire'))
   on conflict (code) do update set label = excluded.label, category = excluded.category, export_code = excluded.export_code,
-    needs_doc = excluded.needs_doc, absenteeism = excluded.absenteeism, active = excluded.active, sort = excluded.sort
+    needs_doc = excluded.needs_doc, absenteeism = excluded.absenteeism, active = excluded.active, sort = excluded.sort, annual = excluded.annual
   returning * into t;
   perform kokolio._audit(me.id, case when o.code is null then 'motif_cree' else 'motif_modifie' end, null, v_code,
-    kokolio._diff(coalesce(to_jsonb(o), '{}'::jsonb), to_jsonb(t), array['label', 'category', 'export_code', 'needs_doc', 'absenteeism', 'active', 'sort']), coalesce(p->>'ip', ''));
+    kokolio._diff(coalesce(to_jsonb(o), '{}'::jsonb), to_jsonb(t), array['label', 'category', 'export_code', 'needs_doc', 'absenteeism', 'active', 'sort', 'annual']), coalesce(p->>'ip', ''));
   return jsonb_build_object('type', to_jsonb(t));
 end $$;
 
@@ -1900,8 +1963,9 @@ begin
     perform kokolio._fail('horaire', 'Un cycle porte déjà ce nom.');
   end if;
   if v_id is null then
-    insert into kokolio.cycles (name, weeks, active, created_by) values (v_name, v_weeks, coalesce((j->>'active')::boolean, true), me.id) returning * into c;
-    perform kokolio._audit(me.id, 'cycle_cree', null, v_name, jsonb_build_object('semaines', jsonb_array_length(v_weeks), 'composition', v_weeks), coalesce(p->>'ip', ''));
+    insert into kokolio.cycles (name, weeks, active, annualise, created_by)
+    values (v_name, v_weeks, coalesce((j->>'active')::boolean, true), coalesce((j->>'annualise')::boolean, false), me.id) returning * into c;
+    perform kokolio._audit(me.id, 'cycle_cree', null, v_name, jsonb_build_object('semaines', jsonb_array_length(v_weeks), 'composition', v_weeks, 'annualise', c.annualise), coalesce(p->>'ip', ''));
   else
     select * into o from kokolio.cycles y where y.id = v_id for update;
     if o.id is null then perform kokolio._fail('introuvable', 'Cycle introuvable.'); end if;
@@ -1911,9 +1975,10 @@ begin
     if o.weeks <> v_weeks and kokolio._cycle_locked(v_id) then
       perform kokolio._fail('cloture', 'Ce cycle a servi dans un mois clôturé : sa composition ne peut plus changer. Dupliquez-le, puis attribuez le nouveau cycle à partir d''une date.');
     end if;
-    update kokolio.cycles set name = v_name, weeks = v_weeks, active = coalesce((j->>'active')::boolean, o.active), version = o.version + 1, updated_at = kokolio._now()
+    update kokolio.cycles set name = v_name, weeks = v_weeks, active = coalesce((j->>'active')::boolean, o.active),
+      annualise = coalesce((j->>'annualise')::boolean, o.annualise), version = o.version + 1, updated_at = kokolio._now()
     where id = v_id returning * into c;
-    perform kokolio._audit(me.id, 'cycle_modifie', null, v_name, kokolio._diff(to_jsonb(o), to_jsonb(c), array['name', 'weeks', 'active']), coalesce(p->>'ip', ''));
+    perform kokolio._audit(me.id, 'cycle_modifie', null, v_name, kokolio._diff(to_jsonb(o), to_jsonb(c), array['name', 'weeks', 'active', 'annualise']), coalesce(p->>'ip', ''));
   end if;
   return jsonb_build_object('cycle', kokolio._cycle_json(c.id) || jsonb_build_object('codes', c.weeks));
 end $$;
@@ -1984,6 +2049,94 @@ begin
   return jsonb_build_object('set', v_set, 'cleared', v_cleared, 'items', v_n);
 end $$;
 -- =====================================================================
+-- Kokolio — annualisation : périodes de référence, objectif par salarié, ajustements datés
+-- Les calculs (objectif, réalisé, reste à faire, solde semaine par semaine) sont faits par le moteur à partir de ces lignes.
+-- Tout est réservé aux RH et aux administrateurs ; chaque geste est inscrit au journal.
+-- =====================================================================
+
+create or replace function kokolio._annual_period_save(me kokolio.users, p jsonb, p_args jsonb) returns jsonb language plpgsql as $$
+declare
+  j jsonb := coalesce(p_args->'period', '{}'::jsonb); v_id uuid := nullif(j->>'id', '')::uuid; v_label text := trim(coalesce(j->>'label', ''));
+  v_a date := nullif(j->>'start_date', '')::date; v_b date := nullif(j->>'end_date', '')::date; o kokolio.annual_periods; q kokolio.annual_periods;
+begin
+  if me.role not in ('rh', 'admin') then perform kokolio._fail('interdit', 'Accès réservé aux RH.'); end if;
+  if length(v_label) < 2 or length(v_label) > 60 then perform kokolio._fail('annualisation', 'Donnez un nom à la période (2 à 60 caractères).'); end if;
+  if v_a is null or v_b is null or v_b < v_a then perform kokolio._fail('annualisation', 'Dates de période invalides.'); end if;
+  if v_b - v_a > 400 then perform kokolio._fail('annualisation', 'Une période d''annualisation dure au plus treize mois.'); end if;
+  if exists (select 1 from kokolio.annual_periods x where (v_id is null or x.id <> v_id) and x.start_date <= v_b and x.end_date >= v_a) then
+    perform kokolio._fail('annualisation', 'Cette période en chevauche une autre.');
+  end if;
+  if v_id is null then
+    insert into kokolio.annual_periods (label, start_date, end_date, created_by) values (v_label, v_a, v_b, me.id) returning * into q;
+    perform kokolio._audit(me.id, 'periode_annualisation_creee', null, v_label, jsonb_build_object('du', v_a, 'au', v_b), coalesce(p->>'ip', ''));
+  else
+    select * into o from kokolio.annual_periods x where x.id = v_id for update;
+    if o.id is null then perform kokolio._fail('introuvable', 'Période introuvable.'); end if;
+    if p_args ? 'version' and (p_args->>'version')::int <> o.version then perform kokolio._fail('conflit', 'Cette période a été modifiée entre-temps. Rechargez la page.'); end if;
+    -- les ajustements déjà passés doivent rester dans la période
+    if exists (select 1 from kokolio.annual_entries e where e.period_id = v_id and (e.day < v_a or e.day > v_b)) then
+      perform kokolio._fail('annualisation', 'Des ajustements d''objectif sont datés hors de ces nouvelles bornes.');
+    end if;
+    update kokolio.annual_periods set label = v_label, start_date = v_a, end_date = v_b, version = o.version + 1 where id = v_id returning * into q;
+    perform kokolio._audit(me.id, 'periode_annualisation_modifiee', null, v_label, kokolio._diff(to_jsonb(o), to_jsonb(q), array['label', 'start_date', 'end_date']), coalesce(p->>'ip', ''));
+  end if;
+  return jsonb_build_object('period', to_jsonb(q) - 'created_by' - 'created_at');
+end $$;
+
+-- Fixer l'objectif d'un salarié pour une période, ou le retirer (minutes absentes) pour revenir à l'objectif calculé d'après le planning.
+create or replace function kokolio._annual_goal_set(me kokolio.users, p jsonb, p_args jsonb) returns jsonb language plpgsql as $$
+declare
+  v_uid uuid := nullif(p_args->>'user_id', '')::uuid; v_pid uuid := nullif(p_args->>'period_id', '')::uuid; u kokolio.users; q kokolio.annual_periods;
+  o kokolio.annual_goals; v_note text := left(trim(coalesce(p_args->>'note', '')), 200); v_min int;
+begin
+  if me.role not in ('rh', 'admin') then perform kokolio._fail('interdit', 'Accès réservé aux RH.'); end if;
+  select * into u from kokolio.users x where x.id = v_uid;
+  if u.id is null then perform kokolio._fail('introuvable', 'Salarié introuvable.'); end if;
+  select * into q from kokolio.annual_periods x where x.id = v_pid;
+  if q.id is null then perform kokolio._fail('introuvable', 'Période introuvable.'); end if;
+  select * into o from kokolio.annual_goals g where g.user_id = v_uid and g.period_id = v_pid for update;
+  if p_args->'minutes' is null or jsonb_typeof(p_args->'minutes') = 'null' then
+    delete from kokolio.annual_goals g where g.user_id = v_uid and g.period_id = v_pid;
+    if o.user_id is not null then
+      perform kokolio._audit(me.id, 'objectif_annuel_retire', v_uid, q.label, jsonb_build_object('avant_minutes', o.minutes, 'motif', v_note), coalesce(p->>'ip', ''));
+    end if;
+    return jsonb_build_object('goal', null);
+  end if;
+  if jsonb_typeof(p_args->'minutes') <> 'number' or (p_args->>'minutes')::numeric <> trunc((p_args->>'minutes')::numeric)
+     or (p_args->>'minutes')::numeric < 0 or (p_args->>'minutes')::numeric > 300000 then
+    perform kokolio._fail('annualisation', 'Objectif invalide : entre 0 et 5 000 heures.');
+  end if;
+  v_min := (p_args->>'minutes')::int;
+  insert into kokolio.annual_goals (user_id, period_id, minutes, note, set_by, set_at) values (v_uid, v_pid, v_min, v_note, me.id, kokolio._now())
+  on conflict (user_id, period_id) do update set minutes = excluded.minutes, note = excluded.note, set_by = excluded.set_by, set_at = excluded.set_at;
+  perform kokolio._audit(me.id, 'objectif_annuel_fixe', v_uid, q.label,
+    jsonb_build_object('minutes', v_min, 'motif', v_note) || case when o.user_id is not null then jsonb_build_object('avant_minutes', o.minutes) else '{}'::jsonb end, coalesce(p->>'ip', ''));
+  return jsonb_build_object('goal', jsonb_build_object('user_id', v_uid, 'period_id', v_pid, 'minutes', v_min, 'note', v_note));
+end $$;
+
+-- Ajustement daté de l'objectif : des minutes en plus ou en moins, avec un motif. Ne se modifie pas : on passe l'écriture inverse.
+create or replace function kokolio._annual_entry_add(me kokolio.users, p jsonb, p_args jsonb) returns jsonb language plpgsql as $$
+declare
+  v_uid uuid := nullif(p_args->>'user_id', '')::uuid; v_pid uuid := nullif(p_args->>'period_id', '')::uuid; q kokolio.annual_periods;
+  v_day date := nullif(p_args->>'day', '')::date; v_reason text := trim(coalesce(p_args->>'reason', '')); v_min int; v_id bigint; v_login text;
+begin
+  if me.role not in ('rh', 'admin') then perform kokolio._fail('interdit', 'Accès réservé aux RH.'); end if;
+  select x.login into v_login from kokolio.users x where x.id = v_uid;
+  if v_login is null then perform kokolio._fail('introuvable', 'Salarié introuvable.'); end if;
+  select * into q from kokolio.annual_periods x where x.id = v_pid;
+  if q.id is null then perform kokolio._fail('introuvable', 'Période introuvable.'); end if;
+  if v_day is null or v_day < q.start_date or v_day > q.end_date then perform kokolio._fail('date', 'La date de l''ajustement doit être dans la période.'); end if;
+  if jsonb_typeof(p_args->'minutes') is distinct from 'number' or (p_args->>'minutes')::numeric <> trunc((p_args->>'minutes')::numeric)
+     or (p_args->>'minutes')::numeric = 0 or abs((p_args->>'minutes')::numeric) > 60000 then
+    perform kokolio._fail('annualisation', 'Ajustement invalide : un nombre d''heures non nul, 1 000 heures au plus.');
+  end if;
+  if length(v_reason) < 3 or length(v_reason) > 200 then perform kokolio._fail('motif', 'Indiquez le motif de l''ajustement (200 caractères au plus).'); end if;
+  v_min := (p_args->>'minutes')::int;
+  insert into kokolio.annual_entries (user_id, period_id, day, minutes, reason, created_by, created_at) values (v_uid, v_pid, v_day, v_min, v_reason, me.id, kokolio._now()) returning id into v_id;
+  perform kokolio._audit(me.id, 'objectif_annuel_ajuste', v_uid, q.label, jsonb_build_object('jour', v_day, 'minutes', v_min, 'motif', v_reason), coalesce(p->>'ip', ''));
+  return jsonb_build_object('entry', jsonb_build_object('id', v_id, 'user_id', v_uid, 'period_id', v_pid, 'day', v_day, 'minutes', v_min, 'reason', v_reason));
+end $$;
+-- =====================================================================
 -- Kokolio — mode démonstration
 -- Un jeu de données fictives se charge dans un outil vide ou en cours d'essai, pour le découvrir ou le présenter.
 -- Tant qu'il est là, l'outil est « en mode démonstration » : c'est le seul état où tout peut être effacé.
@@ -1996,7 +2149,7 @@ declare
   r jsonb; u kokolio.users; c kokolio.contracts; v_dec uuid; v_tz text := kokolio._tz(); v_now timestamptz := kokolio._now(); v_today date := kokolio._today();
   v_days int; v_go text := coalesce(p_args->>'go_live', ''); v_ok boolean; v_status text; v_day date; v_times text[]; v_t text; v_i int;
   v_nu int := 0; v_nd int := 0; v_na int := 0; v_ne int := 0; v_avant date;
-  v_models jsonb := '[]'::jsonb; v_cycles jsonb := '[]'::jsonb; k kokolio.cycles;
+  v_models jsonb := '[]'::jsonb; v_cycles jsonb := '[]'::jsonb; v_periods jsonb := '[]'::jsonb; k kokolio.cycles;
 begin
   if me.role <> 'admin' then perform kokolio._fail('interdit', 'Accès réservé aux administrateurs.'); end if;
   if exists (select 1 from kokolio.meta m where m.key = 'demo') then
@@ -2037,7 +2190,7 @@ begin
   end loop;
   for r in select x from jsonb_array_elements(coalesce(p_args->'cycles', '[]'::jsonb)) x loop
     if not exists (select 1 from kokolio.cycles y where lower(y.name) = lower(r->>'name')) then
-      insert into kokolio.cycles (name, weeks, created_by) values (left(r->>'name', 60), r->'weeks', me.id) returning * into k;
+      insert into kokolio.cycles (name, weeks, annualise, created_by) values (left(r->>'name', 60), r->'weeks', coalesce((r->>'annualise')::boolean, false), me.id) returning * into k;
       v_cycles := v_cycles || to_jsonb(k.id);
     end if;
   end loop;
@@ -2106,7 +2259,14 @@ begin
   -- la mise en service recule au début de la période de démonstration, et l'outil passe en mode démonstration
   update kokolio.meta set value = jsonb_set(jsonb_set(value, '{go_live}', to_jsonb(v_go)), '{version}', to_jsonb(coalesce((value->>'version')::int, 1) + 1)), updated_at = now()
   where key = 'settings';
-  insert into kokolio.meta (key, value) values ('demo', jsonb_build_object('charge_le', v_now, 'par', me.id, 'modeles', v_models, 'cycles', v_cycles));
+  -- période d'annualisation d'exemple, seulement si aucune ne recouvre déjà ces dates
+  if p_args ? 'annual_period' and not exists (select 1 from kokolio.annual_periods q
+       where q.start_date <= (p_args #>> '{annual_period,end}')::date and q.end_date >= (p_args #>> '{annual_period,start}')::date) then
+    insert into kokolio.annual_periods (label, start_date, end_date, created_by)
+    values (left(p_args #>> '{annual_period,label}', 60), (p_args #>> '{annual_period,start}')::date, (p_args #>> '{annual_period,end}')::date, me.id) returning id into v_dec;
+    v_periods := v_periods || to_jsonb(v_dec);
+  end if;
+  insert into kokolio.meta (key, value) values ('demo', jsonb_build_object('charge_le', v_now, 'par', me.id, 'modeles', v_models, 'cycles', v_cycles, 'periodes', v_periods));
   perform kokolio._audit(me.id, 'donnees_demo_chargees', null, '', jsonb_build_object('comptes', v_nu, 'journees', v_nd, 'absences', v_na, 'comptes_deja_presents', v_ne), coalesce(p->>'ip', ''));
   return jsonb_build_object('users', v_nu, 'days', v_nd, 'absences', v_na, 'existing', v_ne);
 end $$;
@@ -2127,6 +2287,8 @@ begin
   delete from kokolio.closures;        -- d'abord les clôtures : plus aucun mois n'est verrouillé
   delete from kokolio.attachments;
   delete from kokolio.absences;
+  delete from kokolio.annual_entries;
+  delete from kokolio.annual_goals;
   delete from kokolio.plan_days;
   delete from kokolio.days;
   delete from kokolio.punch_log;
@@ -2138,6 +2300,7 @@ begin
   delete from kokolio.throttle;
   delete from kokolio.users x where x.role <> 'admin';
   perform set_config('kokolio.purge', '', true);
+  delete from kokolio.annual_periods q where q.id in (select (x #>> '{}')::uuid from jsonb_array_elements(coalesce(v_demo->'periodes', '[]'::jsonb)) x);
   -- la bibliothèque d'exemple apportée par la démonstration repart avec elle, sauf ce qu'un compte restant utilise encore
   delete from kokolio.cycles c where c.id in (select (x #>> '{}')::uuid from jsonb_array_elements(coalesce(v_demo->'cycles', '[]'::jsonb)) x)
     and not exists (select 1 from kokolio.contracts k where k.cycle_id = c.id);
@@ -2408,6 +2571,9 @@ begin
     when 'model_save' then return kokolio._model_save(me, p, v_args);
     when 'cycle_save' then return kokolio._cycle_save(me, p, v_args);
     when 'plan_set' then return kokolio._plan_set(me, p, v_args);
+    when 'annual_period_save' then return kokolio._annual_period_save(me, p, v_args);
+    when 'annual_goal_set' then return kokolio._annual_goal_set(me, p, v_args);
+    when 'annual_entry_add' then return kokolio._annual_entry_add(me, p, v_args);
     when 'demo_seed' then return kokolio._demo_seed(me, p, v_args);
     when 'demo_reset' then return kokolio._demo_reset(me, p);
     when 'selftest' then
@@ -2485,7 +2651,7 @@ begin
 end $$;
 revoke all on function kokolio.bootstrap_admin(text, text) from public;
 
-insert into kokolio.meta (key, value) values ('schema_version', '4'::jsonb)
+insert into kokolio.meta (key, value) values ('schema_version', '5'::jsonb)
 on conflict (key) do update set value = excluded.value, updated_at = now();
 
 notify pgrst, 'reload schema';

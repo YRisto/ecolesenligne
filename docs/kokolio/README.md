@@ -104,6 +104,15 @@ Clôture : le planning entre dans l'empreinte du mois. Une fois le mois clôtur�
 
 **Journées qui passent minuit** : réglage `night_until` (Administration › Réglages, vide par défaut). Quand il est renseigné, un départ pointé avant cette heure ferme la journée de la veille restée ouverte ; l'heure est enregistrée au-delà de 24 h (`25:30` = 1 h 30 le lendemain). Au-delà de seize heures depuis l'arrivée, le pointage ouvre une nouvelle journée.
 
+## Annualisation (depuis la version 2.1)
+
+- **Période** (`annual_periods`) : créée par les RH, treize mois au plus, sans chevauchement.
+- **Qui** : les salariés qui suivent un cycle marqué « annualisé » (`cycles.annualise`), pour les jours où ils le suivent.
+- **Objectif** = objectif fixé par les RH (`annual_goals`), à défaut le total des heures planifiées sur la période ; plus les ajustements datés (`annual_entries`, en ajout seul) ; moins les heures d'absence dont le motif est réglé sur « retiré de l'objectif ».
+- **Réalisé** = heures travaillées des jours comptés, plus les heures des absences « comptées comme réalisées ». **Reste à faire** = objectif − réalisé. **Prévision** = réalisé + heures encore planifiées. **Solde** d'une semaine = réalisé − prévu, cumulé depuis le début de la période.
+- L'effet de chaque motif (`absence_types.annual` : `retire`, `realise`, `neutre`) se règle dans Administration › Motifs. Si l'objectif fixé est déjà net des congés (un « 1 607 h »), régler les congés payés sur « laissé à faire » évite de les déduire deux fois.
+- Ces chiffres sont recalculés à chaque affichage (`lib/kokolio/engine/annual.mjs`) ; ils n'entrent ni dans la clôture mensuelle ni dans l'export paie.
+
 ## Calculs
 
 - Heures d'une journée : somme des plages arrivée → départ. Si la journée tient en une seule plage de plus de six heures, la pause de l'horaire est déduite.

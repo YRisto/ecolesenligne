@@ -5,6 +5,7 @@ import { h, pose, toast, agir, demanderMotif, etiquette, tuile, listeAlertes, na
 import { S, ecran, aller, recharger, moisCourant } from "./etat.js";
 import { blocJour, blocAbsence, dialogueCorrection, dialogueAbsence, voirPointages, voirJustificatif } from "./moi.js";
 import { montrerCode } from "./codes.js";
+import { sousSynthese } from "./annuel.js";
 
 const apres = () => { S.compterAttente?.(); recharger(); };
 const pluriel = (n, mot) => `${n} ${mot}${n > 1 ? "s" : ""}`;
@@ -102,6 +103,7 @@ export function vueSynthese(espace, mois) {
       telecharger(`synthese-${m}.csv`, "﻿" + lignes.map((l) => l.map((c) => { const s = String(c ?? ""); return /[;"\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s; }).join(";")).join("\r\n") + "\r\n");
     };
     pose(h("div", { class: "ligne" }, h("h2", null, rh ? "Synthèse · tous les salariés" : "Synthèse de l'équipe"), navMois(m, { min: (S.boot.settings.go_live || "").slice(0, 7), max: moisCourant(), surChange: (x) => aller(`#/${espace}/synthese/${x}`) })),
+      sousSynthese(espace, "mois"),
       d.closed ? h("p", { class: "bandeau ok" }, "Mois clôturé : ces chiffres sont figés.") : null,
       h("div", { class: "tuiles" },
         tuile("Salariés", String(t.employees), rh ? "dans l'entreprise" : "dans l'équipe"),

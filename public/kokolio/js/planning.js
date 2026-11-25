@@ -254,7 +254,7 @@ export function vueBibliotheque() {
         d.can_edit ? h("div", { class: "ligne gauche" }, h("button", { class: "domaine", onclick: () => dialogueHoraire(null) }, "Nouvel horaire journalier")) : null),
       h("div", { class: "carte" }, h("h3", null, `Cycles (${d.cycles.length})`),
         d.cycles.length ? d.cycles.map((c) => h("div", { class: "jour" },
-          h("div", null, h("strong", null, c.name), !c.active ? h("span", { class: "pastille p-gris ml" }, "désactivé") : null, c.locked ? h("span", { class: "pastille p-neutre ml" }, "figé") : null),
+          h("div", null, h("strong", null, c.name), c.annualise ? h("span", { class: "pastille p-ok ml" }, "annualisé") : null, !c.active ? h("span", { class: "pastille p-gris ml" }, "désactivé") : null, c.locked ? h("span", { class: "pastille p-neutre ml" }, "figé") : null),
           h("div", { class: "num" }, `${fmtMin(c.weekly_minutes)} / sem.`),
           h("div", { class: "note discret" }, [pluriel(c.weeks.length, "semaine"), c.weeks.length > 1 ? "durée moyenne" : null, c.assigned ? `suivi par ${pluriel(c.assigned, "salarié")}` : "attribué à personne"].filter(Boolean).join(" · ")),
           h("div", { class: "note" }, h("div", { class: "cycle-apercu" }, c.weeks.map((w, i) => h("div", { class: "sem" }, c.weeks.length > 1 ? h("small", null, `S${i + 1}`) : null,
@@ -296,6 +296,7 @@ function dialogueCycle(d, c) {
   const actifs = d.models.filter((m) => m.active);
   const nom = h("input", { type: "text", value: c?.name || "", maxlength: 60, required: true, placeholder: "Exemple : Semaine 35 h" });
   const [actifLib, actif] = coche("Peut être attribué à de nouveaux salariés", { checked: c ? c.active : true });
+  const [annuelLib, annuel] = coche("Cycle annualisé : les heures se compensent sur la période d'annualisation", { checked: !!c?.annualise });
   const zone = h("div", { class: "pile" }), total = h("strong", { class: "num" });
   const maj = () => {
     const sommes = [...zone.children].map((row) => [...row.querySelectorAll("select")].reduce((s, sel) => s + (d.models.find((m) => m.code === sel.value)?.minutes || 0), 0));
@@ -320,12 +321,12 @@ function dialogueCycle(d, c) {
     fige ? null : h("div", { class: "ligne gauche" }, h("button", { type: "button", onclick: () => { const derniere = zone.lastElementChild; ajoute(derniere ? [...derniere.querySelectorAll("select")].map((s) => s.value) : []); } }, "Ajouter une semaine")),
     h("div", { class: "ligne" }, h("span", { class: "discret" }, "Durée du cycle"), total),
     h("p", { class: "discret" }, actifs.map((m) => `${m.code} = ${m.label} (${fmtMin(m.minutes)})`).join(" · ")),
-    nouveau ? null : actifLib,
+    annuelLib, nouveau ? null : actifLib,
   ], nouveau ? "Créer le cycle" : "Enregistrer", async () => {
     const weeks = [...zone.children].map((row) => [...row.querySelectorAll("select")].map((s) => s.value || null));
     if (!nom.value.trim()) throw new Error("Donnez un nom au cycle.");
     if (!weeks.some((w) => w.some(Boolean))) throw new Error("Le cycle doit contenir au moins un jour travaillé.");
-    const cycle = { name: nom.value.trim(), weeks, active: actif.checked };
+    const cycle = { name: nom.value.trim(), weeks, active: actif.checked, annualise: annuel.checked };
     if (!nouveau) cycle.id = c.id;
     await api("plan/cycle-save", nouveau ? { cycle } : { cycle, version: c.version });
     toast(nouveau ? "Cycle créé. Attribuez-le depuis la fiche d'un salarié." : "Cycle enregistré."); recharger();

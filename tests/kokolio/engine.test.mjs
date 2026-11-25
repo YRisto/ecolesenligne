@@ -406,3 +406,72 @@ test("données de démonstration : la bibliothèque d'exemple reproduit les hora
     assert.deepEqual(k.weeks[0].map((code) => (code ? modeles.get(code).minutes : 0)), u.contract.day_minutes, u.login);
   }
 });
+
+// ---------------------------------------------------------------- version 2.1 : annualisation
+import { annualFigures, pickPeriod } from "../../lib/kokolio/engine/annual.mjs";
+import { diffDays } from "../../lib/kokolio/engine/dates.mjs";
+
+const P26 = { id: "p26", label: "Annualisation 2026", start_date: "2026-11-02", end_date: "2026-11-29" };
+// cycle annualisé de deux semaines : 4 × 8 h, puis 4 × 8 h + 4 h (32 h et 36 h)
+const CAN = { ...CCYC, cycle: { ...CYCLE, annualise: true } };
+const TYPES_AN = [...TYPES.map((t) => ({ ...t, annual: t.code === "cp" ? "retire" : t.code === "maladie" ? "neutre" : "realise" })),
+  { code: "formation", label: "Formation", category: "autre", annual: "realise" }];
+const annuel = (over) => annualFigures({ user: USER, contracts: [CAN], days: [], absences: [], plan: [], types: TYPES_AN, settings: SETTINGS, period: P26, goal: null, entries: [], today: "2026-11-16", ...over });
+
+test("annualisation : objectif, réalisé, reste à faire, prévision et solde semaine par semaine", () => {
+  // quatre semaines : 32 h, 36 h moins le férié du 11 (28 h), 32 h, 36 h → 128 h planifiées
+  const vide = annuel({});
+  assert.deepEqual([vide.annual, vide.planned, vide.objective, vide.goal_set], [true, 128 * 60, 128 * 60, false]);
+  // deux semaines faites : 33 h la première (une heure de plus), 26 h la seconde (deux de moins)
+  const jours = [day("2026-11-02", ["08:00", "12:00", "13:00", "18:00"]), day("2026-11-03", ["08:45", "13:15", "14:00", "17:30"]), day("2026-11-04", ["08:45", "13:15", "14:00", "17:30"]), day("2026-11-05", ["08:45", "13:15", "14:00", "17:30"]),
+    day("2026-11-09", ["08:45", "13:15", "14:00", "17:30"]), day("2026-11-10", ["08:45", "13:15", "14:00", "17:30"]), day("2026-11-12", ["08:45", "13:15", "14:00", "17:30"]), day("2026-11-13", ["09:00", "11:00"])];
+  const f = annuel({ days: jours });
+  assert.deepEqual([f.done, f.remaining, f.planned_rest, f.forecast, f.gap, f.balance], [59 * 60, 69 * 60, 68 * 60, 127 * 60, -60, -60]);
+  assert.deepEqual(f.weeks.map((w) => [w.week, w.planned, w.done, w.balance, w.cumul, w.counted, w.current]),
+    [["2026-11-02", 1920, 1980, 60, 60, true, false], ["2026-11-09", 1680, 1560, -120, -60, true, false], ["2026-11-16", 1920, 0, 0, null, false, true], ["2026-11-23", 2160, 0, 0, null, false, false]]);
+  // objectif fixé par les RH et ajustements datés : ils remplacent l'objectif calculé, le reste suit
+  const g = annuel({ days: jours, goal: { user_id: "u1", period_id: "p26", minutes: 130 * 60, note: "Prorata" }, entries: [{ period_id: "p26", minutes: -120, day: "2026-11-10", reason: "Heures de délégation" }, { period_id: "autre", minutes: 600 }] });
+  assert.deepEqual([g.goal_set, g.base, g.adjustments, g.objective, g.remaining, g.gap, g.entries.length], [true, 7800, -120, 7680, 7680 - 3540, 7620 - 7680, 1]);
+});
+
+test("annualisation : chaque motif d'absence retire du temps de l'objectif, le compte comme réalisé, ou le laisse à faire", () => {
+  const sem3 = (type) => annuel({ today: "2026-11-01", absences: [abs(type, "2026-11-16", "2026-11-17")] });      // deux jours de 8 h, vus avant le début de la période
+  // congé payé (« retire ») : l'objectif baisse de 16 h, plus rien n'est attendu ces jours-là
+  const cp = sem3("cp");
+  assert.deepEqual([cp.removed, cp.objective, cp.planned_rest, cp.gap, cp.weeks[2].planned], [960, 7680 - 960, 7680 - 960, 0, 960]);
+  assert.deepEqual(cp.absences, [{ type: "cp", label: "Congé payé", mode: "retire", minutes: 960 }]);
+  // formation (« réalisé ») : l'objectif ne bouge pas, les 16 h compteront comme faites
+  const fo = sem3("formation");
+  assert.deepEqual([fo.removed, fo.objective, fo.planned_rest, fo.gap, fo.weeks[2].planned], [0, 7680, 7680, 0, 1920]);
+  const faite = annuel({ absences: [abs("formation", "2026-11-03", "2026-11-03")] });
+  assert.deepEqual([faite.done, faite.weeks[0].done, faite.weeks[0].balance], [480, 480, 480 - 1920]);
+  // maladie réglée « neutre » : l'objectif ne bouge pas et le temps n'est pas fait : il manque en fin de période
+  const ma = sem3("maladie");
+  assert.deepEqual([ma.removed, ma.objective, ma.planned_rest, ma.gap], [0, 7680, 7680 - 960, -960]);
+  // demi-journée : la moitié du temps prévu
+  assert.equal(annuel({ absences: [abs("cp", "2026-11-16", "2026-11-16", "valide", "matin")] }).removed, 240);
+});
+
+test("annualisation : seuls les jours passés sous un cycle annualisé comptent", () => {
+  // horaire fixe, ou cycle non annualisé : pas d'annualisation
+  assert.equal(annualFigures({ user: USER, contracts: [C35], days: [], absences: [], types: TYPES_AN, settings: SETTINGS, period: P26, today: "2026-11-16" }).annual, false);
+  assert.equal(annualFigures({ user: USER, contracts: [CCYC], days: [], absences: [], types: TYPES_AN, settings: SETTINGS, period: P26, today: "2026-11-16" }).annual, false);
+  // passage au cycle annualisé le 16 : seules les deux dernières semaines entrent dans le calcul
+  const avant = { ...C35, end_date: "2026-11-15" }, apres = { ...CAN, start_date: "2026-11-16", cycle_anchor: "2026-11-16" };
+  const f = annualFigures({ user: USER, contracts: [avant, apres], days: [day("2026-11-03", ["09:00", "17:00"])], absences: [], types: TYPES_AN, settings: SETTINGS, period: P26, today: "2026-11-16" });
+  assert.deepEqual([f.annual, f.from, f.planned, f.done, f.weeks.length], [true, "2026-11-16", (32 + 36) * 60, 0, 2]);
+  // début de suivi propre au salarié : rien avant
+  assert.equal(annuel({ user: { ...USER, tracked_from: "2026-11-23" } }).planned, 36 * 60);
+  // choix de la période : celle qui contient la date, sinon la dernière commencée, sinon la prochaine
+  const ps = [{ id: "a", start_date: "2025-01-01", end_date: "2025-12-31" }, { id: "b", start_date: "2026-04-06", end_date: "2026-12-31" }, { id: "c", start_date: "2027-01-01", end_date: "2027-12-31" }];
+  assert.deepEqual([pickPeriod(ps, "2026-11-25").id, pickPeriod(ps, "2026-02-01").id, pickPeriod(ps, "2024-06-01").id, pickPeriod(ps, "2026-11-25", "c").id, pickPeriod([], "2026-11-25")], ["b", "a", "a", "c", null]);
+});
+
+test("données de démonstration : une période d'annualisation d'exemple, toujours de moins de treize mois", () => {
+  for (const today of ["2026-11-25", "2027-01-05", "2027-03-01", "2027-12-30"]) {
+    const d = buildDemo(today);
+    assert.ok(d.annual_period.start <= today && d.annual_period.end >= today, today);
+    assert.ok(diffDays(d.annual_period.start, d.annual_period.end) <= 366, today);
+    assert.ok(d.cycles.some((c) => c.annualise));
+  }
+});

@@ -89,9 +89,30 @@ with sync_playwright() as p:
     # --- Administrateur : travail de nuit, versions
     ad.va("#/admin/reglages"); ad.voit("Travail de nuit"); ad.page.get_by_label("Un départ pointé avant cette heure").fill("05:00"); ad.clic("Enregistrer les réglages"); ad.voit("Réglages enregistrés"); ad.voit("Travail de nuit")
     ca.recharge(); ca.va("#/moi/heures"); ca.clic("Ajouter une journée oubliée"); ca.voit("départ le lendemain"); ca.photo("93-correction-nuit", pleine=False)
-    ad.va("#/admin/versions"); ad.voit("2.0.0 · Planification"); ad.voit("Planification"); ad.photo("94-versions")
+    ad.va("#/admin/versions"); ad.voit("2.0.0 · Planification"); ad.voit("2.1.0 · Annualisation"); ad.photo("94-versions")
     so.va("#/rh/journal")
     for quoi in ["Planning modifié", "Cycle créé", "Horaire journalier créé"]: expect(so.page.locator(".entree", has_text=quoi).first).to_be_visible()
     so.voit("04/12 : retour au planning par défaut"); so.photo("95-journal-planning")
+
+    # --- Annualisation (version 2.1) : la démonstration apporte une période et un cycle annualisé
+    so.va("#/rh/synthese"); so.clic("Annualisation", exact=True); so.voit("Annualisation · tous les salariés"); so.voit("Annualisation 2026 · du 01/09/2026 au 31/12/2026"); so.voit("Camille Martin")
+    assert so.page.locator("tr.cliquable").count() == 2
+    so.photo("96-annualisation-equipe")
+    so.page.locator("tr.cliquable", has_text="Camille Martin").click(); so.voit("Annualisation · Camille Martin"); so.voit("D'où vient l'objectif"); so.voit("Semaine par semaine"); so.voit("d'après le planning")
+    so.clic("Fixer l'objectif"); so.champ("Objectif en heures", "520"); so.champ("Note", "Prorata convenu"); so.valider_fenetre("Enregistrer"); so.voit("fixé par les RH"); so.voit("Objectif fixé par les RH (Prorata convenu)")
+    so.clic("Ajouter un ajustement"); so.champ("Heures (négatif pour retirer)", "-7"); so.champ("Motif", "Heures de délégation"); so.valider_fenetre("Ajouter"); so.voit("Heures de délégation"); so.photo("97-annualisation-salarie")
+    so.clic("‹ Annualisation de l'équipe"); so.voit("objectif fixé"); so.clic("Nouvelle période"); so.champ("Nom", "Annualisation 2027")
+    so.page.locator("#dlg input[type=date]").nth(0).fill("2027-01-01"); so.page.locator("#dlg input[type=date]").nth(1).fill("2027-12-31"); so.valider_fenetre("Enregistrer")
+    expect(so.page.locator(".carte .ligne", has_text="Annualisation 2027").first).to_be_visible()
+    so.clic("Nouvelle période"); so.champ("Nom", "Chevauchement"); so.valider_fenetre("Enregistrer"); so.voit("Cette période en chevauche une autre"); so.page.locator("#dlg").get_by_role("button", name="Annuler").click()
+    # la salariée voit sa propre annualisation depuis « Année »
+    ca.recharge(); ca.va("#/moi/annee"); ca.clic("Annualisation", exact=True); ca.voit("Mon annualisation"); ca.voit("Objectif fixé par les RH"); ca.voit("Reste à faire"); ca.ne_voit_pas("Fixer l'objectif"); ca.photo("98-mon-annualisation")
+    # le responsable consulte son équipe, sans rien pouvoir fixer
+    ju.va("#/equipe/synthese"); ju.clic("Annualisation", exact=True); ju.voit("Annualisation de l'équipe"); ju.voit("Camille Martin"); ju.ne_voit_pas("Nouvelle période")
+    ju.page.locator("tr.cliquable", has_text="Camille Martin").click(); ju.voit("Annualisation · Camille Martin"); ju.ne_voit_pas("Ajouter un ajustement"); ju.photo("99-annualisation-responsable")
+    # l'administrateur règle l'effet d'un motif d'absence sur l'objectif
+    ad.va("#/admin/motifs"); ad.page.locator("tr.cliquable", has_text="Formation").click()
+    ad.page.locator("#dlg").get_by_label("Pour les salariés annualisés").select_option("realise"); ad.valider_fenetre("Enregistrer"); ad.voit("Motif enregistré")
+    expect(ad.page.locator("tr.cliquable", has_text="Formation")).to_contain_text("Réalisé")
     nav.close()
 bilan(); print("étape 6 terminée")

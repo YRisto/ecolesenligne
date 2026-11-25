@@ -71,6 +71,7 @@ export function vueReglages() {
 
 /* ================= Motifs d'absence ================= */
 const FAMILLES = { cp: "Congés payés (déduit du solde CP)", rtt: "RTT (déduit du solde RTT)", maladie: "Maladie", autre: "Autre" };
+const ANNUEL = { retire: "Retiré de l'objectif (cas général)", realise: "Compté comme du temps réalisé", neutre: "Laissé à faire (l'objectif ne bouge pas)" };
 export function vueMotifs() {
   ecran(() => api("admin/settings"), ({ types }) => {
     const editer = (t) => {
@@ -82,21 +83,23 @@ export function vueMotifs() {
       const [absLib, abs] = coche("Compte dans le taux d'absentéisme", { checked: t.absenteeism });
       const [actLib, act] = coche("Proposé aux salariés", { checked: t.active });
       const ordre = h("input", { type: "number", value: t.sort, min: 0, max: 999 });
+      const annuel = h("select", { value: t.annual || "retire" }, Object.entries(ANNUEL).map(([v, l]) => h("option", { value: v }, l)));
       ouvrir(neuf ? "Nouveau motif d'absence" : `Motif : ${t.label}`, [champ("Libellé", label), champ("Famille", famille), champ("Code dans l'export paie", code), docLib, absLib, actLib, champ("Ordre d'affichage", ordre),
+        champ("Pour les salariés annualisés, le temps prévu pendant cette absence est", annuel, "Sans effet pour les salariés qui ne sont pas annualisés."),
         neuf ? null : h("p", { class: "discret" }, "Un motif déjà utilisé ne se supprime pas : décochez « Proposé aux salariés » pour le retirer des listes.")], "Enregistrer", async () => {
         const c = neuf ? slug(label.value) : t.code;
         if (c.length < 2) throw new Error("Libellé trop court.");
         if (neuf && types.some((x) => x.code === c)) throw new Error("Un motif porte déjà ce nom.");
-        await api("admin/type-save", { type: { code: c, label: label.value.trim(), category: famille.value, export_code: code.value.trim(), needs_doc: doc.checked, absenteeism: abs.checked, active: act.checked, sort: +ordre.value || 100 } });
+        await api("admin/type-save", { type: { code: c, label: label.value.trim(), category: famille.value, export_code: code.value.trim(), needs_doc: doc.checked, absenteeism: abs.checked, active: act.checked, sort: +ordre.value || 100, annual: annuel.value } });
         toast("Motif enregistré."); await rafraichir();
       });
     };
     pose(h("div", { class: "ligne" }, h("h2", null, "Motifs d'absence"), h("button", { class: "domaine", onclick: () => editer(null) }, "Nouveau motif")),
       h("div", { class: "carte" }, h("h3", null, "Motifs"),
-        h("div", { class: "table-zone" }, h("table", null, h("thead", null, h("tr", null, ["Libellé", "Famille", "Code d'export", "Justificatif", "Absentéisme", "État"].map((x) => h("th", null, x)))),
+        h("div", { class: "table-zone" }, h("table", null, h("thead", null, h("tr", null, ["Libellé", "Famille", "Code d'export", "Justificatif", "Absentéisme", "Annualisation", "État"].map((x) => h("th", null, x)))),
           h("tbody", null, types.map((t) => h("tr", { class: "cliquable", tabindex: 0, onclick: () => editer(t), onkeydown: (ev) => { if (ev.key === "Enter") editer(t); } },
             h("td", null, h("strong", null, t.label)), h("td", null, FAMILLES[t.category].split(" (")[0]), h("td", { class: "mono" }, t.export_code || h("span", { class: "moins" }, "manquant")),
-            h("td", null, t.needs_doc ? "Demandé" : "—"), h("td", null, t.absenteeism ? "Compté" : "—"), h("td", null, t.active ? etiquette("Actif", "p-ok") : etiquette("Retiré", "p-gris")))))))),
+            h("td", null, t.needs_doc ? "Demandé" : "—"), h("td", null, t.absenteeism ? "Compté" : "—"), h("td", null, { retire: "Retiré", realise: "Réalisé", neutre: "À faire" }[t.annual || "retire"]), h("td", null, t.active ? etiquette("Actif", "p-ok") : etiquette("Retiré", "p-gris")))))))),
       h("p", { class: "discret" }, "Touchez un motif pour le modifier. Les codes d'export sont repris tels quels dans le fichier de paie."));
   });
 }

@@ -1,5 +1,14 @@
 // Fonctionnalités et historique des versions. À mettre à jour à chaque mise en ligne, avec lib/kokolio/version.mjs.
 export const VERSIONS = [
+  { v: "2.1.0", date: "25/11/2026", titre: "Annualisation", points: [
+    "Périodes d'annualisation définies par les RH (l'année civile, ou toute période de treize mois au plus)",
+    "Un cycle peut être marqué « annualisé » : les salariés qui le suivent voient leurs heures se compenser sur la période",
+    "Pour chacun : objectif, réalisé, reste à faire, prévision de fin de période et solde, avec le détail semaine par semaine",
+    "L'objectif part des heures planifiées ; les RH peuvent le fixer et l'ajuster par des écritures datées, inscrites au journal",
+    "Chaque motif d'absence dit son effet : heures retirées de l'objectif, comptées comme réalisées, ou laissées à faire",
+    "Tableau d'équipe pour le responsable, de tous les salariés pour les RH, avec export CSV",
+    "Base de données en version 5 (trois tables et deux colonnes ajoutées, aucune donnée modifiée)",
+  ] },
   { v: "2.0.0", date: "25/11/2026", titre: "Planification : horaires à plages, cycles, planning d'équipe", points: [
     "Horaires journaliers avec plages (exemple : 8 h 45 – 13 h 15, 14 h – 18 h), réunis dans une bibliothèque tenue par les RH",
     "Cycles d'une ou plusieurs semaines, attribués à un salarié à partir d'une date : le prévu, l'écart, les oublis et le décompte des absences suivent le cycle",
@@ -82,6 +91,15 @@ export const FONCTIONS = [
     "Un cycle ou un horaire qui a servi dans un mois clôturé ne change plus de durée : on le duplique",
     "Chaque salarié voit son horaire du jour et ses quatorze prochains jours",
   ]],
+  ["Annualisation", [
+    "Période de référence définie par les RH ; plusieurs périodes successives possibles",
+    "Salariés annualisés : ceux qui suivent un cycle marqué « annualisé »",
+    "Objectif de la période : heures planifiées, ou objectif fixé par les RH, plus les ajustements datés, moins les absences retirées",
+    "Réalisé à ce jour, reste à faire, prévision de fin de période si le planning restant est tenu",
+    "Solde semaine par semaine : réalisé moins prévu, et son cumul depuis le début de la période",
+    "Effet de chaque motif d'absence réglable : retiré de l'objectif, compté comme réalisé, laissé à faire",
+    "Le salarié consulte la sienne ; le responsable celle de son équipe ; les RH fixent les objectifs",
+  ]],
   ["Congés et absences", [
     "Demande par motif, sur une période ou une demi-journée ; décompte en jours travaillés, hors jours fériés",
     "Soldes de congés payés (report, acquisition mensuelle, jours pris) et de RTT",
@@ -130,7 +148,6 @@ export const FONCTIONS = [
 
 // Ce qui est prévu, dans l'ordre des lots de la version 2.
 export const A_VENIR = [
-  "Annualisation : objectif annuel, réalisé, reste à faire, solde semaine par semaine (version 2.1)",
   "Anomalies liées à l'horaire prévu (retard, départ anticipé, pointage hors plage), avec gravité et traitement (version 2.2)",
   "Pauses pointées : trop courtes, trop longues, non prises (version 2.2)",
   "Tableau des présents en temps réel et liste d'évacuation (version 2.2)",

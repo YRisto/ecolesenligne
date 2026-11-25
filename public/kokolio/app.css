@@ -154,6 +154,7 @@ td.d,th.d{text-align:right} td.c,th.c{text-align:center}
 td.large{white-space:normal;min-width:220px}
 tr.cliquable{cursor:pointer} tr.cliquable:hover td{background:var(--creux)}
 tr.erreur td{background:var(--refus-doux)}
+tr.courante td{background:var(--accent-doux)} tr.avenir td{color:var(--discret)}
 
 /* Navigation */
 nav.onglets{position:fixed;left:0;right:0;bottom:0;display:flex;justify-content:center;background:var(--surface);border-top:2px solid var(--trait);box-shadow:0 -6px 18px -12px rgba(19,26,43,.25);z-index:5;padding:0 4px env(safe-area-inset-bottom)}

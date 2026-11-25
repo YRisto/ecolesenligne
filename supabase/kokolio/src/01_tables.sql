@@ -124,6 +124,46 @@ create table if not exists kokolio.plan_days (
 );
 create index if not exists plan_days_day_idx on kokolio.plan_days (day);
 
+-- ---------------------------------------------------------------------
+-- Annualisation (schéma 5) : les heures se compensent sur une période de référence au lieu de la semaine.
+-- Un salarié est annualisé quand il suit un cycle annualisé. Sans période ni cycle annualisé, rien ne change.
+-- ---------------------------------------------------------------------
+alter table kokolio.cycles add column if not exists annualise boolean not null default false;
+-- Périodes de référence (elles ne se chevauchent pas).
+create table if not exists kokolio.annual_periods (
+  id uuid primary key default gen_random_uuid(),
+  label text not null,
+  start_date date not null,
+  end_date date not null,
+  version int not null default 1,
+  created_by uuid references kokolio.users(id),
+  created_at timestamptz not null default now(),
+  check (end_date >= start_date),
+  check (end_date - start_date <= 400)
+);
+-- Objectif d'un salarié pour une période, quand les RH le fixent. Sans ligne ici, l'objectif est le total des heures planifiées.
+create table if not exists kokolio.annual_goals (
+  user_id uuid not null references kokolio.users(id),
+  period_id uuid not null references kokolio.annual_periods(id),
+  minutes int not null check (minutes between 0 and 300000),
+  note text not null default '',
+  set_by uuid references kokolio.users(id),
+  set_at timestamptz not null default now(),
+  primary key (user_id, period_id)
+);
+-- Ajustements datés de l'objectif (ajout ou retrait), en ajout seul comme les écritures de solde.
+create table if not exists kokolio.annual_entries (
+  id bigserial primary key,
+  user_id uuid not null references kokolio.users(id),
+  period_id uuid not null references kokolio.annual_periods(id),
+  day date not null,
+  minutes int not null check (minutes between -60000 and 60000 and minutes <> 0),
+  reason text not null,
+  created_by uuid references kokolio.users(id),
+  created_at timestamptz not null default now()
+);
+create index if not exists annual_entries_user_idx on kokolio.annual_entries (user_id, period_id);
+
 -- Une ligne par salarié et par jour : les heures retenues et leur état de validation.
 create table if not exists kokolio.days (
   id uuid primary key default gen_random_uuid(),
@@ -190,6 +230,14 @@ create table if not exists kokolio.absences (
   check (end_date >= start_date),
   check (half = '' or start_date = end_date)
 );
+-- Effet d'un motif d'absence sur l'annualisation (schéma 5) : « retire » = le temps prévu ce jour-là sort de l'objectif ;
+-- « realise » = il compte comme du temps fait ; « neutre » = l'objectif ne bouge pas, le temps reste à faire.
+alter table kokolio.absence_types add column if not exists annual text not null default 'retire';
+do $$ begin
+  if not exists (select 1 from pg_constraint where conname = 'absence_types_annual_check' and conrelid = 'kokolio.absence_types'::regclass) then
+    alter table kokolio.absence_types add constraint absence_types_annual_check check (annual in ('retire', 'realise', 'neutre'));
+  end if;
+end $$;
 create index if not exists absences_user_idx on kokolio.absences (user_id, start_date);
 create index if not exists absences_dates_idx on kokolio.absences (start_date, end_date);
 create index if not exists absences_pending_idx on kokolio.absences (user_id) where status = 'en_attente';
@@ -288,6 +336,9 @@ alter table kokolio.audit enable row level security;
 alter table kokolio.day_models enable row level security;
 alter table kokolio.cycles enable row level security;
 alter table kokolio.plan_days enable row level security;
+alter table kokolio.annual_periods enable row level security;
+alter table kokolio.annual_goals enable row level security;
+alter table kokolio.annual_entries enable row level security;
 
 -- Valeurs de départ (jamais écrasées si elles existent déjà)
 insert into kokolio.meta (key, value) values

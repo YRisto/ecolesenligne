@@ -544,16 +544,18 @@ begin
   if length(trim(coalesce(v_t->>'label', ''))) < 2 or length(v_t->>'label') > 60 then perform kokolio._fail('parametre', 'Libellé de motif invalide.'); end if;
   if coalesce(v_t->>'category', 'autre') not in ('cp', 'rtt', 'maladie', 'autre') then perform kokolio._fail('parametre', 'Catégorie inconnue.'); end if;
   if length(coalesce(v_t->>'export_code', '')) > 30 then perform kokolio._fail('parametre', 'Code d''export trop long.'); end if;
+  if coalesce(v_t->>'annual', 'retire') not in ('retire', 'realise', 'neutre') then perform kokolio._fail('parametre', 'Effet sur l''annualisation inconnu.'); end if;
   select * into o from kokolio.absence_types x where x.code = v_code;
-  insert into kokolio.absence_types as x (code, label, category, export_code, needs_doc, absenteeism, active, sort)
+  -- l'effet sur l'annualisation n'est modifié que s'il est envoyé : sinon il garde sa valeur
+  insert into kokolio.absence_types as x (code, label, category, export_code, needs_doc, absenteeism, active, sort, annual)
   values (v_code, trim(v_t->>'label'), coalesce(v_t->>'category', 'autre'), trim(coalesce(v_t->>'export_code', '')),
           coalesce((v_t->>'needs_doc')::boolean, false), coalesce((v_t->>'absenteeism')::boolean, true),
-          coalesce((v_t->>'active')::boolean, true), coalesce((v_t->>'sort')::int, 100))
+          coalesce((v_t->>'active')::boolean, true), coalesce((v_t->>'sort')::int, 100), coalesce(v_t->>'annual', o.annual, 'retire'))
   on conflict (code) do update set label = excluded.label, category = excluded.category, export_code = excluded.export_code,
-    needs_doc = excluded.needs_doc, absenteeism = excluded.absenteeism, active = excluded.active, sort = excluded.sort
+    needs_doc = excluded.needs_doc, absenteeism = excluded.absenteeism, active = excluded.active, sort = excluded.sort, annual = excluded.annual
   returning * into t;
   perform kokolio._audit(me.id, case when o.code is null then 'motif_cree' else 'motif_modifie' end, null, v_code,
-    kokolio._diff(coalesce(to_jsonb(o), '{}'::jsonb), to_jsonb(t), array['label', 'category', 'export_code', 'needs_doc', 'absenteeism', 'active', 'sort']), coalesce(p->>'ip', ''));
+    kokolio._diff(coalesce(to_jsonb(o), '{}'::jsonb), to_jsonb(t), array['label', 'category', 'export_code', 'needs_doc', 'absenteeism', 'active', 'sort', 'annual']), coalesce(p->>'ip', ''));
   return jsonb_build_object('type', to_jsonb(t));
 end $$;
 

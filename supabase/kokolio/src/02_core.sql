@@ -104,6 +104,8 @@ create or replace trigger punch_log_append_only before update or delete on kokol
   for each row execute function kokolio._append_only();
 create or replace trigger punch_log_no_truncate before truncate on kokolio.punch_log
   for each statement execute function kokolio._append_only();
+create or replace trigger annual_entries_append_only before update or delete on kokolio.annual_entries
+  for each row execute function kokolio._append_only();
 create or replace trigger balance_append_only before update or delete on kokolio.balance_entries
   for each row execute function kokolio._append_only();
 
@@ -172,7 +174,7 @@ $$;
 
 -- Un cycle avec ses horaires journaliers résolus : le calcul n'a plus besoin de la bibliothèque.
 create or replace function kokolio._cycle_json(p_id uuid) returns jsonb language sql stable as $$
-  select jsonb_build_object('id', c.id, 'name', c.name, 'active', c.active, 'version', c.version,
+  select jsonb_build_object('id', c.id, 'name', c.name, 'active', c.active, 'version', c.version, 'annualise', c.annualise,
     'weeks', (select coalesce(jsonb_agg(
         (select jsonb_agg(case when m.code is null then 'null'::jsonb
                                else jsonb_build_object('code', m.code, 'label', m.label, 'minutes', m.minutes, 'ranges', m.ranges, 'color', m.color) end order by d.o)

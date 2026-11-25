@@ -15,6 +15,8 @@ begin
     'types', coalesce((select jsonb_agg(to_jsonb(t) order by t.sort, t.label) from kokolio.absence_types t), '[]'::jsonb),
     'closed', kokolio._closed_months(),
     'today', kokolio._today(), 'hm', kokolio._hm(), 'now', kokolio._now(),
+    -- période d'annualisation qui contient aujourd'hui, s'il y en a une
+    'annual_period', (select to_jsonb(q) - 'created_by' - 'created_at' from kokolio.annual_periods q where kokolio._today() between q.start_date and q.end_date limit 1),
     'demo', exists (select 1 from kokolio.meta m where m.key = 'demo'),
     'schema', (select m.value from kokolio.meta m where m.key = 'schema_version'));
 end $$;
@@ -73,6 +75,12 @@ begin
     'plan', coalesce((select jsonb_agg(jsonb_build_object('user_id', q.user_id, 'day', q.day, 'model_code', q.model_code, 'label', q.label,
                                                           'minutes', q.minutes, 'ranges', q.ranges, 'note', q.note) order by q.day)
                       from kokolio.plan_days q where q.user_id = any(v_ids) and q.day between v_from and v_to), '[]'::jsonb),
+    -- annualisation, à la demande : toutes les périodes, et pour ces salariés leurs objectifs fixés et leurs ajustements
+    'annual', case when coalesce((p_args->>'annual')::boolean, false) then jsonb_build_object(
+      'periods', coalesce((select jsonb_agg(to_jsonb(q) - 'created_by' - 'created_at' order by q.start_date) from kokolio.annual_periods q), '[]'::jsonb),
+      'goals', coalesce((select jsonb_agg(jsonb_build_object('user_id', g.user_id, 'period_id', g.period_id, 'minutes', g.minutes, 'note', g.note, 'set_at', g.set_at)) from kokolio.annual_goals g where g.user_id = any(v_ids)), '[]'::jsonb),
+      'entries', coalesce((select jsonb_agg(jsonb_build_object('id', e.id, 'user_id', e.user_id, 'period_id', e.period_id, 'day', e.day, 'minutes', e.minutes, 'reason', e.reason, 'created_at', e.created_at) order by e.day, e.id)
+                           from kokolio.annual_entries e where e.user_id = any(v_ids)), '[]'::jsonb)) end,
     'closed', kokolio._closed_months(),
     'fingerprint', case when v_fp is not null then kokolio._month_fingerprint(v_fp) end,
     'ctx', case when coalesce((p_args->>'ctx')::boolean, false) then kokolio._ctx(me) end,

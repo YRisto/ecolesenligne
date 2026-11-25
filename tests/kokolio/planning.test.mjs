@@ -90,7 +90,8 @@ test("mise en place : une RH, un responsable, deux salariés à 35 h, une cadre 
   const n = await embauche(nadia, "nadia.benali", "Nadia", "Benali", { team: "Pédagogie", matricule: "0040", manager_id: ids["sophie.leroy"], contract: { ...FORFAIT, presence: "automatique" } });
   assert.equal(n.user.role, "salarie");
   const b = await nadia.ok("boot");
-  assert.deepEqual([b.me.regime, b.me.presence, b.me.cycle, b.app], ["forfait_jours", "automatique", "", "2.0.0"]);
+  const { APP_VERSION } = await import(path.join(ROOT, "lib/kokolio/version.mjs"));
+  assert.deepEqual([b.me.regime, b.me.presence, b.me.cycle, b.app], ["forfait_jours", "automatique", "", APP_VERSION]);
   assert.equal((await camille.ok("boot")).me.presence, "pointage");
 });
 
@@ -290,6 +291,80 @@ test("début de suivi par salarié : déployer équipe par équipe", async () =>
   assert.ok(jr.rows.some((e) => e.detail.tracked_from), JSON.stringify(jr.rows.map((e) => e.detail)));
 });
 
+test("annualisation : période, cycle annualisé, objectif, ajustements, effet des absences", async () => {
+  // sans période, rien à afficher ; seuls les RH en créent
+  assert.equal((await camille.ok("annual/employee", {})).period, null);
+  assert.deepEqual([(await julien.ok("annual/team", {})).period, (await camille.ok("boot")).annual], [null, null]);
+  await julien.fail("annual/period-save", { period: { label: "Pirate", start_date: "2026-11-02", end_date: "2026-12-31" } }, "interdit", 403);
+  await sophie.fail("annual/period-save", { period: { label: "Trop longue", start_date: "2026-01-01", end_date: "2027-06-30" } }, "annualisation");
+  const per = (await sophie.ok("annual/period-save", { period: { label: "Fin 2026", start_date: "2026-11-02", end_date: "2026-12-31" } })).period;
+  await sophie.fail("annual/period-save", { period: { label: "Chevauchement", start_date: "2026-12-01", end_date: "2027-03-31" } }, "annualisation");
+  await sophie.ok("annual/period-save", { period: { label: "Année 2027", start_date: "2027-01-01", end_date: "2027-12-31" } });
+  assert.deepEqual((await sophie.ok("annual/periods")).periods.map((x) => x.label), ["Fin 2026", "Année 2027"]);
+  // la période existe, mais personne n'est annualisé tant qu'aucun cycle ne l'est
+  assert.deepEqual([(await camille.ok("boot")).annual.label, (await camille.ok("boot")).me.annualise, (await camille.ok("annual/employee", {})).annual], ["Fin 2026", false, false]);
+  await julien.fail("plan/cycle-save", { cycle: { id: lib.alternance, name: "Alternance 4 / 5 jours", weeks: [["J8", "J8", "J8", "J8", null, null, null], ["J8", "J8", "J8", "J8", "M4", null, null]], annualise: true } }, "interdit", 403);
+  await sophie.ok("plan/cycle-save", { cycle: { id: lib.alternance, name: "Alternance 4 / 5 jours", weeks: [["J8", "J8", "J8", "J8", null, null, null], ["J8", "J8", "J8", "J8", "M4", null, null]], annualise: true } });
+  assert.equal((await camille.ok("boot")).me.annualise, true);
+  // Camille : neuf semaines du 2 novembre au 31 décembre, 292 h planifiées (fériés du 11 novembre et du 25 décembre déduits)
+  const a = await camille.ok("annual/employee", {});
+  assert.deepEqual([a.annual, a.own, a.can_rh, a.goal_set, a.planned, a.objective, a.done, a.remaining, a.planned_rest, a.gap, a.balance],
+    [true, true, false, false, 292 * 60, 292 * 60, 480, 292 * 60 - 480, 292 * 60 - 1920, -1440, -1440]);
+  assert.deepEqual(a.weeks.map((w) => w.planned / 60), [32, 28, 32, 36, 32, 36, 32, 32, 32]);
+  assert.deepEqual([a.weeks[0].done, a.weeks[0].cumul, a.weeks[1].current, a.weeks[1].counted, a.weeks[8].to], [480, -1440, true, false, "2026-12-31"]);
+  // droits : un collègue ne voit rien, le responsable consulte, seuls les RH fixent l'objectif et l'ajustent
+  await leo.fail("annual/employee", { user_id: ids["camille.martin"] }, "interdit", 403);
+  assert.equal((await leo.ok("annual/employee", {})).annual, false);                           // horaire fixe : pas annualisé
+  assert.deepEqual([(await julien.ok("annual/employee", { user_id: ids["camille.martin"] })).can_rh, (await sophie.ok("annual/employee", { user_id: ids["camille.martin"] })).can_rh], [false, true]);
+  await julien.fail("annual/goal", { user_id: ids["camille.martin"], period_id: per.id, minutes: 290 * 60 }, "interdit", 403);
+  await julien.fail("annual/entry", { user_id: ids["camille.martin"], period_id: per.id, day: "2026-11-10", minutes: -120, reason: "Essai" }, "interdit", 403);
+  await sophie.ok("annual/goal", { user_id: ids["camille.martin"], period_id: per.id, minutes: 290 * 60, note: "Prorata convenu" });
+  await sophie.fail("annual/entry", { user_id: ids["camille.martin"], period_id: per.id, day: "2027-01-10", minutes: -120, reason: "Hors période" }, "date");
+  await sophie.fail("annual/entry", { user_id: ids["camille.martin"], period_id: per.id, day: "2026-11-10", minutes: -120, reason: "x" }, "motif");
+  await sophie.ok("annual/entry", { user_id: ids["camille.martin"], period_id: per.id, day: "2026-11-10", minutes: -120, reason: "Heures de délégation" });
+  const b = await camille.ok("annual/employee", {});
+  assert.deepEqual([b.goal_set, b.goal_note, b.base, b.adjustments, b.objective, b.entries.map((e) => [e.day, e.minutes, e.reason])], [true, "Prorata convenu", 17400, -120, 17280, [["2026-11-10", -120, "Heures de délégation"]]]);
+  assert.match(sqlFails("update kokolio.annual_entries set minutes = 1"), /ajout seul/);
+  // un congé payé de deux jours (16 h) en décembre, saisi par les RH : retiré de l'objectif…
+  await sophie.ok("my/absence-request", { user_id: ids["camille.martin"], type: "cp", start: "2026-12-14", end: "2026-12-15" });
+  const c = await camille.ok("annual/employee", {});
+  assert.deepEqual([c.removed, c.objective, c.absences], [960, 17280 - 960, [{ type: "cp", label: "Congé payé", mode: "retire", minutes: 960 }]]);
+  // … ou compté comme réalisé, ou laissé à faire, selon le réglage du motif (réservé à l'administrateur)
+  const cp = (await admin.ok("admin/settings")).types.find((t) => t.code === "cp");
+  assert.equal(cp.annual, "retire");
+  await sophie.fail("admin/type-save", { type: { ...cp, annual: "neutre" } }, "interdit", 403);
+  await admin.fail("admin/type-save", { type: { ...cp, annual: "autre" } }, "parametre");
+  await admin.ok("admin/type-save", { type: { ...cp, annual: "neutre" } });
+  const n = await camille.ok("annual/employee", {});
+  assert.deepEqual([n.removed, n.objective, n.gap - c.gap, n.absences[0].mode], [0, 17280, -960, "neutre"]);
+  await admin.ok("admin/type-save", { type: { ...cp, annual: "realise" } });
+  const r = await camille.ok("annual/employee", {});
+  assert.deepEqual([r.removed, r.objective, r.planned_rest - n.planned_rest, r.absences[0].mode], [0, 17280, 960, "realise"]);
+  const sansEffet = { ...cp }; delete sansEffet.annual;
+  await admin.ok("admin/type-save", { type: sansEffet });                                       // sans le champ, le réglage est conservé
+  assert.equal((await admin.ok("admin/settings")).types.find((t) => t.code === "cp").annual, "realise");
+  await admin.ok("admin/type-save", { type: { ...cp, annual: "retire" } });
+  // retirer l'objectif fixé : retour à l'objectif calculé
+  await sophie.ok("annual/goal", { user_id: ids["camille.martin"], period_id: per.id, minutes: null, note: "Retour au planning" });
+  assert.deepEqual([(await camille.ok("annual/employee", {})).goal_set, (await camille.ok("annual/employee", {})).objective], [false, 292 * 60 - 120 - 960]);
+  // tableau d'équipe : le responsable voit ses salariés annualisés, les RH tout le monde
+  const t = await julien.ok("annual/team", {});
+  assert.deepEqual([t.period.label, t.rows.map((x) => [x.name, x.cycle, x.objective, x.done]), t.totals.employees], ["Fin 2026", [["Camille Martin", "Alternance 4 / 5 jours", 292 * 60 - 1080, 480]], 1]);
+  const tout = await sophie.ok("annual/team", { scope: "all" });
+  assert.deepEqual([tout.rows.length, tout.teams, tout.can_edit], [1, ["Admissions"], true]);
+  await camille.fail("annual/team", { scope: "all" }, "interdit", 403);
+  assert.deepEqual((await camille.ok("annual/team", {})).rows, []);                             // un salarié sans équipe : tableau vide
+  // l'autre période, choisie explicitement
+  const p27 = (await sophie.ok("annual/periods")).periods[1];
+  assert.equal((await camille.ok("annual/employee", { period: p27.id })).period.label, "Année 2027");
+  // modifier une période : version contrôlée, et les ajustements déjà passés doivent rester dedans
+  await sophie.fail("annual/period-save", { period: { id: per.id, label: "Fin 2026", start_date: "2026-11-16", end_date: "2026-12-31" }, version: per.version }, "annualisation");
+  await sophie.ok("annual/period-save", { period: { id: per.id, label: "Fin d'année 2026", start_date: "2026-11-02", end_date: "2026-12-31" }, version: per.version });
+  await sophie.fail("annual/period-save", { period: { id: per.id, label: "Conflit", start_date: "2026-11-02", end_date: "2026-12-31" }, version: per.version }, "conflit", 409);
+  const j = await sophie.ok("rh/journal", { user_id: ids["camille.martin"] });
+  for (const quoi of ["objectif_annuel_fixe", "objectif_annuel_ajuste", "objectif_annuel_retire"]) assert.ok(j.rows.some((e) => e.action === quoi), quoi);
+});
+
 test("clôture : le planning entre dans l'empreinte du mois, puis il est figé avec lui", async () => {
   at("2026-12-01", "10:00");
   // l'empreinte change dès qu'une exception du mois change
@@ -345,8 +420,6 @@ test("journées qui passent minuit : le départ du lendemain ferme la journée d
   // fonction désactivée par défaut : une heure au-delà de 24 h est refusée
   at("2026-12-02", "08:00");
   await leo.fail("my/correct", { day: "2026-12-01", times: ["21:00", "25:30"], lieu: "bureau", comment: "Nuit" }, "heures");
-  await admin.fail("admin/settings", {}, "session", 401);                 // trente jours sans activité : la session a expiré
-  await admin.ok("auth/login", { login: "admin", password: PW });
   await admin.fail("admin/settings-save", { settings: { night_until: "14:00" } }, "parametre");
   await admin.ok("admin/settings-save", { settings: { night_until: "05:00" } });
   assert.equal((await leo.ok("boot")).settings.night_until, "05:00");

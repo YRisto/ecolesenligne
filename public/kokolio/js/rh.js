@@ -440,13 +440,15 @@ const ACTIONS = { connexion: "Connexion", compte_active: "Compte activé", compt
   absence_annulee_par_responsable: "Absence validée annulée", justificatif_depose: "Justificatif déposé", justificatif_consulte: "Justificatif consulté", fiche_creee: "Fiche créée", fiche_modifiee: "Fiche modifiée",
   horaire_modifie: "Horaire modifié", import_salaries: "Import de salariés", solde_ajuste: "Solde ajusté", soldes_reportes: "Soldes reportés", mois_cloture: "Mois clôturé", mois_rouvert: "Mois rouvert",
   export_telecharge: "Export paie téléchargé", donnees_demo_chargees: "Données de démonstration chargées", donnees_demo_effacees: "Données de démonstration effacées", parametres_modifies: "Réglages modifiés", motif_cree: "Motif d'absence créé", motif_modifie: "Motif d'absence modifié", administrateur_initialise: "Administrateur initialisé",
-  planning_modifie: "Planning modifié", horaire_type_cree: "Horaire journalier créé", horaire_type_modifie: "Horaire journalier modifié", cycle_cree: "Cycle créé", cycle_modifie: "Cycle modifié" };
+  planning_modifie: "Planning modifié", horaire_type_cree: "Horaire journalier créé", horaire_type_modifie: "Horaire journalier modifié", cycle_cree: "Cycle créé", cycle_modifie: "Cycle modifié", periode_annualisation_creee: "Période d'annualisation créée", periode_annualisation_modifiee: "Période d'annualisation modifiée",
+  objectif_annuel_fixe: "Objectif annuel fixé", objectif_annuel_retire: "Objectif annuel recalculé d'après le planning", objectif_annuel_ajuste: "Objectif annuel ajusté" };
 const CLES = { avant: "avant", apres: "après", motif: "motif", du: "du", au: "au", demi: "demi-journée", jours: "jours", justificatif: "justificatif", annee: "année", version: "version", auto_validation: "auto-validation",
   a_compter_du: "à compter du", regime: "régime", pause: "pause", crees: "créés", mis_a_jour: "mis à jour", ecritures: "écritures", ignorees: "ignorées", nom: "nom", role: "profil", deja_active: "compte déjà activé",
   empreinte_export: "empreinte", comptes: "comptes", journees: "journées", absences: "absences", minutes_par_jour: "minutes par jour", cp_par_mois: "CP par mois", forfait_jours: "forfait", login: "identifiant", first_name: "prénom", last_name: "nom", matricule: "matricule", email: "e-mail",
   team: "équipe", job: "poste", manager_id: "responsable", entry_date: "entrée", exit_date: "sortie", disabled: "désactivé", details: "fiche détaillée", company: "entreprise", go_live: "mise en service", label: "libellé",
   category: "famille", export_code: "code d'export", needs_doc: "justificatif demandé", absenteeism: "compte dans l'absentéisme", active: "actif",
   tracked_from: "début du suivi", presence: "présence", cycle: "cycle", semaine_1_du_cycle: "semaine 1 du cycle", night_until: "limite de nuit", minutes: "durée (minutes)", plages: "plages", ranges: "plages",
+  annualise: "annualisé", annual: "effet sur l'annualisation", start_date: "début", end_date: "fin", avant_minutes: "avant (minutes)", jour: "jour",
   semaines: "semaines", composition: "composition", weeks: "composition", name: "nom", color: "couleur", detail: "détail", comptes_deja_presents: "comptes déjà présents" };
 const ORDRE = ["du", "au", "demi", "jours", "annee", "a_compter_du", "regime", "avant", "apres", "motif", "justificatif", "version"];
 function texteDetail(r) {
@@ -469,7 +471,7 @@ function texteDetail(r) {
   return Object.entries(r.detail || {}).filter(([, v]) => v != null).sort((a, b) => rang(a[0]) - rang(b[0])).map(([k, v]) => {
     const lib = CLES[k] || k;
     // modification d'une fiche ou d'un réglage : ancienne valeur → nouvelle valeur
-    if (Array.isArray(v) && v.length === 2 && ["fiche_modifiee", "parametres_modifies", "motif_cree", "motif_modifie", "horaire_type_modifie", "cycle_modifie"].includes(r.action) && k !== "details") {
+    if (Array.isArray(v) && v.length === 2 && ["fiche_modifiee", "parametres_modifies", "motif_cree", "motif_modifie", "horaire_type_modifie", "cycle_modifie", "periode_annualisation_modifiee"].includes(r.action) && k !== "details") {
       // un cycle ou des plages : la composition complète ne tient pas sur une ligne, on signale seulement le changement
       if (k === "weeks" || k === "ranges") return `${lib} : modifiée`;
       return `${lib} : ${dit(v[0], k)} → ${dit(v[1], k)}`;
