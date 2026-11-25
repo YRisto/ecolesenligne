@@ -20,7 +20,7 @@ with sync_playwright() as p:
     ad.champ("Identifiant", "admin"); ad.champ("Mot de passe", "nimporte-quoi-1", exact=True); ad.clic("Se connecter"); ad.voit("Identifiant ou mot de passe incorrect")
     ad.activer("admin", CODE, MDP["admin"])
     ad.voit("Bonjour Administrateur"); ad.photo("02-accueil-admin")
-    assert ad.page.locator("button.mode").count() == 4, "quatre espaces attendus pour l'administrateur"
+    assert ad.page.locator("button.mode").count() == 2, "compte technique : RH et administration, pas d'espace de pointage"
     # réglages : mise en service au 2 novembre
     ad.va("#/admin/reglages"); ad.voit("Mise en service")
     ad.champ("Premier jour de pointage", "2026-11-02"); ad.clic("Enregistrer les réglages"); ad.voit("Réglages enregistrés"); ad.photo("03-reglages")

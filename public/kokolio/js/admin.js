@@ -116,6 +116,7 @@ export function vueEtat() {
         h("div", { class: "ligne gauche" }, h("button", { class: "domaine", onclick: (ev) => agir(ev.currentTarget, async () => {
           resultat.replaceChildren(h("p", { class: "discret" }, "Contrôles en cours…"));
           const t = await api("admin/selftest");
+          if (t.error) { resultat.replaceChildren(h("div", { class: "bandeau refus" }, h("strong", null, "L'autodiagnostic n'a pas pu s'exécuter"), `${t.error}. Rejouez le script d'installation, puis relancez.`)); return; }
           const ko = t.checks.filter((c) => !c.ok);
           resultat.replaceChildren(h("div", { class: "bandeau " + (t.ok ? "ok" : "refus") }, h("strong", null, t.ok ? `${t.checks.length} contrôles réussis` : `${ko.length} contrôle${ko.length > 1 ? "s" : ""} en échec sur ${t.checks.length}`),
             t.ok ? "Les règles de sécurité sont en place. Aucune donnée réelle n'a été touchée." : "Ne poursuivez pas l'utilisation avant correction : rejouez le script d'installation, puis relancez l'autodiagnostic."),

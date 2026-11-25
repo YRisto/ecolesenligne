@@ -96,7 +96,8 @@ test("activation de l'administrateur et réglages", async () => {
   assert.match(admin.lastSetCookie, /Path=\/api\/kokolio/);
   await new Client("x").fail("auth/activate", { login: "admin", code, password: PW.admin }, "identifiants"); // code à usage unique
   const boot = await admin.ok("boot");
-  assert.equal(boot.me.role, "admin"); assert.equal(boot.me.self_validate, true); assert.equal(boot.today, "2026-09-01");
+  assert.equal(boot.me.role, "admin"); assert.equal(boot.today, "2026-09-01");
+  assert.deepEqual([boot.me.tracked, boot.me.self_validate], [false, false]); // compte technique : pas d'horaire, rien à pointer ni à valider pour lui-même
   const s = await admin.ok("admin/settings");
   const saved = await admin.ok("admin/settings-save", { settings: { go_live: "2026-09-01" }, version: s.settings.version });
   assert.equal(saved.settings.go_live, "2026-09-01");
@@ -379,7 +380,7 @@ test("vue annuelle et synthèse d'équipe", async () => {
   const nv = await nadia.ok("my/year", { year: 2026 });
   assert.deepEqual([nv.months[8].cells[7].code, nv.months[8].cells[20].code], ["AM", "AB"]);
   const s = await sophie.ok("team/month", { month: "2026-09", scope: "all" });
-  assert.equal(s.rows.length, 6);
+  assert.equal(s.rows.length, 5); // le compte administrateur, sans horaire, n'est pas attendu au pointage
   const row = Object.fromEntries(s.rows.map((r) => [r.name, r]));
   assert.equal(row["Camille Martin"].abs_days, 5); assert.equal(row["Nadia Roux"].abs_days, 5);
   assert.equal(row["Nadia Roux"].abs_unplanned, 5);

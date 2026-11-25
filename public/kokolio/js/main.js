@@ -12,12 +12,13 @@ const ESPACES = {
   moi: { titre: "Mon espace", onglets: [["pointer", "Pointer"], ["heures", "Heures"], ["absences", "Absences"], ["annee", "Année"]] },
   equipe: { titre: "Mon équipe", onglets: [["validation", "Validation"], ["synthese", "Synthèse"]] },
   rh: { titre: "Ressources humaines", onglets: [["salaries", "Salariés"], ["validation", "Validation"], ["synthese", "Synthèse"], ["cloture", "Clôture"], ["journal", "Journal"]] },
-  admin: { titre: "Administration", onglets: [["reglages", "Réglages"], ["motifs", "Motifs"], ["etat", "État"], ["versions", "Versions"]] },
+  admin: { titre: "Administration", onglets: [["versions", "Versions"], ["reglages", "Réglages"], ["motifs", "Motifs"], ["etat", "État"]] },
 };
 const ROLES = { salarie: "Salarié", rh: "Ressources humaines", admin: "Administrateur" };
 
 function espaces() {
-  const me = S.boot.me, out = ["moi"];
+  const me = S.boot.me, out = [];
+  if (me.tracked || me.role === "salarie") out.push("moi"); // un compte technique sans horaire n'a pas d'espace de pointage
   if (me.is_manager || me.self_validate) out.push("equipe");
   if (me.role !== "salarie") out.push("rh");
   if (me.role === "admin") out.push("admin");
@@ -95,7 +96,7 @@ function afficher() {
   if (!S.boot) return;
   clearInterval(S.minuteur); S.minuteur = null;
   const r = route(), liste = espaces(), v = document.getElementById("vue");
-  if (r.espace === "" && liste.length === 1) { history.replaceState(null, "", "#/moi/pointer"); return afficher(); }
+  if (r.espace === "" && liste.length === 1) { history.replaceState(null, "", `#/${liste[0]}`); return afficher(); }
   if (ESPACES[r.espace] && !liste.includes(r.espace)) { history.replaceState(null, "", "#/"); return afficher(); }
   if (ESPACES[r.espace] && !r.onglet) { history.replaceState(null, "", `#/${r.espace}/${ESPACES[r.espace].onglets[0][0]}`); return afficher(); }
   v.dataset.espace = ESPACES[r.espace] ? r.espace : "";
@@ -129,7 +130,7 @@ function vueAccueil() {
     moi: ["Mon espace", cadre ? "Forfait jours : pointer, suivre mes journées, demander un congé" : `${fmtMin(me.weekly_minutes)} par semaine : pointer, voir mes heures, demander un congé`, cadre ? "cadre" : "salarie", cadre ? "m-cadre" : ""],
     equipe: ["Mon équipe", "Valider les pointages et les congés, suivre le mois", "equipe", "m-equipe"],
     rh: ["Ressources humaines", "Salariés, validations, clôture et export paie, journal", "rh", "m-rh"],
-    admin: ["Administration", "Réglages, motifs d'absence, état de l'outil, versions", "admin", "m-admin"],
+    admin: ["Administration", "Fonctionnalités et versions, réglages, motifs d'absence, état de l'outil", "admin", "m-admin"],
   };
   pose(h("div", { class: "bienvenue pile" }, logo(S.boot.settings.logo_url, "logo-g", S.boot.settings.company),
       h("p", { class: "eyebrow" }, S.boot.settings.company), h("h2", null, `Bonjour ${me.first_name || me.name}`)),

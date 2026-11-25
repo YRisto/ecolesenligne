@@ -28,6 +28,7 @@ Les tables du site (`ecoles`, `formations`, `leads`, `jeu_dg_*`…) ne sont pas 
 1. Dans la console SQL du projet Supabase, exécuter **`supabase/kokolio/install.sql`** en entier. Le script crée le schéma, les tables et les fonctions. Il est rejouable : il ne supprime ni table ni donnée.
 2. Toujours dans la console SQL : `select kokolio.bootstrap_admin('admin');` — la requête renvoie un **code d'activation à usage unique**.
 3. Ouvrir `/kokolio`, choisir « Première connexion ou mot de passe oublié », saisir l'identifiant `admin`, le code, et choisir un mot de passe.
+   Ce compte est un compte technique : il n'a pas d'horaire, donc pas d'espace de pointage, et n'entre pas dans la clôture. Pour pointer soi-même, créer sa propre fiche (avec le profil voulu) ou définir un horaire sur la fiche du compte.
 4. Dans Administration › Réglages, fixer la **date de mise en service** (premier jour de pointage). Avant cette date, rien n'est attendu des salariés.
 5. Dans RH › Salariés, importer le fichier des salariés (modèle téléchargeable), puis remettre à chacun sa fiche d'activation.
 

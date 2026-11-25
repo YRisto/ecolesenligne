@@ -1867,7 +1867,7 @@ end $$;
 create or replace function kokolio.bootstrap_admin(p_login text default 'admin', p_last_name text default 'Administrateur') returns text language plpgsql as $$
 declare
   u kokolio.users; v_login text := lower(trim(p_login)); v_raw bytea; v_alpha text := 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
-  v_code text := ''; v_i int; v_days int; c kokolio.contracts;
+  v_code text := ''; v_i int; v_days int;
 begin
   if v_login !~ '^[a-z0-9][a-z0-9._@-]{2,63}$' then raise exception 'Identifiant invalide.'; end if;
   v_raw := sha256(convert_to(gen_random_uuid()::text || gen_random_uuid()::text || clock_timestamp()::text, 'UTF8'));
@@ -1876,8 +1876,8 @@ begin
   end loop;
   select * into u from kokolio.users x where lower(x.login) = v_login for update;
   if u.id is null then
+    -- compte technique : aucun horaire, donc rien n'est attendu de lui au pointage (les RH peuvent lui en donner un sur sa fiche)
     insert into kokolio.users (login, role, last_name) values (v_login, 'admin', p_last_name) returning * into u;
-    c := kokolio._contract_apply(u.id, date '2000-01-01', '{}'::jsonb, null);
   elsif u.role <> 'admin' then
     raise exception 'Le compte % existe déjà et n''est pas administrateur.', v_login;
   end if;

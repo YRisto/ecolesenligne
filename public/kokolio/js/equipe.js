@@ -28,9 +28,14 @@ export function vueValidation(espace, userId) {
   const rh = espace === "rh", scope = rh ? "all" : "team";
   ecran(() => api("team/pending", { scope, user_id: userId || "" }), (p) => {
     const rien = !p.absences.length && !p.groups.length && !p.summary.length;
+    // journées prêtes, ni corrigées ni signalées : validables d'un geste ; les autres se regardent une à une
+    const simples = p.groups.flatMap((g) => (g.own ? [] : g.days.filter((d) => d.state === "ok" && !d.corrected && !d.alerts.length)));
     pose(h("div", { class: "ligne" }, h("h2", null, userId && rh ? "Validation" : rh ? "Validation · tous les salariés" : "Validation"),
         userId && rh ? h("button", { onclick: () => aller("#/rh/validation") }, "‹ Tous les salariés") : null),
       rien ? h("div", { class: "carte" }, h("p", { class: "vide" }, "Rien à valider. Tout est à jour.")) : null,
+      p.groups.length > 1 && simples.length > 1 ? h("div", { class: "bandeau info" }, h("strong", null, `${simples.length} journées sans correction ni alerte`),
+        "Les journées corrigées par le salarié ou signalées par une alerte restent à examiner une à une.",
+        h("div", { class: "ligne" }, h("button", { class: "domaine", onclick: (ev) => agir(ev.currentTarget, () => deciderJours("valide", simples.map((d) => ({ id: d.id, version: d.version })))) }, `Valider ces ${simples.length} journées`))) : null,
       p.absences.length ? h("div", { class: "carte" }, h("h3", null, `Demandes d'absence (${p.absences.length})`),
         p.absences.map((a) => h("div", { class: "jour" },
           h("div", null, h("strong", null, a.name), " ", h("span", null, `${a.label} · ${periode(a.start_date, a.end_date, a.half)}`)),

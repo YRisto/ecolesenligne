@@ -91,7 +91,7 @@ with sync_playwright() as p:
     ad = Poste(nav, "admin", BUREAU, etat=E("admin")).a("2026-12-01", "11:00"); ad.ouvre("/kokolio#/admin/motifs"); ad.voit("Motifs d'absence"); ad.photo("46-motifs")
     ad.clic("Nouveau motif"); ad.champ("Libellé", "Congé paternité"); ad.champ("Code dans l'export paie", "AB-PAT"); ad.valider_fenetre("Enregistrer"); ad.voit("Congé paternité")
     ad.va("#/admin/etat"); ad.voit("État de l'installation"); ad.clic("Lancer l'autodiagnostic"); ad.voit("contrôles réussis", delai=30000); ad.photo("47-etat")
-    ad.va("#/admin/versions"); ad.voit("Première version de production"); ad.photo("48-versions")
+    ad.va("#/"); ad.clic("Administration"); ad.voit("Première version de production"); ad.photo("48-versions")   # l'espace s'ouvre sur les fonctionnalités et les versions
     # l'administrateur attribue le profil RH
     ad.va("#/rh/salaries"); ad.page.get_by_text("Julien Bernard").first.click(); ad.voit("Identité et poste"); ad.page.get_by_label("Profil").select_option("rh"); ad.clic("Enregistrer"); ad.voit("Fiche enregistrée")
     # --- compte : mot de passe, appareils, déconnexion

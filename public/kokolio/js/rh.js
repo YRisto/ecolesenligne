@@ -74,7 +74,7 @@ function etatCompte(e) {
 /* ================= Salariés ================= */
 export function vueSalaries() {
   ecran(() => api("rh/employees"), (d) => {
-    const tous = d.employees, actifs = tous.filter((e) => e.active);
+    const tous = d.employees, actifs = tous.filter((e) => e.active), suivis = actifs.filter((e) => e.tracked);
     const aActiver = actifs.filter((e) => !e.activated && !e.code_pending);
     const filtre = h("input", { type: "search", placeholder: "Nom, matricule, équipe, identifiant", "aria-label": "Rechercher" });
     const quoi = h("select", { "aria-label": "Filtrer" }, [["actifs", "Salariés actifs"], ["activer", "Comptes à activer"], ["sortis", "Sortis ou désactivés"], ["tous", "Tous"]].map(([v, l]) => h("option", { value: v }, l)));
@@ -87,7 +87,7 @@ export function vueSalaries() {
       corps.replaceChildren(...rows.slice(0, 600).map((e) => h("tr", { class: "cliquable", tabindex: 0, onclick: () => aller(`#/rh/fiche/${e.id}`), onkeydown: (ev) => { if (ev.key === "Enter") aller(`#/rh/fiche/${e.id}`); } },
         h("td", null, h("strong", null, e.name), e.role !== "salarie" ? h("span", { class: "pastille p-neutre ml" }, ROLES[e.role]) : null),
         h("td", { class: "num" }, e.matricule || h("span", { class: "moins" }, "manquant")), h("td", null, e.team || "—"), h("td", null, e.manager_name || "—"),
-        h("td", { class: "num" }, e.regime === "forfait_jours" ? "Forfait jours" : fmtMin(e.weekly_minutes)), h("td", null, etatCompte(e)))));
+        h("td", { class: "num" }, !e.tracked ? "Hors pointage" : e.regime === "forfait_jours" ? "Forfait jours" : fmtMin(e.weekly_minutes)), h("td", null, etatCompte(e)))));
       if (!rows.length) corps.append(h("tr", null, h("td", { colspan: 6, class: "vide" }, "Aucune fiche.")));
     };
     filtre.addEventListener("input", dessine); quoi.addEventListener("change", dessine); dessine();
@@ -96,8 +96,8 @@ export function vueSalaries() {
           h("button", { onclick: () => aller("#/rh/report") }, "Report des congés"))),
       h("div", { class: "tuiles" }, tuile("Actifs", String(actifs.length), `${tous.length} fiches au total`),
         tuile("Comptes activés", `${actifs.filter((e) => e.activated).length} / ${actifs.length}`, "ont choisi leur mot de passe"),
-        tuile("Sans matricule", String(actifs.filter((e) => !e.matricule).length), "absents de l'export paie utile"),
-        tuile("Sans responsable", String(actifs.filter((e) => !e.manager_id).length), "validés par les RH")),
+        tuile("Sans matricule", String(suivis.filter((e) => !e.matricule).length), "à compléter avant l'export paie"),
+        tuile("Sans responsable", String(suivis.filter((e) => !e.manager_id).length), "validés par les RH")),
       aActiver.length ? h("div", { class: "bandeau" }, h("strong", null, `${aActiver.length} compte${aActiver.length > 1 ? "s" : ""} sans code d'activation valide`),
         "Ces salariés ne peuvent pas se connecter : leur code a expiré ou n'a jamais été généré.",
         h("div", { class: "ligne" }, h("button", { class: "petit", onclick: () => codesEnMasse(aActiver) }, `Générer ${aActiver.length > 1 ? "les codes" : "le code"}`))) : null,
@@ -214,10 +214,11 @@ export function vueFiche(id) {
             async () => { await api("rh/employee-save", { ...corpsOrigine(u), disabled: !u.disabled }); toast(u.disabled ? "Compte réactivé." : "Compte désactivé."); recharger(); }, { danger: !u.disabled }) }, u.disabled ? "Réactiver le compte" : "Désactiver le compte") : null),
         !peutCode && !soi ? h("p", { class: "discret" }, "Seul un administrateur peut générer un code pour un compte RH ou administrateur.") : null),
       h("div", { class: "carte" }, h("h3", null, "Temps de travail"),
-        h("p", null, h("strong", null, "En vigueur : "), resumeHoraire(courant)),
+        f.contracts.length ? h("p", null, h("strong", null, "En vigueur : "), resumeHoraire(courant))
+          : h("p", { class: "bandeau info" }, h("strong", null, "Compte hors pointage"), "Aucun horaire n'est défini : rien n'est attendu de ce compte au pointage et il n'entre pas dans la clôture. Définissez un horaire pour qu'il pointe comme les autres."),
         f.contracts.length > 1 ? h("div", { class: "pile" }, h("span", { class: "eyebrow" }, "Historique"),
           [...f.contracts].reverse().map((c) => h("div", { class: "ligne" }, h("span", null, c.start_date > f.today ? `À partir du ${frCourt(c.start_date)}` : `${frCourt(c.start_date)} → ${c.end_date ? frCourt(c.end_date) : "aujourd'hui"}`), h("span", { class: "discret" }, resumeHoraire(c))))) : null,
-        h("div", { class: "ligne gauche" }, h("button", { onclick: () => dialogueHoraire(u, courant || f.contracts[f.contracts.length - 1], f) }, "Changer l'horaire à partir d'une date")),
+        h("div", { class: "ligne gauche" }, h("button", { onclick: () => dialogueHoraire(u, courant || f.contracts[f.contracts.length - 1], f) }, f.contracts.length ? "Changer l'horaire à partir d'une date" : "Définir un horaire")),
         h("p", { class: "discret" }, "Un changement d'horaire s'applique à partir de sa date d'effet : les mois passés gardent l'horaire de l'époque.")),
       h("div", { class: "carte" }, h("h3", null, `Soldes ${f.year}`),
         ligne("Congés payés : report et ajustements", fmtJ(cp.entries)), ligne("Congés payés acquis depuis janvier", fmtJ(cp.accrued)), ligne("Congés payés pris", fmtJ(cp.taken)),
