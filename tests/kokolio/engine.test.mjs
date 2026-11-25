@@ -214,6 +214,33 @@ test("mot de passe : longueur et mélange exigés", () => {
   assert.ok(passwordIssues("motdepasse1", "x").length > 0);
 });
 
+// ---------------------------------------------------------------- début de suivi propre au compte
+test("début de suivi propre au compte : rien n'est attendu avant, et il ne peut que retarder", () => {
+  const semaine = { from: "2026-11-02", to: "2026-11-08", settings: SETTINGS };
+  const tard = { ...USER, tracked_from: "2026-11-05" };
+  const recs = run({ user: tard });
+  // lundi 2 au mercredi 4 : hors suivi, ni heures prévues ni oubli ; jeudi 5 et vendredi 6 : journées sans pointage
+  assert.deepEqual(recs.map((r) => [r.date.slice(8), r.inWindow, r.theo, r.anomalies.join()]),
+    [["02", false, 0, ""], ["03", false, 0, ""], ["04", false, 0, ""], ["05", true, 420, "vide"], ["06", true, 420, "vide"], ["07", true, 0, ""], ["08", true, 0, ""]]);
+  const s = summarize(recs, semaine);
+  assert.deepEqual([s.theo, s.theo_days, s.anomalies.map((a) => a.date).join()], [840, 2, "2026-11-05,2026-11-06"]);
+  // sans début de suivi propre, la semaine entière est attendue
+  assert.equal(summarize(run({}), semaine).theo, 2100);
+  // un début de suivi antérieur à la mise en service ne l'avance pas
+  const tot = buildDays({ user: { ...USER, tracked_from: "2025-06-01" }, contracts: [C35], days: [], absences: [], types: TYPES, settings: SETTINGS, from: "2025-12-29", to: "2026-01-04", today: "2026-11-25" });
+  assert.deepEqual(tot.map((r) => r.inWindow), [false, false, false, true, true, true, true]);
+  // congés : pas d'acquisition pour les mois terminés avant le début de suivi
+  const acquis = (u) => balances({ user: u, contracts: [C35], entries: [], absences: [], types: TYPES, settings: SETTINGS, year: 2026, today: "2026-11-25" }).cp.accrued;
+  assert.equal(acquis(USER), 20.8);
+  assert.equal(acquis({ ...USER, tracked_from: "2026-09-10" }), 4.16);    // septembre et octobre
+  assert.equal(acquis({ ...USER, tracked_from: "2026-11-25" }), 0);
+  // clôture et export : absent des mois antérieurs à son suivi, présent ensuite
+  const photo = (month) => buildSnapshot({ users: [USER, { ...USER, id: "u2", login: "essai", name: "Compte Essai", matricule: "9001", tracked_from: "2026-11-25" }],
+    contracts: [C35, { ...C35, user_id: "u2" }], days: [], absences: [], types: TYPES, settings: SETTINGS, month, today: "2026-12-10" });
+  assert.deepEqual(photo("2026-10").employees.map((e) => e.login), ["camille"]);
+  assert.deepEqual(photo("2026-11").employees.map((e) => [e.login, e.empty_days.length]), [["camille", 20], ["essai", 4]]);
+});
+
 // ---------------------------------------------------------------- données de démonstration
 import { buildDemo } from "../../lib/kokolio/engine/demo.mjs";
 import { holidayName as ferie, isoDow as jourIso } from "../../lib/kokolio/engine/dates.mjs";

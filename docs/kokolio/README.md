@@ -72,6 +72,7 @@ Limite à connaître : un administrateur de la base peut toujours, techniquement
 Administration › État › « Charger les données de démonstration » crée six salariés fictifs (une RH, un responsable, quatre salariés dont deux cadres), deux mois de pointages, des absences, des validations en attente, et clôture le premier mois. Les codes d'activation des six comptes s'affichent une fois : ils permettent de se connecter à la place de chacun. La date de mise en service recule de deux mois, et un bandeau « Mode démonstration » s'affiche pour tous.
 
 - Le chargement n'est accepté que dans un outil vide ou en cours d'essai : aucun mois clôturé, dix salariés au plus. Les comptes déjà présents sont conservés, mais partiront avec le reste.
+- L'historique fictif ne concerne pas les comptes déjà présents : le chargement note sur chacun la date de mise en service qui s'appliquait jusque-là (colonne `users.tracked_from`), et le calcul ne suit jamais un compte avant cette date. Sans cela, ils apparaîtraient avec deux mois de journées sans pointage. C'est le seul usage de cette colonne ; l'effacement la remet à vide sur les comptes qui restent.
 - « Effacer les données de démonstration » (mot de confirmation exigé) supprime tout : salariés, pointages, absences, clôtures, journal. Restent les comptes administrateur, les réglages et les motifs d'absence. La date de mise en service revient au jour de l'effacement.
 - À faire avant la vraie mise en service : effacer, fixer la date de mise en service, importer les vrais salariés.
 
@@ -117,7 +118,7 @@ bash tests/kokolio/pg-local.sh reset            # PostgreSQL 16 local jetable
 cd tests/kokolio && npm install && cd ../..     # une fois : client PostgreSQL des tests
 node --test tests/kokolio/api.test.mjs          # scénario complet contre une vraie base
 node --test tests/kokolio/demo.test.mjs         # mise à jour de la base et mode démonstration (un fichier à la fois : même base locale)
-bash tests/kokolio/e2e/tout.sh                  # navigateur (Playwright) : mise en route, quotidien, RH
+bash tests/kokolio/e2e/tout.sh                  # navigateur (Playwright) : mise en route, quotidien, RH, démonstration (outil vide, puis avec des comptes déjà créés)
 node tests/kokolio/charge.mjs 500               # volume : 500 salariés, un mois de pointages, 200 pointages simultanés
 ```
 

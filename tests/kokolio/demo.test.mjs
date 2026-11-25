@@ -41,17 +41,27 @@ before(async () => {
 });
 after(() => fake?.kill());
 
-test("mise à jour de la base de la version 1 à la version 2, sans rien perdre", async () => {
+test("mise à jour de la base de la version 1 à la version 3, sans rien perdre", async () => {
   const code = sql("select kokolio.bootstrap_admin('admin')");
   await admin.ok("auth/activate", { login: "admin", code, password: "Tableau-Bleu-2026" });
   await admin.ok("admin/settings-save", { settings: { company: "Entreprise d'essai" } });
   assert.equal((await admin.ok("admin/status")).schema, 1);
   await admin.fail("admin/demo-load", {}, "installation");              // l'application est en avance sur la base : message clair, rien de cassé
-  const avant = sql("select md5(string_agg(to_jsonb(u)::text, ',' order by u.id)) || (select count(*) from kokolio.audit) from kokolio.users u");
+  // empreinte des comptes et du journal (hors colonne ajoutée par la version 3) : elle ne doit pas bouger d'une version à l'autre
+  const empreinte = () => sql("select md5(string_agg((to_jsonb(u) - 'tracked_from')::text, ',' order by u.id)) || (select count(*) from kokolio.audit) from kokolio.users u");
+  const avant = empreinte();
+  // … d'abord la version 2, telle qu'elle a été jouée en production
+  const v2 = execFileSync("git", ["-C", ROOT, "show", "cdff09b:supabase/kokolio/install.sql"], { encoding: "utf8", maxBuffer: 32e6 });
+  execFileSync("psql", [...PG, "-f", "-"], { input: v2, stdio: ["pipe", "ignore", "ignore"] });
+  assert.equal(empreinte(), avant);
+  assert.equal((await admin.ok("admin/status")).schema, 2);
+  await admin.fail("admin/demo-load", {}, "installation");              // encore une version de retard : toujours refusé, toujours rien de cassé
+  // … puis la version courante
   execFileSync("psql", [...PG, "-f", path.join(ROOT, "supabase/kokolio/install.sql")], { stdio: "ignore" });
-  assert.equal(sql("select md5(string_agg(to_jsonb(u)::text, ',' order by u.id)) || (select count(*) from kokolio.audit) from kokolio.users u"), avant);
+  assert.equal(empreinte(), avant);
+  assert.equal(sql("select count(*) from kokolio.users where tracked_from is not null"), "0");
   const st = await admin.ok("admin/status");                             // la session ouverte avant la mise à jour reste valable
-  assert.deepEqual([st.schema, st.schema_expected, st.users, st.admins], [2, 2, 1, 1]);
+  assert.deepEqual([st.schema, st.schema_expected, st.users, st.admins], [3, 3, 1, 1]);
   assert.equal((await admin.ok("admin/settings")).settings.company, "Entreprise d'essai");
   const t = await admin.ok("admin/selftest");
   assert.equal(t.ok, true, JSON.stringify(t.checks.filter((c) => !c.ok))); assert.equal(t.count, 37);
@@ -136,6 +146,37 @@ test("effacement : tout repart de zéro, sauf l'administrateur et les réglages"
   // rechargeable, puis effaçable de nouveau
   assert.equal((await admin.ok("admin/demo-load")).users, 6);
   await admin.ok("admin/demo-reset", { confirm: "EFFACER" });
+});
+
+test("les comptes déjà créés ne sont pas concernés par l'historique fictif", async () => {
+  // la configuration rencontrée en production : deux comptes d'essai entrés au 1er janvier, activés, puis chargement
+  await admin.ok("rh/import", { text: "identifiant;nom;prenom;matricule;responsable;date_entree;regime;heures_hebdo\ndemo.manager;Manager;Démo;9001;;01/01/2026;forfait;\ndemo.salarie;Salarié;Démo;9002;demo.manager;01/01/2026;horaire;35\n" });
+  const ids = Object.fromEntries((await admin.ok("rh/employees")).employees.map((e) => [e.login, e.id]));
+  const essai = new Client("demo.salarie");
+  await essai.ok("auth/activate", { login: "demo.salarie", code: (await admin.ok("team/code", { user_id: ids["demo.salarie"] })).code, password: "Bateau-Rouge-19" });
+  const releve = async () => ({ mois: await essai.ok("my/month", { month: "2026-11" }), soldes: (await essai.ok("my/absences")).balances, jour: (await essai.ok("my/today")).anomalies });
+  const avant = await releve();
+  const r = await admin.ok("admin/demo-load");
+  assert.deepEqual([r.users, r.closed, r.go_live, r.existing], [6, "2026-09", "2026-09-01", 3]);
+  // le mois clôturé et le mois suivant ne contiennent que les six comptes fictifs, sans journée vide
+  const photo = (await admin.ok("rh/closure-detail", { month: "2026-09", version: 1 })).snapshot;
+  assert.deepEqual([photo.totals.employees, photo.totals.empty_days], [6, 0]);
+  const chk = await admin.ok("rh/closure-check", { month: "2026-10" });
+  assert.deepEqual([chk.totals.employees, chk.totals.empty_days, chk.empty.length, chk.pending_days, chk.pending_absences], [6, 0, 0, 0, 0]);
+  const oct = await admin.ok("team/month", { month: "2026-10", scope: "all" });
+  assert.deepEqual(oct.rows.map((x) => x.name), ["Camille Martin", "Inès Roux", "Julien Bernard", "Nadia Benali", "Sophie Leroy", "Thomas Petit"]);
+  assert.ok(oct.rows[0].worked > 6000 && oct.tiles.anomalies === 0);      // les comptes fictifs, eux, ont bien leur historique
+  // pour le compte d'essai, rien n'a changé : mêmes heures, mêmes soldes, aucun oubli inventé
+  assert.deepEqual(await releve(), avant);
+  assert.equal((await essai.ok("boot")).me.since, "2026-11-25");
+  const passe = await essai.ok("my/month", { month: "2026-10" });         // « Mes heures » ne remonte pas avant son suivi
+  assert.deepEqual([passe.summary.theo, passe.anomalies.length, passe.days.length, passe.go_live], [0, 0, 0, "2026-11-25"]);
+  // à partir de son premier jour suivi, il figure normalement dans la synthèse
+  assert.equal((await admin.ok("team/month", { month: "2026-11", scope: "all" })).rows.length, 8);
+  // effacement : il part avec le reste, et l'administrateur repart sans début de suivi propre
+  assert.equal(sql("select count(*) from kokolio.users where tracked_from is not null"), "3");
+  assert.equal((await admin.ok("admin/demo-reset", { confirm: "EFFACER" })).users, 8);
+  assert.equal(sql("select count(*) || '/' || count(tracked_from) from kokolio.users"), "1/0");
 });
 
 test("garde-fous : accepté dans un outil en cours d'essai, refusé dans un outil en service", async () => {

@@ -131,8 +131,8 @@ export function vueEtat() {
 /* ================= Mode démonstration ================= */
 function carteDemo(d) {
   const essais = d.users - d.admins, possible = !d.closures && essais <= 10;
-  if (Number(d.schema) < 2) return h("div", { class: "carte" }, h("h3", null, "Données de démonstration"),
-    h("p", null, "Le mode démonstration demande la version 2 de la base. Rejouez le script d'installation (supabase/kokolio/install.sql) dans la console SQL, puis rechargez cette page."));
+  if (Number(d.schema) < Number(d.schema_expected)) return h("div", { class: "carte" }, h("h3", null, "Données de démonstration"),
+    h("p", null, `Le mode démonstration demande la version ${d.schema_expected} de la base. Rejouez le script d'installation (supabase/kokolio/install.sql) dans la console SQL, puis rechargez cette page.`));
   if (S.boot.demo) return h("div", { class: "carte" }, h("h3", null, "Données de démonstration"),
     h("p", { class: "bandeau" }, h("strong", null, "L'outil est en mode démonstration"), "Il contient des salariés, des pointages et des absences fictifs. Avant la vraie mise en service, effacez-les : l'outil repartira vide, avec vos réglages, vos motifs d'absence et les comptes administrateur."),
     h("div", { class: "ligne gauche" }, h("button", { class: "danger", onclick: () => {
@@ -148,7 +148,7 @@ function carteDemo(d) {
   return h("div", { class: "carte" }, h("h3", null, "Données de démonstration"),
     h("p", null, "Pour découvrir l'outil ou le présenter : six salariés fictifs (une RH, un responsable, quatre salariés dont deux cadres), deux mois de pointages, des absences, des validations en attente et un mois déjà clôturé."),
     possible ? h("div", { class: "ligne gauche" }, h("button", { class: "domaine", onclick: () => confirmer("Charger les données de démonstration", [
-        essais ? h("p", { class: "bandeau" }, h("strong", null, `L'outil contient déjà ${essais} salarié${essais > 1 ? "s" : ""}`), "Ils sont conservés pour l'instant, mais feront partie du mode démonstration : ils seront effacés avec le reste lors de l'effacement.") : null,
+        essais ? h("p", { class: "bandeau" }, h("strong", null, `L'outil contient déjà ${essais} salarié${essais > 1 ? "s" : ""}`), "Ils sont conservés tels quels : l'historique fictif ne les concerne pas, leur suivi reste celui d'aujourd'hui. Ils feront toutefois partie du mode démonstration : ils seront effacés avec le reste lors de l'effacement.") : null,
         "Six comptes fictifs et leurs données sont créés, et la date de mise en service recule de deux mois. Leurs codes d'activation s'afficheront une fois : vous pourrez vous connecter à la place de chacun.",
         "L'outil passe en mode démonstration, signalé par un bandeau à tous les utilisateurs. Vous pourrez tout effacer d'ici avant la vraie mise en service."], "Charger", async () => {
         const r = await api("admin/demo-load");

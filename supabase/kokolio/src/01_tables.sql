@@ -43,6 +43,9 @@ create table if not exists kokolio.users (
 create unique index if not exists users_login_key on kokolio.users (lower(login));
 create unique index if not exists users_matricule_key on kokolio.users (matricule) where matricule <> '';
 create index if not exists users_manager_idx on kokolio.users (manager_id);
+-- Début de suivi propre au compte (schéma 3). Vide pour tout le monde : le suivi commence à la mise en service de l'outil.
+-- Seul le chargement des données de démonstration le renseigne, sur les comptes qui existaient déjà, pour que l'historique fictif ne les concerne pas.
+alter table kokolio.users add column if not exists tracked_from date;
 
 -- Horaires datés : une ligne par période. Modifier un horaire crée une nouvelle ligne, le passé reste intact.
 create table if not exists kokolio.contracts (

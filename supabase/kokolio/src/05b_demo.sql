@@ -10,7 +10,7 @@ create or replace function kokolio._demo_seed(me kokolio.users, p jsonb, p_args 
 declare
   r jsonb; u kokolio.users; c kokolio.contracts; v_dec uuid; v_tz text := kokolio._tz(); v_now timestamptz := kokolio._now(); v_today date := kokolio._today();
   v_days int; v_go text := coalesce(p_args->>'go_live', ''); v_ok boolean; v_status text; v_day date; v_times text[]; v_t text; v_i int;
-  v_nu int := 0; v_nd int := 0; v_na int := 0;
+  v_nu int := 0; v_nd int := 0; v_na int := 0; v_ne int := 0; v_avant date;
 begin
   if me.role <> 'admin' then perform kokolio._fail('interdit', 'Accès réservé aux administrateurs.'); end if;
   if exists (select 1 from kokolio.meta m where m.key = 'demo') then
@@ -34,6 +34,12 @@ begin
     perform kokolio._fail('requete', 'Jeu de données invalide.');
   end if;
   select coalesce((m.value->>'activation_days')::int, 14) into v_days from kokolio.meta m where m.key = 'settings';
+
+  -- Les comptes déjà créés ne sont pas concernés par l'historique fictif : la mise en service va reculer de plusieurs mois,
+  -- leur suivi, lui, reste celui d'avant le chargement. Sans cela, ils se retrouveraient avec des mois entiers sans pointage.
+  select case when m.value->>'go_live' ~ '^[0-9]{4}-[0-9]{2}-[0-9]{2}$' then (m.value->>'go_live')::date end into v_avant from kokolio.meta m where m.key = 'settings';
+  update kokolio.users set tracked_from = coalesce(v_avant, v_today) where tracked_from is null;
+  get diagnostics v_ne = row_count;
 
   -- comptes fictifs : salariés ou RH, jamais administrateurs
   for r in select x from jsonb_array_elements(p_args->'users') x loop
@@ -97,8 +103,8 @@ begin
   update kokolio.meta set value = jsonb_set(jsonb_set(value, '{go_live}', to_jsonb(v_go)), '{version}', to_jsonb(coalesce((value->>'version')::int, 1) + 1)), updated_at = now()
   where key = 'settings';
   insert into kokolio.meta (key, value) values ('demo', jsonb_build_object('charge_le', v_now, 'par', me.id));
-  perform kokolio._audit(me.id, 'donnees_demo_chargees', null, '', jsonb_build_object('comptes', v_nu, 'journees', v_nd, 'absences', v_na), coalesce(p->>'ip', ''));
-  return jsonb_build_object('users', v_nu, 'days', v_nd, 'absences', v_na);
+  perform kokolio._audit(me.id, 'donnees_demo_chargees', null, '', jsonb_build_object('comptes', v_nu, 'journees', v_nd, 'absences', v_na, 'comptes_deja_presents', v_ne), coalesce(p->>'ip', ''));
+  return jsonb_build_object('users', v_nu, 'days', v_nd, 'absences', v_na, 'existing', v_ne);
 end $$;
 
 -- Effacement : tout repart de zéro, sauf les comptes administrateur, les réglages et les motifs d'absence.
@@ -126,6 +132,7 @@ begin
   delete from kokolio.throttle;
   delete from kokolio.users x where x.role <> 'admin';
   perform set_config('kokolio.purge', '', true);
+  update kokolio.users set tracked_from = null where tracked_from is not null;   -- les comptes qui restent repartent de la nouvelle mise en service
   update kokolio.meta set value = jsonb_build_object('seq', 0, 'hash', ''), updated_at = now() where key = 'audit_head';
   update kokolio.meta set value = jsonb_set(jsonb_set(value, '{go_live}', to_jsonb(kokolio._today()::text)), '{version}', to_jsonb(coalesce((value->>'version')::int, 1) + 1)), updated_at = now()
   where key = 'settings';

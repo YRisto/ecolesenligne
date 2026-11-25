@@ -145,7 +145,7 @@ begin
     'id', u.id, 'login', u.login, 'role', u.role, 'first_name', u.first_name, 'last_name', u.last_name,
     'name', trim(u.first_name || ' ' || u.last_name), 'matricule', u.matricule, 'team', u.team, 'job', u.job,
     'manager_id', u.manager_id, 'manager_name', coalesce(v_mgr, ''), 'entry_date', u.entry_date, 'exit_date', u.exit_date,
-    'disabled', u.disabled, 'version', u.version, 'activated', u.pw_hash is not null,
+    'tracked_from', u.tracked_from, 'disabled', u.disabled, 'version', u.version, 'activated', u.pw_hash is not null,
     'code_pending', (u.act_hash is not null and u.act_expires > kokolio._now()));
   if p_full then
     v_j := v_j || jsonb_build_object('email', u.email, 'details', u.details,

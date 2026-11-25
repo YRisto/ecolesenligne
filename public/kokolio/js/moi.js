@@ -80,7 +80,8 @@ export async function corrigerDate(date, userId) {
 /* ================= Correction d'une journée ================= */
 export function dialogueCorrection({ jour, date, userId, nom }) {
   const today = S.boot.today, fixe = jour?.date || date || "";
-  const quand = fixe ? null : h("input", { type: "date", max: today, min: S.boot.settings.go_live || "", required: true });
+  // pour soi : pas avant le premier jour suivi de son compte ; pour un autre (responsable, RH) : pas avant la mise en service
+  const quand = fixe ? null : h("input", { type: "date", max: today, min: (!userId && S.boot.me.since) || S.boot.settings.go_live || "", required: true });
   const lignes = h("div", { class: "pile" });
   const ajoute = (a = "", b = "") => {
     const row = h("div", { class: "heures-edit" }, h("input", { type: "time", value: a, "aria-label": "Arrivée" }), h("span", null, "→"), h("input", { type: "time", value: b, "aria-label": "Départ" }),

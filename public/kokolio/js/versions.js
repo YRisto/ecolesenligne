@@ -1,5 +1,10 @@
 // Fonctionnalités et historique des versions. À mettre à jour à chaque mise en ligne, avec lib/kokolio/version.mjs.
 export const VERSIONS = [
+  { v: "1.1.1", date: "25/11/2026", titre: "Démonstration sans effet sur les comptes déjà créés", points: [
+    "Correction : au chargement des données de démonstration, les comptes déjà présents se retrouvaient avec deux mois de journées sans pointage, jusque dans le mois clôturé. Leur suivi reste désormais celui d'avant le chargement",
+    "Chaque compte porte son premier jour suivi : « Mes heures » et la saisie d'une journée oubliée ne remontent pas plus loin",
+    "Base de données en version 3 (une colonne ajoutée, aucune donnée modifiée)",
+  ] },
   { v: "1.1.0", date: "25/11/2026", titre: "Mode démonstration", points: [
     "Données de démonstration à charger dans un outil vide : six salariés fictifs, deux mois de pointages, absences, validations en attente, un mois clôturé",
     "Codes d'activation des comptes fictifs affichés au chargement, pour essayer chaque profil",
