@@ -85,7 +85,11 @@ with sync_playwright() as p:
     so.va("#/rh/journal"); so.voit("Journal des actions"); lignes = lambda t: so.page.locator(".entree", has_text=t)
     expect(lignes("Mois clôturé").first).to_be_visible(); so.clic("Vérifier l'intégrité"); so.voit("Journal intact", delai=20000); so.photo("44-journal")
     so.page.get_by_label("Type d'action").select_option("correction"); so.page.wait_for_timeout(600); expect(lignes("Journée corrigée").first).to_be_visible(); expect(lignes("Mois clôturé")).to_have_count(0)
-    so.va("#/rh/report"); so.voit("Report des congés 2025 → 2026"); so.va("#/rh/report/2026"); so.voit("n'est pas terminée"); so.photo("45-report")
+    so.va("#/rh/report"); so.voit("Report des congés 2025 → 2026"); so.va("#/rh/report/2026"); so.voit("n'est pas terminée")
+    # écritures de solde par fichier : droits RTT de l'année
+    so.page.locator("textarea").fill("identifiant;compteur;annee;jours;motif\ncamille.martin;rtt;2026;3;Droits RTT 2026\npersonne;rtt;2026;3;Droits RTT 2026\n"); so.clic("Vérifier le fichier"); so.voit("salarié introuvable"); so.voit("Tout ou rien")
+    so.page.locator("textarea").fill("identifiant;compteur;annee;jours;motif\ncamille.martin;rtt;2026;3;Droits RTT 2026\nnadia.roux;rtt;2026;2,5;Droits RTT 2026\n"); so.clic("Vérifier le fichier"); so.voit("Prête"); so.photo("45-report")
+    so.clic("Enregistrer 2 écritures"); so.valider_fenetre("Enregistrer"); so.voit("2 écriture(s) enregistrée(s)")
 
     # --- administrateur
     ad = Poste(nav, "admin", BUREAU, etat=E("admin")).a("2026-12-01", "11:00"); ad.ouvre("/kokolio#/admin/motifs"); ad.voit("Motifs d'absence"); ad.photo("46-motifs")

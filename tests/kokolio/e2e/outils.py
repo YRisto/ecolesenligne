@@ -35,6 +35,10 @@ class Poste:
         self.page.reload(); self.page.wait_for_load_state("networkidle"); return self
     def photo(self, nom, pleine=True):
         self.page.wait_for_timeout(200)
+        # aucun écran ne doit laisser paraître une valeur brute (null, undefined, NaN, [object Object])
+        brut = self.page.evaluate("""() => { const w = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT), out = []; let n;
+          while ((n = w.nextNode())) { const t = n.nodeValue.trim(); if (t === 'null' || /undefined|NaN|\\[object /.test(t)) out.push(t.slice(0, 60)); } return out; }""")
+        if brut: erreurs.append(f"[{self.nom}] valeur brute affichée sur « {nom} » : {brut[:3]}")
         self.page.screenshot(path=f"{SHOTS}/{nom}.png", full_page=pleine)
     def clic(self, texte, exact=False, n=0):
         self.page.get_by_role("button", name=texte, exact=exact).nth(n).click(); self.page.wait_for_timeout(120); return self

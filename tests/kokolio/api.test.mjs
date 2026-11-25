@@ -412,6 +412,16 @@ test("fiche salarié, horaire daté, soldes (RH)", async () => {
   await sophie.fail("rh/balance", { user_id: ids["leo.petit"], kind: "cp", year: 2026, amount: 2, reason: "" }, "motif");
   await sophie.ok("rh/balance", { user_id: ids["leo.petit"], kind: "cp", year: 2026, amount: 2, reason: "Jours de fractionnement" });
   assert.equal((await leo.ok("my/absences")).balances.cp.entries, 6);
+  // écritures par fichier : aperçu, erreurs, puis enregistrement en une fois
+  const lot = "identifiant;matricule;compteur;annee;jours;motif\ncamille.martin;;rtt;2026;3;Droits RTT de l'année\n;0020;cp;2026;-0,5;Régularisation\n";
+  await camille.fail("rh/balances-import", { text: lot }, "interdit", 403);
+  const vu = await sophie.ok("rh/balances-import", { text: lot + "inconnu;;rtt;2026;abc;x\n" });
+  assert.deepEqual([vu.valid, vu.invalid, vu.rows[2].errors.length], [2, 1, 3]);
+  await sophie.fail("rh/balances-import", { text: lot + "inconnu;;rtt;2026;1;Test\n", apply: true }, "import");
+  assert.equal((await sophie.ok("rh/balances-import", { text: lot, apply: true })).created, 2);
+  assert.equal((await camille.ok("my/absences")).balances.rtt.rights, 3);
+  assert.equal((await nadia.ok("my/absences")).balances.cp.entries, 9.5);
+  assert.ok((await sophie.ok("rh/balances-import", { template: true })).text.includes("identifiant;matricule;compteur"));
   // création d'une fiche à la main : le code d'activation est renvoyé une seule fois
   const created = await sophie.ok("rh/employee-save", { login: "ines.morel", first_name: "Inès", last_name: "Morel", matricule: "0031", team: "Pédagogie", manager_id: ids["sophie.durand"], entry_date: "2026-09-21",
     contract: { regime: "horaire", day_minutes: [420, 420, 420, 420, 420, 0, 0], pause_minutes: 45 } });
@@ -553,16 +563,20 @@ test("report des congés en fin d'année", async () => {
   at("2027-01-04", "09:00");
   await sophie.fail("boot", {}, "session", 401); // trois mois sans activité : la session a expiré d'elle-même
   await sophie.ok("auth/login", { login: "sophie.durand", password: PW.sophie });
+  assert.equal((await sophie.ok("rh/employees")).rollover_due, 2026); // en janvier, le report de l'année passée est signalé aux RH…
   const pre = await sophie.ok("rh/rollover-preview", { year: 2026 });
   assert.equal(pre.year_ended, true);
   const cam = pre.rows.find((r) => r.name === "Camille Martin");
   assert.equal(cam.amount, Math.round((6 + 4 * 2.08 - 5) * 100) / 100); assert.equal(cam.done, false);
   assert.ok(!pre.rows.some((r) => r.name === "Léo Petit")); // sorti en octobre
+  const avant = new Client("c7"); await avant.ok("auth/login", { login: "camille.martin", password: "Encore-Un-Autre-55" });
+  assert.equal((await avant.ok("my/absences")).report_pending, true);                 // … et aux salariés, dont le solde n'est pas encore complet
   const done = await sophie.ok("rh/rollover", { year: 2026 });
   assert.ok(done.created >= 4);
   assert.equal((await sophie.ok("rh/rollover", { year: 2026 })).created, 0); // rejouable sans doublon
   const c5 = new Client("c6");
   await c5.ok("auth/login", { login: "camille.martin", password: "Encore-Un-Autre-55" });
-  const b = (await c5.ok("my/absences")).balances;
-  assert.deepEqual([b.year, b.cp.entries, b.cp.accrued], [2027, cam.amount, 0]);
+  const mine = await c5.ok("my/absences"), b = mine.balances;
+  assert.deepEqual([b.year, b.cp.entries, b.cp.accrued, mine.report_pending], [2027, cam.amount, 0, false]);
+  assert.equal((await sophie.ok("rh/employees")).rollover_due, null);
 });

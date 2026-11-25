@@ -284,6 +284,7 @@ export function vueAbsences() {
         rtt.rights || rtt.taken || rtt.waiting ? tuile("RTT", fmtJ(rtt.balance), rtt.waiting ? `${fmtJ(rtt.available)} après les demandes en attente` : `sur ${fmtJ(rtt.rights)} dans l'année`) : null,
         tuile(`Pris en ${d.year}`, fmtJ(cp.taken + rtt.taken), "congés payés et RTT")),
       h("p", { class: "discret" }, `Congés payés ${d.year} : ${fmtJ(cp.entries)} de report et d'ajustements, ${fmtJ(cp.accrued)} acquis depuis janvier, ${fmtJ(cp.taken)} pris.`),
+      d.report_pending ? h("p", { class: "bandeau info" }, h("strong", null, `Report de ${d.year - 1} à venir`), `Vos congés restants de ${d.year - 1} n'ont pas encore été reportés par le service RH : le solde affiché ne les contient pas.`) : null,
       aFournir.length ? h("div", { class: "bandeau" }, h("strong", null, "Justificatif à fournir"), aFournir.map((a) => h("div", { class: "ligne" }, h("span", null, `${a.label}, ${periode(a.start_date, a.end_date, a.half)}`),
         h("button", { class: "petit", onclick: () => ajouterJustificatif(a.id) }, "Ajouter")))) : null,
       h("div", { class: "carte" }, h("h3", null, "Mes demandes"),

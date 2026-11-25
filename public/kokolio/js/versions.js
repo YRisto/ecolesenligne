@@ -75,7 +75,7 @@ export const FONCTIONS = [
     "Vision et validation pour l'ensemble des salariés",
     "Clôture mensuelle : contrôle, figement des chiffres, réouverture motivée, versions successives",
     "Export paie pour Silae : codes et séparateurs réglables",
-    "Report des congés en fin d'année",
+    "Report des congés en fin d'année ; écritures de solde par fichier (droits RTT de l'année, corrections en nombre)",
     "Journal de toutes les actions, avec vérification d'intégrité",
   ]],
   ["Administration", [

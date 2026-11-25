@@ -18,7 +18,9 @@ export function h(tag, attrs, ...kids) {
   return e;
 }
 export const vue = () => document.getElementById("vue");
-export function pose(...kids) { vue().replaceChildren(...kids.flat(Infinity).filter((k) => k != null && k !== false)); }
+// Remplace le contenu d'un élément. Les valeurs absentes sont écartées : replaceChildren écrirait « null » en toutes lettres.
+export function remplir(el, ...kids) { el.replaceChildren(...kids.flat(Infinity).filter((k) => k != null && k !== false)); return el; }
+export function pose(...kids) { remplir(vue(), ...kids); }
 
 /* ---------- formats ---------- */
 export const pad = (n) => String(n).padStart(2, "0");

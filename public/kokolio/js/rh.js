@@ -1,6 +1,6 @@
 // Ressources humaines : salariés et fiches, import, report des congés, clôture et export paie, journal.
 import { api } from "./api.js";
-import { h, pose, toast, agir, ouvrir, confirmer, demanderMotif, etiquette, tuile, champ, telecharger, pad,
+import { h, pose, remplir, toast, agir, ouvrir, confirmer, demanderMotif, etiquette, tuile, champ, telecharger, pad,
   fmtMin, fmtJ, fmtNb, frCourt, frMois, frHorodatage } from "./dom.js";
 import { S, ecran, aller, recharger, estAdmin } from "./etat.js";
 import { montrerCode, bonActivation, imprimerBons } from "./codes.js";
@@ -93,11 +93,13 @@ export function vueSalaries() {
     filtre.addEventListener("input", dessine); quoi.addEventListener("change", dessine); dessine();
     pose(h("div", { class: "ligne" }, h("h2", null, "Salariés"),
         h("div", { class: "ligne gauche" }, h("button", { class: "domaine", onclick: () => aller("#/rh/fiche/nouveau") }, "Nouveau salarié"), h("button", { onclick: () => aller("#/rh/import") }, "Importer un fichier"),
-          h("button", { onclick: () => aller("#/rh/report") }, "Report des congés"))),
+          h("button", { onclick: () => aller("#/rh/report") }, "Soldes : report et écritures"))),
       h("div", { class: "tuiles" }, tuile("Actifs", String(actifs.length), `${tous.length} fiches au total`),
         tuile("Comptes activés", `${actifs.filter((e) => e.activated).length} / ${actifs.length}`, "ont choisi leur mot de passe"),
         tuile("Sans matricule", String(suivis.filter((e) => !e.matricule).length), "à compléter avant l'export paie"),
         tuile("Sans responsable", String(suivis.filter((e) => !e.manager_id).length), "validés par les RH")),
+      d.rollover_due ? h("div", { class: "bandeau" }, h("strong", null, `Report des congés ${d.rollover_due} à faire`), `Les soldes de ${d.rollover_due + 1} ne contiennent pas encore les jours restants de ${d.rollover_due}. Les salariés en sont prévenus sur leur écran.`,
+        h("div", { class: "ligne" }, h("button", { class: "petit", onclick: () => aller(`#/rh/report/${d.rollover_due}`) }, "Ouvrir le report"))) : null,
       aActiver.length ? h("div", { class: "bandeau" }, h("strong", null, `${aActiver.length} compte${aActiver.length > 1 ? "s" : ""} sans code d'activation valide`),
         "Ces salariés ne peuvent pas se connecter : leur code a expiré ou n'a jamais été généré.",
         h("div", { class: "ligne" }, h("button", { class: "petit", onclick: () => codesEnMasse(aActiver) }, `Générer ${aActiver.length > 1 ? "les codes" : "le code"}`))) : null,
@@ -278,7 +280,7 @@ export function vueImport() {
     if (!texte.value.trim()) throw new Error("Choisissez un fichier ou collez des lignes.");
     const p = await api("rh/import-preview", { text: texte.value });
     const bloque = p.errors.length > 0 || p.invalid > 0 || !p.rows.length;
-    zone.replaceChildren(
+    remplir(zone, 
       p.errors.length ? h("p", { class: "bandeau refus" }, p.errors.join(" ")) : null,
       p.unknown_columns.length ? h("p", { class: "bandeau" }, `Colonnes ignorées (nom non reconnu) : ${p.unknown_columns.join(", ")}.`) : null,
       p.rows.length ? h("div", { class: "tuiles" }, tuile("À créer", String(p.create)), tuile("À mettre à jour", String(p.update), "mot de passe inchangé"), tuile("Lignes en erreur", String(p.invalid), p.invalid ? "à corriger dans le fichier" : "aucune", p.invalid ? "moins" : "")) : null,
@@ -311,6 +313,22 @@ export function vueReport(annee) {
   const courant = +S.boot.today.slice(0, 4), y = /^\d{4}$/.test(annee) ? +annee : courant - 1;
   ecran(() => api("rh/rollover-preview", { year: y }), (d) => {
     const aFaire = d.rows.filter((r) => !r.done && r.amount !== 0);
+    // écritures par fichier : droits RTT de l'année, corrections en nombre
+    const fichier = h("input", { type: "file", accept: ".csv,.txt,text/csv,text/plain" }), texte = h("textarea", { rows: 4, spellcheck: "false", placeholder: "identifiant;matricule;compteur;annee;jours;motif" }), zone = h("div", { class: "pile" });
+    fichier.addEventListener("change", async () => { if (fichier.files[0]) { texte.value = await lireFichier(fichier.files[0]); verifier.click(); } });
+    const verifier = h("button", { onclick: (ev) => agir(ev.currentTarget, async () => {
+      if (!texte.value.trim()) throw new Error("Choisissez un fichier ou collez des lignes.");
+      const p = await api("rh/balances-import", { text: texte.value });
+      remplir(zone, p.errors.length ? h("p", { class: "bandeau refus" }, p.errors.join(" ")) : null,
+        p.rows.length ? h("div", { class: "table-zone" }, h("table", null, h("thead", null, h("tr", null, ["Ligne", "Salarié", "Compteur", "Année", "Jours", "Motif", "Résultat"].map((x) => h("th", null, x)))),
+          h("tbody", null, p.rows.slice(0, 400).map((r) => h("tr", { class: r.errors.length ? "erreur" : "" }, h("td", { class: "num" }, r.line), h("td", null, r.name), h("td", null, r.kind === "rtt" ? "RTT" : r.kind === "cp" ? "CP" : "—"), h("td", { class: "num" }, r.year || "—"),
+            h("td", { class: "num" }, r.amount == null ? "—" : fmtNb(r.amount)), h("td", { class: "large" }, r.reason), h("td", { class: "large" }, r.errors.length ? r.errors.join(" ; ") : "Prête")))))) : null,
+        p.rows.length > 400 ? h("p", { class: "discret" }, `… et ${p.rows.length - 400} autres lignes.`) : null,
+        p.invalid || p.errors.length || !p.rows.length ? (p.rows.length ? h("p", { class: "bandeau refus" }, "Tout ou rien : corrigez les lignes en erreur, puis vérifiez de nouveau.") : null)
+          : h("div", { class: "ligne gauche" }, h("button", { class: "domaine", onclick: () => confirmer("Enregistrer les écritures", `${p.valid} écriture${p.valid > 1 ? "s" : ""} ${p.valid > 1 ? "seront ajoutées" : "sera ajoutée"} aux soldes. Une écriture ne se supprime pas : en cas d'erreur, il faudra passer l'écriture inverse. Ne renvoyez pas deux fois le même fichier.`, "Enregistrer", async () => {
+            const r = await api("rh/balances-import", { text: texte.value, apply: true }); toast(`${r.created} écriture(s) enregistrée(s).`); texte.value = ""; remplir(zone, );
+          }) }, `Enregistrer ${p.valid} écriture${p.valid > 1 ? "s" : ""}`)));
+    }) }, "Vérifier le fichier");
     pose(h("div", { class: "ligne" }, h("h2", null, `Report des congés ${y} → ${y + 1}`), h("button", { onclick: () => aller("#/rh/salaries") }, "‹ Salariés")),
       h("div", { class: "carte" }, h("h3", null, "Principe"),
         h("p", null, `Le solde de congés payés restant au 31 décembre ${y} (report, acquisitions de l'année, moins les jours pris) devient l'écriture de report de ${y + 1}. L'opération est rejouable : un salarié déjà reporté est ignoré.`),
@@ -322,7 +340,11 @@ export function vueReport(annee) {
       h("div", { class: "carte" }, h("h3", null, `Soldes au 31 décembre ${y}`),
         h("div", { class: "table-zone" }, h("table", null, h("thead", null, h("tr", null, h("th", null, "Salarié"), h("th", null, "Équipe"), h("th", { class: "d" }, "Solde à reporter"), h("th", null, "État"))),
           h("tbody", null, d.rows.length ? d.rows.map((r) => h("tr", null, h("td", null, r.name), h("td", null, r.team || "—"), h("td", { class: "d num " + (r.amount < 0 ? "moins" : "") }, fmtJ(r.amount)),
-            h("td", null, r.done ? etiquette("Reporté", "p-ok") : r.amount === 0 ? etiquette("Rien à reporter", "p-gris") : etiquette("À reporter", "p-attente")))) : h("tr", null, h("td", { colspan: 4, class: "vide" }, "Aucun salarié.")))))));
+            h("td", null, r.done ? etiquette("Reporté", "p-ok") : r.amount === 0 ? etiquette("Rien à reporter", "p-gris") : etiquette("À reporter", "p-attente")))) : h("tr", null, h("td", { colspan: 4, class: "vide" }, "Aucun salarié.")))))),
+      h("div", { class: "carte" }, h("h3", null, "Écritures de solde par fichier"),
+        h("p", null, "Pour créditer en une fois les droits RTT de l'année, ou passer des corrections en nombre. Une ligne par écriture : identifiant ou matricule, compteur (cp ou rtt), année, jours (négatif pour retirer), motif."),
+        h("div", { class: "ligne gauche" }, h("button", { onclick: (ev) => agir(ev.currentTarget, async () => { const t = await api("rh/balances-import", { template: true }); telecharger(t.filename, t.text); }) }, "Télécharger le modèle (CSV)")),
+        h("label", null, "Fichier CSV", fichier), texte, h("div", { class: "ligne gauche" }, verifier), zone));
   });
 }
 

@@ -107,6 +107,7 @@ bash tests/kokolio/pg-local.sh reset            # PostgreSQL 16 local jetable
 cd tests/kokolio && npm install && cd ../..     # une fois : client PostgreSQL des tests
 node --test tests/kokolio/api.test.mjs          # scénario complet contre une vraie base
 bash tests/kokolio/e2e/tout.sh                  # navigateur (Playwright) : mise en route, quotidien, RH
+node tests/kokolio/charge.mjs 500               # volume : 500 salariés, un mois de pointages, 200 pointages simultanés
 ```
 
 Dans l'outil : Administration › État › « Lancer l'autodiagnostic » rejoue en production, sur des comptes fictifs effacés aussitôt, les règles de cloisonnement et de verrouillage.
