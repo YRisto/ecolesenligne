@@ -46,7 +46,8 @@ function maLigne(d, par) {
   if (!ligne.length) return null;
   const etape = (n, i) => h("span", { class: "p" + (i === ligne.length - 1 ? " resp" : "") }, h("strong", null, n.name), n.job ? ` · ${n.job}` : "");
   return h("div", { class: "org-fil" }, h("span", { class: "discret" }, "Votre ligne hiérarchique"),
-    ligne.flatMap((n, i) => [etape(n, i), h("span", { class: "sep", "aria-hidden": "true" }, "›")]), h("span", { class: "p moi" }, "Vous"));
+    // chaque responsable garde sa flèche à sa droite, même quand son intitulé passe à la ligne
+    ligne.map((n, i) => h("span", { class: "etape" }, etape(n, i), h("span", { class: "sep", "aria-hidden": "true" }, "›"))), h("span", { class: "p moi" }, "Vous"));
 }
 
 function dessiner(d, { complet }) {

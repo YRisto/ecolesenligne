@@ -234,7 +234,9 @@ button.mode.m-test{background:#3b1d8f}
 .org-fil .discret{flex-basis:100%}
 .org-fil .p{padding:4px 10px;border-radius:14px;background:var(--creux);border:1px solid var(--trait);line-height:1.3}
 .org-fil .p.moi{background:var(--accent);color:var(--accent-encre);border-color:transparent;font-weight:650}
-.org-fil .sep{color:var(--discret)}
+.org-fil .sep{color:var(--discret);flex:none}
+.org-fil .etape{display:flex;align-items:center;gap:6px;max-width:100%}
+.org-fil .etape .p{min-width:0}
 .marque-test{display:inline-block;margin:0 8px 0 2px;padding:2px 8px;border-radius:6px;background:#3b1d8f;color:#fff;font-family:var(--corps,inherit);font-size:.68rem;font-weight:700;letter-spacing:.1em;vertical-align:middle}
 button.mode.seul{grid-column:1/-1;aspect-ratio:auto;min-height:104px;padding-left:112px;justify-content:center}
 button.mode.seul svg{top:50%;transform:translateY(-50%);width:70px;height:70px}
