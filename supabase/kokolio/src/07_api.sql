@@ -10,6 +10,11 @@ begin
     perform set_config('kokolio.test_now', p->>'_now', true);
   end if;
 
+  -- le serveur annonce l'environnement auquel il croit parler : cette installation ne répond pas à la place de l'autre
+  if p ? 'env' and p->>'env' <> kokolio._env() then
+    perform kokolio._fail('configuration', 'Cette adresse n''est pas reliée au bon environnement.');
+  end if;
+
   -- sans session
   case v_action
     when 'ping' then
@@ -18,6 +23,8 @@ begin
         'company', (select m.value->>'company' from kokolio.meta m where m.key = 'settings'),
         'logo_url', (select m.value->>'logo_url' from kokolio.meta m where m.key = 'settings'),
         'demo', exists (select 1 from kokolio.meta m where m.key = 'demo'),
+        'environment', kokolio._env(),
+        'cloned', case when kokolio._env() = 'test' then (select m.value from kokolio.meta m where m.key = 'test_clone') end,
         'today', kokolio._today());
     when 'auth_salt' then return kokolio._auth_salt(v_args);
     when 'login' then return kokolio._login(p, v_args);
@@ -74,6 +81,8 @@ begin
     when 'annual_period_save' then return kokolio._annual_period_save(me, p, v_args);
     when 'annual_goal_set' then return kokolio._annual_goal_set(me, p, v_args);
     when 'annual_entry_add' then return kokolio._annual_entry_add(me, p, v_args);
+    when 'test_status' then return kokolio._test_status(me);
+    when 'test_clone' then return kokolio._test_clone(me, p);
     when 'demo_seed' then return kokolio._demo_seed(me, p, v_args);
     when 'demo_reset' then return kokolio._demo_reset(me, p);
     when 'selftest' then
@@ -151,7 +160,7 @@ begin
 end $$;
 revoke all on function kokolio.bootstrap_admin(text, text) from public;
 
-insert into kokolio.meta (key, value) values ('schema_version', '7'::jsonb)
+insert into kokolio.meta (key, value) values ('schema_version', '8'::jsonb)
 on conflict (key) do update set value = excluded.value, updated_at = now();
 
 notify pgrst, 'reload schema';

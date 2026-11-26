@@ -88,6 +88,20 @@ begin
   end loop;
 end $$;
 
+-- Déplacer le début de suivi d'un salarié change ce qui est attendu de lui entre l'ancien et le nouveau premier jour :
+-- impossible si un mois clôturé s'y trouve. Règle commune à la fiche et à l'import.
+create or replace function kokolio._tracked_guard(p_user uuid, p_entry date, p_old date, p_new date) returns void language plpgsql as $$
+declare v_go date; v_first date; v_a date; v_b date;
+begin
+  select case when m.value->>'go_live' ~ '^[0-9]{4}-[0-9]{2}-[0-9]{2}$' then (m.value->>'go_live')::date else date '1900-01-01' end into v_go from kokolio.meta m where m.key = 'settings';
+  select min(x.start_date) into v_first from kokolio.contracts x where x.user_id = p_user;
+  v_a := greatest(v_go, coalesce(p_old, date '1900-01-01'), coalesce(p_entry, date '1900-01-01'), coalesce(v_first, date '1900-01-01'));
+  v_b := greatest(v_go, coalesce(p_new, date '1900-01-01'), coalesce(p_entry, date '1900-01-01'), coalesce(v_first, date '1900-01-01'));
+  if v_a <> v_b and v_first is not null and kokolio._range_closed(least(v_a, v_b), greatest(v_a, v_b) - 1) then
+    perform kokolio._fail('cloture', 'Un mois clôturé se trouve entre l''ancien et le nouveau début de suivi : il ne peut plus être déplacé sur cette période.');
+  end if;
+end $$;
+
 -- Création ou mise à jour d'une fiche (RH). Les rôles ne sont modifiables que par un administrateur.
 create or replace function kokolio._user_save(me kokolio.users, p jsonb, p_args jsonb) returns jsonb language plpgsql as $$
 declare
@@ -123,14 +137,7 @@ begin
   -- Début de suivi : envoyé seulement quand les RH le modifient ; sinon la valeur en place est conservée.
   v_tracked := case when p_args ? 'tracked_from' then nullif(p_args->>'tracked_from', '')::date when v_new then null else o.tracked_from end;
   if not v_new and v_tracked is distinct from o.tracked_from then
-    -- Déplacer le début de suivi change ce qui est attendu entre l'ancien et le nouveau premier jour : impossible si un mois clôturé s'y trouve.
-    select case when m.value->>'go_live' ~ '^[0-9]{4}-[0-9]{2}-[0-9]{2}$' then (m.value->>'go_live')::date else date '1900-01-01' end into v_go from kokolio.meta m where m.key = 'settings';
-    select min(x.start_date) into v_first from kokolio.contracts x where x.user_id = v_id;
-    v_a := greatest(v_go, coalesce(o.tracked_from, date '1900-01-01'), coalesce(v_entry, date '1900-01-01'), coalesce(v_first, date '1900-01-01'));
-    v_b := greatest(v_go, coalesce(v_tracked, date '1900-01-01'), coalesce(v_entry, date '1900-01-01'), coalesce(v_first, date '1900-01-01'));
-    if v_a <> v_b and v_first is not null and kokolio._range_closed(least(v_a, v_b), greatest(v_a, v_b) - 1) then
-      perform kokolio._fail('cloture', 'Un mois clôturé se trouve entre l''ancien et le nouveau début de suivi : il ne peut plus être déplacé sur cette période.');
-    end if;
+    perform kokolio._tracked_guard(v_id, v_entry, o.tracked_from, v_tracked);
   end if;
   if v_mgr is not null then
     if not exists (select 1 from kokolio.users x where x.id = v_mgr) then perform kokolio._fail('responsable', 'Responsable introuvable.'); end if;
@@ -197,6 +204,7 @@ end $$;
 create or replace function kokolio._users_import(me kokolio.users, p jsonb, p_args jsonb) returns jsonb language plpgsql as $$
 declare
   r jsonb; u kokolio.users; v_login text; v_created jsonb := '[]'::jsonb; v_updated jsonb := '[]'::jsonb; v_idx int := 0; v_mgr uuid;
+  v_tr date; v_moved jsonb := '[]'::jsonb;
   v_year int := extract(year from kokolio._today())::int; v_days int; v_now timestamptz := kokolio._now(); v_role text; c kokolio.contracts;
 begin
   if me.role not in ('rh', 'admin') then perform kokolio._fail('interdit', 'Accès réservé aux RH.'); end if;
@@ -234,7 +242,14 @@ begin
         if u.role = 'admin' and me.role <> 'admin' then
           perform kokolio._fail('import', 'Ligne ' || v_idx || ' : compte administrateur, modifiable par un administrateur uniquement.');
         end if;
+        -- Début de suivi : repris pour une fiche existante quand le fichier le donne (déploiement par vagues, date de lancement repoussée).
+        v_tr := nullif(r->>'tracked_from', '')::date;
+        if v_tr is not null and v_tr is distinct from u.tracked_from then
+          perform kokolio._tracked_guard(u.id, coalesce(nullif(r->>'entry_date', '')::date, u.entry_date), u.tracked_from, v_tr);
+          v_moved := v_moved || to_jsonb(u.login);
+        end if;
         update kokolio.users set
+          tracked_from = coalesce(v_tr, tracked_from),
           first_name = coalesce(nullif(trim(r->>'first_name'), ''), first_name), last_name = trim(r->>'last_name'),
           matricule = coalesce(nullif(trim(r->>'matricule'), ''), matricule), email = coalesce(nullif(trim(r->>'email'), ''), email),
           team = coalesce(nullif(trim(r->>'team'), ''), team), job = coalesce(nullif(trim(r->>'job'), ''), job),
@@ -262,8 +277,8 @@ begin
     if u.manager_id = u.id then perform kokolio._fail('import', u.login || ' ne peut pas être son propre responsable.'); end if;
     perform kokolio._no_cycle(u.id, u.manager_id);
   end loop;
-  perform kokolio._audit(me.id, 'import_salaries', null, '', jsonb_build_object('crees', v_created, 'mis_a_jour', v_updated), coalesce(p->>'ip', ''));
-  return jsonb_build_object('created', v_created, 'updated', v_updated);
+  perform kokolio._audit(me.id, 'import_salaries', null, '', jsonb_build_object('crees', v_created, 'mis_a_jour', v_updated) || case when jsonb_array_length(v_moved) > 0 then jsonb_build_object('debut_suivi_deplace', v_moved) else '{}'::jsonb end, coalesce(p->>'ip', ''));
+  return jsonb_build_object('created', v_created, 'updated', v_updated, 'tracked', v_moved);
 end $$;
 
 -- Écriture de solde (report, ajustement). Une écriture ne se modifie pas : on en passe une autre.

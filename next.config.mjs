@@ -18,6 +18,10 @@ const nextConfig = {
       { source: '/kokolio/manifest.webmanifest', headers: [{ key: 'Content-Type', value: 'application/manifest+json' }] },
       { source: '/kokolio/fonts/:path*', headers: [{ key: 'Cache-Control', value: 'public, max-age=31536000, immutable' }] },
       { source: '/api/kokolio/:path*', headers: kokolioCommuns },
+      // Environnement de test : la même application, servie à une autre adresse et reliée à ses propres données.
+      { source: '/kokolio-test', headers: [{ key: 'Content-Security-Policy', value: kokolioCsp }, { key: 'Cache-Control', value: 'no-cache' }, ...kokolioCommuns] },
+      { source: '/Kokolio-test', headers: [{ key: 'Content-Security-Policy', value: kokolioCsp }, { key: 'Cache-Control', value: 'no-cache' }, ...kokolioCommuns] },
+      { source: '/api/kokolio-test/:path*', headers: kokolioCommuns },
       { source: '/lejeuduDG/sw.js', headers: [{ key: 'Service-Worker-Allowed', value: '/lejeuduDG' }, { key: 'Cache-Control', value: 'no-cache' }] },
       { source: '/lejeuduDG/manifest.webmanifest', headers: [{ key: 'Content-Type', value: 'application/manifest+json' }] },
       { source: '/landoflord/sw.js', headers: [{ key: 'Service-Worker-Allowed', value: '/landoflord' }, { key: 'Cache-Control', value: 'no-cache' }] },
@@ -39,6 +43,8 @@ const nextConfig = {
       { source: '/kokolio', destination: '/kokolio/index.html' },
       { source: '/Kokolio', destination: '/kokolio/index.html' },
       { source: '/kokolio/demo', destination: '/kokolio/demo/index.html' },
+      { source: '/kokolio-test', destination: '/kokolio/index.html' },
+      { source: '/Kokolio-test', destination: '/kokolio/index.html' },
     ];
   },
 };

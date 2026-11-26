@@ -1,8 +1,9 @@
 // Fiches d'activation : le code n'est montré qu'une fois, au moment où il est généré.
 import { h, ouvrir, toast, frCourt } from "./dom.js";
 import { S } from "./etat.js";
+import { CHEMIN } from "./api.js";
 
-const adresse = () => `${location.origin}/kokolio`;
+const adresse = () => `${location.origin}${CHEMIN}`;
 const finValidite = (iso) => (iso ? frCourt(new Intl.DateTimeFormat("en-CA", { timeZone: "Europe/Paris" }).format(new Date(iso))) : "");
 
 export function bonActivation({ name, login, code, expires, profil }) {

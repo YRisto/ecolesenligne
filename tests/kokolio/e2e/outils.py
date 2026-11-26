@@ -44,10 +44,12 @@ class Poste:
         self.page.get_by_role("button", name=texte, exact=exact).nth(n).click(); self.page.wait_for_timeout(120); return self
     def champ(self, libelle, valeur, exact=False):
         self.page.get_by_label(libelle, exact=exact).first.fill(valeur); return self
-    def voit(self, texte, delai=6000):
-        expect(self.page.get_by_text(texte).first).to_be_visible(timeout=delai); return self
+    def voit(self, texte, delai=6000, exact=False):
+        expect(self.page.get_by_text(texte, exact=exact).first).to_be_visible(timeout=delai); return self
     def ne_voit_pas(self, texte):
         expect(self.page.get_by_text(texte)).to_have_count(0); return self
+    def ne_voit_pas_exact(self, texte):
+        expect(self.page.get_by_text(texte, exact=True)).to_have_count(0); return self
     def toast(self):
         return self.page.locator("#toast").inner_text()
     def activer(self, login, code, mdp):

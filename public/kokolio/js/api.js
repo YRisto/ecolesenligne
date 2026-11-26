@@ -2,13 +2,19 @@
 export class ApiError extends Error {
   constructor(code, message, status, extra) { super(message); this.code = code; this.status = status; this.extra = extra || {}; }
 }
+// Deux environnements, servis par la même application : la production (/kokolio) et l'environnement de test (/kokolio-test).
+// L'adresse de la page décide : chacun a ses propres adresses d'API, ses propres données et sa propre session.
+export const ENV = /^\/kokolio-test(\/|$)/i.test(location.pathname) ? "test" : "production";
+export const CHEMIN = ENV === "test" ? "/kokolio-test" : "/kokolio";
+const BASE = ENV === "test" ? "/api/kokolio-test/" : "/api/kokolio/";
+
 let surSessionPerdue = null;
 export const quandSessionPerdue = (fn) => { surSessionPerdue = fn; };
 
 export async function api(route, body, { silencieux = false } = {}) {
   let r;
   try {
-    r = await fetch("/api/kokolio/" + route, {
+    r = await fetch(BASE + route, {
       method: "POST", credentials: "same-origin", cache: "no-store",
       headers: { "Content-Type": "application/json", "x-kokolio": "1" }, body: JSON.stringify(body || {}),
     });

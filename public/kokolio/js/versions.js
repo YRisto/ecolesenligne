@@ -1,5 +1,15 @@
 // Fonctionnalités et historique des versions. À mettre à jour à chaque mise en ligne, avec lib/kokolio/version.mjs.
 export const VERSIONS = [
+  { v: "2.4.0", date: "26/11/2026", titre: "Environnement de test", points: [
+    "Environnement de test : une seconde installation complète de l'outil, à l'adresse /kokolio-test, avec ses propres données ; rien de ce qui s'y fait ne touche la production",
+    "Accès bien en vue pour l'administrateur : une tuile sur son accueil et l'onglet « Test » de l'administration ; dans le test, un bandeau permanent et le repère « TEST »",
+    "Copie de la production vers le test à la demande de l'administrateur, avec mot de confirmation : salariés, horaires, pointages, absences, clôtures, réglages, journal",
+    "Les justificatifs déposés par les salariés ne sont pas copiés : un fichier témoin les remplace dans le test",
+    "On se connecte au test avec les identifiants et mots de passe de la production, tels qu'ils étaient au moment de la copie ; les sessions sont séparées",
+    "La copie ne modifie ni n'interrompt la production ; elle est inscrite au journal",
+    "Import de salariés : la colonne debut_suivi déplace désormais le début de suivi d'une fiche déjà présente, pour repousser un lancement d'un seul fichier",
+    "Base de données en version 8 (aucune donnée modifiée) ; l'environnement de test a son propre script d'installation",
+  ] },
   { v: "2.3.0", date: "26/11/2026", titre: "Export de paie au format Sage Paie", points: [
     "Export de paie au format d'import de Sage Paie, au choix dans les réglages : lignes EV (une par absence), VB (dates des congés) et VM (heures), à largeur fixe",
     "Disposition reprise du fichier que la paie reçoit de l'outil de gestion des temps actuel : relu puis réécrit, ce fichier ressort identique, octet pour octet",
@@ -165,6 +175,7 @@ export const FONCTIONS = [
     "Motifs d'absence : libellé, famille, justificatif demandé ; pour la paie : code, nombre de jours transmis, report des dates sur le bulletin",
     "État de l'installation et autodiagnostic des règles de sécurité",
     "Mode démonstration : jeu de données fictives à charger dans un outil vide, effaçable avant la mise en service",
+    "Environnement de test : une seconde installation à part (/kokolio-test), remise à l'image de la production à la demande",
   ]],
   ["Sécurité et conservation des données", [
     "Aucun accès direct aux données : tout passe par le serveur, qui contrôle la session et les droits à chaque appel",

@@ -168,6 +168,13 @@ begin
     v_checks := v_checks || jsonb_build_object('name', 'Le schéma de données est inaccessible aux rôles de l''API',
       'ok', not exists (select 1 from pg_roles r where r.rolname in ('anon', 'authenticated', 'service_role') and has_schema_privilege(r.rolname, 'kokolio', 'usage')));
 
+    -- 8 bis. Environnement de test : la copie est réservée à l'administrateur, n'oublie aucune table, et ne part que de la production
+    v_r := public.kokolio_api(jsonb_build_object('action', 'test_clone', 'token', t_rh, 'args', '{}'::jsonb));
+    v_checks := v_checks || jsonb_build_object('name', 'Copie vers l''environnement de test réservée aux administrateurs', 'ok', v_r->>'code' = 'interdit');
+    v_checks := v_checks || jsonb_build_object('name', 'Copie vers l''environnement de test : aucune table oubliée',
+      'ok', not exists (select 1 from pg_class tb join pg_namespace ns on ns.oid = tb.relnamespace
+                        where ns.nspname = 'kokolio' and tb.relkind = 'r' and tb.relname <> all (kokolio._test_tables() || array['meta', 'sessions', 'throttle'])));
+
     -- 9. Mode démonstration : l'effacement des données n'existe que là
     if exists (select 1 from kokolio.meta m where m.key = 'demo') then
       v_checks := v_checks || jsonb_build_object('name', 'Effacement des données réservé au mode démonstration (actif ici : contrôle sans objet)', 'ok', true);

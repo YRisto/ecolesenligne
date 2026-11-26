@@ -24,3 +24,13 @@ bash tests/kokolio/e2e/serveur-local.sh 3111 2>&1 | tail -1 > /tmp/kk-setup.txt
 CODE=$(grep CODE_ADMIN /tmp/kk-setup.txt | cut -d= -f2)
 if ! python3 tests/kokolio/e2e/06_planification.py "$CODE" > /tmp/kk-06_planification.log 2>&1; then echo "ÉCHEC à l'étape 06_planification"; grep -n "in <module>\|Expect \|waiting for\|AssertionError" /tmp/kk-06_planification.log | head -8; exit 1; fi
 tail -n 2 /tmp/kk-06_planification.log
+# … l'environnement de test : accès depuis l'administration, copie de la production, cloisonnement : nouvel environnement
+bash tests/kokolio/e2e/serveur-local.sh 3111 2>&1 | tail -1 > /tmp/kk-setup.txt
+CODE=$(grep CODE_ADMIN /tmp/kk-setup.txt | cut -d= -f2)
+if ! python3 tests/kokolio/e2e/07_environnement_test.py "$CODE" > /tmp/kk-07_environnement_test.log 2>&1; then echo "ÉCHEC à l'étape 07_environnement_test"; grep -n "in <module>\|Expect \|waiting for\|AssertionError" /tmp/kk-07_environnement_test.log | head -8; exit 1; fi
+tail -n 2 /tmp/kk-07_environnement_test.log
+# … et le cas où il n'est pas encore installé dans la base : nouvel environnement, sans le second schéma
+KK_SANS_TEST=1 bash tests/kokolio/e2e/serveur-local.sh 3111 2>&1 | tail -1 > /tmp/kk-setup.txt
+CODE=$(grep CODE_ADMIN /tmp/kk-setup.txt | cut -d= -f2)
+if ! python3 tests/kokolio/e2e/08_test_non_installe.py "$CODE" > /tmp/kk-08_test_non_installe.log 2>&1; then echo "ÉCHEC à l'étape 08_test_non_installe"; grep -n "in <module>\|Expect \|waiting for\|AssertionError" /tmp/kk-08_test_non_installe.log | head -8; exit 1; fi
+tail -n 2 /tmp/kk-08_test_non_installe.log

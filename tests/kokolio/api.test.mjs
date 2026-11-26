@@ -68,7 +68,7 @@ after(() => { fake?.kill(); });
 
 test("santé, et refus des requêtes forgées", async () => {
   const h = await admin.call("health", {}, { method: "GET" });
-  assert.equal(h.ok, true); assert.equal(h.schema, 7);
+  assert.equal(h.ok, true); assert.equal(h.schema, 8);
   assert.equal((await admin.call("boot", {}, { drop: ["x-kokolio"] })).status, 403);
   assert.equal((await admin.call("boot", {}, { headers: { origin: "https://pirate.example" } })).status, 403);
   await admin.fail("boot", {}, "session", 401);
@@ -548,7 +548,7 @@ test("sorties, mots de passe, sessions", async () => {
 
 test("administration : motifs, état, autodiagnostic", async () => {
   const st = await admin.ok("admin/status");
-  assert.equal(st.users, 7); assert.equal(st.closures, 2); assert.ok(st.audit > 50); assert.equal(st.schema, 7);
+  assert.equal(st.users, 7); assert.equal(st.closures, 2); assert.ok(st.audit > 50); assert.equal(st.schema, 8);
   await admin.ok("admin/type-save", { type: { code: "paternite", label: "Congé paternité", category: "autre", export_code: "AB-PAT", needs_doc: true, absenteeism: false, sort: 45 } });
   await admin.fail("admin/type-save", { type: { code: "Pas Bon", label: "X" } }, "parametre");
   assert.ok((await nadia.ok("boot")).types.some((t) => t.code === "paternite" && t.needs_doc));

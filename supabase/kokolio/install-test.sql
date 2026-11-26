@@ -1,0 +1,2918 @@
+-- Kokolio — ENVIRONNEMENT DE TEST : installation et mise à jour (généré par build.sh à partir de install.sql, ne pas modifier à la main).
+-- Crée ou met à jour le schéma kokolio_test et la fonction public.kokolio_test_api. Ne lit ni ne modifie rien d'autre.
+begin;
+-- =====================================================================
+-- Kokolio — tables
+-- Tout vit dans le schéma privé « kokolio_test », qui n'est pas exposé par l'API.
+-- Script rejouable : il ne supprime ni table ni donnée.
+-- =====================================================================
+create schema if not exists kokolio_test;
+revoke all on schema kokolio_test from public;
+
+create table if not exists kokolio_test.meta (
+  key text primary key,
+  value jsonb not null,
+  updated_at timestamptz not null default now()
+);
+
+create table if not exists kokolio_test.users (
+  id uuid primary key default gen_random_uuid(),
+  login text not null,
+  role text not null default 'salarie' check (role in ('salarie', 'rh', 'admin')),
+  first_name text not null default '',
+  last_name text not null default '',
+  matricule text not null default '',
+  email text not null default '',
+  team text not null default '',
+  job text not null default '',
+  manager_id uuid references kokolio_test.users(id),
+  entry_date date,
+  exit_date date,
+  details jsonb not null default '{}'::jsonb,
+  pw_salt text,
+  pw_hash text,
+  pw_params jsonb,
+  pw_set_at timestamptz,
+  act_hash text,
+  act_expires timestamptz,
+  failed_count int not null default 0,
+  locked_until timestamptz,
+  disabled boolean not null default false,
+  version int not null default 1,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now(),
+  check (exit_date is null or entry_date is null or exit_date >= entry_date)
+);
+create unique index if not exists users_login_key on kokolio_test.users (lower(login));
+create unique index if not exists users_matricule_key on kokolio_test.users (matricule) where matricule <> '';
+create index if not exists users_manager_idx on kokolio_test.users (manager_id);
+-- Début de suivi propre au compte (schéma 3). Vide : le suivi commence à la mise en service de l'outil.
+-- Les RH le renseignent pour déployer l'outil équipe par équipe ; le chargement des données de démonstration le pose
+-- sur les comptes qui existaient déjà, pour que l'historique fictif ne les concerne pas.
+alter table kokolio_test.users add column if not exists tracked_from date;
+
+-- Horaires datés : une ligne par période. Modifier un horaire crée une nouvelle ligne, le passé reste intact.
+create table if not exists kokolio_test.contracts (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid not null references kokolio_test.users(id),
+  start_date date not null,
+  end_date date,
+  regime text not null default 'horaire' check (regime in ('horaire', 'forfait_jours')),
+  day_minutes int[] not null default '{420,420,420,420,420,0,0}',  -- lundi → dimanche
+  work_days int[] not null default '{1,2,3,4,5}',                  -- 1 = lundi … 7 = dimanche
+  pause_minutes int not null default 45,
+  cp_per_month numeric(5,2) not null default 2.08,
+  forfait_days int not null default 218,
+  created_by uuid references kokolio_test.users(id),
+  created_at timestamptz not null default now(),
+  check (end_date is null or end_date >= start_date),
+  check (array_length(day_minutes, 1) = 7),
+  unique (user_id, start_date)
+);
+
+-- ---------------------------------------------------------------------
+-- Planification (schéma 4) : horaires journaliers, cycles, exceptions d'un jour.
+-- Sans cycle, un salarié garde l'horaire fixe de son contrat : rien ne change pour lui.
+-- ---------------------------------------------------------------------
+-- Horaire journalier : une durée, et des plages indicatives (arrivée → départ) qui servent de repère au planning.
+create table if not exists kokolio_test.day_models (
+  code text primary key,
+  label text not null default '',
+  minutes int not null check (minutes between 1 and 960),
+  ranges jsonb not null default '[]'::jsonb,      -- [["08:45","13:15"],["14:00","18:00"]]
+  color text not null default '',
+  active boolean not null default true,
+  sort int not null default 100,
+  version int not null default 1,
+  created_by uuid references kokolio_test.users(id),
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+-- Cycle : une ou plusieurs semaines types qui se répètent. Chaque jour porte le code d'un horaire journalier, ou rien (repos).
+create table if not exists kokolio_test.cycles (
+  id uuid primary key default gen_random_uuid(),
+  name text not null,
+  weeks jsonb not null,                           -- [["J7","J7","J7","J7","J7",null,null], …] lundi → dimanche
+  active boolean not null default true,
+  version int not null default 1,
+  created_by uuid references kokolio_test.users(id),
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+create unique index if not exists cycles_name_key on kokolio_test.cycles (lower(name));
+-- Le contrat peut suivre un cycle (la semaine 1 commence le lundi « cycle_anchor ») et fixe le mode de présence :
+-- « pointage » (arrivée et départ) ou « automatique » (les jours prévus sont comptés d'office, sans pointer).
+alter table kokolio_test.contracts add column if not exists cycle_id uuid references kokolio_test.cycles(id);
+alter table kokolio_test.contracts add column if not exists cycle_anchor date;
+alter table kokolio_test.contracts add column if not exists presence text not null default 'pointage';
+do $$ begin
+  if not exists (select 1 from pg_constraint where conname = 'contracts_presence_check' and conrelid = 'kokolio_test.contracts'::regclass) then
+    alter table kokolio_test.contracts add constraint contracts_presence_check check (presence in ('pointage', 'automatique'));
+  end if;
+end $$;
+create index if not exists contracts_cycle_idx on kokolio_test.contracts (cycle_id) where cycle_id is not null;
+-- Exception d'un jour pour un salarié : elle remplace ce que prévoit son cycle ou son horaire fixe.
+-- La durée et les plages sont recopiées au moment de la saisie : modifier un horaire journalier ne réécrit pas ces jours-là.
+create table if not exists kokolio_test.plan_days (
+  user_id uuid not null references kokolio_test.users(id),
+  day date not null,
+  model_code text not null default '',            -- horaire journalier choisi, ou vide (saisie libre, repos)
+  label text not null default '',
+  minutes int not null check (minutes between 0 and 960),   -- 0 = repos
+  ranges jsonb not null default '[]'::jsonb,
+  note text not null default '',
+  set_by uuid references kokolio_test.users(id),
+  set_at timestamptz not null default now(),
+  primary key (user_id, day)
+);
+create index if not exists plan_days_day_idx on kokolio_test.plan_days (day);
+
+-- ---------------------------------------------------------------------
+-- Annualisation (schéma 5) : les heures se compensent sur une période de référence au lieu de la semaine.
+-- Un salarié est annualisé quand il suit un cycle annualisé. Sans période ni cycle annualisé, rien ne change.
+-- ---------------------------------------------------------------------
+alter table kokolio_test.cycles add column if not exists annualise boolean not null default false;
+-- Périodes de référence (elles ne se chevauchent pas).
+create table if not exists kokolio_test.annual_periods (
+  id uuid primary key default gen_random_uuid(),
+  label text not null,
+  start_date date not null,
+  end_date date not null,
+  version int not null default 1,
+  created_by uuid references kokolio_test.users(id),
+  created_at timestamptz not null default now(),
+  check (end_date >= start_date),
+  check (end_date - start_date <= 400)
+);
+-- Objectif d'un salarié pour une période, quand les RH le fixent. Sans ligne ici, l'objectif est le total des heures planifiées.
+create table if not exists kokolio_test.annual_goals (
+  user_id uuid not null references kokolio_test.users(id),
+  period_id uuid not null references kokolio_test.annual_periods(id),
+  minutes int not null check (minutes between 0 and 300000),
+  note text not null default '',
+  set_by uuid references kokolio_test.users(id),
+  set_at timestamptz not null default now(),
+  primary key (user_id, period_id)
+);
+-- Ajustements datés de l'objectif (ajout ou retrait), en ajout seul comme les écritures de solde.
+create table if not exists kokolio_test.annual_entries (
+  id bigserial primary key,
+  user_id uuid not null references kokolio_test.users(id),
+  period_id uuid not null references kokolio_test.annual_periods(id),
+  day date not null,
+  minutes int not null check (minutes between -60000 and 60000 and minutes <> 0),
+  reason text not null,
+  created_by uuid references kokolio_test.users(id),
+  created_at timestamptz not null default now()
+);
+create index if not exists annual_entries_user_idx on kokolio_test.annual_entries (user_id, period_id);
+
+-- ---------------------------------------------------------------------
+-- Anomalies (schéma 6). Les anomalies elles-mêmes sont calculées (retard, départ anticipé, pause…) : rien n'est stocké.
+-- Seul l'acquittement l'est : le responsable ou les RH indiquent qu'une anomalie a été vue et n'appelle pas de correction.
+-- ---------------------------------------------------------------------
+create table if not exists kokolio_test.anomaly_acks (
+  user_id uuid not null references kokolio_test.users(id),
+  day date not null,
+  kind text not null,
+  comment text not null default '',
+  acked_by uuid references kokolio_test.users(id),
+  acked_at timestamptz not null default now(),
+  primary key (user_id, day, kind)
+);
+create index if not exists anomaly_acks_day_idx on kokolio_test.anomaly_acks (day);
+
+-- Une ligne par salarié et par jour : les heures retenues et leur état de validation.
+create table if not exists kokolio_test.days (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid not null references kokolio_test.users(id),
+  day date not null,
+  times text[] not null default '{}',     -- 'HH:MM' croissants : arrivée, départ, arrivée, départ…
+  lieu text not null default 'bureau',
+  status text not null default 'a_valider' check (status in ('a_valider', 'valide', 'refuse')),
+  corrected boolean not null default false,
+  comment text not null default '',
+  refusal_reason text not null default '',
+  decided_by uuid references kokolio_test.users(id),
+  decided_at timestamptz,
+  version int not null default 1,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now(),
+  unique (user_id, day)
+);
+create index if not exists days_day_idx on kokolio_test.days (day);
+create index if not exists days_pending_idx on kokolio_test.days (user_id) where status <> 'valide';
+
+-- Trace brute de chaque pointage réel (heure du serveur). En ajout seul.
+create table if not exists kokolio_test.punch_log (
+  id bigserial primary key,
+  user_id uuid not null references kokolio_test.users(id),
+  ts timestamptz not null,
+  day date not null,
+  hhmm text not null,
+  kind text not null,
+  ip text not null default '',
+  ua text not null default ''
+);
+create index if not exists punch_log_user_day_idx on kokolio_test.punch_log (user_id, day);
+
+create table if not exists kokolio_test.absence_types (
+  code text primary key,
+  label text not null,
+  category text not null default 'autre' check (category in ('cp', 'rtt', 'maladie', 'autre')),
+  export_code text not null default '',
+  needs_doc boolean not null default false,
+  absenteeism boolean not null default true,
+  active boolean not null default true,
+  sort int not null default 100
+);
+
+create table if not exists kokolio_test.absences (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid not null references kokolio_test.users(id),
+  type_code text not null references kokolio_test.absence_types(code),
+  start_date date not null,
+  end_date date not null,
+  half text not null default '' check (half in ('', 'matin', 'apres_midi')),
+  days_count numeric(6,1) not null,
+  comment text not null default '',
+  status text not null default 'en_attente' check (status in ('en_attente', 'valide', 'refuse', 'annule')),
+  decided_by uuid references kokolio_test.users(id),
+  decided_at timestamptz,
+  refusal_reason text not null default '',
+  created_by uuid references kokolio_test.users(id),
+  has_doc boolean not null default false,
+  version int not null default 1,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now(),
+  check (end_date >= start_date),
+  check (half = '' or start_date = end_date)
+);
+-- Effet d'un motif d'absence sur l'annualisation (schéma 5) : « retire » = le temps prévu ce jour-là sort de l'objectif ;
+-- « realise » = il compte comme du temps fait ; « neutre » = l'objectif ne bouge pas, le temps reste à faire.
+alter table kokolio_test.absence_types add column if not exists annual text not null default 'retire';
+do $$ begin
+  if not exists (select 1 from pg_constraint where conname = 'absence_types_annual_check' and conrelid = 'kokolio_test.absence_types'::regclass) then
+    alter table kokolio_test.absence_types add constraint absence_types_annual_check check (annual in ('retire', 'realise', 'neutre'));
+  end if;
+end $$;
+-- Export de paie (schéma 7) : pour chaque motif, le décompte transmis à la paie (jours prévus au planning, ou jours calendaires)
+-- et, au format Sage, le report de ses dates sur le bulletin (lignes VB). À la création de la colonne, les congés payés y sont reportés.
+alter table kokolio_test.absence_types add column if not exists export_unit text not null default 'prevus';
+do $$ begin
+  if not exists (select 1 from pg_constraint where conname = 'absence_types_export_unit_check' and conrelid = 'kokolio_test.absence_types'::regclass) then
+    alter table kokolio_test.absence_types add constraint absence_types_export_unit_check check (export_unit in ('prevus', 'calendaires'));
+  end if;
+  if not exists (select 1 from information_schema.columns where table_schema = 'kokolio_test' and table_name = 'absence_types' and column_name = 'export_dates') then
+    alter table kokolio_test.absence_types add column export_dates boolean not null default false;
+    update kokolio_test.absence_types set export_dates = true where category = 'cp';
+  end if;
+end $$;
+create index if not exists absences_user_idx on kokolio_test.absences (user_id, start_date);
+create index if not exists absences_dates_idx on kokolio_test.absences (start_date, end_date);
+create index if not exists absences_pending_idx on kokolio_test.absences (user_id) where status = 'en_attente';
+
+-- Justificatifs : stockés ici, donc hors de portée de l'API publique.
+create table if not exists kokolio_test.attachments (
+  absence_id uuid primary key references kokolio_test.absences(id),
+  filename text not null,
+  mime text not null,
+  size int not null,
+  data bytea not null,
+  uploaded_by uuid references kokolio_test.users(id),
+  created_at timestamptz not null default now()
+);
+
+-- Écritures de solde : reports et ajustements, jamais modifiées après coup.
+create table if not exists kokolio_test.balance_entries (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid not null references kokolio_test.users(id),
+  kind text not null check (kind in ('cp', 'rtt')),
+  year int not null,
+  amount numeric(7,2) not null,
+  reason text not null default '',
+  tag text not null default '',
+  created_by uuid references kokolio_test.users(id),
+  created_at timestamptz not null default now()
+);
+create index if not exists balance_user_idx on kokolio_test.balance_entries (user_id, year);
+create unique index if not exists balance_tag_key on kokolio_test.balance_entries (user_id, kind, year, tag) where tag <> '';
+
+-- Clôtures mensuelles : chaque clôture fige les chiffres et l'export paie. Une réouverture crée une nouvelle version.
+create table if not exists kokolio_test.closures (
+  id uuid primary key default gen_random_uuid(),
+  month text not null check (month ~ '^[0-9]{4}-[0-9]{2}$'),
+  version int not null,
+  status text not null default 'cloture' check (status in ('cloture', 'rouvert')),
+  closed_by uuid references kokolio_test.users(id),
+  closed_at timestamptz not null default now(),
+  reopened_by uuid references kokolio_test.users(id),
+  reopened_at timestamptz,
+  reopen_reason text not null default '',
+  snapshot jsonb not null,
+  export_text text not null,
+  export_sha256 text not null,
+  unique (month, version)
+);
+
+create table if not exists kokolio_test.sessions (
+  token_hash text primary key,
+  user_id uuid not null references kokolio_test.users(id),
+  created_at timestamptz not null,
+  last_seen timestamptz not null,
+  expires_at timestamptz not null,
+  ip text not null default '',
+  ua text not null default ''
+);
+create index if not exists sessions_user_idx on kokolio_test.sessions (user_id);
+
+create table if not exists kokolio_test.throttle (
+  ip text primary key,
+  window_start timestamptz not null,
+  hits int not null
+);
+
+-- Journal des actions : en ajout seul, chaque ligne est chaînée à la précédente par une empreinte.
+create table if not exists kokolio_test.audit (
+  seq bigserial primary key,
+  ts timestamptz not null,
+  actor uuid,
+  actor_label text not null default '',
+  action text not null,
+  target_user uuid,
+  target text not null default '',
+  detail jsonb not null default '{}'::jsonb,
+  ip text not null default '',
+  prev_hash text not null,
+  hash text not null
+);
+create index if not exists audit_target_idx on kokolio_test.audit (target_user, seq desc);
+create index if not exists audit_actor_idx on kokolio_test.audit (actor, seq desc);
+
+-- Défense en profondeur : même si le schéma était un jour exposé, aucune ligne ne serait lisible sans passer par les fonctions.
+alter table kokolio_test.meta enable row level security;
+alter table kokolio_test.users enable row level security;
+alter table kokolio_test.contracts enable row level security;
+alter table kokolio_test.days enable row level security;
+alter table kokolio_test.punch_log enable row level security;
+alter table kokolio_test.absence_types enable row level security;
+alter table kokolio_test.absences enable row level security;
+alter table kokolio_test.attachments enable row level security;
+alter table kokolio_test.balance_entries enable row level security;
+alter table kokolio_test.closures enable row level security;
+alter table kokolio_test.sessions enable row level security;
+alter table kokolio_test.throttle enable row level security;
+alter table kokolio_test.audit enable row level security;
+alter table kokolio_test.day_models enable row level security;
+alter table kokolio_test.cycles enable row level security;
+alter table kokolio_test.plan_days enable row level security;
+alter table kokolio_test.annual_periods enable row level security;
+alter table kokolio_test.annual_goals enable row level security;
+alter table kokolio_test.annual_entries enable row level security;
+alter table kokolio_test.anomaly_acks enable row level security;
+
+-- Valeurs de départ (jamais écrasées si elles existent déjà)
+insert into kokolio_test.meta (key, value) values
+  ('audit_head', '{"seq": 0, "hash": ""}'::jsonb),
+  ('pepper', jsonb_build_object('v', encode(sha256(convert_to(gen_random_uuid()::text || gen_random_uuid()::text, 'UTF8')), 'hex'))),
+  ('settings', jsonb_build_object(
+    'version', 1,
+    'company', 'Centre Européen de Formation',
+    'logo_url', 'https://www.centre-europeen-formation.fr/wp-content/uploads/2025/08/Logo_CEF.png',
+    'timezone', 'Europe/Paris',
+    'go_live', to_char(now() at time zone 'Europe/Paris', 'YYYY-MM-DD'),
+    'lieux', jsonb_build_array(
+      jsonb_build_object('code', 'bureau', 'label', 'Bureau'),
+      jsonb_build_object('code', 'teletravail', 'label', 'Télétravail'),
+      jsonb_build_object('code', 'deplacement', 'label', 'Déplacement')),
+    'pause_threshold_min', 360,
+    'max_day_min', 600,
+    'max_week_min', 2880,
+    'min_rest_min', 660,
+    'activation_days', 14,
+    'night_until', '',
+    'export', jsonb_build_object('hours_code', 'HS-HN', 'include_hours', true, 'sep', ';', 'decimal', ',', 'header', true)))
+on conflict (key) do nothing;
+
+insert into kokolio_test.absence_types (code, label, category, export_code, needs_doc, absenteeism, sort, export_dates) values
+  ('cp', 'Congé payé', 'cp', 'AB-CP', false, false, 10, true),
+  ('rtt', 'RTT', 'rtt', 'AB-RTT', false, false, 20, false),
+  ('maladie', 'Arrêt maladie', 'maladie', 'AB-MAL', true, true, 30, false),
+  ('sans_solde', 'Congé sans solde', 'autre', 'AB-CSS', false, true, 40, false),
+  ('evenement', 'Événement familial', 'autre', 'AB-EVF', false, true, 50, false),
+  ('formation', 'Formation', 'autre', 'AB-FORM', false, false, 60, false),
+  ('autre', 'Autre absence', 'autre', 'AB-ABS', false, true, 70, false)
+on conflict (code) do nothing;
+-- =====================================================================
+-- Kokolio — socle : horloge, erreurs, verrous de clôture, journal, sessions, droits
+-- =====================================================================
+
+create or replace function kokolio_test._fail(p_code text, p_msg text) returns void language plpgsql as $$
+begin
+  raise exception 'KK:%:%', p_code, p_msg;
+end $$;
+
+-- Environnement de cette installation : « production », ou « test » pour la copie installée à côté (script install-test.sql).
+-- install-test.sql est ce même script où le nom du schéma est remplacé partout : la comparaison ci-dessous change alors de résultat.
+create or replace function kokolio_test._env() returns text language sql immutable as $$
+  select case when 'kokolio_test' like '%\_test' then 'test' else 'production' end
+$$;
+
+create or replace function kokolio_test._tz() returns text language sql stable as $$
+  select coalesce((select m.value->>'timezone' from kokolio_test.meta m where m.key = 'settings'), 'Europe/Paris')
+$$;
+
+-- L'heure fait foi côté serveur. Elle n'est remplaçable qu'en mode test (ligne « test_mode » absente en production).
+create or replace function kokolio_test._now() returns timestamptz language plpgsql stable as $$
+declare v_fake text;
+begin
+  v_fake := nullif(current_setting('kokolio_test.test_now', true), '');
+  if v_fake is not null and exists (select 1 from kokolio_test.meta m where m.key = 'test_mode' and m.value = 'true'::jsonb) then
+    return v_fake::timestamptz;
+  end if;
+  return now();
+end $$;
+
+create or replace function kokolio_test._today() returns date language sql stable as $$
+  select (kokolio_test._now() at time zone kokolio_test._tz())::date
+$$;
+
+create or replace function kokolio_test._hm() returns text language sql stable as $$
+  select to_char(kokolio_test._now() at time zone kokolio_test._tz(), 'HH24:MI')
+$$;
+
+create or replace function kokolio_test._month_closed(p_month text) returns boolean language sql stable as $$
+  select coalesce((select c.status = 'cloture' from kokolio_test.closures c where c.month = p_month order by c.version desc limit 1), false)
+$$;
+
+create or replace function kokolio_test._range_closed(p_from date, p_to date) returns boolean language sql stable as $$
+  select exists (
+    select 1 from generate_series(date_trunc('month', p_from::timestamp), date_trunc('month', p_to::timestamp), interval '1 month') g
+    where kokolio_test._month_closed(to_char(g, 'YYYY-MM')))
+$$;
+
+create or replace function kokolio_test._closed_months() returns jsonb language sql stable as $$
+  select coalesce(jsonb_agg(x.month order by x.month), '[]'::jsonb)
+  from (select distinct on (c.month) c.month, c.status from kokolio_test.closures c order by c.month, c.version desc) x
+  where x.status = 'cloture'
+$$;
+
+-- ---------------------------------------------------------------------
+-- Verrous de clôture : même le propriétaire de la base ne peut pas modifier un mois clôturé sans le rouvrir.
+-- ---------------------------------------------------------------------
+create or replace function kokolio_test._guard_days() returns trigger language plpgsql as $$
+begin
+  if tg_op <> 'INSERT' and kokolio_test._month_closed(to_char(old.day, 'YYYY-MM')) then
+    raise exception 'KK:cloture:Ce mois est clôturé : plus aucune modification possible.';
+  end if;
+  if tg_op <> 'DELETE' and kokolio_test._month_closed(to_char(new.day, 'YYYY-MM')) then
+    raise exception 'KK:cloture:Ce mois est clôturé : plus aucune modification possible.';
+  end if;
+  if tg_op = 'DELETE' then return old; end if;
+  return new;
+end $$;
+create or replace trigger days_guard before insert or update or delete on kokolio_test.days
+  for each row execute function kokolio_test._guard_days();
+-- Le planning d'un mois clôturé est figé comme ses journées.
+create or replace trigger plan_days_guard before insert or update or delete on kokolio_test.plan_days
+  for each row execute function kokolio_test._guard_days();
+
+create or replace function kokolio_test._guard_absences() returns trigger language plpgsql as $$
+begin
+  -- seul le dépôt tardif d'un justificatif reste possible sur un mois clôturé : il ne change aucun chiffre
+  if tg_op = 'UPDATE' and (to_jsonb(old) - 'has_doc' - 'updated_at') = (to_jsonb(new) - 'has_doc' - 'updated_at') then
+    return new;
+  end if;
+  if tg_op <> 'INSERT' and kokolio_test._range_closed(old.start_date, old.end_date) then
+    raise exception 'KK:cloture:Cette absence touche un mois clôturé : plus aucune modification possible.';
+  end if;
+  if tg_op <> 'DELETE' and kokolio_test._range_closed(new.start_date, new.end_date) then
+    raise exception 'KK:cloture:Cette absence touche un mois clôturé : plus aucune modification possible.';
+  end if;
+  if tg_op = 'DELETE' then return old; end if;
+  return new;
+end $$;
+create or replace trigger absences_guard before insert or update or delete on kokolio_test.absences
+  for each row execute function kokolio_test._guard_absences();
+
+-- ---------------------------------------------------------------------
+-- Tables en ajout seul : journal, trace des pointages, écritures de solde
+-- ---------------------------------------------------------------------
+create or replace function kokolio_test._append_only() returns trigger language plpgsql as $$
+begin
+  -- Seule exception : l'effacement des données de démonstration, qui pose ce drapeau le temps de sa transaction
+  -- (voir _demo_reset : administrateur, et uniquement si l'outil est en mode démonstration).
+  if tg_op = 'DELETE' and current_setting('kokolio_test.purge', true) = '1' then
+    return old;
+  end if;
+  raise exception 'KK:journal:Cette table est en ajout seul : aucune modification ni suppression.';
+end $$;
+create or replace trigger audit_append_only before update or delete on kokolio_test.audit
+  for each row execute function kokolio_test._append_only();
+create or replace trigger audit_no_truncate before truncate on kokolio_test.audit
+  for each statement execute function kokolio_test._append_only();
+create or replace trigger punch_log_append_only before update or delete on kokolio_test.punch_log
+  for each row execute function kokolio_test._append_only();
+create or replace trigger punch_log_no_truncate before truncate on kokolio_test.punch_log
+  for each statement execute function kokolio_test._append_only();
+create or replace trigger annual_entries_append_only before update or delete on kokolio_test.annual_entries
+  for each row execute function kokolio_test._append_only();
+create or replace trigger balance_append_only before update or delete on kokolio_test.balance_entries
+  for each row execute function kokolio_test._append_only();
+
+-- ---------------------------------------------------------------------
+-- Journal chaîné : chaque ligne porte l'empreinte de la précédente.
+-- ---------------------------------------------------------------------
+create or replace function kokolio_test._audit_hash(p_prev text, p_seq bigint, p_ts timestamptz, p_actor uuid, p_label text,
+    p_action text, p_target_user uuid, p_target text, p_detail jsonb, p_ip text) returns text language sql stable as $$
+  select encode(sha256(convert_to(
+    p_prev || '|' || p_seq::text || '|' || to_char(p_ts at time zone 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS.US') || '|' ||
+    coalesce(p_actor::text, '') || '|' || p_label || '|' || p_action || '|' || coalesce(p_target_user::text, '') || '|' ||
+    p_target || '|' || p_detail::text || '|' || p_ip, 'UTF8')), 'hex')
+$$;
+
+create or replace function kokolio_test._audit(p_actor uuid, p_action text, p_target_user uuid, p_target text, p_detail jsonb, p_ip text)
+returns void language plpgsql as $$
+declare
+  v_head jsonb; v_prev text; v_hash text; v_seq bigint; v_ts timestamptz := clock_timestamp(); v_label text := '';
+  v_detail jsonb := coalesce(p_detail, '{}'::jsonb); v_target text := coalesce(p_target, ''); v_ip text := coalesce(p_ip, '');
+begin
+  select m.value into v_head from kokolio_test.meta m where m.key = 'audit_head' for update;
+  v_prev := coalesce(v_head->>'hash', '');
+  v_seq := nextval('kokolio_test.audit_seq_seq');
+  if p_actor is not null then
+    select trim(u.first_name || ' ' || u.last_name) || ' (' || u.login || ')' into v_label from kokolio_test.users u where u.id = p_actor;
+    v_label := coalesce(v_label, '');
+  end if;
+  v_hash := kokolio_test._audit_hash(v_prev, v_seq, v_ts, p_actor, v_label, p_action, p_target_user, v_target, v_detail, v_ip);
+  insert into kokolio_test.audit (seq, ts, actor, actor_label, action, target_user, target, detail, ip, prev_hash, hash)
+  values (v_seq, v_ts, p_actor, v_label, p_action, p_target_user, v_target, v_detail, v_ip, v_prev, v_hash);
+  update kokolio_test.meta set value = jsonb_build_object('seq', v_seq, 'hash', v_hash), updated_at = now() where key = 'audit_head';
+end $$;
+
+-- ---------------------------------------------------------------------
+-- Représentations JSON
+-- ---------------------------------------------------------------------
+create or replace function kokolio_test._user_json(u kokolio_test.users, p_full boolean) returns jsonb language plpgsql stable as $$
+declare v_j jsonb; v_mgr text;
+begin
+  select trim(m.first_name || ' ' || m.last_name) into v_mgr from kokolio_test.users m where m.id = u.manager_id;
+  v_j := jsonb_build_object(
+    'id', u.id, 'login', u.login, 'role', u.role, 'first_name', u.first_name, 'last_name', u.last_name,
+    'name', trim(u.first_name || ' ' || u.last_name), 'matricule', u.matricule, 'team', u.team, 'job', u.job,
+    'manager_id', u.manager_id, 'manager_name', coalesce(v_mgr, ''), 'entry_date', u.entry_date, 'exit_date', u.exit_date,
+    'tracked_from', u.tracked_from, 'disabled', u.disabled, 'version', u.version, 'activated', u.pw_hash is not null,
+    'code_pending', (u.act_hash is not null and u.act_expires > kokolio_test._now()));
+  if p_full then
+    v_j := v_j || jsonb_build_object('email', u.email, 'details', u.details,
+      'locked', (u.locked_until is not null and u.locked_until > kokolio_test._now()),
+      'code_expires', case when u.act_hash is not null then u.act_expires end);
+  end if;
+  return v_j;
+end $$;
+
+create or replace function kokolio_test._day_json(d kokolio_test.days) returns jsonb language sql stable as $$
+  select to_jsonb(d) - 'created_at'
+$$;
+
+create or replace function kokolio_test._abs_json(a kokolio_test.absences) returns jsonb language sql stable as $$
+  select to_jsonb(a)
+$$;
+
+create or replace function kokolio_test._contract_json(c kokolio_test.contracts) returns jsonb language sql stable as $$
+  select to_jsonb(c) - 'created_by' - 'created_at'
+$$;
+
+-- Un cycle avec ses horaires journaliers résolus : le calcul n'a plus besoin de la bibliothèque.
+create or replace function kokolio_test._cycle_json(p_id uuid) returns jsonb language sql stable as $$
+  select jsonb_build_object('id', c.id, 'name', c.name, 'active', c.active, 'version', c.version, 'annualise', c.annualise,
+    'weeks', (select coalesce(jsonb_agg(
+        (select jsonb_agg(case when m.code is null then 'null'::jsonb
+                               else jsonb_build_object('code', m.code, 'label', m.label, 'minutes', m.minutes, 'ranges', m.ranges, 'color', m.color) end order by d.o)
+         from jsonb_array_elements_text(w.v) with ordinality as d(code, o) left join kokolio_test.day_models m on m.code = d.code)
+        order by w.o), '[]'::jsonb)
+      from jsonb_array_elements(c.weeks) with ordinality as w(v, o)))
+  from kokolio_test.cycles c where c.id = p_id
+$$;
+-- Un cycle (ou un horaire journalier) qui a servi dans un mois clôturé ne change plus de composition : on en crée un nouveau.
+create or replace function kokolio_test._cycle_locked(p_id uuid) returns boolean language sql stable as $$
+  select exists (
+    select 1 from kokolio_test.contracts k, jsonb_array_elements_text(kokolio_test._closed_months()) m
+    where k.cycle_id = p_id and m >= to_char(k.start_date, 'YYYY-MM') and (k.end_date is null or m <= to_char(k.end_date, 'YYYY-MM')))
+$$;
+create or replace function kokolio_test._model_cycles(p_code text) returns uuid[] language sql stable as $$
+  select coalesce(array_agg(c.id), '{}') from kokolio_test.cycles c
+  where exists (select 1 from jsonb_array_elements(c.weeks) w, jsonb_array_elements_text(w) x where x = p_code)
+$$;
+
+-- ---------------------------------------------------------------------
+-- Sessions et droits
+-- ---------------------------------------------------------------------
+create or replace function kokolio_test._session_new(p_user uuid, p_token text, p_ip text, p_ua text) returns void language plpgsql as $$
+declare v_now timestamptz := kokolio_test._now();
+begin
+  if p_token is null or p_token !~ '^[0-9a-f]{64}$' then
+    perform kokolio_test._fail('requete', 'Jeton de session invalide.');
+  end if;
+  insert into kokolio_test.sessions (token_hash, user_id, created_at, last_seen, expires_at, ip, ua)
+  values (p_token, p_user, v_now, v_now, v_now + interval '30 days', coalesce(p_ip, ''), left(coalesce(p_ua, ''), 200));
+  -- au plus dix appareils par compte, et ménage des sessions expirées
+  delete from kokolio_test.sessions s where s.user_id = p_user and s.token_hash not in (
+    select s2.token_hash from kokolio_test.sessions s2 where s2.user_id = p_user order by s2.last_seen desc limit 10);
+  delete from kokolio_test.sessions s where s.expires_at < v_now - interval '1 day';
+end $$;
+
+create or replace function kokolio_test._me(p jsonb) returns kokolio_test.users language plpgsql as $$
+declare me kokolio_test.users; s kokolio_test.sessions; v_now timestamptz := kokolio_test._now();
+begin
+  select * into s from kokolio_test.sessions x where x.token_hash = coalesce(p->>'token', '');
+  if s.token_hash is null or s.expires_at <= v_now then
+    perform kokolio_test._fail('session', 'Votre session a expiré. Reconnectez-vous.');
+  end if;
+  select * into me from kokolio_test.users u where u.id = s.user_id;
+  if me.id is null or me.disabled or (me.exit_date is not null and me.exit_date < kokolio_test._today()) then
+    perform kokolio_test._fail('session', 'Ce compte est désactivé.');
+  end if;
+  if s.last_seen < v_now - interval '10 minutes' then
+    update kokolio_test.sessions set last_seen = v_now, expires_at = least(s.created_at + interval '90 days', v_now + interval '30 days')
+    where token_hash = s.token_hash;
+  end if;
+  return me;
+end $$;
+
+create or replace function kokolio_test._is_rh(me kokolio_test.users) returns boolean language sql immutable as $$
+  select (me).role in ('rh', 'admin')
+$$;
+
+-- Voir un salarié : soi-même, son responsable direct, les RH.
+create or replace function kokolio_test._can_see(me kokolio_test.users, p_target uuid) returns boolean language sql stable as $$
+  select (me).id = p_target or (me).role in ('rh', 'admin')
+    or exists (select 1 from kokolio_test.users u where u.id = p_target and u.manager_id = (me).id)
+$$;
+
+-- Valider pour un salarié : son responsable direct ou les RH, jamais soi-même
+-- (seule exception : un administrateur sans responsable, pour ne pas bloquer la clôture).
+create or replace function kokolio_test._can_manage(me kokolio_test.users, p_target uuid) returns boolean language sql stable as $$
+  select case
+    when (me).id = p_target then (me).role = 'admin' and (me).manager_id is null
+    else (me).role in ('rh', 'admin') or exists (select 1 from kokolio_test.users u where u.id = p_target and u.manager_id = (me).id)
+  end
+$$;
+
+create or replace function kokolio_test._lieu_ok(p_code text) returns boolean language sql stable as $$
+  select exists (
+    select 1 from kokolio_test.meta m, jsonb_array_elements(m.value->'lieux') l
+    where m.key = 'settings' and l->>'code' = p_code)
+$$;
+
+-- Liste d'heures 'HH:MM' : format, ordre, nombre.
+-- Travail de nuit : heure du matin jusqu'à laquelle un départ est rattaché à la journée de la veille. Vide = fonction désactivée.
+create or replace function kokolio_test._night() returns text language sql stable as $$
+  select case when coalesce(m.value->>'night_until', '') ~ '^(0[0-9]|1[01]):[0-5][0-9]$' then m.value->>'night_until' else '' end
+  from kokolio_test.meta m where m.key = 'settings'
+$$;
+-- Une heure du lendemain s'écrit au-delà de 24 h : 01:30 le lendemain = « 25:30 ».
+create or replace function kokolio_test._plus24(p_hm text) returns text language sql immutable as $$
+  select lpad((substr(p_hm, 1, 2)::int + 24)::text, 2, '0') || substr(p_hm, 3)
+$$;
+
+create or replace function kokolio_test._times(p_j jsonb) returns text[] language plpgsql stable as $$
+declare v_out text[] := '{}'; v_t text; v_prev text := ''; v_night text := coalesce(kokolio_test._night(), '');
+begin
+  if p_j is null or jsonb_typeof(p_j) <> 'array' then
+    perform kokolio_test._fail('heures', 'Liste d''heures invalide.');
+  end if;
+  for v_t in select x.v from jsonb_array_elements_text(p_j) with ordinality as x(v, o) order by x.o loop
+    if v_t !~ '^([01][0-9]|2[0-9]|3[0-5]):[0-5][0-9]$' then
+      perform kokolio_test._fail('heures', 'Heure invalide : ' || left(v_t, 10));
+    end if;
+    if v_t >= '24:00' and (v_night = '' or v_t > kokolio_test._plus24(v_night)) then
+      perform kokolio_test._fail('heures', case when v_night = '' then 'Heure invalide : ' || left(v_t, 10)
+        else 'Un départ après minuit est accepté jusqu''à ' || v_night || ' le lendemain.' end);
+    end if;
+    if v_t < v_prev then
+      perform kokolio_test._fail('heures', 'Les heures doivent se suivre dans l''ordre.');
+    end if;
+    v_out := v_out || v_t;
+    v_prev := v_t;
+  end loop;
+  if coalesce(array_length(v_out, 1), 0) > 20 then
+    perform kokolio_test._fail('heures', 'Trop de pointages pour une seule journée.');
+  end if;
+  return v_out;
+end $$;
+
+-- Plages indicatives d'un horaire : 0 à 4 plages « début → fin » qui se suivent. Une fin au-delà de 24 h désigne le lendemain.
+create or replace function kokolio_test._ranges(p_j jsonb) returns jsonb language plpgsql immutable as $$
+declare v_r jsonb; v_a text; v_b text; v_prev text := ''; v_out jsonb := '[]'::jsonb;
+begin
+  if p_j is null or jsonb_typeof(p_j) = 'null' then return v_out; end if;
+  if jsonb_typeof(p_j) <> 'array' or jsonb_array_length(p_j) > 4 then perform kokolio_test._fail('horaire', 'Plages horaires invalides (quatre au plus).'); end if;
+  for v_r in select x.v from jsonb_array_elements(p_j) with ordinality as x(v, o) order by x.o loop
+    if jsonb_typeof(v_r) <> 'array' or jsonb_array_length(v_r) <> 2 then perform kokolio_test._fail('horaire', 'Plage horaire invalide.'); end if;
+    v_a := v_r->>0; v_b := v_r->>1;
+    if coalesce(v_a, '') !~ '^([01][0-9]|2[0-3]):[0-5][0-9]$' or coalesce(v_b, '') !~ '^([01][0-9]|2[0-9]|3[0-5]):[0-5][0-9]$' then
+      perform kokolio_test._fail('horaire', 'Heure de plage invalide.');
+    end if;
+    if v_b <= v_a or v_a < v_prev then perform kokolio_test._fail('horaire', 'Les plages doivent se suivre, chacune avec une fin après son début.'); end if;
+    v_out := v_out || jsonb_build_array(jsonb_build_array(v_a, v_b));
+    v_prev := v_b;
+  end loop;
+  return v_out;
+end $$;
+
+-- Limitation des tentatives par adresse : 30 échecs par tranche de 10 minutes.
+create or replace function kokolio_test._throttled(p_ip text) returns boolean language sql stable as $$
+  select coalesce(p_ip, '') <> '' and exists (
+    select 1 from kokolio_test.throttle t
+    where t.ip = p_ip and t.window_start > kokolio_test._now() - interval '10 minutes' and t.hits >= 30)
+$$;
+
+create or replace function kokolio_test._throttle_hit(p_ip text) returns void language plpgsql as $$
+declare v_now timestamptz := kokolio_test._now();
+begin
+  if coalesce(p_ip, '') = '' then return; end if;
+  insert into kokolio_test.throttle as t (ip, window_start, hits) values (p_ip, v_now, 1)
+  on conflict (ip) do update set
+    hits = case when t.window_start > v_now - interval '10 minutes' then t.hits + 1 else 1 end,
+    window_start = case when t.window_start > v_now - interval '10 minutes' then t.window_start else v_now end;
+  delete from kokolio_test.throttle x where x.window_start < v_now - interval '1 day';
+end $$;
+
+-- Différences entre deux versions d'une ligne, pour le journal.
+create or replace function kokolio_test._diff(p_old jsonb, p_new jsonb, p_keys text[]) returns jsonb language sql immutable as $$
+  select coalesce(jsonb_object_agg(k, jsonb_build_array(p_old->k, p_new->k)), '{}'::jsonb)
+  from unnest(p_keys) k
+  where (p_old->k) is distinct from (p_new->k)
+$$;
+-- =====================================================================
+-- Kokolio — comptes : connexion, activation, mot de passe
+-- Le mot de passe n'arrive jamais ici en clair : le serveur l'a déjà transformé (scrypt) avec le sel du compte.
+-- =====================================================================
+
+create or replace function kokolio_test._account_ok(u kokolio_test.users) returns boolean language sql stable as $$
+  select (u).id is not null and not (u).disabled and ((u).exit_date is null or (u).exit_date >= kokolio_test._today())
+$$;
+
+-- Sel du compte. Pour un identifiant inconnu, un sel factice mais stable est renvoyé :
+-- la réponse ne permet pas de savoir si le compte existe.
+create or replace function kokolio_test._auth_salt(p_args jsonb) returns jsonb language plpgsql stable as $$
+declare u kokolio_test.users; v_login text := lower(trim(coalesce(p_args->>'login', ''))); v_pepper text;
+begin
+  select * into u from kokolio_test.users x where lower(x.login) = v_login;
+  if u.id is not null and u.pw_hash is not null then
+    return jsonb_build_object('salt', u.pw_salt, 'params', u.pw_params);
+  end if;
+  select m.value->>'v' into v_pepper from kokolio_test.meta m where m.key = 'pepper';
+  return jsonb_build_object(
+    'salt', substr(encode(sha256(convert_to(coalesce(v_pepper, '') || '|' || v_login, 'UTF8')), 'hex'), 1, 32),
+    'params', null);
+end $$;
+
+create or replace function kokolio_test._auth_fail(u kokolio_test.users, p_ip text) returns jsonb language plpgsql as $$
+declare v_now timestamptz := kokolio_test._now();
+begin
+  perform kokolio_test._throttle_hit(p_ip);
+  if u.id is null then
+    return jsonb_build_object('status', 'fail');
+  end if;
+  if u.failed_count + 1 >= 5 then
+    update kokolio_test.users set failed_count = 0, locked_until = v_now + interval '15 minutes' where id = u.id;
+    perform kokolio_test._audit(null, 'compte_bloque', u.id, u.login, jsonb_build_object('motif', '5 échecs consécutifs'), p_ip);
+    return jsonb_build_object('status', 'locked', 'until', v_now + interval '15 minutes');
+  end if;
+  update kokolio_test.users set failed_count = u.failed_count + 1 where id = u.id;
+  return jsonb_build_object('status', 'fail');
+end $$;
+
+create or replace function kokolio_test._login(p jsonb, p_args jsonb) returns jsonb language plpgsql as $$
+declare
+  u kokolio_test.users; v_now timestamptz := kokolio_test._now(); v_ip text := coalesce(p->>'ip', '');
+  v_login text := lower(trim(coalesce(p_args->>'login', '')));
+begin
+  if kokolio_test._throttled(v_ip) then
+    return jsonb_build_object('status', 'throttled');
+  end if;
+  select * into u from kokolio_test.users x where lower(x.login) = v_login for update;
+  if u.id is not null and u.locked_until is not null and u.locked_until > v_now then
+    return jsonb_build_object('status', 'locked', 'until', u.locked_until);
+  end if;
+  if not coalesce(kokolio_test._account_ok(u) and u.pw_hash is not null and u.pw_hash = coalesce(p_args->>'pw_hash', ''), false) then
+    return kokolio_test._auth_fail(u, v_ip);
+  end if;
+  update kokolio_test.users set failed_count = 0, locked_until = null where id = u.id;
+  perform kokolio_test._session_new(u.id, p_args->>'new_token', v_ip, p->>'ua');
+  perform kokolio_test._audit(u.id, 'connexion', u.id, '', '{}'::jsonb, v_ip);
+  return jsonb_build_object('status', 'ok', 'user', kokolio_test._user_json(u, true));
+end $$;
+
+create or replace function kokolio_test._pw_check(p_args jsonb) returns void language plpgsql as $$
+begin
+  if coalesce(p_args->>'salt', '') !~ '^[0-9a-f]{32}$' or coalesce(p_args->>'pw_hash', '') !~ '^[0-9a-f]{64}$'
+     or jsonb_typeof(p_args->'params') is distinct from 'object' then
+    perform kokolio_test._fail('requete', 'Mot de passe mal formé.');
+  end if;
+end $$;
+
+-- Première connexion ou mot de passe oublié : identifiant + code d'activation + nouveau mot de passe.
+create or replace function kokolio_test._activate(p jsonb, p_args jsonb) returns jsonb language plpgsql as $$
+declare
+  u kokolio_test.users; v_now timestamptz := kokolio_test._now(); v_ip text := coalesce(p->>'ip', '');
+  v_login text := lower(trim(coalesce(p_args->>'login', '')));
+begin
+  perform kokolio_test._pw_check(p_args);
+  if kokolio_test._throttled(v_ip) then
+    return jsonb_build_object('status', 'throttled');
+  end if;
+  select * into u from kokolio_test.users x where lower(x.login) = v_login for update;
+  if u.id is not null and u.locked_until is not null and u.locked_until > v_now then
+    return jsonb_build_object('status', 'locked', 'until', u.locked_until);
+  end if;
+  if not coalesce(kokolio_test._account_ok(u) and u.act_hash is not null and u.act_expires > v_now
+          and u.act_hash = coalesce(p_args->>'code_hash', ''), false) then
+    return kokolio_test._auth_fail(u, v_ip);
+  end if;
+  update kokolio_test.users set pw_salt = p_args->>'salt', pw_hash = p_args->>'pw_hash', pw_params = p_args->'params', pw_set_at = v_now,
+    act_hash = null, act_expires = null, failed_count = 0, locked_until = null, updated_at = v_now
+  where id = u.id returning * into u;
+  delete from kokolio_test.sessions s where s.user_id = u.id;
+  perform kokolio_test._session_new(u.id, p_args->>'new_token', v_ip, p->>'ua');
+  perform kokolio_test._audit(u.id, 'compte_active', u.id, '', '{}'::jsonb, v_ip);
+  return jsonb_build_object('status', 'ok', 'user', kokolio_test._user_json(u, true));
+end $$;
+
+create or replace function kokolio_test._password_change(me kokolio_test.users, p jsonb, p_args jsonb) returns jsonb language plpgsql as $$
+declare v_now timestamptz := kokolio_test._now();
+begin
+  perform kokolio_test._pw_check(p_args);
+  if not coalesce(me.pw_hash = coalesce(p_args->>'old_hash', ''), false) then
+    perform kokolio_test._fail('mot_de_passe', 'Le mot de passe actuel est incorrect.');
+  end if;
+  update kokolio_test.users set pw_salt = p_args->>'salt', pw_hash = p_args->>'pw_hash', pw_params = p_args->'params', pw_set_at = v_now, updated_at = v_now
+  where id = me.id;
+  delete from kokolio_test.sessions s where s.user_id = me.id and s.token_hash <> coalesce(p->>'token', '');
+  perform kokolio_test._audit(me.id, 'mot_de_passe_change', me.id, '', '{}'::jsonb, coalesce(p->>'ip', ''));
+  return '{}'::jsonb;
+end $$;
+
+-- Nouveau code d'activation (le code lui-même est tiré au hasard par le serveur, seule son empreinte arrive ici).
+-- Salarié : ses RH ou son responsable direct. Compte RH ou administrateur : un administrateur uniquement.
+create or replace function kokolio_test._activation_new(me kokolio_test.users, p jsonb, p_args jsonb) returns jsonb language plpgsql as $$
+declare u kokolio_test.users; v_days int; v_now timestamptz := kokolio_test._now();
+begin
+  select * into u from kokolio_test.users x where x.id = nullif(p_args->>'user_id', '')::uuid for update;
+  if u.id is null then perform kokolio_test._fail('introuvable', 'Salarié introuvable.'); end if;
+  if u.id = me.id then perform kokolio_test._fail('interdit', 'Pour votre propre compte, utilisez « Changer mon mot de passe ».'); end if;
+  if u.role = 'salarie' then
+    if not (me.role in ('rh', 'admin') or u.manager_id = me.id) then
+      perform kokolio_test._fail('interdit', 'Vous ne pouvez pas générer de code pour ce salarié.');
+    end if;
+  elsif me.role <> 'admin' then
+    perform kokolio_test._fail('interdit', 'Seul un administrateur peut générer un code pour un compte RH ou administrateur.');
+  end if;
+  if coalesce(p_args->>'code_hash', '') !~ '^[0-9a-f]{64}$' then perform kokolio_test._fail('requete', 'Code mal formé.'); end if;
+  select coalesce((m.value->>'activation_days')::int, 14) into v_days from kokolio_test.meta m where m.key = 'settings';
+  update kokolio_test.users set act_hash = p_args->>'code_hash', act_expires = v_now + make_interval(days => coalesce(v_days, 14)),
+    failed_count = 0, locked_until = null, updated_at = v_now where id = u.id returning * into u;
+  perform kokolio_test._audit(me.id, 'code_activation_genere', u.id, u.login, jsonb_build_object('deja_active', u.pw_hash is not null), coalesce(p->>'ip', ''));
+  return jsonb_build_object('user', kokolio_test._user_json(u, me.role in ('rh', 'admin')), 'expires', u.act_expires);
+end $$;
+
+create or replace function kokolio_test._sessions(me kokolio_test.users, p jsonb) returns jsonb language sql stable as $$
+  select coalesce(jsonb_agg(jsonb_build_object('current', s.token_hash = coalesce(p->>'token', ''), 'created_at', s.created_at,
+    'last_seen', s.last_seen, 'ua', s.ua) order by s.last_seen desc), '[]'::jsonb)
+  from kokolio_test.sessions s where s.user_id = (me).id and s.expires_at > kokolio_test._now()
+$$;
+-- =====================================================================
+-- Kokolio — lectures par périmètre, pointage, corrections, validations, absences
+-- =====================================================================
+
+create or replace function kokolio_test._ctx(me kokolio_test.users) returns jsonb language plpgsql stable as $$
+begin
+  return jsonb_build_object(
+    'user', kokolio_test._user_json(me, true),
+    'contract', (select kokolio_test._contract_json(c) || jsonb_build_object('cycle', case when c.cycle_id is not null then kokolio_test._cycle_json(c.cycle_id) end)
+                 from kokolio_test.contracts c
+                 where c.user_id = me.id and c.start_date <= kokolio_test._today() and (c.end_date is null or c.end_date >= kokolio_test._today())
+                 order by c.start_date desc limit 1),
+    'reports', (select count(*) from kokolio_test.users r where r.manager_id = me.id and not r.disabled),
+    'settings', (select m.value from kokolio_test.meta m where m.key = 'settings'),
+    'types', coalesce((select jsonb_agg(to_jsonb(t) order by t.sort, t.label) from kokolio_test.absence_types t), '[]'::jsonb),
+    'closed', kokolio_test._closed_months(),
+    'today', kokolio_test._today(), 'hm', kokolio_test._hm(), 'now', kokolio_test._now(),
+    -- période d'annualisation qui contient aujourd'hui, s'il y en a une
+    'annual_period', (select to_jsonb(q) - 'created_by' - 'created_at' from kokolio_test.annual_periods q where kokolio_test._today() between q.start_date and q.end_date limit 1),
+    'demo', exists (select 1 from kokolio_test.meta m where m.key = 'demo'),
+    'schema', (select m.value from kokolio_test.meta m where m.key = 'schema_version'));
+end $$;
+
+-- Périmètre d'une lecture : soi, son équipe directe, une liste de salariés visibles, ou tout le monde (RH).
+create or replace function kokolio_test._scope_ids(me kokolio_test.users, p_args jsonb) returns uuid[] language plpgsql stable as $$
+declare v_scope text := coalesce(p_args->>'scope', 'self'); v_ids uuid[] := '{}'; v_id uuid;
+begin
+  if v_scope = 'self' then
+    return array[me.id];
+  elsif v_scope = 'team' then
+    select coalesce(array_agg(u.id), '{}') into v_ids from kokolio_test.users u where u.manager_id = me.id;
+    return v_ids;
+  elsif v_scope = 'all' then
+    if me.role not in ('rh', 'admin') then perform kokolio_test._fail('interdit', 'Accès réservé aux RH.'); end if;
+    select coalesce(array_agg(u.id), '{}') into v_ids from kokolio_test.users u;
+    return v_ids;
+  elsif v_scope = 'users' then
+    for v_id in select x::uuid from jsonb_array_elements_text(coalesce(p_args->'user_ids', '[]'::jsonb)) x loop
+      if not kokolio_test._can_see(me, v_id) then perform kokolio_test._fail('interdit', 'Vous n''avez pas accès à ce salarié.'); end if;
+      v_ids := v_ids || v_id;
+    end loop;
+    return v_ids;
+  end if;
+  perform kokolio_test._fail('requete', 'Périmètre inconnu.');
+  return v_ids;
+end $$;
+
+create or replace function kokolio_test._read(me kokolio_test.users, p_args jsonb) returns jsonb language plpgsql stable as $$
+declare
+  v_ids uuid[] := kokolio_test._scope_ids(me, p_args); v_from date := (p_args->>'from')::date; v_to date := (p_args->>'to')::date;
+  v_rh boolean := me.role in ('rh', 'admin'); v_days boolean := coalesce((p_args->>'days')::boolean, true);
+  v_fp text := nullif(p_args->>'fingerprint_month', '');
+begin
+  if v_from is null or v_to is null or v_to < v_from or v_to - v_from > 1100 then
+    perform kokolio_test._fail('requete', 'Période invalide.');
+  end if;
+  if v_fp is not null and not v_rh then perform kokolio_test._fail('interdit', 'Accès réservé aux RH.'); end if;
+  return jsonb_build_object(
+    'users', coalesce((select jsonb_agg(kokolio_test._user_json(u, v_rh or u.id = me.id) order by u.last_name, u.first_name, u.login)
+                       from kokolio_test.users u where u.id = any(v_ids)), '[]'::jsonb),
+    'contracts', coalesce((select jsonb_agg(kokolio_test._contract_json(c) order by c.user_id, c.start_date)
+                           from kokolio_test.contracts c where c.user_id = any(v_ids)), '[]'::jsonb),
+    'days', case when v_days then coalesce((select jsonb_agg(kokolio_test._day_json(d) order by d.day)
+                           from kokolio_test.days d where d.user_id = any(v_ids) and d.day between v_from and v_to), '[]'::jsonb)
+                 else '[]'::jsonb end,
+    'absences', coalesce((select jsonb_agg(kokolio_test._abs_json(a) order by a.start_date, a.created_at)
+                          from kokolio_test.absences a where a.user_id = any(v_ids) and a.start_date <= v_to and a.end_date >= v_from), '[]'::jsonb),
+    'entries', coalesce((select jsonb_agg(to_jsonb(e) order by e.created_at)
+                         from kokolio_test.balance_entries e
+                         where e.user_id = any(v_ids) and e.year between extract(year from v_from)::int and extract(year from v_to)::int), '[]'::jsonb),
+    -- planification : les cycles suivis par ces salariés (résolus), et leurs exceptions sur la période.
+    -- Toujours renvoyées, même sans les journées : le décompte d'une absence en dépend.
+    'cycles', coalesce((select jsonb_agg(kokolio_test._cycle_json(x.cycle_id))
+                        from (select distinct c.cycle_id from kokolio_test.contracts c where c.user_id = any(v_ids) and c.cycle_id is not null) x), '[]'::jsonb),
+    'plan', coalesce((select jsonb_agg(jsonb_build_object('user_id', q.user_id, 'day', q.day, 'model_code', q.model_code, 'label', q.label,
+                                                          'minutes', q.minutes, 'ranges', q.ranges, 'note', q.note) order by q.day)
+                      from kokolio_test.plan_days q where q.user_id = any(v_ids) and q.day between v_from and v_to), '[]'::jsonb),
+    -- anomalies acquittées sur la période, à la demande
+    'acks', case when coalesce((p_args->>'acks')::boolean, false) then coalesce((select jsonb_agg(jsonb_build_object('user_id', k.user_id, 'day', k.day, 'kind', k.kind, 'comment', k.comment,
+        'at', k.acked_at, 'by', (select trim(x.first_name || ' ' || x.last_name) from kokolio_test.users x where x.id = k.acked_by)))
+      from kokolio_test.anomaly_acks k where k.user_id = any(v_ids) and k.day between v_from and v_to), '[]'::jsonb) end,
+    -- annualisation, à la demande : toutes les périodes, et pour ces salariés leurs objectifs fixés et leurs ajustements
+    'annual', case when coalesce((p_args->>'annual')::boolean, false) then jsonb_build_object(
+      'periods', coalesce((select jsonb_agg(to_jsonb(q) - 'created_by' - 'created_at' order by q.start_date) from kokolio_test.annual_periods q), '[]'::jsonb),
+      'goals', coalesce((select jsonb_agg(jsonb_build_object('user_id', g.user_id, 'period_id', g.period_id, 'minutes', g.minutes, 'note', g.note, 'set_at', g.set_at)) from kokolio_test.annual_goals g where g.user_id = any(v_ids)), '[]'::jsonb),
+      'entries', coalesce((select jsonb_agg(jsonb_build_object('id', e.id, 'user_id', e.user_id, 'period_id', e.period_id, 'day', e.day, 'minutes', e.minutes, 'reason', e.reason, 'created_at', e.created_at) order by e.day, e.id)
+                           from kokolio_test.annual_entries e where e.user_id = any(v_ids)), '[]'::jsonb)) end,
+    'closed', kokolio_test._closed_months(),
+    'fingerprint', case when v_fp is not null then kokolio_test._month_fingerprint(v_fp) end,
+    'ctx', case when coalesce((p_args->>'ctx')::boolean, false) then kokolio_test._ctx(me) end,
+    'today', kokolio_test._today(), 'hm', kokolio_test._hm());
+end $$;
+
+-- Ce qui attend une décision : pour un responsable, son équipe ; pour les RH, tout le monde.
+create or replace function kokolio_test._pending(me kokolio_test.users, p_args jsonb) returns jsonb language plpgsql stable as $$
+declare
+  v_all boolean := coalesce(p_args->>'scope', 'team') = 'all'; v_ids uuid[]; v_one uuid := nullif(p_args->>'user_id', '')::uuid;
+  v_self boolean := me.role = 'admin' and me.manager_id is null;
+begin
+  if v_all then
+    if me.role not in ('rh', 'admin') then perform kokolio_test._fail('interdit', 'Accès réservé aux RH.'); end if;
+    select coalesce(array_agg(u.id), '{}') into v_ids from kokolio_test.users u where u.id <> me.id or v_self;
+  else
+    select coalesce(array_agg(u.id), '{}') into v_ids from kokolio_test.users u where u.manager_id = me.id or (v_self and u.id = me.id);
+  end if;
+  if v_one is not null then
+    if not (v_one = any(v_ids)) then perform kokolio_test._fail('interdit', 'Vous ne pouvez pas valider pour ce salarié.'); end if;
+    v_ids := array[v_one];
+  end if;
+  return jsonb_build_object(
+    'summary', coalesce((select jsonb_agg(jsonb_build_object('user_id', s.user_id, 'n', s.n, 'oldest', s.oldest) order by s.oldest)
+                         from (select d.user_id, count(*) as n, min(d.day) as oldest from kokolio_test.days d
+                               where d.user_id = any(v_ids) and d.status = 'a_valider' group by d.user_id) s), '[]'::jsonb),
+    'days', case when v_all and v_one is null then '[]'::jsonb
+                 else coalesce((select jsonb_agg(kokolio_test._day_json(d) order by d.day)
+                                from kokolio_test.days d where d.user_id = any(v_ids) and d.status = 'a_valider'), '[]'::jsonb) end,
+    'absences', coalesce((select jsonb_agg(kokolio_test._abs_json(a) order by a.created_at)
+                          from kokolio_test.absences a where a.user_id = any(v_ids) and a.status = 'en_attente'), '[]'::jsonb),
+    'today', kokolio_test._today(), 'hm', kokolio_test._hm());
+end $$;
+
+-- ---------------------------------------------------------------------
+-- Pointage : l'heure est celle du serveur, jamais celle de l'appareil.
+-- ---------------------------------------------------------------------
+create or replace function kokolio_test._punch(me kokolio_test.users, p jsonb, p_args jsonb) returns jsonb language plpgsql as $$
+declare
+  d kokolio_test.days; v_day date := kokolio_test._today(); v_hm text := kokolio_test._hm(); v_now timestamptz := kokolio_test._now();
+  v_last timestamptz; v_lieu text := nullif(trim(coalesce(p_args->>'lieu', '')), ''); v_kind text; v_n int;
+  v_night text := coalesce(kokolio_test._night(), ''); v_hm24 text;
+begin
+  if v_lieu is not null and not kokolio_test._lieu_ok(v_lieu) then perform kokolio_test._fail('requete', 'Lieu inconnu.'); end if;
+  -- Travail de nuit : la journée commencée la veille et encore ouverte reçoit ce départ, noté au-delà de 24 h.
+  if v_night <> '' and v_hm < v_night then
+    select * into d from kokolio_test.days x where x.user_id = me.id and x.day = v_day - 1 for update;
+    -- au-delà de seize heures depuis l'arrivée, c'est un départ oublié la veille, pas une nuit de travail : le pointage ouvre la journée du jour
+    if d.id is not null and coalesce(array_length(d.times, 1), 0) % 2 = 1 and d.status <> 'valide'
+       and not kokolio_test._month_closed(to_char(v_day - 1, 'YYYY-MM'))
+       and (substr(v_hm, 1, 2)::int + 24) * 60 + substr(v_hm, 4, 2)::int
+           - (substr(d.times[array_length(d.times, 1)], 1, 2)::int * 60 + substr(d.times[array_length(d.times, 1)], 4, 2)::int) <= 960 then
+      select max(l.ts) into v_last from kokolio_test.punch_log l where l.user_id = me.id and l.day = v_day - 1;
+      if v_last is not null and v_now - v_last < interval '15 seconds' then
+        return jsonb_build_object('day', kokolio_test._day_json(d), 'duplicate', true, 'hm', v_hm);
+      end if;
+      v_hm24 := kokolio_test._plus24(v_hm);
+      update kokolio_test.days set times = d.times || v_hm24, status = 'a_valider', refusal_reason = '', decided_by = null, decided_at = null,
+        version = d.version + 1, updated_at = v_now
+      where id = d.id returning * into d;
+      insert into kokolio_test.punch_log (user_id, ts, day, hhmm, kind, ip, ua)
+      values (me.id, v_now, v_day - 1, v_hm24, 'depart', coalesce(p->>'ip', ''), left(coalesce(p->>'ua', ''), 200));
+      return jsonb_build_object('day', kokolio_test._day_json(d), 'kind', 'depart', 'hm', v_hm, 'veille', true);
+    end if;
+  end if;
+  if kokolio_test._month_closed(to_char(v_day, 'YYYY-MM')) then perform kokolio_test._fail('cloture', 'Ce mois est clôturé.'); end if;
+  insert into kokolio_test.days (user_id, day, lieu) values (me.id, v_day, coalesce(v_lieu, 'bureau')) on conflict (user_id, day) do nothing;
+  select * into d from kokolio_test.days x where x.user_id = me.id and x.day = v_day for update;
+  v_n := coalesce(array_length(d.times, 1), 0);
+  select max(l.ts) into v_last from kokolio_test.punch_log l where l.user_id = me.id and l.day = v_day;
+  if v_n > 0 and v_last is not null and v_now - v_last < interval '15 seconds' then
+    return jsonb_build_object('day', kokolio_test._day_json(d), 'duplicate', true, 'hm', v_hm);
+  end if;
+  if d.status = 'valide' then perform kokolio_test._fail('verrou', 'Cette journée est déjà validée.'); end if;
+  if v_n >= 20 then perform kokolio_test._fail('heures', 'Trop de pointages pour une seule journée.'); end if;
+  if v_n > 0 and v_hm < d.times[v_n] then
+    perform kokolio_test._fail('heures', 'L''heure actuelle est antérieure au dernier pointage. Corrigez la journée dans « Heures ».');
+  end if;
+  update kokolio_test.days set times = d.times || v_hm, status = 'a_valider', refusal_reason = '', decided_by = null, decided_at = null,
+    lieu = coalesce(v_lieu, d.lieu), version = d.version + 1, updated_at = v_now
+  where id = d.id returning * into d;
+  v_kind := case when (v_n + 1) % 2 = 1 then 'arrivee' else 'depart' end;
+  insert into kokolio_test.punch_log (user_id, ts, day, hhmm, kind, ip, ua)
+  values (me.id, v_now, v_day, v_hm, v_kind, coalesce(p->>'ip', ''), left(coalesce(p->>'ua', ''), 200));
+  return jsonb_build_object('day', kokolio_test._day_json(d), 'kind', v_kind, 'hm', v_hm);
+end $$;
+
+create or replace function kokolio_test._day_lieu(me kokolio_test.users, p_args jsonb) returns jsonb language plpgsql as $$
+declare d kokolio_test.days; v_lieu text := trim(coalesce(p_args->>'lieu', ''));
+begin
+  if not kokolio_test._lieu_ok(v_lieu) then perform kokolio_test._fail('requete', 'Lieu inconnu.'); end if;
+  select * into d from kokolio_test.days x where x.user_id = me.id and x.day = (p_args->>'day')::date for update;
+  if d.id is null then perform kokolio_test._fail('introuvable', 'Journée introuvable.'); end if;
+  if d.status = 'valide' then perform kokolio_test._fail('verrou', 'Cette journée est déjà validée.'); end if;
+  update kokolio_test.days set lieu = v_lieu, version = d.version + 1, updated_at = kokolio_test._now() where id = d.id returning * into d;
+  return jsonb_build_object('day', kokolio_test._day_json(d));
+end $$;
+
+-- Correction d'une journée (ou ajout d'une journée oubliée) : motif obligatoire, puis retour en validation.
+-- Les RH peuvent corriger pour le compte d'un salarié ; c'est tracé comme tel.
+create or replace function kokolio_test._day_set(me kokolio_test.users, p jsonb, p_args jsonb) returns jsonb language plpgsql as $$
+declare
+  v_uid uuid := coalesce(nullif(p_args->>'user_id', '')::uuid, me.id); v_day date := (p_args->>'day')::date;
+  v_times text[] := kokolio_test._times(p_args->'times'); v_comment text := trim(coalesce(p_args->>'comment', ''));
+  v_lieu text := nullif(trim(coalesce(p_args->>'lieu', '')), ''); d kokolio_test.days; v_before text[];
+  v_n int; v_today date := kokolio_test._today(); v_behalf boolean; v_night text := coalesce(kokolio_test._night(), ''); v_hm text := kokolio_test._hm();
+begin
+  v_n := coalesce(array_length(v_times, 1), 0);
+  v_behalf := v_uid <> me.id;
+  if v_behalf and me.role not in ('rh', 'admin') then
+    perform kokolio_test._fail('interdit', 'Seuls les RH peuvent corriger la journée d''un autre salarié.');
+  end if;
+  if v_behalf and not exists (select 1 from kokolio_test.users u where u.id = v_uid) then
+    perform kokolio_test._fail('introuvable', 'Salarié introuvable.');
+  end if;
+  if v_day is null or v_day > v_today then perform kokolio_test._fail('date', 'Choisissez un jour passé ou aujourd''hui.'); end if;
+  -- une journée de nuit commencée la veille peut rester ouverte jusqu'à l'heure limite du matin
+  if v_n % 2 = 1 and v_day <> v_today and not (v_night <> '' and v_day = v_today - 1 and v_hm < v_night) then
+    perform kokolio_test._fail('heures', 'Chaque arrivée doit avoir son départ.');
+  end if;
+  if v_day = v_today and v_n > 0 and v_times[v_n] > v_hm then
+    perform kokolio_test._fail('heures', 'Une heure saisie est dans le futur.');
+  end if;
+  if v_day = v_today - 1 and v_n > 0 and v_times[v_n] >= '24:00' and v_times[v_n] > kokolio_test._plus24(v_hm) then
+    perform kokolio_test._fail('heures', 'Une heure saisie est dans le futur.');
+  end if;
+  if length(v_comment) < 3 then perform kokolio_test._fail('motif', 'Indiquez le motif de la correction.'); end if;
+  if length(v_comment) > 500 then perform kokolio_test._fail('motif', 'Motif trop long (500 caractères au plus).'); end if;
+  if kokolio_test._month_closed(to_char(v_day, 'YYYY-MM')) then
+    perform kokolio_test._fail('cloture', 'Ce mois est clôturé. Adressez-vous aux RH.');
+  end if;
+  if v_lieu is not null and not kokolio_test._lieu_ok(v_lieu) then perform kokolio_test._fail('requete', 'Lieu inconnu.'); end if;
+  select * into d from kokolio_test.days x where x.user_id = v_uid and x.day = v_day for update;
+  if d.id is null then
+    insert into kokolio_test.days (user_id, day, times, lieu, status, corrected, comment)
+    values (v_uid, v_day, v_times, coalesce(v_lieu, 'bureau'), 'a_valider', true, v_comment) returning * into d;
+  else
+    if d.status = 'valide' then
+      perform kokolio_test._fail('verrou', 'Cette journée est déjà validée. Elle doit d''abord être rouverte par le responsable.');
+    end if;
+    if p_args ? 'version' and (p_args->>'version')::int <> d.version then
+      perform kokolio_test._fail('conflit', 'Cette journée a été modifiée entre-temps. Rechargez la page.');
+    end if;
+    v_before := d.times;
+    update kokolio_test.days set times = v_times, lieu = coalesce(v_lieu, d.lieu), status = 'a_valider', corrected = true, comment = v_comment,
+      refusal_reason = '', decided_by = null, decided_at = null, version = d.version + 1, updated_at = kokolio_test._now()
+    where id = d.id returning * into d;
+  end if;
+  perform kokolio_test._audit(me.id, case when v_behalf then 'correction_par_rh' else 'correction' end, v_uid, v_day::text,
+    jsonb_build_object('avant', to_jsonb(v_before), 'apres', to_jsonb(v_times), 'motif', v_comment), coalesce(p->>'ip', ''));
+  return jsonb_build_object('day', kokolio_test._day_json(d));
+end $$;
+
+-- Décision sur des journées : valider, refuser (motif), ou rouvrir une journée validée (motif).
+-- Chaque journée est traitée séparément : une journée périmée n'empêche pas les autres.
+create or replace function kokolio_test._days_decide(me kokolio_test.users, p jsonb, p_args jsonb) returns jsonb language plpgsql as $$
+declare
+  v_decision text := coalesce(p_args->>'decision', ''); v_reason text := trim(coalesce(p_args->>'reason', ''));
+  v_item jsonb; d kokolio_test.days; v_done jsonb := '[]'::jsonb; v_failed jsonb := '[]'::jsonb; v_by jsonb := '{}'::jsonb;
+  v_today date := kokolio_test._today(); v_now timestamptz := kokolio_test._now(); v_code text; v_key text; v_action text;
+begin
+  if v_decision not in ('valide', 'refuse', 'a_valider') then perform kokolio_test._fail('requete', 'Décision inconnue.'); end if;
+  if v_decision <> 'valide' and length(v_reason) < 3 then perform kokolio_test._fail('motif', 'Indiquez un motif.'); end if;
+  if jsonb_typeof(p_args->'items') is distinct from 'array' or jsonb_array_length(p_args->'items') > 2000 then
+    perform kokolio_test._fail('requete', 'Liste de journées invalide.');
+  end if;
+  for v_item in select x from jsonb_array_elements(p_args->'items') x loop
+    begin
+      select * into d from kokolio_test.days x where x.id = (v_item->>'id')::uuid for update;
+      if d.id is null then perform kokolio_test._fail('introuvable', 'Journée introuvable.'); end if;
+      if not kokolio_test._can_manage(me, d.user_id) then perform kokolio_test._fail('interdit', 'Vous ne pouvez pas valider pour ce salarié.'); end if;
+      if v_item ? 'version' and (v_item->>'version')::int <> d.version then
+        perform kokolio_test._fail('conflit', 'Journée modifiée entre-temps.');
+      end if;
+      if kokolio_test._month_closed(to_char(d.day, 'YYYY-MM')) then perform kokolio_test._fail('cloture', 'Mois clôturé.'); end if;
+      if v_decision = 'valide' then
+        if d.status <> 'a_valider' then perform kokolio_test._fail('etat', 'Cette journée n''est pas en attente de validation.'); end if;
+        if d.day >= v_today then perform kokolio_test._fail('etat', 'Journée en cours : validable à partir de demain.'); end if;
+        if coalesce(array_length(d.times, 1), 0) % 2 = 1 then perform kokolio_test._fail('etat', 'Départ non pointé : la journée doit être corrigée.'); end if;
+        update kokolio_test.days set status = 'valide', decided_by = me.id, decided_at = v_now, refusal_reason = '', version = d.version + 1, updated_at = v_now where id = d.id;
+      elsif v_decision = 'refuse' then
+        if d.status <> 'a_valider' then perform kokolio_test._fail('etat', 'Cette journée n''est pas en attente de validation.'); end if;
+        update kokolio_test.days set status = 'refuse', decided_by = me.id, decided_at = v_now, refusal_reason = v_reason, version = d.version + 1, updated_at = v_now where id = d.id;
+      else
+        if d.status <> 'valide' then perform kokolio_test._fail('etat', 'Cette journée n''est pas validée.'); end if;
+        update kokolio_test.days set status = 'a_valider', decided_by = null, decided_at = null, version = d.version + 1, updated_at = v_now where id = d.id;
+      end if;
+      v_done := v_done || to_jsonb(d.id);
+      v_key := d.user_id::text;
+      v_by := jsonb_set(v_by, array[v_key], coalesce(v_by->v_key, '[]'::jsonb) || to_jsonb(d.day));
+    exception when others then
+      if sqlerrm not like 'KK:%' then raise; end if;
+      v_code := split_part(sqlerrm, ':', 2);
+      v_failed := v_failed || jsonb_build_object('id', v_item->>'id', 'code', v_code, 'message', substr(sqlerrm, 5 + length(v_code)));
+    end;
+  end loop;
+  v_action := case v_decision when 'valide' then 'pointages_valides' when 'refuse' then 'pointage_refuse' else 'pointage_rouvert' end;
+  for v_key in select k from jsonb_object_keys(v_by) k loop
+    perform kokolio_test._audit(me.id, v_action, v_key::uuid, '',
+      jsonb_strip_nulls(jsonb_build_object('jours', v_by->v_key, 'motif', nullif(v_reason, ''), 'auto_validation', case when v_key::uuid = me.id then true end)),
+      coalesce(p->>'ip', ''));
+  end loop;
+  return jsonb_build_object('done', v_done, 'failed', v_failed);
+end $$;
+
+-- ---------------------------------------------------------------------
+-- Absences
+-- ---------------------------------------------------------------------
+create or replace function kokolio_test._doc_put(p_abs uuid, p_doc jsonb, p_by uuid) returns void language plpgsql as $$
+declare v_data bytea; v_name text := left(trim(coalesce(p_doc->>'name', 'justificatif')), 120); v_mime text := coalesce(p_doc->>'mime', '');
+begin
+  if v_mime not in ('image/jpeg', 'image/png', 'image/webp', 'application/pdf') then
+    perform kokolio_test._fail('justificatif', 'Format de justificatif non accepté (photo JPEG, PNG, WebP ou PDF).');
+  end if;
+  begin
+    v_data := decode(coalesce(p_doc->>'data', ''), 'base64');
+  exception when others then
+    v_data := null;
+  end;
+  if v_data is null or octet_length(v_data) = 0 then perform kokolio_test._fail('justificatif', 'Justificatif illisible.'); end if;
+  if octet_length(v_data) > 2500000 then perform kokolio_test._fail('justificatif', 'Le justificatif doit peser moins de 2,5 Mo.'); end if;
+  insert into kokolio_test.attachments as t (absence_id, filename, mime, size, data, uploaded_by)
+  values (p_abs, v_name, v_mime, octet_length(v_data), v_data, p_by)
+  on conflict (absence_id) do update set filename = excluded.filename, mime = excluded.mime, size = excluded.size,
+    data = excluded.data, uploaded_by = excluded.uploaded_by, created_at = now();
+end $$;
+
+-- Demande d'absence par le salarié (en attente), ou saisie directe par les RH (validée d'office, tracée).
+create or replace function kokolio_test._absence_create(me kokolio_test.users, p jsonb, p_args jsonb) returns jsonb language plpgsql as $$
+declare
+  v_uid uuid := coalesce(nullif(p_args->>'user_id', '')::uuid, me.id); v_type text := coalesce(p_args->>'type', '');
+  v_start date := (p_args->>'start')::date; v_end date := (p_args->>'end')::date; v_half text := coalesce(p_args->>'half', '');
+  v_count numeric := (p_args->>'days_count')::numeric; v_comment text := left(trim(coalesce(p_args->>'comment', '')), 500);
+  v_behalf boolean; a kokolio_test.absences; v_now timestamptz := kokolio_test._now();
+begin
+  v_behalf := v_uid <> me.id;
+  if v_behalf and me.role not in ('rh', 'admin') then
+    perform kokolio_test._fail('interdit', 'Seuls les RH peuvent saisir une absence pour un autre salarié.');
+  end if;
+  if v_behalf and not exists (select 1 from kokolio_test.users u where u.id = v_uid) then perform kokolio_test._fail('introuvable', 'Salarié introuvable.'); end if;
+  if not exists (select 1 from kokolio_test.absence_types t where t.code = v_type and t.active) then perform kokolio_test._fail('requete', 'Motif d''absence inconnu.'); end if;
+  if v_start is null or v_end is null or v_end < v_start then perform kokolio_test._fail('date', 'La date de fin doit suivre la date de début.'); end if;
+  if v_end - v_start > 366 then perform kokolio_test._fail('date', 'Une absence ne peut pas dépasser un an.'); end if;
+  if v_half not in ('', 'matin', 'apres_midi') or (v_half <> '' and v_start <> v_end) then
+    perform kokolio_test._fail('date', 'La demi-journée ne s''applique qu''à une absence d''un seul jour.');
+  end if;
+  if v_count is null or v_count <= 0 or v_count > (v_end - v_start + 1) then
+    perform kokolio_test._fail('date', 'Cette période ne contient aucun jour travaillé.');
+  end if;
+  if kokolio_test._range_closed(v_start, v_end) then perform kokolio_test._fail('cloture', 'Cette période touche un mois clôturé. Adressez-vous aux RH.'); end if;
+  perform 1 from kokolio_test.users u where u.id = v_uid for update;  -- sérialise les demandes d'un même salarié
+  if exists (select 1 from kokolio_test.absences x where x.user_id = v_uid and x.status in ('en_attente', 'valide')
+             and x.start_date <= v_end and x.end_date >= v_start
+             and not (x.half <> '' and v_half <> '' and x.half <> v_half)) then
+    perform kokolio_test._fail('conflit', 'Une absence existe déjà sur cette période.');
+  end if;
+  insert into kokolio_test.absences (user_id, type_code, start_date, end_date, half, days_count, comment, status, decided_by, decided_at, created_by)
+  values (v_uid, v_type, v_start, v_end, v_half, v_count, v_comment,
+          case when v_behalf then 'valide' else 'en_attente' end,
+          case when v_behalf then me.id end, case when v_behalf then v_now end, me.id)
+  returning * into a;
+  if p_args ? 'doc' and jsonb_typeof(p_args->'doc') = 'object' then
+    perform kokolio_test._doc_put(a.id, p_args->'doc', me.id);
+    update kokolio_test.absences set has_doc = true where id = a.id returning * into a;
+  end if;
+  perform kokolio_test._audit(me.id, case when v_behalf then 'absence_saisie_par_rh' else 'absence_demandee' end, v_uid, v_type,
+    jsonb_build_object('du', v_start, 'au', v_end, 'demi', nullif(v_half, ''), 'jours', v_count, 'justificatif', a.has_doc), coalesce(p->>'ip', ''));
+  return jsonb_build_object('absence', kokolio_test._abs_json(a));
+end $$;
+
+create or replace function kokolio_test._absence_cancel(me kokolio_test.users, p jsonb, p_args jsonb) returns jsonb language plpgsql as $$
+declare a kokolio_test.absences;
+begin
+  select * into a from kokolio_test.absences x where x.id = nullif(p_args->>'id', '')::uuid for update;
+  if a.id is null or a.user_id <> me.id then perform kokolio_test._fail('introuvable', 'Demande introuvable.'); end if;
+  if a.status <> 'en_attente' then
+    perform kokolio_test._fail('etat', 'Seule une demande en attente peut être annulée. Pour une absence validée, adressez-vous à votre responsable.');
+  end if;
+  update kokolio_test.absences set status = 'annule', version = a.version + 1, updated_at = kokolio_test._now() where id = a.id returning * into a;
+  perform kokolio_test._audit(me.id, 'absence_annulee', me.id, a.type_code, jsonb_build_object('du', a.start_date, 'au', a.end_date), coalesce(p->>'ip', ''));
+  return jsonb_build_object('absence', kokolio_test._abs_json(a));
+end $$;
+
+-- Décision du responsable ou des RH : valider, refuser (motif), ou annuler une absence déjà validée (motif).
+create or replace function kokolio_test._absence_decide(me kokolio_test.users, p jsonb, p_args jsonb) returns jsonb language plpgsql as $$
+declare
+  a kokolio_test.absences; v_decision text := coalesce(p_args->>'decision', ''); v_reason text := left(trim(coalesce(p_args->>'reason', '')), 500);
+  v_now timestamptz := kokolio_test._now(); v_action text;
+begin
+  if v_decision not in ('valide', 'refuse', 'annule') then perform kokolio_test._fail('requete', 'Décision inconnue.'); end if;
+  if v_decision <> 'valide' and length(v_reason) < 3 then perform kokolio_test._fail('motif', 'Indiquez un motif.'); end if;
+  select * into a from kokolio_test.absences x where x.id = nullif(p_args->>'id', '')::uuid for update;
+  if a.id is null then perform kokolio_test._fail('introuvable', 'Demande introuvable.'); end if;
+  if not kokolio_test._can_manage(me, a.user_id) then perform kokolio_test._fail('interdit', 'Vous ne pouvez pas décider pour ce salarié.'); end if;
+  if p_args ? 'version' and (p_args->>'version')::int <> a.version then
+    perform kokolio_test._fail('conflit', 'Cette demande a été modifiée entre-temps. Rechargez la page.');
+  end if;
+  if v_decision in ('valide', 'refuse') and a.status <> 'en_attente' then perform kokolio_test._fail('etat', 'Cette demande n''est plus en attente.'); end if;
+  if v_decision = 'annule' and a.status <> 'valide' then perform kokolio_test._fail('etat', 'Seule une absence validée peut être annulée ici.'); end if;
+  if kokolio_test._range_closed(a.start_date, a.end_date) then perform kokolio_test._fail('cloture', 'Cette absence touche un mois clôturé.'); end if;
+  update kokolio_test.absences set status = v_decision, decided_by = me.id, decided_at = v_now, refusal_reason = case when v_decision = 'valide' then '' else v_reason end,
+    version = a.version + 1, updated_at = v_now where id = a.id returning * into a;
+  v_action := case v_decision when 'valide' then 'absence_validee' when 'refuse' then 'absence_refusee' else 'absence_annulee_par_responsable' end;
+  perform kokolio_test._audit(me.id, v_action, a.user_id, a.type_code,
+    jsonb_strip_nulls(jsonb_build_object('du', a.start_date, 'au', a.end_date, 'jours', a.days_count, 'motif', nullif(v_reason, ''))), coalesce(p->>'ip', ''));
+  return jsonb_build_object('absence', kokolio_test._abs_json(a));
+end $$;
+
+-- Ajout ou remplacement du justificatif par le salarié (ou les RH), tant que l'absence est en attente ou validée.
+create or replace function kokolio_test._absence_attach(me kokolio_test.users, p jsonb, p_args jsonb) returns jsonb language plpgsql as $$
+declare a kokolio_test.absences;
+begin
+  select * into a from kokolio_test.absences x where x.id = nullif(p_args->>'id', '')::uuid for update;
+  if a.id is null or not (a.user_id = me.id or me.role in ('rh', 'admin')) then perform kokolio_test._fail('introuvable', 'Demande introuvable.'); end if;
+  if a.status not in ('en_attente', 'valide') then perform kokolio_test._fail('etat', 'Cette demande n''accepte plus de justificatif.'); end if;
+  perform kokolio_test._doc_put(a.id, p_args->'doc', me.id);
+  if not a.has_doc then
+    update kokolio_test.absences set has_doc = true, updated_at = kokolio_test._now() where id = a.id returning * into a;
+  end if;
+  perform kokolio_test._audit(me.id, 'justificatif_depose', a.user_id, a.type_code, jsonb_build_object('du', a.start_date, 'au', a.end_date), coalesce(p->>'ip', ''));
+  return jsonb_build_object('absence', kokolio_test._abs_json(a));
+end $$;
+
+-- Lecture d'un justificatif : le salarié, son responsable, les RH. Toute consultation par un tiers est journalisée.
+create or replace function kokolio_test._doc_get(me kokolio_test.users, p jsonb, p_args jsonb) returns jsonb language plpgsql as $$
+declare a kokolio_test.absences; t kokolio_test.attachments;
+begin
+  select * into a from kokolio_test.absences x where x.id = nullif(p_args->>'id', '')::uuid;
+  if a.id is null or not (a.user_id = me.id or kokolio_test._can_manage(me, a.user_id)) then
+    perform kokolio_test._fail('introuvable', 'Justificatif introuvable.');
+  end if;
+  select * into t from kokolio_test.attachments x where x.absence_id = a.id;
+  if t.absence_id is null then perform kokolio_test._fail('introuvable', 'Justificatif introuvable.'); end if;
+  if a.user_id <> me.id then
+    perform kokolio_test._audit(me.id, 'justificatif_consulte', a.user_id, a.type_code, jsonb_build_object('du', a.start_date, 'au', a.end_date), coalesce(p->>'ip', ''));
+  end if;
+  return jsonb_build_object('filename', t.filename, 'mime', t.mime, 'size', t.size, 'data', replace(encode(t.data, 'base64'), E'\n', ''));
+end $$;
+
+-- Trace brute des pointages d'une journée : le salarié, son responsable, les RH.
+create or replace function kokolio_test._punch_log(me kokolio_test.users, p_args jsonb) returns jsonb language plpgsql stable as $$
+declare v_uid uuid := coalesce(nullif(p_args->>'user_id', '')::uuid, me.id); v_from date := (p_args->>'from')::date; v_to date := coalesce((p_args->>'to')::date, (p_args->>'from')::date);
+begin
+  if not kokolio_test._can_see(me, v_uid) then perform kokolio_test._fail('interdit', 'Vous n''avez pas accès à ce salarié.'); end if;
+  if v_from is null or v_to < v_from or v_to - v_from > 62 then perform kokolio_test._fail('requete', 'Période invalide.'); end if;
+  return coalesce((select jsonb_agg(jsonb_build_object('ts', l.ts, 'day', l.day, 'hhmm', l.hhmm, 'kind', l.kind) order by l.ts)
+                   from kokolio_test.punch_log l where l.user_id = v_uid and l.day between v_from and v_to), '[]'::jsonb);
+end $$;
+-- =====================================================================
+-- Kokolio — fiches salariés, horaires datés, import, soldes, clôture, journal, paramètres
+-- =====================================================================
+
+-- Pose un nouvel horaire à partir d'une date : l'horaire précédent est fermé la veille, le passé n'est pas réécrit.
+create or replace function kokolio_test._contract_apply(p_user uuid, p_start date, p_c jsonb, p_by uuid) returns kokolio_test.contracts language plpgsql as $$
+declare
+  v_regime text := coalesce(nullif(p_c->>'regime', ''), 'horaire'); v_dm int[]; v_wd int[]; v_i int; c kokolio_test.contracts;
+  v_pause int := coalesce((p_c->>'pause_minutes')::int, 45); v_cp numeric := coalesce((p_c->>'cp_per_month')::numeric, 2.08);
+  v_fd int := coalesce((p_c->>'forfait_days')::int, 218);
+  v_cycle uuid := nullif(p_c->>'cycle_id', '')::uuid; v_anchor date := nullif(p_c->>'cycle_anchor', '')::date;
+  v_presence text := coalesce(nullif(p_c->>'presence', ''), 'pointage'); k kokolio_test.cycles;
+begin
+  if v_regime not in ('horaire', 'forfait_jours') then perform kokolio_test._fail('horaire', 'Régime inconnu.'); end if;
+  if v_presence not in ('pointage', 'automatique') then perform kokolio_test._fail('horaire', 'Mode de présence inconnu.'); end if;
+  if p_start is null then perform kokolio_test._fail('horaire', 'Date d''effet manquante.'); end if;
+  if v_cycle is not null then
+    select * into k from kokolio_test.cycles x where x.id = v_cycle;
+    if k.id is null then perform kokolio_test._fail('horaire', 'Cycle de travail introuvable.'); end if;
+    if not k.active then perform kokolio_test._fail('horaire', 'Ce cycle de travail est désactivé : choisissez-en un autre.'); end if;
+    -- la semaine 1 du cycle commence un lundi : celui de la date indiquée, ou à défaut celui de la date d'effet
+    v_anchor := coalesce(v_anchor, p_start);
+    v_anchor := v_anchor - (extract(isodow from v_anchor)::int - 1);
+  else
+    v_anchor := null;
+  end if;
+  if jsonb_typeof(p_c->'day_minutes') = 'array' and jsonb_array_length(p_c->'day_minutes') = 7 then
+    select array_agg((x.v)::int order by x.o) into v_dm from jsonb_array_elements_text(p_c->'day_minutes') with ordinality as x(v, o);
+  else
+    v_dm := '{420,420,420,420,420,0,0}';
+  end if;
+  for v_i in 1..7 loop
+    if v_dm[v_i] is null or v_dm[v_i] < 0 or v_dm[v_i] > 960 then perform kokolio_test._fail('horaire', 'Durée journalière invalide.'); end if;
+  end loop;
+  if v_cycle is not null then
+    -- avec un cycle, la semaine du contrat n'est qu'un repère : on y recopie la première semaine du cycle
+    select array_agg(coalesce(m.minutes, 0) order by d.o), array_agg(d.o::int order by d.o) filter (where m.code is not null) into v_dm, v_wd
+    from jsonb_array_elements_text(k.weeks->0) with ordinality as d(code, o) left join kokolio_test.day_models m on m.code = d.code;
+    v_wd := coalesce(v_wd, '{}');
+    if v_regime = 'forfait_jours' then v_dm := '{0,0,0,0,0,0,0}'; end if;
+  elsif v_regime = 'forfait_jours' then
+    select array_agg(z.w order by z.w) into v_wd
+    from (select distinct (y)::int as w from jsonb_array_elements_text(case when jsonb_typeof(p_c->'work_days') = 'array' then p_c->'work_days' else '[1,2,3,4,5]'::jsonb end) y) z;
+    v_dm := '{0,0,0,0,0,0,0}';
+  else
+    select array_agg(g.i order by g.i) into v_wd from generate_series(1, 7) g(i) where v_dm[g.i] > 0;
+  end if;
+  if v_wd is null or (v_cycle is null and coalesce(array_length(v_wd, 1), 0) = 0) or exists (select 1 from unnest(v_wd) w where w < 1 or w > 7) then
+    perform kokolio_test._fail('horaire', 'Indiquez au moins un jour travaillé.');
+  end if;
+  if v_pause < 0 or v_pause > 180 or v_cp < 0 or v_cp > 5 or v_fd < 1 or v_fd > 366 then
+    perform kokolio_test._fail('horaire', 'Valeur hors limites dans l''horaire.');
+  end if;
+  if exists (select 1 from kokolio_test.contracts x where x.user_id = p_user)
+     and exists (select 1 from jsonb_array_elements_text(kokolio_test._closed_months()) m where m >= to_char(p_start, 'YYYY-MM')) then
+    perform kokolio_test._fail('cloture', 'Un mois clôturé existe à cette date ou après : choisissez une date d''effet postérieure à la dernière clôture.');
+  end if;
+  delete from kokolio_test.contracts x where x.user_id = p_user and x.start_date >= p_start;
+  update kokolio_test.contracts set end_date = p_start - 1 where user_id = p_user and start_date < p_start and (end_date is null or end_date >= p_start);
+  insert into kokolio_test.contracts (user_id, start_date, regime, day_minutes, work_days, pause_minutes, cp_per_month, forfait_days, cycle_id, cycle_anchor, presence, created_by)
+  values (p_user, p_start, v_regime, v_dm, v_wd, v_pause, v_cp, v_fd, v_cycle, v_anchor, v_presence, p_by) returning * into c;
+  return c;
+end $$;
+
+create or replace function kokolio_test._user_get(me kokolio_test.users, p_args jsonb) returns jsonb language plpgsql stable as $$
+declare v_id uuid := coalesce(nullif(p_args->>'id', '')::uuid, me.id); u kokolio_test.users; v_full boolean;
+begin
+  if not kokolio_test._can_see(me, v_id) then perform kokolio_test._fail('interdit', 'Vous n''avez pas accès à ce salarié.'); end if;
+  select * into u from kokolio_test.users x where x.id = v_id;
+  if u.id is null then perform kokolio_test._fail('introuvable', 'Salarié introuvable.'); end if;
+  v_full := v_id = me.id or me.role in ('rh', 'admin');
+  return jsonb_build_object(
+    'user', kokolio_test._user_json(u, v_full),
+    'contracts', coalesce((select jsonb_agg(kokolio_test._contract_json(c) order by c.start_date) from kokolio_test.contracts c where c.user_id = v_id), '[]'::jsonb),
+    'cycles', coalesce((select jsonb_agg(kokolio_test._cycle_json(x.cycle_id))
+                        from (select distinct c.cycle_id from kokolio_test.contracts c where c.user_id = v_id and c.cycle_id is not null) x), '[]'::jsonb),
+    'entries', case when v_full then coalesce((select jsonb_agg(to_jsonb(e) order by e.year desc, e.created_at) from kokolio_test.balance_entries e where e.user_id = v_id), '[]'::jsonb) else '[]'::jsonb end,
+    'today', kokolio_test._today());
+end $$;
+
+create or replace function kokolio_test._no_cycle(p_user uuid, p_manager uuid) returns void language plpgsql stable as $$
+declare v_cur uuid := p_manager; v_i int := 0;
+begin
+  while v_cur is not null and v_i < 60 loop
+    if v_cur = p_user then perform kokolio_test._fail('responsable', 'Boucle hiérarchique : ce responsable dépend déjà de ce salarié.'); end if;
+    select u.manager_id into v_cur from kokolio_test.users u where u.id = v_cur;
+    v_i := v_i + 1;
+  end loop;
+end $$;
+
+-- Déplacer le début de suivi d'un salarié change ce qui est attendu de lui entre l'ancien et le nouveau premier jour :
+-- impossible si un mois clôturé s'y trouve. Règle commune à la fiche et à l'import.
+create or replace function kokolio_test._tracked_guard(p_user uuid, p_entry date, p_old date, p_new date) returns void language plpgsql as $$
+declare v_go date; v_first date; v_a date; v_b date;
+begin
+  select case when m.value->>'go_live' ~ '^[0-9]{4}-[0-9]{2}-[0-9]{2}$' then (m.value->>'go_live')::date else date '1900-01-01' end into v_go from kokolio_test.meta m where m.key = 'settings';
+  select min(x.start_date) into v_first from kokolio_test.contracts x where x.user_id = p_user;
+  v_a := greatest(v_go, coalesce(p_old, date '1900-01-01'), coalesce(p_entry, date '1900-01-01'), coalesce(v_first, date '1900-01-01'));
+  v_b := greatest(v_go, coalesce(p_new, date '1900-01-01'), coalesce(p_entry, date '1900-01-01'), coalesce(v_first, date '1900-01-01'));
+  if v_a <> v_b and v_first is not null and kokolio_test._range_closed(least(v_a, v_b), greatest(v_a, v_b) - 1) then
+    perform kokolio_test._fail('cloture', 'Un mois clôturé se trouve entre l''ancien et le nouveau début de suivi : il ne peut plus être déplacé sur cette période.');
+  end if;
+end $$;
+
+-- Création ou mise à jour d'une fiche (RH). Les rôles ne sont modifiables que par un administrateur.
+create or replace function kokolio_test._user_save(me kokolio_test.users, p jsonb, p_args jsonb) returns jsonb language plpgsql as $$
+declare
+  v_id uuid := nullif(p_args->>'id', '')::uuid; u kokolio_test.users; o kokolio_test.users; v_new boolean;
+  v_login text := lower(trim(coalesce(p_args->>'login', ''))); v_mgr uuid := nullif(p_args->>'manager_id', '')::uuid;
+  v_role text; v_mat text := trim(coalesce(p_args->>'matricule', '')); v_details jsonb := coalesce(p_args->'details', '{}'::jsonb);
+  v_entry date := nullif(p_args->>'entry_date', '')::date; v_exit date := nullif(p_args->>'exit_date', '')::date;
+  v_now timestamptz := kokolio_test._now(); v_diff jsonb; v_days int; c kokolio_test.contracts;
+  v_tracked date; v_go date; v_first date; v_a date; v_b date;
+begin
+  v_new := v_id is null;
+  if me.role not in ('rh', 'admin') then perform kokolio_test._fail('interdit', 'Accès réservé aux RH.'); end if;
+  if not v_new then
+    select * into o from kokolio_test.users x where x.id = v_id for update;
+    if o.id is null then perform kokolio_test._fail('introuvable', 'Salarié introuvable.'); end if;
+    if o.role = 'admin' and me.role <> 'admin' then perform kokolio_test._fail('interdit', 'Seul un administrateur peut modifier un compte administrateur.'); end if;
+    if p_args ? 'version' and (p_args->>'version')::int <> o.version then
+      perform kokolio_test._fail('conflit', 'Cette fiche a été modifiée entre-temps. Rechargez la page.');
+    end if;
+  end if;
+  if v_login !~ '^[a-z0-9][a-z0-9._@-]{2,63}$' then
+    perform kokolio_test._fail('identifiant', 'Identifiant invalide : 3 à 64 caractères, lettres, chiffres, point ou tiret.');
+  end if;
+  if exists (select 1 from kokolio_test.users x where lower(x.login) = v_login and (v_new or x.id <> v_id)) then
+    perform kokolio_test._fail('identifiant', 'Cet identifiant est déjà utilisé.');
+  end if;
+  if v_mat <> '' and exists (select 1 from kokolio_test.users x where x.matricule = v_mat and (v_new or x.id <> v_id)) then
+    perform kokolio_test._fail('matricule', 'Ce matricule est déjà utilisé.');
+  end if;
+  if trim(coalesce(p_args->>'last_name', '')) = '' then perform kokolio_test._fail('nom', 'Le nom est obligatoire.'); end if;
+  if v_exit is not null and v_entry is not null and v_exit < v_entry then perform kokolio_test._fail('date', 'La date de sortie précède la date d''entrée.'); end if;
+  if jsonb_typeof(v_details) <> 'object' or length(v_details::text) > 6000 then perform kokolio_test._fail('requete', 'Fiche trop volumineuse.'); end if;
+  -- Début de suivi : envoyé seulement quand les RH le modifient ; sinon la valeur en place est conservée.
+  v_tracked := case when p_args ? 'tracked_from' then nullif(p_args->>'tracked_from', '')::date when v_new then null else o.tracked_from end;
+  if not v_new and v_tracked is distinct from o.tracked_from then
+    perform kokolio_test._tracked_guard(v_id, v_entry, o.tracked_from, v_tracked);
+  end if;
+  if v_mgr is not null then
+    if not exists (select 1 from kokolio_test.users x where x.id = v_mgr) then perform kokolio_test._fail('responsable', 'Responsable introuvable.'); end if;
+    if not v_new then
+      if v_mgr = v_id then perform kokolio_test._fail('responsable', 'Un salarié ne peut pas être son propre responsable.'); end if;
+      perform kokolio_test._no_cycle(v_id, v_mgr);
+    end if;
+  end if;
+  v_role := coalesce(nullif(p_args->>'role', ''), case when v_new then 'salarie' else o.role end);
+  if v_role not in ('salarie', 'rh', 'admin') then perform kokolio_test._fail('requete', 'Rôle inconnu.'); end if;
+  if v_role <> (case when v_new then 'salarie' else o.role end) then
+    if me.role <> 'admin' then perform kokolio_test._fail('interdit', 'Seul un administrateur peut attribuer un rôle.'); end if;
+    if not v_new and o.role = 'admin' and v_role <> 'admin'
+       and not exists (select 1 from kokolio_test.users x where x.role = 'admin' and x.id <> v_id and not x.disabled) then
+      perform kokolio_test._fail('interdit', 'Impossible de retirer le dernier administrateur.');
+    end if;
+  end if;
+  if v_new then
+    insert into kokolio_test.users (login, role, first_name, last_name, matricule, email, team, job, manager_id, entry_date, exit_date, details, tracked_from)
+    values (v_login, v_role, trim(coalesce(p_args->>'first_name', '')), trim(p_args->>'last_name'), v_mat, trim(coalesce(p_args->>'email', '')),
+            trim(coalesce(p_args->>'team', '')), trim(coalesce(p_args->>'job', '')), v_mgr, v_entry, v_exit, v_details, v_tracked)
+    returning * into u;
+    c := kokolio_test._contract_apply(u.id, coalesce(v_entry, date '2000-01-01'), coalesce(p_args->'contract', '{}'::jsonb), me.id);
+    if coalesce(p_args->>'code_hash', '') ~ '^[0-9a-f]{64}$' then
+      select coalesce((m.value->>'activation_days')::int, 14) into v_days from kokolio_test.meta m where m.key = 'settings';
+      update kokolio_test.users set act_hash = p_args->>'code_hash', act_expires = v_now + make_interval(days => coalesce(v_days, 14)) where id = u.id returning * into u;
+    end if;
+    perform kokolio_test._audit(me.id, 'fiche_creee', u.id, u.login, jsonb_build_object('nom', trim(u.first_name || ' ' || u.last_name), 'role', u.role), coalesce(p->>'ip', ''));
+  else
+    if coalesce((p_args->>'disabled')::boolean, o.disabled) and o.id = me.id then
+      perform kokolio_test._fail('interdit', 'Vous ne pouvez pas désactiver votre propre compte.');
+    end if;
+    update kokolio_test.users set login = v_login, role = v_role, first_name = trim(coalesce(p_args->>'first_name', '')), last_name = trim(p_args->>'last_name'),
+      matricule = v_mat, email = trim(coalesce(p_args->>'email', '')), team = trim(coalesce(p_args->>'team', '')), job = trim(coalesce(p_args->>'job', '')),
+      manager_id = v_mgr, entry_date = v_entry, exit_date = v_exit, details = v_details, tracked_from = v_tracked,
+      disabled = coalesce((p_args->>'disabled')::boolean, o.disabled), version = o.version + 1, updated_at = v_now
+    where id = v_id returning * into u;
+    if u.disabled and not o.disabled then delete from kokolio_test.sessions s where s.user_id = u.id; end if;
+    v_diff := kokolio_test._diff(to_jsonb(o), to_jsonb(u), array['login', 'role', 'first_name', 'last_name', 'matricule', 'email', 'team', 'job', 'manager_id', 'entry_date', 'exit_date', 'tracked_from', 'disabled'])
+      || case when o.details is distinct from u.details then jsonb_build_object('details', (select coalesce(jsonb_agg(k), '[]'::jsonb) from (
+           select k from jsonb_object_keys(o.details || u.details) k where (o.details->k) is distinct from (u.details->k)) z)) else '{}'::jsonb end;
+    perform kokolio_test._audit(me.id, 'fiche_modifiee', u.id, u.login, v_diff, coalesce(p->>'ip', ''));
+  end if;
+  return jsonb_build_object('user', kokolio_test._user_json(u, true));
+end $$;
+
+create or replace function kokolio_test._contract_set(me kokolio_test.users, p jsonb, p_args jsonb) returns jsonb language plpgsql as $$
+declare v_uid uuid := nullif(p_args->>'user_id', '')::uuid; u kokolio_test.users; c kokolio_test.contracts; v_start date := nullif(p_args->>'start_date', '')::date;
+begin
+  if me.role not in ('rh', 'admin') then perform kokolio_test._fail('interdit', 'Accès réservé aux RH.'); end if;
+  select * into u from kokolio_test.users x where x.id = v_uid for update;
+  if u.id is null then perform kokolio_test._fail('introuvable', 'Salarié introuvable.'); end if;
+  c := kokolio_test._contract_apply(u.id, v_start, coalesce(p_args->'contract', '{}'::jsonb), me.id);
+  update kokolio_test.users set version = u.version + 1, updated_at = kokolio_test._now() where id = u.id;
+  perform kokolio_test._audit(me.id, 'horaire_modifie', u.id, u.login,
+    jsonb_build_object('a_compter_du', c.start_date, 'regime', c.regime, 'minutes_par_jour', to_jsonb(c.day_minutes), 'jours', to_jsonb(c.work_days),
+      'pause', c.pause_minutes, 'cp_par_mois', c.cp_per_month, 'forfait_jours', c.forfait_days, 'presence', c.presence)
+      || case when c.cycle_id is not null then jsonb_build_object('cycle', (select x.name from kokolio_test.cycles x where x.id = c.cycle_id), 'semaine_1_du_cycle', c.cycle_anchor) else '{}'::jsonb end,
+    coalesce(p->>'ip', ''));
+  return jsonb_build_object('contract', kokolio_test._contract_json(c));
+end $$;
+
+-- Import en masse : tout passe ou rien ne passe. Les comptes existants sont mis à jour, jamais leur mot de passe.
+create or replace function kokolio_test._users_import(me kokolio_test.users, p jsonb, p_args jsonb) returns jsonb language plpgsql as $$
+declare
+  r jsonb; u kokolio_test.users; v_login text; v_created jsonb := '[]'::jsonb; v_updated jsonb := '[]'::jsonb; v_idx int := 0; v_mgr uuid;
+  v_tr date; v_moved jsonb := '[]'::jsonb;
+  v_year int := extract(year from kokolio_test._today())::int; v_days int; v_now timestamptz := kokolio_test._now(); v_role text; c kokolio_test.contracts;
+begin
+  if me.role not in ('rh', 'admin') then perform kokolio_test._fail('interdit', 'Accès réservé aux RH.'); end if;
+  if jsonb_typeof(p_args->'rows') is distinct from 'array' or jsonb_array_length(p_args->'rows') = 0 or jsonb_array_length(p_args->'rows') > 2000 then
+    perform kokolio_test._fail('import', 'Le fichier doit contenir entre 1 et 2 000 lignes.');
+  end if;
+  select coalesce((m.value->>'activation_days')::int, 14) into v_days from kokolio_test.meta m where m.key = 'settings';
+  for r in select x from jsonb_array_elements(p_args->'rows') x loop
+    v_idx := v_idx + 1;
+    v_login := lower(trim(coalesce(r->>'login', '')));
+    if v_login !~ '^[a-z0-9][a-z0-9._@-]{2,63}$' then perform kokolio_test._fail('import', 'Ligne ' || v_idx || ' : identifiant invalide.'); end if;
+    if trim(coalesce(r->>'last_name', '')) = '' then perform kokolio_test._fail('import', 'Ligne ' || v_idx || ' : nom manquant.'); end if;
+    select * into u from kokolio_test.users x where lower(x.login) = v_login for update;
+    begin
+      if u.id is null then
+        v_role := case when me.role = 'admin' and r->>'role' in ('rh', 'admin') then r->>'role' else 'salarie' end;
+        insert into kokolio_test.users (login, role, first_name, last_name, matricule, email, team, job, entry_date, exit_date, details, tracked_from, act_hash, act_expires)
+        values (v_login, v_role, trim(coalesce(r->>'first_name', '')), trim(r->>'last_name'), trim(coalesce(r->>'matricule', '')),
+                trim(coalesce(r->>'email', '')), trim(coalesce(r->>'team', '')), trim(coalesce(r->>'job', '')),
+                nullif(r->>'entry_date', '')::date, nullif(r->>'exit_date', '')::date, coalesce(r->'details', '{}'::jsonb), nullif(r->>'tracked_from', '')::date,
+                case when coalesce(r->>'code_hash', '') ~ '^[0-9a-f]{64}$' then r->>'code_hash' end,
+                case when coalesce(r->>'code_hash', '') ~ '^[0-9a-f]{64}$' then v_now + make_interval(days => coalesce(v_days, 14)) end)
+        returning * into u;
+        c := kokolio_test._contract_apply(u.id, coalesce(u.entry_date, date '2000-01-01'), coalesce(r->'contract', '{}'::jsonb), me.id);
+        if coalesce((r->>'cp')::numeric, 0) <> 0 then
+          insert into kokolio_test.balance_entries (user_id, kind, year, amount, reason, tag, created_by)
+          values (u.id, 'cp', v_year, (r->>'cp')::numeric, 'Solde de départ (import)', 'import', me.id);
+        end if;
+        if coalesce((r->>'rtt')::numeric, 0) <> 0 then
+          insert into kokolio_test.balance_entries (user_id, kind, year, amount, reason, tag, created_by)
+          values (u.id, 'rtt', v_year, (r->>'rtt')::numeric, 'Droits de l''année (import)', 'import', me.id);
+        end if;
+        v_created := v_created || to_jsonb(u.login);
+      else
+        if u.role = 'admin' and me.role <> 'admin' then
+          perform kokolio_test._fail('import', 'Ligne ' || v_idx || ' : compte administrateur, modifiable par un administrateur uniquement.');
+        end if;
+        -- Début de suivi : repris pour une fiche existante quand le fichier le donne (déploiement par vagues, date de lancement repoussée).
+        v_tr := nullif(r->>'tracked_from', '')::date;
+        if v_tr is not null and v_tr is distinct from u.tracked_from then
+          perform kokolio_test._tracked_guard(u.id, coalesce(nullif(r->>'entry_date', '')::date, u.entry_date), u.tracked_from, v_tr);
+          v_moved := v_moved || to_jsonb(u.login);
+        end if;
+        update kokolio_test.users set
+          tracked_from = coalesce(v_tr, tracked_from),
+          first_name = coalesce(nullif(trim(r->>'first_name'), ''), first_name), last_name = trim(r->>'last_name'),
+          matricule = coalesce(nullif(trim(r->>'matricule'), ''), matricule), email = coalesce(nullif(trim(r->>'email'), ''), email),
+          team = coalesce(nullif(trim(r->>'team'), ''), team), job = coalesce(nullif(trim(r->>'job'), ''), job),
+          entry_date = coalesce(nullif(r->>'entry_date', '')::date, entry_date), exit_date = coalesce(nullif(r->>'exit_date', '')::date, exit_date),
+          version = version + 1, updated_at = v_now
+        where id = u.id;
+        v_updated := v_updated || to_jsonb(u.login);
+      end if;
+    exception
+      when unique_violation then perform kokolio_test._fail('import', 'Ligne ' || v_idx || ' : identifiant ou matricule déjà utilisé.');
+      when invalid_datetime_format or datetime_field_overflow or invalid_text_representation or check_violation then
+        perform kokolio_test._fail('import', 'Ligne ' || v_idx || ' : date ou nombre illisible.');
+    end;
+  end loop;
+  v_idx := 0;
+  for r in select x from jsonb_array_elements(p_args->'rows') x loop
+    v_idx := v_idx + 1;
+    if trim(coalesce(r->>'manager_login', '')) <> '' then
+      select x.id into v_mgr from kokolio_test.users x where lower(x.login) = lower(trim(r->>'manager_login'));
+      if v_mgr is null then perform kokolio_test._fail('import', 'Ligne ' || v_idx || ' : responsable « ' || trim(r->>'manager_login') || ' » introuvable.'); end if;
+      update kokolio_test.users set manager_id = v_mgr where lower(login) = lower(trim(r->>'login')) and manager_id is distinct from v_mgr;
+    end if;
+  end loop;
+  for u in select * from kokolio_test.users x where x.manager_id is not null loop
+    if u.manager_id = u.id then perform kokolio_test._fail('import', u.login || ' ne peut pas être son propre responsable.'); end if;
+    perform kokolio_test._no_cycle(u.id, u.manager_id);
+  end loop;
+  perform kokolio_test._audit(me.id, 'import_salaries', null, '', jsonb_build_object('crees', v_created, 'mis_a_jour', v_updated) || case when jsonb_array_length(v_moved) > 0 then jsonb_build_object('debut_suivi_deplace', v_moved) else '{}'::jsonb end, coalesce(p->>'ip', ''));
+  return jsonb_build_object('created', v_created, 'updated', v_updated, 'tracked', v_moved);
+end $$;
+
+-- Écriture de solde (report, ajustement). Une écriture ne se modifie pas : on en passe une autre.
+create or replace function kokolio_test._balance_add(me kokolio_test.users, p jsonb, p_args jsonb) returns jsonb language plpgsql as $$
+declare
+  v_uid uuid := nullif(p_args->>'user_id', '')::uuid; v_kind text := coalesce(p_args->>'kind', ''); v_year int := (p_args->>'year')::int;
+  v_amount numeric := (p_args->>'amount')::numeric; v_reason text := left(trim(coalesce(p_args->>'reason', '')), 200); v_tag text := coalesce(p_args->>'tag', '');
+  e kokolio_test.balance_entries; u kokolio_test.users;
+begin
+  if me.role not in ('rh', 'admin') then perform kokolio_test._fail('interdit', 'Accès réservé aux RH.'); end if;
+  select * into u from kokolio_test.users x where x.id = v_uid;
+  if u.id is null then perform kokolio_test._fail('introuvable', 'Salarié introuvable.'); end if;
+  if v_kind not in ('cp', 'rtt') or v_year is null or v_year < 2000 or v_year > 2100 then perform kokolio_test._fail('requete', 'Écriture invalide.'); end if;
+  if v_amount is null or v_amount = 0 or abs(v_amount) > 200 then perform kokolio_test._fail('requete', 'Montant invalide.'); end if;
+  if length(v_reason) < 3 then perform kokolio_test._fail('motif', 'Indiquez le motif de l''écriture.'); end if;
+  if v_tag not in ('', 'report') then perform kokolio_test._fail('requete', 'Écriture invalide.'); end if;
+  if v_tag <> '' and exists (select 1 from kokolio_test.balance_entries x where x.user_id = v_uid and x.kind = v_kind and x.year = v_year and x.tag = v_tag) then
+    return jsonb_build_object('skipped', true);
+  end if;
+  insert into kokolio_test.balance_entries (user_id, kind, year, amount, reason, tag, created_by)
+  values (v_uid, v_kind, v_year, v_amount, v_reason, v_tag, me.id) returning * into e;
+  perform kokolio_test._audit(me.id, 'solde_ajuste', v_uid, v_kind, jsonb_build_object('annee', v_year, 'jours', v_amount, 'motif', v_reason), coalesce(p->>'ip', ''));
+  return jsonb_build_object('entry', to_jsonb(e));
+end $$;
+
+-- Écritures en nombre (report de fin d'année) : une seule transaction, les reports déjà passés sont ignorés.
+create or replace function kokolio_test._balance_bulk(me kokolio_test.users, p jsonb, p_args jsonb) returns jsonb language plpgsql as $$
+declare v_it jsonb; v_n int := 0; v_skip int := 0; v_uid uuid; v_kind text; v_year int; v_amount numeric; v_tag text; v_reason text;
+begin
+  if me.role not in ('rh', 'admin') then perform kokolio_test._fail('interdit', 'Accès réservé aux RH.'); end if;
+  if jsonb_typeof(p_args->'items') is distinct from 'array' or jsonb_array_length(p_args->'items') > 3000 then
+    perform kokolio_test._fail('requete', 'Liste d''écritures invalide.');
+  end if;
+  for v_it in select x from jsonb_array_elements(p_args->'items') x loop
+    v_uid := (v_it->>'user_id')::uuid; v_kind := coalesce(v_it->>'kind', ''); v_year := (v_it->>'year')::int;
+    v_amount := (v_it->>'amount')::numeric; v_tag := coalesce(v_it->>'tag', ''); v_reason := left(trim(coalesce(v_it->>'reason', '')), 200);
+    if v_kind not in ('cp', 'rtt') or v_year is null or v_year < 2000 or v_year > 2100 or v_amount is null or abs(v_amount) > 200
+       or v_tag not in ('', 'report') or length(v_reason) < 3 or not exists (select 1 from kokolio_test.users u where u.id = v_uid) then
+      perform kokolio_test._fail('requete', 'Écriture invalide.');
+    end if;
+    if v_amount = 0 or (v_tag <> '' and exists (select 1 from kokolio_test.balance_entries x where x.user_id = v_uid and x.kind = v_kind and x.year = v_year and x.tag = v_tag)) then
+      v_skip := v_skip + 1;
+    else
+      insert into kokolio_test.balance_entries (user_id, kind, year, amount, reason, tag, created_by) values (v_uid, v_kind, v_year, v_amount, v_reason, v_tag, me.id);
+      v_n := v_n + 1;
+    end if;
+  end loop;
+  perform kokolio_test._audit(me.id, 'soldes_reportes', null, coalesce(p_args->>'label', ''), jsonb_build_object('ecritures', v_n, 'ignorees', v_skip), coalesce(p->>'ip', ''));
+  return jsonb_build_object('created', v_n, 'skipped', v_skip);
+end $$;
+
+-- ---------------------------------------------------------------------
+-- Clôture mensuelle
+-- ---------------------------------------------------------------------
+create or replace function kokolio_test._month_bounds(p_month text, out d1 date, out d2 date) language plpgsql immutable as $$
+begin
+  if p_month is null or p_month !~ '^[0-9]{4}-(0[1-9]|1[0-2])$' then perform kokolio_test._fail('requete', 'Mois invalide.'); end if;
+  d1 := (p_month || '-01')::date;
+  d2 := (d1 + interval '1 month' - interval '1 day')::date;
+end $$;
+
+-- Empreinte de tout ce qui entre dans le calcul d'un mois : sert à vérifier que rien n'a bougé entre le calcul et la clôture.
+create or replace function kokolio_test._month_fingerprint(p_month text) returns text language plpgsql stable as $$
+declare v_d1 date; v_d2 date; v_s text;
+begin
+  select b.d1, b.d2 into v_d1, v_d2 from kokolio_test._month_bounds(p_month) b;
+  select encode(sha256(convert_to(
+    coalesce((select string_agg(d.id::text || ':' || d.version, ',' order by d.id) from kokolio_test.days d where d.day between v_d1 and v_d2), '') || '#' ||
+    coalesce((select string_agg(a.id::text || ':' || a.version, ',' order by a.id) from kokolio_test.absences a where a.start_date <= v_d2 and a.end_date >= v_d1), '') || '#' ||
+    coalesce((select string_agg(c.id::text || ':' || c.start_date || ':' || coalesce(c.end_date::text, ''), ',' order by c.id) from kokolio_test.contracts c), '') || '#' ||
+    coalesce((select string_agg(u.id::text || ':' || u.version, ',' order by u.id) from kokolio_test.users u), '') || '#' ||
+    coalesce((select string_agg(q.user_id::text || ':' || q.day || ':' || q.minutes || ':' || extract(epoch from q.set_at), ',' order by q.user_id, q.day)
+              from kokolio_test.plan_days q where q.day between v_d1 and v_d2), '') || '#' ||
+    coalesce((select string_agg(k.id::text || ':' || k.version, ',' order by k.id) from kokolio_test.cycles k), '') || '#' ||
+    coalesce((select string_agg(m.code || ':' || m.version, ',' order by m.code) from kokolio_test.day_models m), ''), 'UTF8')), 'hex') into v_s;
+  return v_s;
+end $$;
+
+create or replace function kokolio_test._month_check(me kokolio_test.users, p_args jsonb) returns jsonb language plpgsql stable as $$
+declare v_m text := p_args->>'month'; v_d1 date; v_d2 date;
+begin
+  if me.role not in ('rh', 'admin') then perform kokolio_test._fail('interdit', 'Accès réservé aux RH.'); end if;
+  select b.d1, b.d2 into v_d1, v_d2 from kokolio_test._month_bounds(v_m) b;
+  return jsonb_build_object('month', v_m, 'ended', v_d2 < kokolio_test._today(), 'closed', kokolio_test._month_closed(v_m),
+    'pending_days', (select count(*) from kokolio_test.days d where d.day between v_d1 and v_d2 and d.status <> 'valide'),
+    'pending_absences', (select count(*) from kokolio_test.absences a where a.status = 'en_attente' and a.start_date <= v_d2 and a.end_date >= v_d1));
+end $$;
+
+create or replace function kokolio_test._month_close(me kokolio_test.users, p jsonb, p_args jsonb) returns jsonb language plpgsql as $$
+declare
+  v_m text := p_args->>'month'; v_d1 date; v_d2 date; v_nd int; v_na int; v_ver int; c kokolio_test.closures;
+  v_sha text := coalesce(p_args->>'export_sha256', '');
+begin
+  if me.role not in ('rh', 'admin') then perform kokolio_test._fail('interdit', 'Accès réservé aux RH.'); end if;
+  select b.d1, b.d2 into v_d1, v_d2 from kokolio_test._month_bounds(v_m) b;
+  if v_d2 >= kokolio_test._today() then perform kokolio_test._fail('etat', 'Ce mois n''est pas terminé.'); end if;
+  lock table kokolio_test.days, kokolio_test.absences in share row exclusive mode;
+  if kokolio_test._month_closed(v_m) then perform kokolio_test._fail('etat', 'Ce mois est déjà clôturé.'); end if;
+  select count(*) into v_nd from kokolio_test.days d where d.day between v_d1 and v_d2 and d.status <> 'valide';
+  select count(*) into v_na from kokolio_test.absences a where a.status = 'en_attente' and a.start_date <= v_d2 and a.end_date >= v_d1;
+  if v_nd > 0 or v_na > 0 then
+    perform kokolio_test._fail('bloque', 'Clôture impossible : ' || v_nd || ' journée(s) non validée(s) et ' || v_na || ' demande(s) d''absence en attente.');
+  end if;
+  if coalesce(p_args->>'fingerprint', '') <> kokolio_test._month_fingerprint(v_m) then
+    perform kokolio_test._fail('conflit', 'Des données ont changé pendant la préparation de la clôture. Relancez-la.');
+  end if;
+  if jsonb_typeof(p_args->'snapshot') is distinct from 'object' or coalesce(p_args->>'export_text', '') = '' or v_sha !~ '^[0-9a-f]{64}$' then
+    perform kokolio_test._fail('requete', 'Clôture incomplète.');
+  end if;
+  select coalesce(max(x.version), 0) + 1 into v_ver from kokolio_test.closures x where x.month = v_m;
+  insert into kokolio_test.closures (month, version, status, closed_by, closed_at, snapshot, export_text, export_sha256)
+  values (v_m, v_ver, 'cloture', me.id, kokolio_test._now(), p_args->'snapshot', p_args->>'export_text', v_sha) returning * into c;
+  perform kokolio_test._audit(me.id, 'mois_cloture', null, v_m, jsonb_build_object('version', v_ver, 'empreinte_export', v_sha), coalesce(p->>'ip', ''));
+  return jsonb_build_object('month', v_m, 'version', v_ver);
+end $$;
+
+create or replace function kokolio_test._month_reopen(me kokolio_test.users, p jsonb, p_args jsonb) returns jsonb language plpgsql as $$
+declare v_m text := p_args->>'month'; v_reason text := left(trim(coalesce(p_args->>'reason', '')), 300); c kokolio_test.closures; v_d1 date; v_d2 date;
+begin
+  if me.role not in ('rh', 'admin') then perform kokolio_test._fail('interdit', 'Accès réservé aux RH.'); end if;
+  select b.d1, b.d2 into v_d1, v_d2 from kokolio_test._month_bounds(v_m) b;
+  if length(v_reason) < 5 then perform kokolio_test._fail('motif', 'Indiquez le motif de la réouverture.'); end if;
+  select * into c from kokolio_test.closures x where x.month = v_m order by x.version desc limit 1 for update;
+  if c.id is null or c.status <> 'cloture' then perform kokolio_test._fail('etat', 'Ce mois n''est pas clôturé.'); end if;
+  update kokolio_test.closures set status = 'rouvert', reopened_by = me.id, reopened_at = kokolio_test._now(), reopen_reason = v_reason where id = c.id;
+  perform kokolio_test._audit(me.id, 'mois_rouvert', null, v_m, jsonb_build_object('version', c.version, 'motif', v_reason), coalesce(p->>'ip', ''));
+  return jsonb_build_object('month', v_m, 'version', c.version);
+end $$;
+
+create or replace function kokolio_test._closures(me kokolio_test.users) returns jsonb language plpgsql stable as $$
+begin
+  if me.role not in ('rh', 'admin') then perform kokolio_test._fail('interdit', 'Accès réservé aux RH.'); end if;
+  return coalesce((select jsonb_agg(jsonb_build_object('month', c.month, 'version', c.version, 'status', c.status, 'closed_at', c.closed_at,
+      'closed_by', (select trim(u.first_name || ' ' || u.last_name) from kokolio_test.users u where u.id = c.closed_by),
+      'reopened_at', c.reopened_at, 'reopened_by', (select trim(u.first_name || ' ' || u.last_name) from kokolio_test.users u where u.id = c.reopened_by),
+      'reopen_reason', c.reopen_reason, 'export_sha256', c.export_sha256, 'totals', c.snapshot->'totals') order by c.month desc, c.version desc)
+    from kokolio_test.closures c), '[]'::jsonb);
+end $$;
+
+create or replace function kokolio_test._closure_get(me kokolio_test.users, p jsonb, p_args jsonb) returns jsonb language plpgsql as $$
+declare c kokolio_test.closures;
+begin
+  if me.role not in ('rh', 'admin') then perform kokolio_test._fail('interdit', 'Accès réservé aux RH.'); end if;
+  select * into c from kokolio_test.closures x where x.month = p_args->>'month' and x.version = (p_args->>'version')::int;
+  if c.id is null then perform kokolio_test._fail('introuvable', 'Clôture introuvable.'); end if;
+  if coalesce((p_args->>'download')::boolean, false) then
+    perform kokolio_test._audit(me.id, 'export_telecharge', null, c.month, jsonb_build_object('version', c.version), coalesce(p->>'ip', ''));
+  end if;
+  return jsonb_build_object('month', c.month, 'version', c.version, 'status', c.status, 'closed_at', c.closed_at,
+    'snapshot', c.snapshot, 'export_text', c.export_text, 'export_sha256', c.export_sha256);
+end $$;
+
+-- ---------------------------------------------------------------------
+-- Journal
+-- ---------------------------------------------------------------------
+create or replace function kokolio_test._journal(me kokolio_test.users, p_args jsonb) returns jsonb language plpgsql stable as $$
+declare
+  v_before bigint := nullif(p_args->>'before', '')::bigint; v_limit int := least(greatest(coalesce((p_args->>'limit')::int, 50), 1), 200);
+  v_action text := nullif(p_args->>'action', ''); v_user uuid := nullif(p_args->>'user_id', '')::uuid; v_q text := nullif(lower(trim(coalesce(p_args->>'q', ''))), '');
+begin
+  if me.role not in ('rh', 'admin') then perform kokolio_test._fail('interdit', 'Accès réservé aux RH.'); end if;
+  return jsonb_build_object(
+    'rows', coalesce((select jsonb_agg(to_jsonb(x) order by x.seq desc) from (
+      select a.seq, a.ts, a.actor_label, a.action, a.target, a.detail, a.ip, a.target_user,
+        (select trim(u.first_name || ' ' || u.last_name) from kokolio_test.users u where u.id = a.target_user) as target_name
+      from kokolio_test.audit a
+      where (v_before is null or a.seq < v_before)
+        and (v_action is null or a.action = v_action)
+        and (v_user is null or a.target_user = v_user or a.actor = v_user)
+        and (v_q is null or lower(a.actor_label) like '%' || v_q || '%' or lower(a.target) like '%' || v_q || '%'
+             or exists (select 1 from kokolio_test.users u where u.id = a.target_user and lower(u.first_name || ' ' || u.last_name) like '%' || v_q || '%'))
+      order by a.seq desc limit v_limit) x), '[]'::jsonb),
+    'actions', coalesce((select jsonb_agg(z.action order by z.action) from (select distinct a.action from kokolio_test.audit a) z), '[]'::jsonb),
+    'total', (select count(*) from kokolio_test.audit));
+end $$;
+
+-- Vérifie la chaîne d'empreintes par tranches. Une ligne modifiée, supprimée ou insérée après coup casse la chaîne.
+create or replace function kokolio_test._journal_verify(me kokolio_test.users, p_args jsonb) returns jsonb language plpgsql stable as $$
+declare
+  v_after bigint := coalesce(nullif(p_args->>'after', '')::bigint, 0); v_limit int := least(greatest(coalesce((p_args->>'limit')::int, 2000), 1), 5000);
+  r kokolio_test.audit; v_prev text := ''; v_n int := 0; v_last bigint; v_head jsonb;
+begin
+  if me.role not in ('rh', 'admin') then perform kokolio_test._fail('interdit', 'Accès réservé aux RH.'); end if;
+  v_last := v_after;
+  if v_after > 0 then
+    select a.hash into v_prev from kokolio_test.audit a where a.seq = v_after;
+    if v_prev is null then return jsonb_build_object('ok', false, 'bad_seq', v_after, 'checked', 0); end if;
+  end if;
+  for r in select * from kokolio_test.audit a where a.seq > v_after order by a.seq limit v_limit loop
+    if r.prev_hash <> v_prev or r.hash <> kokolio_test._audit_hash(r.prev_hash, r.seq, r.ts, r.actor, r.actor_label, r.action, r.target_user, r.target, r.detail, r.ip) then
+      return jsonb_build_object('ok', false, 'bad_seq', r.seq, 'checked', v_n);
+    end if;
+    v_prev := r.hash; v_last := r.seq; v_n := v_n + 1;
+  end loop;
+  if v_n < v_limit then
+    select m.value into v_head from kokolio_test.meta m where m.key = 'audit_head';
+    if coalesce((v_head->>'seq')::bigint, 0) <> v_last or coalesce(v_head->>'hash', '') <> v_prev then
+      return jsonb_build_object('ok', false, 'bad_seq', v_last, 'checked', v_n, 'reason', 'fin_de_chaine');
+    end if;
+  end if;
+  return jsonb_build_object('ok', true, 'checked', v_n, 'last', v_last, 'done', v_n < v_limit);
+end $$;
+
+-- ---------------------------------------------------------------------
+-- Paramètres (administrateur)
+-- ---------------------------------------------------------------------
+create or replace function kokolio_test._settings_set(me kokolio_test.users, p jsonb, p_args jsonb) returns jsonb language plpgsql as $$
+declare v_old jsonb; v_new jsonb; v_in jsonb := coalesce(p_args->'settings', '{}'::jsonb); v_k text; v_l jsonb; v_e jsonb; v_s jsonb;
+begin
+  if me.role <> 'admin' then perform kokolio_test._fail('interdit', 'Accès réservé aux administrateurs.'); end if;
+  select m.value into v_old from kokolio_test.meta m where m.key = 'settings' for update;
+  if p_args ? 'version' and (p_args->>'version')::int <> coalesce((v_old->>'version')::int, 1) then
+    perform kokolio_test._fail('conflit', 'Les paramètres ont été modifiés entre-temps. Rechargez la page.');
+  end if;
+  v_new := v_old;
+  if v_in ? 'company' then
+    if length(trim(v_in->>'company')) < 1 or length(v_in->>'company') > 80 then perform kokolio_test._fail('parametre', 'Nom d''entreprise invalide.'); end if;
+    v_new := jsonb_set(v_new, '{company}', to_jsonb(trim(v_in->>'company')));
+  end if;
+  if v_in ? 'logo_url' then
+    if coalesce(v_in->>'logo_url', '') <> '' and (v_in->>'logo_url' !~ '^https://[^ "<>]+$' or length(v_in->>'logo_url') > 300) then perform kokolio_test._fail('parametre', 'L''adresse du logo doit commencer par https://'); end if;
+    v_new := jsonb_set(v_new, '{logo_url}', to_jsonb(coalesce(v_in->>'logo_url', '')));
+  end if;
+  if v_in ? 'go_live' then
+    if (v_in->>'go_live') !~ '^[0-9]{4}-[0-9]{2}-[0-9]{2}$' then perform kokolio_test._fail('parametre', 'Date de mise en service invalide.'); end if;
+    perform (v_in->>'go_live')::date;
+    v_new := jsonb_set(v_new, '{go_live}', v_in->'go_live');
+  end if;
+  foreach v_k in array array['pause_threshold_min', 'max_day_min', 'max_week_min', 'min_rest_min', 'activation_days'] loop
+    if v_in ? v_k then
+      if jsonb_typeof(v_in->v_k) <> 'number' or (v_in->>v_k)::numeric < 0 or (v_in->>v_k)::numeric > 6000 or (v_in->>v_k)::numeric <> trunc((v_in->>v_k)::numeric) then
+        perform kokolio_test._fail('parametre', 'Valeur invalide pour ' || v_k || '.');
+      end if;
+      v_new := jsonb_set(v_new, array[v_k], v_in->v_k);
+    end if;
+  end loop;
+  if v_in ? 'night_until' then
+    if coalesce(v_in->>'night_until', '') <> '' and (v_in->>'night_until') !~ '^(0[0-9]|1[01]):[0-5][0-9]$' then
+      perform kokolio_test._fail('parametre', 'Heure limite de nuit invalide : entre 00:00 et 11:59, ou vide pour désactiver.');
+    end if;
+    v_new := jsonb_set(v_new, '{night_until}', to_jsonb(coalesce(v_in->>'night_until', '')));
+  end if;
+  -- pauses payées : minutes de pause pointée comptées comme du travail, par jour (0 = les pauses ne sont pas payées)
+  if v_in ? 'break_paid_min' then
+    if jsonb_typeof(v_in->'break_paid_min') <> 'number' or (v_in->>'break_paid_min')::numeric < 0 or (v_in->>'break_paid_min')::numeric > 120
+       or (v_in->>'break_paid_min')::numeric <> trunc((v_in->>'break_paid_min')::numeric) then
+      perform kokolio_test._fail('parametre', 'Pause payée invalide : entre 0 et 120 minutes par jour.');
+    end if;
+    v_new := jsonb_set(v_new, '{break_paid_min}', v_in->'break_paid_min');
+  end if;
+  -- anomalies liées à l'horaire : tolérances en minutes et niveau de chaque type
+  if v_in ? 'anomalies' then
+    v_e := v_in->'anomalies';
+    if jsonb_typeof(v_e) <> 'object' or jsonb_typeof(coalesce(v_e->'levels', '{}'::jsonb)) <> 'object' then perform kokolio_test._fail('parametre', 'Réglage des anomalies invalide.'); end if;
+    foreach v_k in array array['late_min', 'early_min', 'range_min', 'short_min', 'break_min', 'break_max'] loop
+      if v_e ? v_k and (jsonb_typeof(v_e->v_k) <> 'number' or (v_e->>v_k)::numeric < 0 or (v_e->>v_k)::numeric > 600 or (v_e->>v_k)::numeric <> trunc((v_e->>v_k)::numeric)) then
+        perform kokolio_test._fail('parametre', 'Tolérance invalide (' || v_k || ') : entre 0 et 600 minutes.');
+      end if;
+    end loop;
+    if exists (select 1 from jsonb_each_text(coalesce(v_e->'levels', '{}'::jsonb)) x
+               where x.key not in ('retard', 'depart_anticipe', 'hors_plage', 'presence_insuffisante', 'travail_absence', 'pause_courte', 'pause_longue', 'pause_non_prise')
+                  or x.value not in ('corriger', 'verifier', 'info', 'off')) then
+      perform kokolio_test._fail('parametre', 'Niveau d''anomalie inconnu.');
+    end if;
+    v_new := jsonb_set(v_new, '{anomalies}', coalesce(v_new->'anomalies', '{}'::jsonb) || (v_e - 'levels')
+      || jsonb_build_object('levels', coalesce(v_new #> '{anomalies,levels}', '{}'::jsonb) || coalesce(v_e->'levels', '{}'::jsonb)));
+  end if;
+  if (v_new->>'activation_days')::int < 1 or (v_new->>'activation_days')::int > 90 then perform kokolio_test._fail('parametre', 'Durée de validité des codes : entre 1 et 90 jours.'); end if;
+  if v_in ? 'lieux' then
+    if jsonb_typeof(v_in->'lieux') <> 'array' or jsonb_array_length(v_in->'lieux') < 1 or jsonb_array_length(v_in->'lieux') > 8 then
+      perform kokolio_test._fail('parametre', 'Indiquez entre 1 et 8 lieux.');
+    end if;
+    for v_l in select x from jsonb_array_elements(v_in->'lieux') x loop
+      if coalesce(v_l->>'code', '') !~ '^[a-z0-9_]{2,30}$' or length(trim(coalesce(v_l->>'label', ''))) < 1 or length(v_l->>'label') > 40 then
+        perform kokolio_test._fail('parametre', 'Lieu invalide.');
+      end if;
+    end loop;
+    v_new := jsonb_set(v_new, '{lieux}', v_in->'lieux');
+  end if;
+  if v_in ? 'export' then
+    v_e := v_in->'export';
+    if jsonb_typeof(v_e) <> 'object' or length(coalesce(v_e->>'hours_code', '')) > 30 or coalesce(v_e->>'sep', ';') not in (';', ',', E'\t')
+       or coalesce(v_e->>'decimal', ',') not in (',', '.') then
+      perform kokolio_test._fail('parametre', 'Format d''export invalide.');
+    end if;
+    -- format du fichier : « csv » (une ligne par élément, colonnes séparées) ou « sage » (import de Sage Paie, lignes EV, VB et VM à largeur fixe).
+    -- Ce qui n'est pas envoyé garde sa valeur. Pour Sage : le libellé des événements, et la constante de paie qui reçoit des heures (facultative).
+    v_s := coalesce(v_new #> '{export,sage}', '{}'::jsonb) || case when jsonb_typeof(v_e->'sage') = 'object' then v_e->'sage' else '{}'::jsonb end;
+    if coalesce(v_e->>'format', v_new #>> '{export,format}', 'csv') not in ('csv', 'sage') then perform kokolio_test._fail('parametre', 'Format d''export inconnu.'); end if;
+    if (v_e ? 'sage' and jsonb_typeof(v_e->'sage') <> 'object') or coalesce(v_s->>'label', '') !~ '^[ -~]{0,30}$' or coalesce(v_s->>'vm_type', '') !~ '^[0-9]{0,3}$'
+       or coalesce(v_s->>'vm_code', '') !~ '^[A-Za-z0-9_]{0,10}$' or coalesce(v_s->>'vm_source', '') not in ('', 'manque', 'surplus', 'travaille') then
+      perform kokolio_test._fail('parametre', 'Réglage de l''export Sage invalide.');
+    end if;
+    v_new := jsonb_set(v_new, '{export}', jsonb_build_object('hours_code', coalesce(v_e->>'hours_code', ''), 'include_hours', coalesce((v_e->>'include_hours')::boolean, true),
+      'sep', coalesce(v_e->>'sep', ';'), 'decimal', coalesce(v_e->>'decimal', ','), 'header', coalesce((v_e->>'header')::boolean, true),
+      'format', coalesce(v_e->>'format', v_new #>> '{export,format}', 'csv'),
+      'sage', jsonb_build_object('label', coalesce(v_s->>'label', 'du %DEB au %FIN'), 'vm_type', coalesce(nullif(v_s->>'vm_type', ''), '255'),
+        'vm_code', upper(coalesce(v_s->>'vm_code', '')), 'vm_source', coalesce(v_s->>'vm_source', ''))));
+  end if;
+  v_new := jsonb_set(v_new, '{version}', to_jsonb(coalesce((v_old->>'version')::int, 1) + 1));
+  update kokolio_test.meta set value = v_new, updated_at = now() where key = 'settings';
+  perform kokolio_test._audit(me.id, 'parametres_modifies', null, '',
+    kokolio_test._diff(v_old, v_new, array['company', 'logo_url', 'go_live', 'pause_threshold_min', 'max_day_min', 'max_week_min', 'min_rest_min', 'activation_days', 'night_until', 'break_paid_min', 'anomalies', 'lieux', 'export']),
+    coalesce(p->>'ip', ''));
+  return jsonb_build_object('settings', v_new);
+end $$;
+
+create or replace function kokolio_test._type_save(me kokolio_test.users, p jsonb, p_args jsonb) returns jsonb language plpgsql as $$
+declare v_t jsonb := coalesce(p_args->'type', '{}'::jsonb); v_code text; t kokolio_test.absence_types; o kokolio_test.absence_types;
+begin
+  if me.role <> 'admin' then perform kokolio_test._fail('interdit', 'Accès réservé aux administrateurs.'); end if;
+  v_code := lower(trim(coalesce(v_t->>'code', '')));
+  if v_code !~ '^[a-z0-9_]{2,30}$' then perform kokolio_test._fail('parametre', 'Code de motif invalide (lettres minuscules, chiffres, tiret bas).'); end if;
+  if length(trim(coalesce(v_t->>'label', ''))) < 2 or length(v_t->>'label') > 60 then perform kokolio_test._fail('parametre', 'Libellé de motif invalide.'); end if;
+  if coalesce(v_t->>'category', 'autre') not in ('cp', 'rtt', 'maladie', 'autre') then perform kokolio_test._fail('parametre', 'Catégorie inconnue.'); end if;
+  if length(coalesce(v_t->>'export_code', '')) > 30 then perform kokolio_test._fail('parametre', 'Code d''export trop long.'); end if;
+  if coalesce(v_t->>'annual', 'retire') not in ('retire', 'realise', 'neutre') then perform kokolio_test._fail('parametre', 'Effet sur l''annualisation inconnu.'); end if;
+  if coalesce(v_t->>'export_unit', 'prevus') not in ('prevus', 'calendaires') then perform kokolio_test._fail('parametre', 'Décompte pour la paie inconnu.'); end if;
+  if v_t ? 'export_dates' and jsonb_typeof(v_t->'export_dates') <> 'boolean' then perform kokolio_test._fail('parametre', 'Report des dates sur le bulletin : oui ou non.'); end if;
+  select * into o from kokolio_test.absence_types x where x.code = v_code;
+  -- l'effet sur l'annualisation et les réglages d'export ne sont modifiés que s'ils sont envoyés : sinon ils gardent leur valeur
+  -- (un nouveau motif de la famille des congés payés voit ses dates reportées sur le bulletin, comme les motifs d'origine)
+  insert into kokolio_test.absence_types as x (code, label, category, export_code, needs_doc, absenteeism, active, sort, annual, export_unit, export_dates)
+  values (v_code, trim(v_t->>'label'), coalesce(v_t->>'category', 'autre'), trim(coalesce(v_t->>'export_code', '')),
+          coalesce((v_t->>'needs_doc')::boolean, false), coalesce((v_t->>'absenteeism')::boolean, true),
+          coalesce((v_t->>'active')::boolean, true), coalesce((v_t->>'sort')::int, 100), coalesce(v_t->>'annual', o.annual, 'retire'),
+          coalesce(v_t->>'export_unit', o.export_unit, 'prevus'), coalesce((v_t->>'export_dates')::boolean, o.export_dates, coalesce(v_t->>'category', 'autre') = 'cp'))
+  on conflict (code) do update set label = excluded.label, category = excluded.category, export_code = excluded.export_code,
+    needs_doc = excluded.needs_doc, absenteeism = excluded.absenteeism, active = excluded.active, sort = excluded.sort, annual = excluded.annual,
+    export_unit = excluded.export_unit, export_dates = excluded.export_dates
+  returning * into t;
+  perform kokolio_test._audit(me.id, case when o.code is null then 'motif_cree' else 'motif_modifie' end, null, v_code,
+    kokolio_test._diff(coalesce(to_jsonb(o), '{}'::jsonb), to_jsonb(t), array['label', 'category', 'export_code', 'needs_doc', 'absenteeism', 'active', 'sort', 'annual', 'export_unit', 'export_dates']), coalesce(p->>'ip', ''));
+  return jsonb_build_object('type', to_jsonb(t));
+end $$;
+
+create or replace function kokolio_test._status(me kokolio_test.users) returns jsonb language plpgsql stable as $$
+begin
+  if me.role <> 'admin' then perform kokolio_test._fail('interdit', 'Accès réservé aux administrateurs.'); end if;
+  return jsonb_build_object(
+    'schema', (select m.value from kokolio_test.meta m where m.key = 'schema_version'),
+    'users', (select count(*) from kokolio_test.users),
+    'admins', (select count(*) from kokolio_test.users u where u.role = 'admin'),
+    'active_users', (select count(*) from kokolio_test.users u where kokolio_test._account_ok(u)),
+    'activated', (select count(*) from kokolio_test.users u where u.pw_hash is not null and kokolio_test._account_ok(u)),
+    'sessions', (select count(*) from kokolio_test.sessions s where s.expires_at > kokolio_test._now()),
+    'days', (select count(*) from kokolio_test.days),
+    'punches', (select count(*) from kokolio_test.punch_log),
+    'absences', (select count(*) from kokolio_test.absences),
+    'documents', (select count(*) from kokolio_test.attachments),
+    'documents_bytes', (select coalesce(sum(t.size), 0) from kokolio_test.attachments t),
+    'audit', (select count(*) from kokolio_test.audit),
+    'closures', (select count(*) from kokolio_test.closures),
+    'db_bytes', (select coalesce(sum(pg_total_relation_size(c.oid)), 0) from pg_class c join pg_namespace n on n.oid = c.relnamespace where n.nspname = 'kokolio_test' and c.relkind = 'r'),
+    'now', kokolio_test._now(), 'today', kokolio_test._today(), 'hm', kokolio_test._hm());
+end $$;
+-- =====================================================================
+-- Kokolio — planification : horaires journaliers, cycles, exceptions d'un jour
+-- Bibliothèque (horaires, cycles) : RH et administrateurs. Planning d'un salarié : son responsable direct, ou les RH.
+-- =====================================================================
+
+-- Bibliothèque : les horaires journaliers et les cycles, avec ce qu'il faut pour savoir s'ils sont utilisés ou figés.
+create or replace function kokolio_test._planning_lib(me kokolio_test.users) returns jsonb language plpgsql stable as $$
+declare v_today date := kokolio_test._today();
+begin
+  if me.role = 'salarie' and not exists (select 1 from kokolio_test.users r where r.manager_id = me.id) then
+    perform kokolio_test._fail('interdit', 'Accès réservé aux responsables et aux RH.');
+  end if;
+  return jsonb_build_object(
+    'can_edit', me.role in ('rh', 'admin'),
+    'models', coalesce((select jsonb_agg(jsonb_build_object('code', m.code, 'label', m.label, 'minutes', m.minutes, 'ranges', m.ranges, 'color', m.color,
+        'active', m.active, 'sort', m.sort, 'version', m.version,
+        'cycles', coalesce(array_length(kokolio_test._model_cycles(m.code), 1), 0),
+        'locked', exists (select 1 from unnest(kokolio_test._model_cycles(m.code)) x where kokolio_test._cycle_locked(x))) order by m.sort, m.code)
+      from kokolio_test.day_models m), '[]'::jsonb),
+    'cycles', coalesce((select jsonb_agg(kokolio_test._cycle_json(c.id) || jsonb_build_object('codes', c.weeks,
+        'assigned', (select count(distinct k.user_id) from kokolio_test.contracts k where k.cycle_id = c.id and (k.end_date is null or k.end_date >= v_today)),
+        'locked', kokolio_test._cycle_locked(c.id)) order by lower(c.name))
+      from kokolio_test.cycles c), '[]'::jsonb));
+end $$;
+
+-- Créer ou modifier un horaire journalier. Sa durée ne change plus dès qu'un cycle qui l'emploie a servi dans un mois clôturé.
+create or replace function kokolio_test._model_save(me kokolio_test.users, p jsonb, p_args jsonb) returns jsonb language plpgsql as $$
+declare
+  j jsonb := coalesce(p_args->'model', '{}'::jsonb); v_code text := upper(trim(coalesce(j->>'code', ''))); o kokolio_test.day_models; m kokolio_test.day_models;
+  v_label text := trim(coalesce(j->>'label', '')); v_min int; v_ranges jsonb; v_color text := coalesce(j->>'color', ''); v_new boolean := coalesce((p_args->>'create')::boolean, false);
+begin
+  if me.role not in ('rh', 'admin') then perform kokolio_test._fail('interdit', 'Accès réservé aux RH.'); end if;
+  if v_code !~ '^[A-Z0-9][A-Z0-9_-]{0,11}$' then perform kokolio_test._fail('horaire', 'Code invalide : 1 à 12 caractères, lettres majuscules, chiffres, tiret.'); end if;
+  if length(v_label) < 1 or length(v_label) > 60 then perform kokolio_test._fail('horaire', 'Donnez un nom à cet horaire (60 caractères au plus).'); end if;
+  if jsonb_typeof(j->'minutes') is distinct from 'number' or (j->>'minutes')::numeric <> trunc((j->>'minutes')::numeric)
+     or (j->>'minutes')::numeric < 1 or (j->>'minutes')::numeric > 960 then
+    perform kokolio_test._fail('horaire', 'Durée invalide : entre 1 minute et 16 heures.');
+  end if;
+  v_min := (j->>'minutes')::int;
+  v_ranges := kokolio_test._ranges(j->'ranges');
+  if v_color not in ('', 'bleu', 'vert', 'ambre', 'rose', 'violet', 'turquoise', 'brique', 'gris') then perform kokolio_test._fail('horaire', 'Couleur inconnue.'); end if;
+  select * into o from kokolio_test.day_models x where x.code = v_code for update;
+  if o.code is null then
+    if not v_new then perform kokolio_test._fail('introuvable', 'Horaire introuvable.'); end if;
+    insert into kokolio_test.day_models (code, label, minutes, ranges, color, active, sort, created_by)
+    values (v_code, v_label, v_min, v_ranges, v_color, coalesce((j->>'active')::boolean, true), coalesce((j->>'sort')::int, 100), me.id) returning * into m;
+    perform kokolio_test._audit(me.id, 'horaire_type_cree', null, v_code, jsonb_build_object('nom', v_label, 'minutes', v_min, 'plages', v_ranges), coalesce(p->>'ip', ''));
+  else
+    if v_new then perform kokolio_test._fail('horaire', 'Ce code est déjà utilisé par l''horaire « ' || o.label || ' ».'); end if;
+    if p_args ? 'version' and (p_args->>'version')::int <> o.version then
+      perform kokolio_test._fail('conflit', 'Cet horaire a été modifié entre-temps. Rechargez la page.');
+    end if;
+    if v_min <> o.minutes and exists (select 1 from unnest(kokolio_test._model_cycles(v_code)) x where kokolio_test._cycle_locked(x)) then
+      perform kokolio_test._fail('cloture', 'Cet horaire a servi dans un mois clôturé : sa durée ne peut plus changer. Créez un nouvel horaire et placez-le dans un nouveau cycle.');
+    end if;
+    update kokolio_test.day_models set label = v_label, minutes = v_min, ranges = v_ranges, color = v_color,
+      active = coalesce((j->>'active')::boolean, o.active), sort = coalesce((j->>'sort')::int, o.sort), version = o.version + 1, updated_at = kokolio_test._now()
+    where code = v_code returning * into m;
+    perform kokolio_test._audit(me.id, 'horaire_type_modifie', null, v_code,
+      kokolio_test._diff(to_jsonb(o), to_jsonb(m), array['label', 'minutes', 'ranges', 'color', 'active']), coalesce(p->>'ip', ''));
+  end if;
+  return jsonb_build_object('model', to_jsonb(m) - 'created_by' - 'created_at');
+end $$;
+
+-- Créer ou modifier un cycle. Sa composition ne change plus dès qu'il a servi dans un mois clôturé : on le duplique.
+create or replace function kokolio_test._cycle_save(me kokolio_test.users, p jsonb, p_args jsonb) returns jsonb language plpgsql as $$
+declare
+  j jsonb := coalesce(p_args->'cycle', '{}'::jsonb); v_id uuid := nullif(j->>'id', '')::uuid; o kokolio_test.cycles; c kokolio_test.cycles;
+  v_name text := trim(coalesce(j->>'name', '')); v_weeks jsonb := '[]'::jsonb; w jsonb; x jsonb; v_week jsonb; v_code text; v_n int := 0;
+begin
+  if me.role not in ('rh', 'admin') then perform kokolio_test._fail('interdit', 'Accès réservé aux RH.'); end if;
+  if length(v_name) < 2 or length(v_name) > 60 then perform kokolio_test._fail('horaire', 'Donnez un nom au cycle (2 à 60 caractères).'); end if;
+  if jsonb_typeof(j->'weeks') is distinct from 'array' or jsonb_array_length(j->'weeks') < 1 or jsonb_array_length(j->'weeks') > 12 then
+    perform kokolio_test._fail('horaire', 'Un cycle compte entre 1 et 12 semaines.');
+  end if;
+  for w in select y.v from jsonb_array_elements(j->'weeks') with ordinality as y(v, o) order by y.o loop
+    if jsonb_typeof(w) <> 'array' or jsonb_array_length(w) <> 7 then perform kokolio_test._fail('horaire', 'Chaque semaine du cycle compte sept jours.'); end if;
+    v_week := '[]'::jsonb;
+    for x in select y.v from jsonb_array_elements(w) with ordinality as y(v, o) order by y.o loop
+      v_code := upper(trim(coalesce(x #>> '{}', '')));
+      if v_code = '' then
+        v_week := v_week || 'null'::jsonb;
+      else
+        if not exists (select 1 from kokolio_test.day_models m where m.code = v_code) then
+          perform kokolio_test._fail('horaire', 'Horaire journalier inconnu : ' || left(v_code, 12));
+        end if;
+        v_week := v_week || to_jsonb(v_code);
+        v_n := v_n + 1;
+      end if;
+    end loop;
+    v_weeks := v_weeks || jsonb_build_array(v_week);
+  end loop;
+  if v_n = 0 then perform kokolio_test._fail('horaire', 'Le cycle doit contenir au moins un jour travaillé.'); end if;
+  if exists (select 1 from kokolio_test.cycles y where lower(y.name) = lower(v_name) and (v_id is null or y.id <> v_id)) then
+    perform kokolio_test._fail('horaire', 'Un cycle porte déjà ce nom.');
+  end if;
+  if v_id is null then
+    insert into kokolio_test.cycles (name, weeks, active, annualise, created_by)
+    values (v_name, v_weeks, coalesce((j->>'active')::boolean, true), coalesce((j->>'annualise')::boolean, false), me.id) returning * into c;
+    perform kokolio_test._audit(me.id, 'cycle_cree', null, v_name, jsonb_build_object('semaines', jsonb_array_length(v_weeks), 'composition', v_weeks, 'annualise', c.annualise), coalesce(p->>'ip', ''));
+  else
+    select * into o from kokolio_test.cycles y where y.id = v_id for update;
+    if o.id is null then perform kokolio_test._fail('introuvable', 'Cycle introuvable.'); end if;
+    if p_args ? 'version' and (p_args->>'version')::int <> o.version then
+      perform kokolio_test._fail('conflit', 'Ce cycle a été modifié entre-temps. Rechargez la page.');
+    end if;
+    if o.weeks <> v_weeks and kokolio_test._cycle_locked(v_id) then
+      perform kokolio_test._fail('cloture', 'Ce cycle a servi dans un mois clôturé : sa composition ne peut plus changer. Dupliquez-le, puis attribuez le nouveau cycle à partir d''une date.');
+    end if;
+    update kokolio_test.cycles set name = v_name, weeks = v_weeks, active = coalesce((j->>'active')::boolean, o.active),
+      annualise = coalesce((j->>'annualise')::boolean, o.annualise), version = o.version + 1, updated_at = kokolio_test._now()
+    where id = v_id returning * into c;
+    perform kokolio_test._audit(me.id, 'cycle_modifie', null, v_name, kokolio_test._diff(to_jsonb(o), to_jsonb(c), array['name', 'weeks', 'active', 'annualise']), coalesce(p->>'ip', ''));
+  end if;
+  return jsonb_build_object('cycle', kokolio_test._cycle_json(c.id) || jsonb_build_object('codes', c.weeks));
+end $$;
+
+-- Planning : poser, modifier ou retirer l'exception d'un jour pour un ou plusieurs salariés. Tout passe ou rien ne passe.
+-- Chaque élément : { user_id, day, clear } pour revenir au planning par défaut, { …, model_code } pour un horaire de la bibliothèque,
+-- ou { …, minutes, ranges, label } pour une saisie libre (0 minute = repos).
+create or replace function kokolio_test._plan_set(me kokolio_test.users, p jsonb, p_args jsonb) returns jsonb language plpgsql as $$
+declare
+  r jsonb; v_uid uuid; v_day date; v_today date := kokolio_test._today(); m kokolio_test.day_models; v_min int; v_ranges jsonb; v_label text; v_code text;
+  v_note text; v_set int := 0; v_cleared int := 0; v_n int := 0; v_ok jsonb := '{}'::jsonb; v_touch jsonb := '{}'::jsonb; v_k text; v_login text;
+begin
+  if jsonb_typeof(p_args->'items') is distinct from 'array' or jsonb_array_length(p_args->'items') < 1 or jsonb_array_length(p_args->'items') > 3000 then
+    perform kokolio_test._fail('requete', 'Sélectionnez entre 1 et 3 000 jours.');
+  end if;
+  for r in select y.v from jsonb_array_elements(p_args->'items') with ordinality as y(v, o) order by y.o loop
+    v_uid := nullif(r->>'user_id', '')::uuid; v_day := nullif(r->>'day', '')::date; v_n := v_n + 1;
+    if v_uid is null or v_day is null then perform kokolio_test._fail('requete', 'Jour de planning invalide.'); end if;
+    if not (v_ok ? v_uid::text) then
+      if not kokolio_test._can_manage(me, v_uid) then perform kokolio_test._fail('interdit', 'Vous ne pouvez pas modifier le planning de ce salarié.'); end if;
+      if not exists (select 1 from kokolio_test.contracts k where k.user_id = v_uid) then
+        perform kokolio_test._fail('horaire', 'Ce compte n''a pas d''horaire : il ne peut pas être planifié.');
+      end if;
+      v_ok := v_ok || jsonb_build_object(v_uid::text, true);
+    end if;
+    if v_day < v_today - 366 or v_day > v_today + 732 then perform kokolio_test._fail('date', 'Le planning se modifie sur un an en arrière et deux ans en avant.'); end if;
+    if kokolio_test._month_closed(to_char(v_day, 'YYYY-MM')) then
+      perform kokolio_test._fail('cloture', 'Le ' || to_char(v_day, 'DD/MM/YYYY') || ' est dans un mois clôturé : son planning ne change plus.');
+    end if;
+    if coalesce((r->>'clear')::boolean, false) then
+      delete from kokolio_test.plan_days q where q.user_id = v_uid and q.day = v_day;
+      if found then v_cleared := v_cleared + 1; v_touch := jsonb_set(v_touch, array[v_uid::text], coalesce(v_touch->(v_uid::text), '[]'::jsonb) || jsonb_build_object('jour', v_day, 'horaire', 'par défaut')); end if;
+      continue;
+    end if;
+    v_code := upper(trim(coalesce(r->>'model_code', '')));
+    v_note := left(trim(coalesce(r->>'note', '')), 200);
+    if v_code <> '' then
+      select * into m from kokolio_test.day_models x where x.code = v_code;
+      if m.code is null then perform kokolio_test._fail('horaire', 'Horaire journalier inconnu : ' || left(v_code, 12)); end if;
+      if not m.active then perform kokolio_test._fail('horaire', 'L''horaire « ' || m.label || ' » est désactivé.'); end if;
+      v_min := m.minutes; v_ranges := m.ranges; v_label := m.label;
+    else
+      if jsonb_typeof(r->'minutes') is distinct from 'number' or (r->>'minutes')::numeric <> trunc((r->>'minutes')::numeric)
+         or (r->>'minutes')::numeric < 0 or (r->>'minutes')::numeric > 960 then
+        perform kokolio_test._fail('horaire', 'Durée invalide : entre 0 et 16 heures.');
+      end if;
+      v_min := (r->>'minutes')::int;
+      v_ranges := case when v_min = 0 then '[]'::jsonb else kokolio_test._ranges(r->'ranges') end;
+      v_label := left(trim(coalesce(r->>'label', '')), 60);
+      if v_label = '' then v_label := case when v_min = 0 then 'Repos' else 'Horaire du jour' end; end if;
+    end if;
+    insert into kokolio_test.plan_days (user_id, day, model_code, label, minutes, ranges, note, set_by, set_at)
+    values (v_uid, v_day, v_code, v_label, v_min, v_ranges, v_note, me.id, kokolio_test._now())
+    on conflict (user_id, day) do update set model_code = excluded.model_code, label = excluded.label, minutes = excluded.minutes,
+      ranges = excluded.ranges, note = excluded.note, set_by = excluded.set_by, set_at = excluded.set_at;
+    v_set := v_set + 1;
+    v_touch := jsonb_set(v_touch, array[v_uid::text], coalesce(v_touch->(v_uid::text), '[]'::jsonb)
+      || jsonb_build_object('jour', v_day, 'horaire', case when v_code <> '' then v_code else v_label end, 'minutes', v_min));
+  end loop;
+  -- une ligne de journal par salarié concerné (le détail est borné : au-delà de soixante jours, seul le nombre est gardé)
+  for v_k in select jsonb_object_keys(v_touch) loop
+    select x.login into v_login from kokolio_test.users x where x.id = v_k::uuid;
+    perform kokolio_test._audit(me.id, 'planning_modifie', v_k::uuid, coalesce(v_login, ''),
+      jsonb_build_object('jours', jsonb_array_length(v_touch->v_k))
+        || case when jsonb_array_length(v_touch->v_k) <= 60 then jsonb_build_object('detail', v_touch->v_k) else '{}'::jsonb end,
+      coalesce(p->>'ip', ''));
+  end loop;
+  return jsonb_build_object('set', v_set, 'cleared', v_cleared, 'items', v_n);
+end $$;
+-- =====================================================================
+-- Kokolio — annualisation : périodes de référence, objectif par salarié, ajustements datés
+-- Les calculs (objectif, réalisé, reste à faire, solde semaine par semaine) sont faits par le moteur à partir de ces lignes.
+-- Tout est réservé aux RH et aux administrateurs ; chaque geste est inscrit au journal.
+-- =====================================================================
+
+create or replace function kokolio_test._annual_period_save(me kokolio_test.users, p jsonb, p_args jsonb) returns jsonb language plpgsql as $$
+declare
+  j jsonb := coalesce(p_args->'period', '{}'::jsonb); v_id uuid := nullif(j->>'id', '')::uuid; v_label text := trim(coalesce(j->>'label', ''));
+  v_a date := nullif(j->>'start_date', '')::date; v_b date := nullif(j->>'end_date', '')::date; o kokolio_test.annual_periods; q kokolio_test.annual_periods;
+begin
+  if me.role not in ('rh', 'admin') then perform kokolio_test._fail('interdit', 'Accès réservé aux RH.'); end if;
+  if length(v_label) < 2 or length(v_label) > 60 then perform kokolio_test._fail('annualisation', 'Donnez un nom à la période (2 à 60 caractères).'); end if;
+  if v_a is null or v_b is null or v_b < v_a then perform kokolio_test._fail('annualisation', 'Dates de période invalides.'); end if;
+  if v_b - v_a > 400 then perform kokolio_test._fail('annualisation', 'Une période d''annualisation dure au plus treize mois.'); end if;
+  if exists (select 1 from kokolio_test.annual_periods x where (v_id is null or x.id <> v_id) and x.start_date <= v_b and x.end_date >= v_a) then
+    perform kokolio_test._fail('annualisation', 'Cette période en chevauche une autre.');
+  end if;
+  if v_id is null then
+    insert into kokolio_test.annual_periods (label, start_date, end_date, created_by) values (v_label, v_a, v_b, me.id) returning * into q;
+    perform kokolio_test._audit(me.id, 'periode_annualisation_creee', null, v_label, jsonb_build_object('du', v_a, 'au', v_b), coalesce(p->>'ip', ''));
+  else
+    select * into o from kokolio_test.annual_periods x where x.id = v_id for update;
+    if o.id is null then perform kokolio_test._fail('introuvable', 'Période introuvable.'); end if;
+    if p_args ? 'version' and (p_args->>'version')::int <> o.version then perform kokolio_test._fail('conflit', 'Cette période a été modifiée entre-temps. Rechargez la page.'); end if;
+    -- les ajustements déjà passés doivent rester dans la période
+    if exists (select 1 from kokolio_test.annual_entries e where e.period_id = v_id and (e.day < v_a or e.day > v_b)) then
+      perform kokolio_test._fail('annualisation', 'Des ajustements d''objectif sont datés hors de ces nouvelles bornes.');
+    end if;
+    update kokolio_test.annual_periods set label = v_label, start_date = v_a, end_date = v_b, version = o.version + 1 where id = v_id returning * into q;
+    perform kokolio_test._audit(me.id, 'periode_annualisation_modifiee', null, v_label, kokolio_test._diff(to_jsonb(o), to_jsonb(q), array['label', 'start_date', 'end_date']), coalesce(p->>'ip', ''));
+  end if;
+  return jsonb_build_object('period', to_jsonb(q) - 'created_by' - 'created_at');
+end $$;
+
+-- Fixer l'objectif d'un salarié pour une période, ou le retirer (minutes absentes) pour revenir à l'objectif calculé d'après le planning.
+create or replace function kokolio_test._annual_goal_set(me kokolio_test.users, p jsonb, p_args jsonb) returns jsonb language plpgsql as $$
+declare
+  v_uid uuid := nullif(p_args->>'user_id', '')::uuid; v_pid uuid := nullif(p_args->>'period_id', '')::uuid; u kokolio_test.users; q kokolio_test.annual_periods;
+  o kokolio_test.annual_goals; v_note text := left(trim(coalesce(p_args->>'note', '')), 200); v_min int;
+begin
+  if me.role not in ('rh', 'admin') then perform kokolio_test._fail('interdit', 'Accès réservé aux RH.'); end if;
+  select * into u from kokolio_test.users x where x.id = v_uid;
+  if u.id is null then perform kokolio_test._fail('introuvable', 'Salarié introuvable.'); end if;
+  select * into q from kokolio_test.annual_periods x where x.id = v_pid;
+  if q.id is null then perform kokolio_test._fail('introuvable', 'Période introuvable.'); end if;
+  select * into o from kokolio_test.annual_goals g where g.user_id = v_uid and g.period_id = v_pid for update;
+  if p_args->'minutes' is null or jsonb_typeof(p_args->'minutes') = 'null' then
+    delete from kokolio_test.annual_goals g where g.user_id = v_uid and g.period_id = v_pid;
+    if o.user_id is not null then
+      perform kokolio_test._audit(me.id, 'objectif_annuel_retire', v_uid, q.label, jsonb_build_object('avant_minutes', o.minutes, 'motif', v_note), coalesce(p->>'ip', ''));
+    end if;
+    return jsonb_build_object('goal', null);
+  end if;
+  if jsonb_typeof(p_args->'minutes') <> 'number' or (p_args->>'minutes')::numeric <> trunc((p_args->>'minutes')::numeric)
+     or (p_args->>'minutes')::numeric < 0 or (p_args->>'minutes')::numeric > 300000 then
+    perform kokolio_test._fail('annualisation', 'Objectif invalide : entre 0 et 5 000 heures.');
+  end if;
+  v_min := (p_args->>'minutes')::int;
+  insert into kokolio_test.annual_goals (user_id, period_id, minutes, note, set_by, set_at) values (v_uid, v_pid, v_min, v_note, me.id, kokolio_test._now())
+  on conflict (user_id, period_id) do update set minutes = excluded.minutes, note = excluded.note, set_by = excluded.set_by, set_at = excluded.set_at;
+  perform kokolio_test._audit(me.id, 'objectif_annuel_fixe', v_uid, q.label,
+    jsonb_build_object('minutes', v_min, 'motif', v_note) || case when o.user_id is not null then jsonb_build_object('avant_minutes', o.minutes) else '{}'::jsonb end, coalesce(p->>'ip', ''));
+  return jsonb_build_object('goal', jsonb_build_object('user_id', v_uid, 'period_id', v_pid, 'minutes', v_min, 'note', v_note));
+end $$;
+
+-- Ajustement daté de l'objectif : des minutes en plus ou en moins, avec un motif. Ne se modifie pas : on passe l'écriture inverse.
+create or replace function kokolio_test._annual_entry_add(me kokolio_test.users, p jsonb, p_args jsonb) returns jsonb language plpgsql as $$
+declare
+  v_uid uuid := nullif(p_args->>'user_id', '')::uuid; v_pid uuid := nullif(p_args->>'period_id', '')::uuid; q kokolio_test.annual_periods;
+  v_day date := nullif(p_args->>'day', '')::date; v_reason text := trim(coalesce(p_args->>'reason', '')); v_min int; v_id bigint; v_login text;
+begin
+  if me.role not in ('rh', 'admin') then perform kokolio_test._fail('interdit', 'Accès réservé aux RH.'); end if;
+  select x.login into v_login from kokolio_test.users x where x.id = v_uid;
+  if v_login is null then perform kokolio_test._fail('introuvable', 'Salarié introuvable.'); end if;
+  select * into q from kokolio_test.annual_periods x where x.id = v_pid;
+  if q.id is null then perform kokolio_test._fail('introuvable', 'Période introuvable.'); end if;
+  if v_day is null or v_day < q.start_date or v_day > q.end_date then perform kokolio_test._fail('date', 'La date de l''ajustement doit être dans la période.'); end if;
+  if jsonb_typeof(p_args->'minutes') is distinct from 'number' or (p_args->>'minutes')::numeric <> trunc((p_args->>'minutes')::numeric)
+     or (p_args->>'minutes')::numeric = 0 or abs((p_args->>'minutes')::numeric) > 60000 then
+    perform kokolio_test._fail('annualisation', 'Ajustement invalide : un nombre d''heures non nul, 1 000 heures au plus.');
+  end if;
+  if length(v_reason) < 3 or length(v_reason) > 200 then perform kokolio_test._fail('motif', 'Indiquez le motif de l''ajustement (200 caractères au plus).'); end if;
+  v_min := (p_args->>'minutes')::int;
+  insert into kokolio_test.annual_entries (user_id, period_id, day, minutes, reason, created_by, created_at) values (v_uid, v_pid, v_day, v_min, v_reason, me.id, kokolio_test._now()) returning id into v_id;
+  perform kokolio_test._audit(me.id, 'objectif_annuel_ajuste', v_uid, q.label, jsonb_build_object('jour', v_day, 'minutes', v_min, 'motif', v_reason), coalesce(p->>'ip', ''));
+  return jsonb_build_object('entry', jsonb_build_object('id', v_id, 'user_id', v_uid, 'period_id', v_pid, 'day', v_day, 'minutes', v_min, 'reason', v_reason));
+end $$;
+-- =====================================================================
+-- Kokolio — anomalies : acquittement
+-- Acquitter, c'est noter qu'une anomalie a été vue et qu'elle n'appelle pas de correction. Cela ne change aucun chiffre.
+-- Réservé au responsable direct du salarié et aux RH, jamais au salarié lui-même.
+-- =====================================================================
+create or replace function kokolio_test._anomaly_ack(me kokolio_test.users, p jsonb, p_args jsonb) returns jsonb language plpgsql as $$
+declare
+  r jsonb; v_uid uuid; v_day date; v_kind text; v_comment text := left(trim(coalesce(p_args->>'comment', '')), 300);
+  v_undo boolean := coalesce((p_args->>'undo')::boolean, false); v_n int := 0; v_ok jsonb := '{}'::jsonb; v_touch jsonb := '{}'::jsonb; v_k text; v_login text;
+begin
+  if jsonb_typeof(p_args->'items') is distinct from 'array' or jsonb_array_length(p_args->'items') < 1 or jsonb_array_length(p_args->'items') > 1000 then
+    perform kokolio_test._fail('requete', 'Sélectionnez entre 1 et 1 000 anomalies.');
+  end if;
+  for r in select y.v from jsonb_array_elements(p_args->'items') with ordinality as y(v, o) order by y.o loop
+    v_uid := nullif(r->>'user_id', '')::uuid; v_day := nullif(r->>'day', '')::date; v_kind := coalesce(r->>'kind', '');
+    if v_uid is null or v_day is null then perform kokolio_test._fail('requete', 'Anomalie invalide.'); end if;
+    if v_kind not in ('depart', 'vide', 'retard', 'depart_anticipe', 'hors_plage', 'presence_insuffisante', 'travail_absence', 'pause_courte', 'pause_longue', 'pause_non_prise') then
+      perform kokolio_test._fail('requete', 'Type d''anomalie inconnu.');
+    end if;
+    if not (v_ok ? v_uid::text) then
+      if not kokolio_test._can_manage(me, v_uid) then perform kokolio_test._fail('interdit', 'Vous ne pouvez pas traiter les anomalies de ce salarié.'); end if;
+      v_ok := v_ok || jsonb_build_object(v_uid::text, true);
+    end if;
+    if v_undo then
+      delete from kokolio_test.anomaly_acks k where k.user_id = v_uid and k.day = v_day and k.kind = v_kind;
+      if not found then continue; end if;
+    else
+      insert into kokolio_test.anomaly_acks (user_id, day, kind, comment, acked_by, acked_at) values (v_uid, v_day, v_kind, v_comment, me.id, kokolio_test._now())
+      on conflict (user_id, day, kind) do update set comment = excluded.comment, acked_by = excluded.acked_by, acked_at = excluded.acked_at;
+    end if;
+    v_n := v_n + 1;
+    v_touch := jsonb_set(v_touch, array[v_uid::text], coalesce(v_touch->(v_uid::text), '[]'::jsonb) || jsonb_build_object('jour', v_day, 'anomalie', v_kind));
+  end loop;
+  for v_k in select jsonb_object_keys(v_touch) loop
+    select x.login into v_login from kokolio_test.users x where x.id = v_k::uuid;
+    perform kokolio_test._audit(me.id, case when v_undo then 'acquittement_annule' else 'anomalies_acquittees' end, v_k::uuid, coalesce(v_login, ''),
+      jsonb_build_object('nombre', jsonb_array_length(v_touch->v_k)) || case when v_comment <> '' then jsonb_build_object('commentaire', v_comment) else '{}'::jsonb end
+        || case when jsonb_array_length(v_touch->v_k) <= 40 then jsonb_build_object('detail', v_touch->v_k) else '{}'::jsonb end, coalesce(p->>'ip', ''));
+  end loop;
+  return jsonb_build_object('done', v_n);
+end $$;
+-- =====================================================================
+-- Kokolio — environnement de test
+-- =====================================================================
+-- Une seconde installation complète vit dans le schéma « kokolio_test_test » : mêmes tables, mêmes fonctions, et sa propre porte
+-- d'entrée (public.kokolio_test_test_api). Elle est créée par le script install-test.sql, qui est ce script-ci où le nom du schéma
+-- est remplacé partout. Les deux installations ne partagent aucune table : ce qui est fait dans l'une ne touche jamais l'autre.
+-- Seule passerelle, à sens unique : la copie ci-dessous, lancée depuis la production par un administrateur. Elle remplace tout
+-- le contenu du test par celui de la production (comptes et mots de passe compris ; le contenu des justificatifs excepté).
+-- Rien, dans le test, ne peut écrire en production.
+
+-- Tables copiées. Les sessions et le compteur d'essais de connexion ne le sont pas : après une copie, chacun se reconnecte au test.
+create or replace function kokolio_test._test_tables() returns text[] language sql immutable as $$
+  select array['users', 'absence_types', 'day_models', 'cycles', 'contracts', 'plan_days', 'annual_periods', 'annual_goals', 'annual_entries',
+               'anomaly_acks', 'days', 'punch_log', 'absences', 'attachments', 'balance_entries', 'closures', 'audit']
+$$;
+
+-- État de l'environnement de test, vu de la production : installé ou non, version, date de la dernière copie, volume.
+create or replace function kokolio_test._test_status(me kokolio_test.users) returns jsonb language plpgsql as $$
+declare v_dst constant text := 'kokolio_test_test'; v_installed boolean; v_schema jsonb; v_clone jsonb; v_users bigint; v_bytes bigint;
+begin
+  if me.role <> 'admin' then perform kokolio_test._fail('interdit', 'Accès réservé aux administrateurs.'); end if;
+  if kokolio_test._env() <> 'production' then
+    return jsonb_build_object('environment', 'test', 'cloned', (select m.value from kokolio_test.meta m where m.key = 'test_clone'));
+  end if;
+  v_installed := to_regclass(v_dst || '.meta') is not null and to_regclass(v_dst || '.users') is not null;
+  if v_installed then
+    execute format('select (select m.value from %1$I.meta m where m.key = ''schema_version''), (select m.value from %1$I.meta m where m.key = ''test_clone''), (select count(*) from %1$I.users)', v_dst)
+      into v_schema, v_clone, v_users;
+    select coalesce(sum(pg_total_relation_size(c.oid)), 0) into v_bytes from pg_class c join pg_namespace n on n.oid = c.relnamespace where n.nspname = v_dst and c.relkind = 'r';
+  end if;
+  return jsonb_build_object('environment', 'production', 'installed', v_installed, 'schema', v_schema,
+    'schema_production', (select m.value from kokolio_test.meta m where m.key = 'schema_version'), 'cloned', v_clone, 'users', v_users, 'db_bytes', v_bytes);
+end $$;
+
+-- Copie de la production vers le test. Tout ou rien : en cas d'échec, le test garde son contenu précédent.
+create or replace function kokolio_test._test_clone(me kokolio_test.users, p jsonb) returns jsonb language plpgsql as $$
+declare
+  v_dst constant text := 'kokolio_test_test'; v_tables text[] := kokolio_test._test_tables(); v_all text[]; t text; v_cols text; v_src text;
+  v_temoin constant bytea := convert_to('Ce justificatif n''a pas été copié dans l''environnement de test : les documents déposés par les salariés restent en production.', 'UTF8');
+  v_a jsonb; v_b jsonb; v_missing text; v_sql text := ''; v_sel text := ''; v_counts jsonb; v_total bigint := 0; v_seq record;
+  v_at timestamptz := kokolio_test._now(); k text;
+begin
+  if me.role <> 'admin' then perform kokolio_test._fail('interdit', 'Accès réservé aux administrateurs.'); end if;
+  if kokolio_test._env() <> 'production' then perform kokolio_test._fail('etat', 'La copie se lance depuis la production, pas depuis l''environnement de test.'); end if;
+  if to_regclass(v_dst || '.meta') is null or to_regclass(v_dst || '.users') is null then
+    perform kokolio_test._fail('etat', 'L''environnement de test n''est pas encore installé dans la base (script install-test.sql).');
+  end if;
+  select m.value into v_a from kokolio_test.meta m where m.key = 'schema_version';
+  execute format('select m.value from %I.meta m where m.key = ''schema_version''', v_dst) into v_b;
+  if v_a is distinct from v_b then
+    perform kokolio_test._fail('etat', 'L''environnement de test n''est pas à la même version que la production : rejouez son script d''installation, puis recommencez.');
+  end if;
+  -- toute table de la production est soit copiée, soit volontairement laissée de côté : une table oubliée arrête la copie
+  select string_agg(c.relname, ', ' order by c.relname) into v_missing from pg_class c join pg_namespace n on n.oid = c.relnamespace
+    where n.nspname = 'kokolio_test' and c.relkind = 'r' and c.relname <> all (v_tables || array['meta', 'sessions', 'throttle']);
+  if v_missing is not null then perform kokolio_test._fail('interne', 'Tables absentes de la copie : ' || v_missing); end if;
+
+  -- une copie à la fois
+  perform 1 from kokolio_test.meta m where m.key = 'schema_version' for update;
+  v_all := v_tables || array['sessions', 'throttle'];
+  -- vider le test ; ses protections (journal et pointages non effaçables, mois clôturés) sont suspendues le temps de la copie
+  foreach t in array v_all loop execute format('alter table %I.%I disable trigger user', v_dst, t); end loop;
+  execute 'truncate ' || (select string_agg(format('%I.%I', v_dst, x), ', ') from unnest(v_all) x) || ' restart identity';
+
+  -- une seule requête pour toutes les tables : elles sont lues au même instant, la copie est cohérente sans bloquer la production
+  foreach t in array v_tables loop
+    -- les justificatifs ne quittent pas la production : ce sont des documents personnels, souvent médicaux, et ce qui pèse le plus lourd.
+    -- Chaque absence garde sa pièce jointe dans le test, mais son contenu est remplacé par un fichier témoin de quelques octets.
+    select string_agg(quote_ident(s.column_name), ', ' order by s.ordinal_position),
+           string_agg(case when t <> 'attachments' then quote_ident(s.column_name)
+                           when s.column_name = 'filename' then quote_literal('justificatif-non-copie.txt')
+                           when s.column_name = 'mime' then quote_literal('text/plain')
+                           when s.column_name = 'size' then octet_length(v_temoin)::text
+                           when s.column_name = 'data' then format('decode(%L, ''hex'')', encode(v_temoin, 'hex'))
+                           else quote_ident(s.column_name) end, ', ' order by s.ordinal_position)
+      into v_cols, v_src
+      from information_schema.columns s
+      join information_schema.columns d on d.table_schema = v_dst and d.table_name = s.table_name and d.column_name = s.column_name
+      where s.table_schema = 'kokolio_test' and s.table_name = t and s.is_generated = 'NEVER' and d.is_generated = 'NEVER';
+    if v_cols is null then perform kokolio_test._fail('interne', 'Table introuvable dans l''environnement de test : ' || t); end if;
+    v_sql := v_sql || format('c_%s as (insert into %I.%I (%s) select %s from kokolio_test.%I returning 1), ', t, v_dst, t, v_cols, v_src, t);
+    v_sel := v_sel || format('%L, (select count(*) from c_%s), ', t, t);
+  end loop;
+  -- réglages et états (version du schéma exceptée) dans la même lecture : la tête du journal correspond à sa dernière ligne
+  v_sql := 'with ' || v_sql || format('c_meta as (insert into %I.meta (key, value) select m.key, m.value from kokolio_test.meta m where m.key not in (''schema_version'', ''test_clone'') '
+    || 'on conflict (key) do update set value = excluded.value, updated_at = now() returning 1) ', v_dst)
+    || 'select jsonb_build_object(' || v_sel || '''meta'', (select count(*) from c_meta))';
+  execute format('delete from %I.meta d where d.key <> ''schema_version'' and not exists (select 1 from kokolio_test.meta m where m.key = d.key)', v_dst);
+  execute v_sql into v_counts;
+  foreach t in array v_all loop execute format('alter table %I.%I enable trigger user', v_dst, t); end loop;
+
+  -- compteurs automatiques : repartir après la plus grande valeur copiée
+  for v_seq in select c.table_name, c.column_name, pg_get_serial_sequence(format('%I.%I', v_dst, c.table_name), c.column_name) as seq
+               from information_schema.columns c where c.table_schema = v_dst and c.table_name = any (v_tables) and c.column_default like 'nextval(%' loop
+    if v_seq.seq is not null then
+      execute format('select setval(%L, coalesce((select max(%I) from %I.%I), 0) + 1, false)', v_seq.seq, v_seq.column_name, v_dst, v_seq.table_name);
+    end if;
+  end loop;
+  foreach k in array v_tables loop v_total := v_total + coalesce((v_counts->>k)::bigint, 0); end loop;
+  -- la marque de la copie, affichée dans le bandeau de l'environnement de test
+  execute format('insert into %I.meta (key, value) values (''test_clone'', $1) on conflict (key) do update set value = excluded.value, updated_at = now()', v_dst)
+    using jsonb_build_object('at', v_at, 'by', me.login, 'rows', v_total, 'users', v_counts->'users');
+  perform kokolio_test._audit(me.id, 'test_copie', null, '', jsonb_build_object('lignes', v_total, 'comptes', v_counts->'users'), coalesce(p->>'ip', ''));
+  return jsonb_build_object('at', v_at, 'rows', v_total, 'counts', v_counts);
+end $$;
+-- =====================================================================
+-- Kokolio — mode démonstration
+-- Un jeu de données fictives se charge dans un outil vide ou en cours d'essai, pour le découvrir ou le présenter.
+-- Tant qu'il est là, l'outil est « en mode démonstration » : c'est le seul état où tout peut être effacé.
+-- Un outil en service (un mois clôturé, ou plus de dix salariés) ne peut pas y entrer.
+-- =====================================================================
+
+-- Chargement : les lignes sont préparées par le serveur (lib/kokolio_test/engine/demo.mjs), cette fonction les enregistre d'un bloc.
+create or replace function kokolio_test._demo_seed(me kokolio_test.users, p jsonb, p_args jsonb) returns jsonb language plpgsql as $$
+declare
+  r jsonb; u kokolio_test.users; c kokolio_test.contracts; v_dec uuid; v_tz text := kokolio_test._tz(); v_now timestamptz := kokolio_test._now(); v_today date := kokolio_test._today();
+  v_days int; v_go text := coalesce(p_args->>'go_live', ''); v_ok boolean; v_status text; v_day date; v_times text[]; v_t text; v_i int;
+  v_nu int := 0; v_nd int := 0; v_na int := 0; v_ne int := 0; v_avant date;
+  v_models jsonb := '[]'::jsonb; v_cycles jsonb := '[]'::jsonb; v_periods jsonb := '[]'::jsonb; k kokolio_test.cycles;
+begin
+  if me.role <> 'admin' then perform kokolio_test._fail('interdit', 'Accès réservé aux administrateurs.'); end if;
+  if exists (select 1 from kokolio_test.meta m where m.key = 'demo') then
+    perform kokolio_test._fail('etat', 'Les données de démonstration sont déjà chargées. Effacez-les avant de les recharger.');
+  end if;
+  -- Un outil en service ne passe jamais en mode démonstration : dès qu'un mois a été clôturé, ou au-delà de dix salariés, c'est refusé.
+  -- En deçà (outil vide, ou quelques comptes d'essai), le chargement est accepté et ne touche pas à l'existant.
+  if exists (select 1 from kokolio_test.closures) then
+    perform kokolio_test._fail('etat', 'Un mois a déjà été clôturé : cet outil est en service, les données de démonstration ne peuvent plus y être chargées.');
+  end if;
+  if (select count(*) from kokolio_test.users x where x.role <> 'admin') > 10 then
+    perform kokolio_test._fail('etat', 'L''outil contient déjà plus de dix salariés : les données de démonstration ne se chargent que dans un outil vide ou en cours d''essai.');
+  end if;
+  select x.login into v_t from kokolio_test.users x where x.login in (select lower(y->>'login') from jsonb_array_elements(case when jsonb_typeof(p_args->'users') = 'array' then p_args->'users' else '[]'::jsonb end) y) limit 1;
+  if v_t is not null then
+    perform kokolio_test._fail('etat', 'Un compte porte déjà l''identifiant « ' || v_t || ' », utilisé par les données de démonstration.');
+  end if;
+  if v_go !~ '^[0-9]{4}-[0-9]{2}-[0-9]{2}$' or v_go::date > v_today then perform kokolio_test._fail('requete', 'Période de démonstration invalide.'); end if;
+  if jsonb_typeof(p_args->'users') is distinct from 'array' or jsonb_array_length(p_args->'users') < 1 or jsonb_array_length(p_args->'users') > 50
+     or jsonb_array_length(coalesce(p_args->'days', '[]'::jsonb)) > 6000 or jsonb_array_length(coalesce(p_args->'absences', '[]'::jsonb)) > 500 then
+    perform kokolio_test._fail('requete', 'Jeu de données invalide.');
+  end if;
+  select coalesce((m.value->>'activation_days')::int, 14) into v_days from kokolio_test.meta m where m.key = 'settings';
+
+  -- Les comptes déjà créés ne sont pas concernés par l'historique fictif : la mise en service va reculer de plusieurs mois,
+  -- leur suivi, lui, reste celui d'avant le chargement. Sans cela, ils se retrouveraient avec des mois entiers sans pointage.
+  select case when m.value->>'go_live' ~ '^[0-9]{4}-[0-9]{2}-[0-9]{2}$' then (m.value->>'go_live')::date end into v_avant from kokolio_test.meta m where m.key = 'settings';
+  update kokolio_test.users set tracked_from = coalesce(v_avant, v_today) where tracked_from is null;
+  get diagnostics v_ne = row_count;
+
+  -- bibliothèque d'exemple : horaires journaliers et cycles, créés seulement s'ils n'existent pas déjà (on note lesquels, pour l'effacement)
+  for r in select x from jsonb_array_elements(coalesce(p_args->'models', '[]'::jsonb)) x loop
+    if not exists (select 1 from kokolio_test.day_models m where m.code = upper(r->>'code')) then
+      insert into kokolio_test.day_models (code, label, minutes, ranges, color, sort, created_by)
+      values (upper(r->>'code'), left(coalesce(r->>'label', ''), 60), (r->>'minutes')::int, kokolio_test._ranges(r->'ranges'), coalesce(r->>'color', ''), coalesce((r->>'sort')::int, 100), me.id);
+      v_models := v_models || to_jsonb(upper(r->>'code'));
+    end if;
+  end loop;
+  for r in select x from jsonb_array_elements(coalesce(p_args->'cycles', '[]'::jsonb)) x loop
+    if not exists (select 1 from kokolio_test.cycles y where lower(y.name) = lower(r->>'name')) then
+      insert into kokolio_test.cycles (name, weeks, annualise, created_by) values (left(r->>'name', 60), r->'weeks', coalesce((r->>'annualise')::boolean, false), me.id) returning * into k;
+      v_cycles := v_cycles || to_jsonb(k.id);
+    end if;
+  end loop;
+
+  -- comptes fictifs : salariés ou RH, jamais administrateurs
+  for r in select x from jsonb_array_elements(p_args->'users') x loop
+    v_ok := coalesce(r->>'code_hash', '') ~ '^[0-9a-f]{64}$';
+    insert into kokolio_test.users (login, role, first_name, last_name, matricule, team, job, entry_date, details, act_hash, act_expires)
+    values (lower(r->>'login'), case when r->>'role' = 'rh' then 'rh' else 'salarie' end, coalesce(r->>'first_name', ''), r->>'last_name', coalesce(r->>'matricule', ''),
+            coalesce(r->>'team', ''), coalesce(r->>'job', ''), nullif(r->>'entry_date', '')::date, coalesce(r->'details', '{}'::jsonb),
+            case when v_ok then r->>'code_hash' end, case when v_ok then v_now + make_interval(days => coalesce(v_days, 14)) end)
+    returning * into u;
+    -- un salarié fictif peut suivre un cycle de la bibliothèque (désigné par son nom)
+    select * into k from kokolio_test.cycles y where lower(y.name) = lower(coalesce(r->>'cycle', ''));
+    c := kokolio_test._contract_apply(u.id, coalesce(u.entry_date, date '2000-01-01'),
+      coalesce(r->'contract', '{}'::jsonb) || case when k.id is not null then jsonb_build_object('cycle_id', k.id) else '{}'::jsonb end, me.id);
+    v_nu := v_nu + 1;
+  end loop;
+  for r in select x from jsonb_array_elements(p_args->'users') x loop
+    if coalesce(r->>'manager_login', '') <> '' then
+      update kokolio_test.users set manager_id = (select x.id from kokolio_test.users x where x.login = lower(r->>'manager_login')) where login = lower(r->>'login');
+    end if;
+  end loop;
+
+  for r in select x from jsonb_array_elements(coalesce(p_args->'entries', '[]'::jsonb)) x loop
+    insert into kokolio_test.balance_entries (user_id, kind, year, amount, reason, tag, created_by)
+    select x.id, r->>'kind', (r->>'year')::int, (r->>'amount')::numeric, left(coalesce(r->>'reason', 'Démonstration'), 200), '', me.id
+    from kokolio_test.users x where x.login = lower(r->>'login');
+  end loop;
+
+  -- journées : validées ou refusées au nom du responsable (à défaut, de l'administrateur), avec leur trace de pointage
+  for r in select x from jsonb_array_elements(coalesce(p_args->'days', '[]'::jsonb)) x loop
+    select x.* into u from kokolio_test.users x where x.login = lower(r->>'login');
+    v_day := (r->>'day')::date;
+    if u.id is null or v_day >= v_today then continue; end if;
+    v_status := case when r->>'status' in ('valide', 'refuse') then r->>'status' else 'a_valider' end;
+    v_times := kokolio_test._times(r->'times');
+    v_dec := case when v_status <> 'a_valider' then coalesce(u.manager_id, me.id) end;
+    insert into kokolio_test.days (user_id, day, times, lieu, status, corrected, comment, refusal_reason, decided_by, decided_at)
+    values (u.id, v_day, v_times, case when kokolio_test._lieu_ok(coalesce(r->>'lieu', '')) then r->>'lieu' else 'bureau' end, v_status,
+            coalesce((r->>'corrected')::boolean, false), left(coalesce(r->>'comment', ''), 500), left(coalesce(r->>'refusal_reason', ''), 300),
+            v_dec, case when v_dec is not null then v_now end);
+    if not coalesce((r->>'corrected')::boolean, false) then
+      v_i := 0;
+      foreach v_t in array v_times loop
+        v_i := v_i + 1;
+        insert into kokolio_test.punch_log (user_id, ts, day, hhmm, kind)
+        values (u.id, (v_day::text || ' ' || v_t)::timestamp at time zone v_tz, v_day, v_t, case when v_i % 2 = 1 then 'arrivee' else 'depart' end);
+      end loop;
+    end if;
+    v_nd := v_nd + 1;
+  end loop;
+
+  for r in select x from jsonb_array_elements(coalesce(p_args->'absences', '[]'::jsonb)) x loop
+    select x.* into u from kokolio_test.users x where x.login = lower(r->>'login');
+    if u.id is null or not exists (select 1 from kokolio_test.absence_types t where t.code = r->>'type') then continue; end if;
+    v_status := case when r->>'status' in ('valide', 'refuse') then r->>'status' else 'en_attente' end;
+    v_dec := case when v_status <> 'en_attente' then coalesce(u.manager_id, me.id) end;
+    insert into kokolio_test.absences (user_id, type_code, start_date, end_date, half, days_count, comment, status, decided_by, decided_at, refusal_reason, created_by)
+    values (u.id, r->>'type', (r->>'start')::date, (r->>'end')::date, coalesce(r->>'half', ''), (r->>'days_count')::numeric, left(coalesce(r->>'comment', ''), 500),
+            v_status, v_dec, case when v_dec is not null then v_now end, left(coalesce(r->>'refusal_reason', ''), 500),
+            case when coalesce((r->>'par_rh')::boolean, false) then me.id else u.id end);
+    v_na := v_na + 1;
+  end loop;
+
+  -- la mise en service recule au début de la période de démonstration, et l'outil passe en mode démonstration
+  update kokolio_test.meta set value = jsonb_set(jsonb_set(value, '{go_live}', to_jsonb(v_go)), '{version}', to_jsonb(coalesce((value->>'version')::int, 1) + 1)), updated_at = now()
+  where key = 'settings';
+  -- période d'annualisation d'exemple, seulement si aucune ne recouvre déjà ces dates
+  if p_args ? 'annual_period' and not exists (select 1 from kokolio_test.annual_periods q
+       where q.start_date <= (p_args #>> '{annual_period,end}')::date and q.end_date >= (p_args #>> '{annual_period,start}')::date) then
+    insert into kokolio_test.annual_periods (label, start_date, end_date, created_by)
+    values (left(p_args #>> '{annual_period,label}', 60), (p_args #>> '{annual_period,start}')::date, (p_args #>> '{annual_period,end}')::date, me.id) returning id into v_dec;
+    v_periods := v_periods || to_jsonb(v_dec);
+  end if;
+  insert into kokolio_test.meta (key, value) values ('demo', jsonb_build_object('charge_le', v_now, 'par', me.id, 'modeles', v_models, 'cycles', v_cycles, 'periodes', v_periods));
+  perform kokolio_test._audit(me.id, 'donnees_demo_chargees', null, '', jsonb_build_object('comptes', v_nu, 'journees', v_nd, 'absences', v_na, 'comptes_deja_presents', v_ne), coalesce(p->>'ip', ''));
+  return jsonb_build_object('users', v_nu, 'days', v_nd, 'absences', v_na, 'existing', v_ne);
+end $$;
+
+-- Effacement : tout repart de zéro, sauf les comptes administrateur, les réglages et les motifs d'absence.
+-- N'existe qu'en mode démonstration : un outil qui n'a jamais chargé ces données ne peut pas être vidé par ce chemin.
+create or replace function kokolio_test._demo_reset(me kokolio_test.users, p jsonb) returns jsonb language plpgsql as $$
+declare v_users int; v_days int; v_demo jsonb;
+begin
+  if me.role <> 'admin' then perform kokolio_test._fail('interdit', 'Accès réservé aux administrateurs.'); end if;
+  select m.value into v_demo from kokolio_test.meta m where m.key = 'demo';
+  if v_demo is null then
+    perform kokolio_test._fail('etat', 'Cet outil n''est pas en mode démonstration : rien ne peut y être effacé.');
+  end if;
+  select count(*) into v_users from kokolio_test.users x where x.role <> 'admin';
+  select count(*) into v_days from kokolio_test.days;
+  perform set_config('kokolio_test.purge', '1', true);
+  delete from kokolio_test.closures;        -- d'abord les clôtures : plus aucun mois n'est verrouillé
+  delete from kokolio_test.attachments;
+  delete from kokolio_test.absences;
+  delete from kokolio_test.anomaly_acks;
+  delete from kokolio_test.annual_entries;
+  delete from kokolio_test.annual_goals;
+  delete from kokolio_test.plan_days;
+  delete from kokolio_test.days;
+  delete from kokolio_test.punch_log;
+  delete from kokolio_test.balance_entries;
+  delete from kokolio_test.sessions s where s.user_id in (select x.id from kokolio_test.users x where x.role <> 'admin');
+  delete from kokolio_test.contracts c where c.user_id in (select x.id from kokolio_test.users x where x.role <> 'admin');
+  update kokolio_test.users set manager_id = null where manager_id is not null;
+  delete from kokolio_test.audit;           -- le journal repart d'une chaîne neuve
+  delete from kokolio_test.throttle;
+  delete from kokolio_test.users x where x.role <> 'admin';
+  perform set_config('kokolio_test.purge', '', true);
+  delete from kokolio_test.annual_periods q where q.id in (select (x #>> '{}')::uuid from jsonb_array_elements(coalesce(v_demo->'periodes', '[]'::jsonb)) x);
+  -- la bibliothèque d'exemple apportée par la démonstration repart avec elle, sauf ce qu'un compte restant utilise encore
+  delete from kokolio_test.cycles c where c.id in (select (x #>> '{}')::uuid from jsonb_array_elements(coalesce(v_demo->'cycles', '[]'::jsonb)) x)
+    and not exists (select 1 from kokolio_test.contracts k where k.cycle_id = c.id);
+  delete from kokolio_test.day_models m where m.code in (select x #>> '{}' from jsonb_array_elements(coalesce(v_demo->'modeles', '[]'::jsonb)) x)
+    and coalesce(array_length(kokolio_test._model_cycles(m.code), 1), 0) = 0;
+  update kokolio_test.users set tracked_from = null where tracked_from is not null;   -- les comptes qui restent repartent de la nouvelle mise en service
+  update kokolio_test.meta set value = jsonb_build_object('seq', 0, 'hash', ''), updated_at = now() where key = 'audit_head';
+  update kokolio_test.meta set value = jsonb_set(jsonb_set(value, '{go_live}', to_jsonb(kokolio_test._today()::text)), '{version}', to_jsonb(coalesce((value->>'version')::int, 1) + 1)), updated_at = now()
+  where key = 'settings';
+  delete from kokolio_test.meta where key = 'demo';
+  perform kokolio_test._audit(me.id, 'donnees_demo_effacees', null, '', jsonb_build_object('comptes', v_users, 'journees', v_days), coalesce(p->>'ip', ''));
+  return jsonb_build_object('users', v_users, 'days', v_days);
+end $$;
+-- =====================================================================
+-- Kokolio — autodiagnostic
+-- Rejoue un scénario complet (comptes, droits, pointage, validation, clôture, journal) sur des comptes fictifs,
+-- dans une transaction annulée à la fin : aucune trace ne reste en base.
+-- =====================================================================
+create or replace function kokolio_test.selftest() returns jsonb language plpgsql as $$
+declare
+  v_checks jsonb := '[]'::jsonb; v_r jsonb; v_tag text := 'kktest_' || substr(replace(gen_random_uuid()::text, '-', ''), 1, 12);
+  v_rh uuid; v_mgr uuid; v_e1 uuid; v_e2 uuid; v_seq0 bigint; v_fp text; v_ok boolean; v_day uuid; v_abs uuid; c kokolio_test.contracts;
+  t_rh text; t_mgr text; t_e1 text; t_e2 text; v_t0 timestamptz := '2001-02-15T09:00:00+01:00'; v_adm uuid; t_adm text;
+begin
+  begin
+    insert into kokolio_test.meta (key, value) values ('test_mode', 'true'::jsonb) on conflict (key) do update set value = 'true'::jsonb;
+    perform set_config('kokolio_test.test_now', v_t0::text, true);
+    select coalesce((m.value->>'seq')::bigint, 0) into v_seq0 from kokolio_test.meta m where m.key = 'audit_head';
+
+    insert into kokolio_test.users (login, role, last_name) values (v_tag || '_rh', 'rh', 'Test RH') returning id into v_rh;
+    insert into kokolio_test.users (login, last_name) values (v_tag || '_mgr', 'Test Manager') returning id into v_mgr;
+    insert into kokolio_test.users (login, last_name, manager_id, pw_salt, pw_hash, pw_params)
+      values (v_tag || '_e1', 'Test Un', v_mgr, repeat('a', 32), repeat('b', 64), '{"N": 1}'::jsonb) returning id into v_e1;
+    insert into kokolio_test.users (login, last_name) values (v_tag || '_e2', 'Test Deux') returning id into v_e2;
+    c := kokolio_test._contract_apply(v_rh, date '2000-01-01', '{}'::jsonb, null);
+    c := kokolio_test._contract_apply(v_mgr, date '2000-01-01', '{}'::jsonb, null);
+    c := kokolio_test._contract_apply(v_e1, date '2000-01-01', '{}'::jsonb, null);
+    c := kokolio_test._contract_apply(v_e2, date '2000-01-01', '{}'::jsonb, null);
+    t_rh := encode(sha256(convert_to(v_tag || 'rh', 'UTF8')), 'hex'); t_mgr := encode(sha256(convert_to(v_tag || 'mgr', 'UTF8')), 'hex');
+    t_e1 := encode(sha256(convert_to(v_tag || 'e1', 'UTF8')), 'hex'); t_e2 := encode(sha256(convert_to(v_tag || 'e2', 'UTF8')), 'hex');
+    insert into kokolio_test.sessions (token_hash, user_id, created_at, last_seen, expires_at) values
+      (t_rh, v_rh, v_t0, v_t0, v_t0 + interval '1 day'), (t_mgr, v_mgr, v_t0, v_t0, v_t0 + interval '1 day'), (t_e2, v_e2, v_t0, v_t0, v_t0 + interval '1 day');
+
+    -- 1. Comptes
+    v_r := public.kokolio_test_api(jsonb_build_object('action', 'login', 'args', jsonb_build_object('login', v_tag || '_e1', 'pw_hash', repeat('c', 64), 'new_token', t_e1)));
+    v_checks := v_checks || jsonb_build_object('name', 'Mot de passe erroné refusé', 'ok', v_r #>> '{data,status}' = 'fail');
+    v_r := public.kokolio_test_api(jsonb_build_object('action', 'login', 'args', jsonb_build_object('login', v_tag || '_e1', 'pw_hash', repeat('b', 64), 'new_token', t_e1)));
+    v_checks := v_checks || jsonb_build_object('name', 'Connexion acceptée avec le bon mot de passe', 'ok', v_r #>> '{data,status}' = 'ok');
+    v_r := public.kokolio_test_api(jsonb_build_object('action', 'ctx', 'token', repeat('0', 64)));
+    v_checks := v_checks || jsonb_build_object('name', 'Appel sans session valide refusé', 'ok', v_r->>'code' = 'session');
+    update kokolio_test.users set act_hash = repeat('d', 64), act_expires = v_t0 + interval '1 day' where id = v_e2;
+    v_r := public.kokolio_test_api(jsonb_build_object('action', 'activate', 'args', jsonb_build_object('login', v_tag || '_e2', 'code_hash', repeat('e', 64),
+      'salt', repeat('a', 32), 'pw_hash', repeat('f', 64), 'params', '{"N": 1}'::jsonb, 'new_token', t_e2)));
+    v_checks := v_checks || jsonb_build_object('name', 'Code d''activation erroné refusé', 'ok', v_r #>> '{data,status}' = 'fail');
+    v_r := public.kokolio_test_api(jsonb_build_object('action', 'activate', 'args', jsonb_build_object('login', v_tag || '_e2', 'code_hash', repeat('d', 64),
+      'salt', repeat('a', 32), 'pw_hash', repeat('f', 64), 'params', '{"N": 1}'::jsonb, 'new_token', t_e2)));
+    v_checks := v_checks || jsonb_build_object('name', 'Activation par code acceptée', 'ok', v_r #>> '{data,status}' = 'ok');
+
+    -- 2. Pointage : heure du serveur, double appui ignoré
+    v_r := public.kokolio_test_api(jsonb_build_object('action', 'punch', 'token', t_e1, 'args', '{}'::jsonb));
+    v_checks := v_checks || jsonb_build_object('name', 'Pointage d''arrivée à l''heure du serveur', 'ok', v_r #>> '{data,kind}' = 'arrivee' and v_r #>> '{data,hm}' = '09:00');
+    v_r := public.kokolio_test_api(jsonb_build_object('action', 'punch', 'token', t_e1, 'args', '{}'::jsonb));
+    v_checks := v_checks || jsonb_build_object('name', 'Double appui ignoré', 'ok', coalesce((v_r #>> '{data,duplicate}')::boolean, false));
+    perform set_config('kokolio_test.test_now', (v_t0 + interval '3 hours')::text, true);
+    v_r := public.kokolio_test_api(jsonb_build_object('action', 'punch', 'token', t_e1, 'args', '{}'::jsonb));
+    v_checks := v_checks || jsonb_build_object('name', 'Pointage de départ', 'ok', v_r #>> '{data,kind}' = 'depart' and jsonb_array_length(v_r #> '{data,day,times}') = 2);
+
+    -- 3. Droits de lecture
+    v_r := public.kokolio_test_api(jsonb_build_object('action', 'read', 'token', t_e2, 'args', jsonb_build_object('scope', 'users', 'user_ids', jsonb_build_array(v_e1), 'from', '2001-01-01', 'to', '2001-02-28')));
+    v_checks := v_checks || jsonb_build_object('name', 'Un salarié ne lit pas les données d''un collègue', 'ok', v_r->>'code' = 'interdit');
+    v_r := public.kokolio_test_api(jsonb_build_object('action', 'read', 'token', t_e2, 'args', jsonb_build_object('scope', 'all', 'from', '2001-01-01', 'to', '2001-02-28')));
+    v_checks := v_checks || jsonb_build_object('name', 'Un salarié ne lit pas l''ensemble des salariés', 'ok', v_r->>'code' = 'interdit');
+    v_r := public.kokolio_test_api(jsonb_build_object('action', 'read', 'token', t_mgr, 'args', jsonb_build_object('scope', 'users', 'user_ids', jsonb_build_array(v_e1), 'from', '2001-01-01', 'to', '2001-02-28')));
+    v_checks := v_checks || jsonb_build_object('name', 'Le responsable lit son équipe, sans les données personnelles de la fiche',
+      'ok', coalesce((v_r->>'ok')::boolean, false) and not ((v_r #> '{data,users,0}') ? 'details') and jsonb_array_length(v_r #> '{data,days}') = 1);
+    v_r := public.kokolio_test_api(jsonb_build_object('action', 'user_save', 'token', t_mgr, 'args', jsonb_build_object('login', v_tag || '_x', 'last_name', 'X')));
+    v_checks := v_checks || jsonb_build_object('name', 'Un responsable ne crée pas de fiche', 'ok', v_r->>'code' = 'interdit');
+    v_r := public.kokolio_test_api(jsonb_build_object('action', 'user_save', 'token', t_rh, 'args', jsonb_build_object('id', v_e1, 'login', v_tag || '_e1', 'last_name', 'Test Un', 'role', 'admin')));
+    v_checks := v_checks || jsonb_build_object('name', 'Les RH ne peuvent pas attribuer le rôle administrateur', 'ok', v_r->>'code' = 'interdit');
+
+    -- 4. Correction et validation
+    v_r := public.kokolio_test_api(jsonb_build_object('action', 'day_set', 'token', t_e1, 'args', jsonb_build_object('day', '2001-01-10', 'times', jsonb_build_array('09:00', '17:00'), 'comment', 'Journée oubliée')));
+    v_day := (v_r #>> '{data,day,id}')::uuid;
+    v_checks := v_checks || jsonb_build_object('name', 'Correction d''une journée avec motif', 'ok', v_day is not null and v_r #>> '{data,day,status}' = 'a_valider');
+    v_r := public.kokolio_test_api(jsonb_build_object('action', 'day_set', 'token', t_e1, 'args', jsonb_build_object('day', '2001-01-11', 'times', jsonb_build_array('09:00', '08:00'), 'comment', 'Erreur')));
+    v_checks := v_checks || jsonb_build_object('name', 'Heures dans le désordre refusées', 'ok', v_r->>'code' = 'heures');
+    v_r := public.kokolio_test_api(jsonb_build_object('action', 'days_decide', 'token', t_e1, 'args', jsonb_build_object('decision', 'valide', 'items', jsonb_build_array(jsonb_build_object('id', v_day)))));
+    v_checks := v_checks || jsonb_build_object('name', 'Nul ne valide ses propres pointages', 'ok', v_r #>> '{data,failed,0,code}' = 'interdit');
+    v_r := public.kokolio_test_api(jsonb_build_object('action', 'days_decide', 'token', t_e2, 'args', jsonb_build_object('decision', 'valide', 'items', jsonb_build_array(jsonb_build_object('id', v_day)))));
+    v_checks := v_checks || jsonb_build_object('name', 'Un collègue ne valide pas pour un autre', 'ok', v_r #>> '{data,failed,0,code}' = 'interdit');
+    v_r := public.kokolio_test_api(jsonb_build_object('action', 'days_decide', 'token', t_mgr, 'args', jsonb_build_object('decision', 'valide', 'items', jsonb_build_array(jsonb_build_object('id', v_day)))));
+    v_checks := v_checks || jsonb_build_object('name', 'Le responsable valide', 'ok', jsonb_array_length(v_r #> '{data,done}') = 1);
+    v_r := public.kokolio_test_api(jsonb_build_object('action', 'day_set', 'token', t_e1, 'args', jsonb_build_object('day', '2001-01-10', 'times', jsonb_build_array('09:00', '18:00'), 'comment', 'Après validation')));
+    v_checks := v_checks || jsonb_build_object('name', 'Une journée validée n''est plus modifiable par le salarié', 'ok', v_r->>'code' = 'verrou');
+
+    -- 5. Absences
+    v_r := public.kokolio_test_api(jsonb_build_object('action', 'absence_create', 'token', t_e1, 'args', jsonb_build_object('type', 'cp', 'start', '2001-01-22', 'end', '2001-01-23', 'days_count', 2)));
+    v_abs := (v_r #>> '{data,absence,id}')::uuid;
+    v_checks := v_checks || jsonb_build_object('name', 'Demande de congé enregistrée en attente', 'ok', v_r #>> '{data,absence,status}' = 'en_attente');
+    v_r := public.kokolio_test_api(jsonb_build_object('action', 'absence_create', 'token', t_e1, 'args', jsonb_build_object('type', 'rtt', 'start', '2001-01-23', 'end', '2001-01-24', 'days_count', 2)));
+    v_checks := v_checks || jsonb_build_object('name', 'Chevauchement d''absences refusé', 'ok', v_r->>'code' = 'conflit');
+    v_r := public.kokolio_test_api(jsonb_build_object('action', 'absence_decide', 'token', t_e2, 'args', jsonb_build_object('id', v_abs, 'decision', 'valide')));
+    v_checks := v_checks || jsonb_build_object('name', 'Un collègue ne valide pas un congé', 'ok', v_r->>'code' = 'interdit');
+    v_r := public.kokolio_test_api(jsonb_build_object('action', 'month_check', 'token', t_rh, 'args', jsonb_build_object('month', '2001-01')));
+    v_fp := kokolio_test._month_fingerprint('2001-01');
+    v_checks := v_checks || jsonb_build_object('name', 'Clôture bloquée tant qu''une demande est en attente', 'ok', (v_r #>> '{data,pending_absences}')::int = 1
+      and (public.kokolio_test_api(jsonb_build_object('action', 'month_close', 'token', t_rh, 'args', jsonb_build_object('month', '2001-01', 'fingerprint', v_fp,
+            'snapshot', '{}'::jsonb, 'export_text', 'x', 'export_sha256', repeat('0', 64)))))->>'code' = 'bloque');
+    v_r := public.kokolio_test_api(jsonb_build_object('action', 'absence_decide', 'token', t_mgr, 'args', jsonb_build_object('id', v_abs, 'decision', 'valide')));
+    v_checks := v_checks || jsonb_build_object('name', 'Le responsable valide le congé', 'ok', v_r #>> '{data,absence,status}' = 'valide');
+
+    -- 5 bis. Planning : qui peut modifier quoi
+    v_r := public.kokolio_test_api(jsonb_build_object('action', 'plan_set', 'token', t_e1, 'args', jsonb_build_object('items', jsonb_build_array(jsonb_build_object('user_id', v_e1, 'day', '2001-01-15', 'minutes', 0)))));
+    v_checks := v_checks || jsonb_build_object('name', 'Nul ne modifie son propre planning', 'ok', v_r->>'code' = 'interdit');
+    v_r := public.kokolio_test_api(jsonb_build_object('action', 'plan_set', 'token', t_e2, 'args', jsonb_build_object('items', jsonb_build_array(jsonb_build_object('user_id', v_e1, 'day', '2001-01-15', 'minutes', 0)))));
+    v_checks := v_checks || jsonb_build_object('name', 'Un collègue ne modifie pas le planning d''un autre', 'ok', v_r->>'code' = 'interdit');
+    v_r := public.kokolio_test_api(jsonb_build_object('action', 'plan_set', 'token', t_mgr, 'args', jsonb_build_object('items', jsonb_build_array(jsonb_build_object('user_id', v_e1, 'day', '2001-01-15', 'minutes', 240, 'label', 'Matinée')))));
+    v_checks := v_checks || jsonb_build_object('name', 'Le responsable planifie son équipe', 'ok', (v_r #>> '{data,set}')::int = 1);
+    v_r := public.kokolio_test_api(jsonb_build_object('action', 'model_save', 'token', t_mgr, 'args', jsonb_build_object('create', true, 'model', jsonb_build_object('code', 'KKT', 'label', 'Test', 'minutes', 420))));
+    v_checks := v_checks || jsonb_build_object('name', 'La bibliothèque d''horaires est réservée aux RH', 'ok', v_r->>'code' = 'interdit');
+
+    v_r := public.kokolio_test_api(jsonb_build_object('action', 'anomaly_ack', 'token', t_e1, 'args', jsonb_build_object('items', jsonb_build_array(jsonb_build_object('user_id', v_e1, 'day', '2001-01-10', 'kind', 'retard')))));
+    v_checks := v_checks || jsonb_build_object('name', 'Nul n''acquitte ses propres anomalies', 'ok', v_r->>'code' = 'interdit');
+    v_r := public.kokolio_test_api(jsonb_build_object('action', 'anomaly_ack', 'token', t_mgr, 'args', jsonb_build_object('items', jsonb_build_array(jsonb_build_object('user_id', v_e1, 'day', '2001-01-10', 'kind', 'retard')))));
+    v_checks := v_checks || jsonb_build_object('name', 'Le responsable acquitte une anomalie de son équipe', 'ok', (v_r #>> '{data,done}')::int = 1);
+    v_r := public.kokolio_test_api(jsonb_build_object('action', 'annual_goal_set', 'token', t_mgr, 'args', jsonb_build_object('user_id', v_e1, 'period_id', gen_random_uuid(), 'minutes', 60)));
+    v_checks := v_checks || jsonb_build_object('name', 'L''objectif annuel est réservé aux RH', 'ok', v_r->>'code' = 'interdit');
+
+    -- 6. Clôture
+    v_r := public.kokolio_test_api(jsonb_build_object('action', 'month_close', 'token', t_e2, 'args', jsonb_build_object('month', '2001-01')));
+    v_checks := v_checks || jsonb_build_object('name', 'Seuls les RH clôturent', 'ok', v_r->>'code' = 'interdit');
+    v_r := public.kokolio_test_api(jsonb_build_object('action', 'month_close', 'token', t_rh, 'args', jsonb_build_object('month', '2001-01', 'fingerprint', repeat('0', 64),
+      'snapshot', '{}'::jsonb, 'export_text', 'x', 'export_sha256', repeat('0', 64))));
+    v_checks := v_checks || jsonb_build_object('name', 'Clôture refusée si les données ont changé depuis le calcul', 'ok', v_r->>'code' = 'conflit');
+    v_fp := kokolio_test._month_fingerprint('2001-01');
+    v_r := public.kokolio_test_api(jsonb_build_object('action', 'month_close', 'token', t_rh, 'args', jsonb_build_object('month', '2001-01', 'fingerprint', v_fp,
+      'snapshot', '{"totals": {}}'::jsonb, 'export_text', 'x', 'export_sha256', repeat('0', 64))));
+    v_checks := v_checks || jsonb_build_object('name', 'Clôture du mois', 'ok', (v_r #>> '{data,version}')::int = 1);
+    v_r := public.kokolio_test_api(jsonb_build_object('action', 'day_set', 'token', t_e1, 'args', jsonb_build_object('day', '2001-01-11', 'times', jsonb_build_array('09:00', '17:00'), 'comment', 'Après clôture')));
+    v_checks := v_checks || jsonb_build_object('name', 'Mois clôturé : plus de saisie par l''outil', 'ok', v_r->>'code' = 'cloture');
+    v_r := public.kokolio_test_api(jsonb_build_object('action', 'plan_set', 'token', t_mgr, 'args', jsonb_build_object('items', jsonb_build_array(jsonb_build_object('user_id', v_e1, 'day', '2001-01-16', 'minutes', 0)))));
+    v_checks := v_checks || jsonb_build_object('name', 'Mois clôturé : planning figé', 'ok', v_r->>'code' = 'cloture');
+    v_ok := false;
+    begin
+      update kokolio_test.days set comment = 'modification directe' where id = v_day;
+    exception when others then
+      v_ok := sqlerrm like 'KK:cloture:%';
+    end;
+    v_checks := v_checks || jsonb_build_object('name', 'Mois clôturé : modification directe en base refusée', 'ok', v_ok);
+    v_ok := false;
+    begin
+      update kokolio_test.absences set days_count = 9 where id = v_abs;
+    exception when others then
+      v_ok := sqlerrm like 'KK:cloture:%';
+    end;
+    v_checks := v_checks || jsonb_build_object('name', 'Mois clôturé : absence figée', 'ok', v_ok);
+    v_r := public.kokolio_test_api(jsonb_build_object('action', 'month_reopen', 'token', t_rh, 'args', jsonb_build_object('month', '2001-01', 'reason', 'Autodiagnostic')));
+    v_checks := v_checks || jsonb_build_object('name', 'Réouverture motivée par les RH', 'ok', coalesce((v_r->>'ok')::boolean, false) and not kokolio_test._month_closed('2001-01'));
+
+    -- 7. Journal
+    v_ok := false;
+    begin
+      update kokolio_test.audit set action = 'falsifie' where seq = (select max(a.seq) from kokolio_test.audit a);
+    exception when others then
+      v_ok := sqlerrm like 'KK:journal:%';
+    end;
+    v_checks := v_checks || jsonb_build_object('name', 'Journal : modification refusée', 'ok', v_ok);
+    v_ok := false;
+    begin
+      delete from kokolio_test.audit where seq = (select max(a.seq) from kokolio_test.audit a);
+    exception when others then
+      v_ok := sqlerrm like 'KK:journal:%';
+    end;
+    v_checks := v_checks || jsonb_build_object('name', 'Journal : suppression refusée', 'ok', v_ok);
+    v_r := public.kokolio_test_api(jsonb_build_object('action', 'journal_verify', 'token', t_rh, 'args', jsonb_build_object('after', v_seq0, 'limit', 5000)));
+    v_checks := v_checks || jsonb_build_object('name', 'Journal : chaîne d''empreintes intacte', 'ok', coalesce((v_r #>> '{data,ok}')::boolean, false) and (v_r #>> '{data,checked}')::int > 5);
+
+    -- 8. Cloisonnement de la base
+    v_checks := v_checks || jsonb_build_object('name', 'La porte d''entrée est fermée au rôle public de l''API',
+      'ok', not exists (select 1 from pg_roles r where r.rolname in ('anon', 'authenticated') and has_function_privilege(r.rolname, 'public.kokolio_test_api(jsonb)', 'execute')));
+    v_checks := v_checks || jsonb_build_object('name', 'Le schéma de données est inaccessible aux rôles de l''API',
+      'ok', not exists (select 1 from pg_roles r where r.rolname in ('anon', 'authenticated', 'service_role') and has_schema_privilege(r.rolname, 'kokolio_test', 'usage')));
+
+    -- 8 bis. Environnement de test : la copie est réservée à l'administrateur, n'oublie aucune table, et ne part que de la production
+    v_r := public.kokolio_test_api(jsonb_build_object('action', 'test_clone', 'token', t_rh, 'args', '{}'::jsonb));
+    v_checks := v_checks || jsonb_build_object('name', 'Copie vers l''environnement de test réservée aux administrateurs', 'ok', v_r->>'code' = 'interdit');
+    v_checks := v_checks || jsonb_build_object('name', 'Copie vers l''environnement de test : aucune table oubliée',
+      'ok', not exists (select 1 from pg_class tb join pg_namespace ns on ns.oid = tb.relnamespace
+                        where ns.nspname = 'kokolio_test' and tb.relkind = 'r' and tb.relname <> all (kokolio_test._test_tables() || array['meta', 'sessions', 'throttle'])));
+
+    -- 9. Mode démonstration : l'effacement des données n'existe que là
+    if exists (select 1 from kokolio_test.meta m where m.key = 'demo') then
+      v_checks := v_checks || jsonb_build_object('name', 'Effacement des données réservé au mode démonstration (actif ici : contrôle sans objet)', 'ok', true);
+    else
+      insert into kokolio_test.users (login, role, last_name) values (v_tag || '_adm', 'admin', 'Test Admin') returning id into v_adm;
+      t_adm := encode(sha256(convert_to(v_tag || 'adm', 'UTF8')), 'hex');
+      insert into kokolio_test.sessions (token_hash, user_id, created_at, last_seen, expires_at) values (t_adm, v_adm, v_t0, v_t0, v_t0 + interval '1 day');
+      v_r := public.kokolio_test_api(jsonb_build_object('action', 'demo_reset', 'token', t_adm, 'args', '{}'::jsonb));
+      v_checks := v_checks || jsonb_build_object('name', 'Effacement des données impossible hors mode démonstration', 'ok', v_r->>'code' = 'etat');
+    end if;
+
+    raise exception 'KKTEST:%', v_checks::text;
+  exception when others then
+    if sqlerrm like 'KKTEST:%' then
+      v_checks := substr(sqlerrm, 8)::jsonb;
+      return jsonb_build_object(
+        'ok', not exists (select 1 from jsonb_array_elements(v_checks) x where not coalesce((x->>'ok')::boolean, false)),
+        'checks', v_checks, 'count', jsonb_array_length(v_checks));
+    end if;
+    return jsonb_build_object('ok', false, 'error', sqlerrm, 'state', sqlstate, 'checks', '[]'::jsonb);
+  end;
+end $$;
+-- =====================================================================
+-- Kokolio — porte d'entrée unique, droits d'exécution, compte administrateur de départ
+-- =====================================================================
+
+create or replace function kokolio_test._dispatch(p jsonb) returns jsonb language plpgsql as $$
+declare v_action text := coalesce(p->>'action', ''); v_args jsonb := coalesce(p->'args', '{}'::jsonb); me kokolio_test.users;
+begin
+  -- horloge de test : ignorée en production (la ligne « test_mode » n'y existe pas)
+  if p ? '_now' and exists (select 1 from kokolio_test.meta m where m.key = 'test_mode' and m.value = 'true'::jsonb) then
+    perform set_config('kokolio_test.test_now', p->>'_now', true);
+  end if;
+
+  -- le serveur annonce l'environnement auquel il croit parler : cette installation ne répond pas à la place de l'autre
+  if p ? 'env' and p->>'env' <> kokolio_test._env() then
+    perform kokolio_test._fail('configuration', 'Cette adresse n''est pas reliée au bon environnement.');
+  end if;
+
+  -- sans session
+  case v_action
+    when 'ping' then
+      return jsonb_build_object(
+        'schema', (select m.value from kokolio_test.meta m where m.key = 'schema_version'),
+        'company', (select m.value->>'company' from kokolio_test.meta m where m.key = 'settings'),
+        'logo_url', (select m.value->>'logo_url' from kokolio_test.meta m where m.key = 'settings'),
+        'demo', exists (select 1 from kokolio_test.meta m where m.key = 'demo'),
+        'environment', kokolio_test._env(),
+        'cloned', case when kokolio_test._env() = 'test' then (select m.value from kokolio_test.meta m where m.key = 'test_clone') end,
+        'today', kokolio_test._today());
+    when 'auth_salt' then return kokolio_test._auth_salt(v_args);
+    when 'login' then return kokolio_test._login(p, v_args);
+    when 'activate' then return kokolio_test._activate(p, v_args);
+    when 'logout' then
+      delete from kokolio_test.sessions s where s.token_hash = coalesce(p->>'token', '');
+      return '{}'::jsonb;
+    else null;
+  end case;
+
+  -- avec session : le compte est vérifié à chaque appel
+  me := kokolio_test._me(p);
+  case v_action
+    when 'ctx' then return kokolio_test._ctx(me);
+    when 'read' then return kokolio_test._read(me, v_args);
+    when 'pending' then return kokolio_test._pending(me, v_args);
+    when 'punch' then return kokolio_test._punch(me, p, v_args);
+    when 'day_lieu' then return kokolio_test._day_lieu(me, v_args);
+    when 'day_set' then return kokolio_test._day_set(me, p, v_args);
+    when 'days_decide' then return kokolio_test._days_decide(me, p, v_args);
+    when 'punch_log' then return kokolio_test._punch_log(me, v_args);
+    when 'absence_create' then return kokolio_test._absence_create(me, p, v_args);
+    when 'absence_cancel' then return kokolio_test._absence_cancel(me, p, v_args);
+    when 'absence_decide' then return kokolio_test._absence_decide(me, p, v_args);
+    when 'absence_attach' then return kokolio_test._absence_attach(me, p, v_args);
+    when 'doc_get' then return kokolio_test._doc_get(me, p, v_args);
+    when 'user_get' then return kokolio_test._user_get(me, v_args);
+    when 'user_save' then return kokolio_test._user_save(me, p, v_args);
+    when 'contract_set' then return kokolio_test._contract_set(me, p, v_args);
+    when 'users_import' then return kokolio_test._users_import(me, p, v_args);
+    when 'activation_new' then return kokolio_test._activation_new(me, p, v_args);
+    when 'balance_add' then return kokolio_test._balance_add(me, p, v_args);
+    when 'balance_bulk' then return kokolio_test._balance_bulk(me, p, v_args);
+    when 'month_check' then return kokolio_test._month_check(me, v_args);
+    when 'month_close' then return kokolio_test._month_close(me, p, v_args);
+    when 'month_reopen' then return kokolio_test._month_reopen(me, p, v_args);
+    when 'closures' then return kokolio_test._closures(me);
+    when 'closure_get' then return kokolio_test._closure_get(me, p, v_args);
+    when 'journal' then return kokolio_test._journal(me, v_args);
+    when 'journal_verify' then return kokolio_test._journal_verify(me, v_args);
+    when 'settings_set' then return kokolio_test._settings_set(me, p, v_args);
+    when 'type_save' then return kokolio_test._type_save(me, p, v_args);
+    when 'status' then return kokolio_test._status(me);
+    when 'password_change' then return kokolio_test._password_change(me, p, v_args);
+    when 'sessions' then return kokolio_test._sessions(me, p);
+    when 'sessions_revoke' then
+      delete from kokolio_test.sessions s where s.user_id = me.id and s.token_hash <> coalesce(p->>'token', '');
+      return '{}'::jsonb;
+    when 'planning_lib' then return kokolio_test._planning_lib(me);
+    when 'model_save' then return kokolio_test._model_save(me, p, v_args);
+    when 'cycle_save' then return kokolio_test._cycle_save(me, p, v_args);
+    when 'plan_set' then return kokolio_test._plan_set(me, p, v_args);
+    when 'anomaly_ack' then return kokolio_test._anomaly_ack(me, p, v_args);
+    when 'annual_period_save' then return kokolio_test._annual_period_save(me, p, v_args);
+    when 'annual_goal_set' then return kokolio_test._annual_goal_set(me, p, v_args);
+    when 'annual_entry_add' then return kokolio_test._annual_entry_add(me, p, v_args);
+    when 'test_status' then return kokolio_test._test_status(me);
+    when 'test_clone' then return kokolio_test._test_clone(me, p);
+    when 'demo_seed' then return kokolio_test._demo_seed(me, p, v_args);
+    when 'demo_reset' then return kokolio_test._demo_reset(me, p);
+    when 'selftest' then
+      if me.role <> 'admin' then perform kokolio_test._fail('interdit', 'Accès réservé aux administrateurs.'); end if;
+      return kokolio_test.selftest();
+    else null;
+  end case;
+  perform kokolio_test._fail('requete', 'Action inconnue.');
+  return null;
+end $$;
+
+-- Seule fonction visible de l'API. Elle s'exécute avec les droits du propriétaire des tables,
+-- mais n'est appelable que par le rôle serveur, et ne fait rien sans session valide.
+create or replace function public.kokolio_test_api(p jsonb) returns jsonb
+language plpgsql security definer set search_path = kokolio_test, pg_temp as $$
+declare v_code text;
+begin
+  begin
+    return jsonb_build_object('ok', true, 'data', kokolio_test._dispatch(coalesce(p, '{}'::jsonb)));
+  exception when others then
+    if sqlerrm like 'KK:%' then
+      v_code := split_part(sqlerrm, ':', 2);
+      return jsonb_build_object('ok', false, 'code', v_code, 'message', substr(sqlerrm, 5 + length(v_code)));
+    end if;
+    return jsonb_build_object('ok', false, 'code', 'interne', 'message', 'Erreur interne.', 'debug', sqlstate || ' ' || sqlerrm);
+  end;
+end $$;
+
+-- Droits : personne d'autre que le rôle serveur ne peut appeler la porte d'entrée ; personne n'accède au schéma.
+revoke all on function public.kokolio_test_api(jsonb) from public;
+revoke all on all functions in schema kokolio_test from public;
+alter default privileges in schema kokolio_test revoke execute on functions from public;
+do $$
+declare v_role text;
+begin
+  foreach v_role in array array['anon', 'authenticated', 'service_role'] loop
+    if exists (select 1 from pg_roles r where r.rolname = v_role) then
+      execute format('revoke all on function public.kokolio_test_api(jsonb) from %I', v_role);
+      execute format('revoke all on schema kokolio_test from %I', v_role);
+      execute format('revoke all on all tables in schema kokolio_test from %I', v_role);
+      execute format('revoke all on all sequences in schema kokolio_test from %I', v_role);
+      execute format('revoke all on all functions in schema kokolio_test from %I', v_role);
+    end if;
+  end loop;
+  if exists (select 1 from pg_roles r where r.rolname = 'service_role') then
+    execute 'grant execute on function public.kokolio_test_api(jsonb) to service_role';
+  end if;
+end $$;
+
+-- Compte administrateur de départ : à lancer une fois depuis la console SQL. Renvoie un code d'activation à usage unique.
+-- Relancée sur un compte administrateur existant, elle génère un nouveau code (dépannage).
+create or replace function kokolio_test.bootstrap_admin(p_login text default 'admin', p_last_name text default 'Administrateur') returns text language plpgsql as $$
+declare
+  u kokolio_test.users; v_login text := lower(trim(p_login)); v_raw bytea; v_alpha text := 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+  v_code text := ''; v_i int; v_days int;
+begin
+  if v_login !~ '^[a-z0-9][a-z0-9._@-]{2,63}$' then raise exception 'Identifiant invalide.'; end if;
+  v_raw := sha256(convert_to(gen_random_uuid()::text || gen_random_uuid()::text || clock_timestamp()::text, 'UTF8'));
+  for v_i in 0..11 loop
+    v_code := v_code || substr(v_alpha, (get_byte(v_raw, v_i) % 32) + 1, 1);
+  end loop;
+  select * into u from kokolio_test.users x where lower(x.login) = v_login for update;
+  if u.id is null then
+    -- compte technique : aucun horaire, donc rien n'est attendu de lui au pointage (les RH peuvent lui en donner un sur sa fiche)
+    insert into kokolio_test.users (login, role, last_name) values (v_login, 'admin', p_last_name) returning * into u;
+  elsif u.role <> 'admin' then
+    raise exception 'Le compte % existe déjà et n''est pas administrateur.', v_login;
+  end if;
+  select coalesce((m.value->>'activation_days')::int, 14) into v_days from kokolio_test.meta m where m.key = 'settings';
+  update kokolio_test.users set act_hash = encode(sha256(convert_to(v_code, 'UTF8')), 'hex'),
+    act_expires = now() + make_interval(days => coalesce(v_days, 14)), failed_count = 0, locked_until = null, disabled = false
+  where id = u.id;
+  perform kokolio_test._audit(null, 'administrateur_initialise', u.id, v_login, '{}'::jsonb, '');
+  return substr(v_code, 1, 4) || '-' || substr(v_code, 5, 4) || '-' || substr(v_code, 9, 4);
+end $$;
+revoke all on function kokolio_test.bootstrap_admin(text, text) from public;
+
+insert into kokolio_test.meta (key, value) values ('schema_version', '8'::jsonb)
+on conflict (key) do update set value = excluded.value, updated_at = now();
+
+notify pgrst, 'reload schema';
+commit;

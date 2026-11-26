@@ -417,6 +417,12 @@ begin
   raise exception 'KK:%:%', p_code, p_msg;
 end $$;
 
+-- Environnement de cette installation : « production », ou « test » pour la copie installée à côté (script install-test.sql).
+-- install-test.sql est ce même script où le nom du schéma est remplacé partout : la comparaison ci-dessous change alors de résultat.
+create or replace function kokolio._env() returns text language sql immutable as $$
+  select case when 'kokolio' like '%\_test' then 'test' else 'production' end
+$$;
+
 create or replace function kokolio._tz() returns text language sql stable as $$
   select coalesce((select m.value->>'timezone' from kokolio.meta m where m.key = 'settings'), 'Europe/Paris')
 $$;
@@ -1407,6 +1413,20 @@ begin
   end loop;
 end $$;
 
+-- Déplacer le début de suivi d'un salarié change ce qui est attendu de lui entre l'ancien et le nouveau premier jour :
+-- impossible si un mois clôturé s'y trouve. Règle commune à la fiche et à l'import.
+create or replace function kokolio._tracked_guard(p_user uuid, p_entry date, p_old date, p_new date) returns void language plpgsql as $$
+declare v_go date; v_first date; v_a date; v_b date;
+begin
+  select case when m.value->>'go_live' ~ '^[0-9]{4}-[0-9]{2}-[0-9]{2}$' then (m.value->>'go_live')::date else date '1900-01-01' end into v_go from kokolio.meta m where m.key = 'settings';
+  select min(x.start_date) into v_first from kokolio.contracts x where x.user_id = p_user;
+  v_a := greatest(v_go, coalesce(p_old, date '1900-01-01'), coalesce(p_entry, date '1900-01-01'), coalesce(v_first, date '1900-01-01'));
+  v_b := greatest(v_go, coalesce(p_new, date '1900-01-01'), coalesce(p_entry, date '1900-01-01'), coalesce(v_first, date '1900-01-01'));
+  if v_a <> v_b and v_first is not null and kokolio._range_closed(least(v_a, v_b), greatest(v_a, v_b) - 1) then
+    perform kokolio._fail('cloture', 'Un mois clôturé se trouve entre l''ancien et le nouveau début de suivi : il ne peut plus être déplacé sur cette période.');
+  end if;
+end $$;
+
 -- Création ou mise à jour d'une fiche (RH). Les rôles ne sont modifiables que par un administrateur.
 create or replace function kokolio._user_save(me kokolio.users, p jsonb, p_args jsonb) returns jsonb language plpgsql as $$
 declare
@@ -1442,14 +1462,7 @@ begin
   -- Début de suivi : envoyé seulement quand les RH le modifient ; sinon la valeur en place est conservée.
   v_tracked := case when p_args ? 'tracked_from' then nullif(p_args->>'tracked_from', '')::date when v_new then null else o.tracked_from end;
   if not v_new and v_tracked is distinct from o.tracked_from then
-    -- Déplacer le début de suivi change ce qui est attendu entre l'ancien et le nouveau premier jour : impossible si un mois clôturé s'y trouve.
-    select case when m.value->>'go_live' ~ '^[0-9]{4}-[0-9]{2}-[0-9]{2}$' then (m.value->>'go_live')::date else date '1900-01-01' end into v_go from kokolio.meta m where m.key = 'settings';
-    select min(x.start_date) into v_first from kokolio.contracts x where x.user_id = v_id;
-    v_a := greatest(v_go, coalesce(o.tracked_from, date '1900-01-01'), coalesce(v_entry, date '1900-01-01'), coalesce(v_first, date '1900-01-01'));
-    v_b := greatest(v_go, coalesce(v_tracked, date '1900-01-01'), coalesce(v_entry, date '1900-01-01'), coalesce(v_first, date '1900-01-01'));
-    if v_a <> v_b and v_first is not null and kokolio._range_closed(least(v_a, v_b), greatest(v_a, v_b) - 1) then
-      perform kokolio._fail('cloture', 'Un mois clôturé se trouve entre l''ancien et le nouveau début de suivi : il ne peut plus être déplacé sur cette période.');
-    end if;
+    perform kokolio._tracked_guard(v_id, v_entry, o.tracked_from, v_tracked);
   end if;
   if v_mgr is not null then
     if not exists (select 1 from kokolio.users x where x.id = v_mgr) then perform kokolio._fail('responsable', 'Responsable introuvable.'); end if;
@@ -1516,6 +1529,7 @@ end $$;
 create or replace function kokolio._users_import(me kokolio.users, p jsonb, p_args jsonb) returns jsonb language plpgsql as $$
 declare
   r jsonb; u kokolio.users; v_login text; v_created jsonb := '[]'::jsonb; v_updated jsonb := '[]'::jsonb; v_idx int := 0; v_mgr uuid;
+  v_tr date; v_moved jsonb := '[]'::jsonb;
   v_year int := extract(year from kokolio._today())::int; v_days int; v_now timestamptz := kokolio._now(); v_role text; c kokolio.contracts;
 begin
   if me.role not in ('rh', 'admin') then perform kokolio._fail('interdit', 'Accès réservé aux RH.'); end if;
@@ -1553,7 +1567,14 @@ begin
         if u.role = 'admin' and me.role <> 'admin' then
           perform kokolio._fail('import', 'Ligne ' || v_idx || ' : compte administrateur, modifiable par un administrateur uniquement.');
         end if;
+        -- Début de suivi : repris pour une fiche existante quand le fichier le donne (déploiement par vagues, date de lancement repoussée).
+        v_tr := nullif(r->>'tracked_from', '')::date;
+        if v_tr is not null and v_tr is distinct from u.tracked_from then
+          perform kokolio._tracked_guard(u.id, coalesce(nullif(r->>'entry_date', '')::date, u.entry_date), u.tracked_from, v_tr);
+          v_moved := v_moved || to_jsonb(u.login);
+        end if;
         update kokolio.users set
+          tracked_from = coalesce(v_tr, tracked_from),
           first_name = coalesce(nullif(trim(r->>'first_name'), ''), first_name), last_name = trim(r->>'last_name'),
           matricule = coalesce(nullif(trim(r->>'matricule'), ''), matricule), email = coalesce(nullif(trim(r->>'email'), ''), email),
           team = coalesce(nullif(trim(r->>'team'), ''), team), job = coalesce(nullif(trim(r->>'job'), ''), job),
@@ -1581,8 +1602,8 @@ begin
     if u.manager_id = u.id then perform kokolio._fail('import', u.login || ' ne peut pas être son propre responsable.'); end if;
     perform kokolio._no_cycle(u.id, u.manager_id);
   end loop;
-  perform kokolio._audit(me.id, 'import_salaries', null, '', jsonb_build_object('crees', v_created, 'mis_a_jour', v_updated), coalesce(p->>'ip', ''));
-  return jsonb_build_object('created', v_created, 'updated', v_updated);
+  perform kokolio._audit(me.id, 'import_salaries', null, '', jsonb_build_object('crees', v_created, 'mis_a_jour', v_updated) || case when jsonb_array_length(v_moved) > 0 then jsonb_build_object('debut_suivi_deplace', v_moved) else '{}'::jsonb end, coalesce(p->>'ip', ''));
+  return jsonb_build_object('created', v_created, 'updated', v_updated, 'tracked', v_moved);
 end $$;
 
 -- Écriture de solde (report, ajustement). Une écriture ne se modifie pas : on en passe une autre.
@@ -2251,6 +2272,111 @@ begin
   return jsonb_build_object('done', v_n);
 end $$;
 -- =====================================================================
+-- Kokolio — environnement de test
+-- =====================================================================
+-- Une seconde installation complète vit dans le schéma « kokolio_test » : mêmes tables, mêmes fonctions, et sa propre porte
+-- d'entrée (public.kokolio_test_api). Elle est créée par le script install-test.sql, qui est ce script-ci où le nom du schéma
+-- est remplacé partout. Les deux installations ne partagent aucune table : ce qui est fait dans l'une ne touche jamais l'autre.
+-- Seule passerelle, à sens unique : la copie ci-dessous, lancée depuis la production par un administrateur. Elle remplace tout
+-- le contenu du test par celui de la production (comptes et mots de passe compris ; le contenu des justificatifs excepté).
+-- Rien, dans le test, ne peut écrire en production.
+
+-- Tables copiées. Les sessions et le compteur d'essais de connexion ne le sont pas : après une copie, chacun se reconnecte au test.
+create or replace function kokolio._test_tables() returns text[] language sql immutable as $$
+  select array['users', 'absence_types', 'day_models', 'cycles', 'contracts', 'plan_days', 'annual_periods', 'annual_goals', 'annual_entries',
+               'anomaly_acks', 'days', 'punch_log', 'absences', 'attachments', 'balance_entries', 'closures', 'audit']
+$$;
+
+-- État de l'environnement de test, vu de la production : installé ou non, version, date de la dernière copie, volume.
+create or replace function kokolio._test_status(me kokolio.users) returns jsonb language plpgsql as $$
+declare v_dst constant text := 'kokolio_test'; v_installed boolean; v_schema jsonb; v_clone jsonb; v_users bigint; v_bytes bigint;
+begin
+  if me.role <> 'admin' then perform kokolio._fail('interdit', 'Accès réservé aux administrateurs.'); end if;
+  if kokolio._env() <> 'production' then
+    return jsonb_build_object('environment', 'test', 'cloned', (select m.value from kokolio.meta m where m.key = 'test_clone'));
+  end if;
+  v_installed := to_regclass(v_dst || '.meta') is not null and to_regclass(v_dst || '.users') is not null;
+  if v_installed then
+    execute format('select (select m.value from %1$I.meta m where m.key = ''schema_version''), (select m.value from %1$I.meta m where m.key = ''test_clone''), (select count(*) from %1$I.users)', v_dst)
+      into v_schema, v_clone, v_users;
+    select coalesce(sum(pg_total_relation_size(c.oid)), 0) into v_bytes from pg_class c join pg_namespace n on n.oid = c.relnamespace where n.nspname = v_dst and c.relkind = 'r';
+  end if;
+  return jsonb_build_object('environment', 'production', 'installed', v_installed, 'schema', v_schema,
+    'schema_production', (select m.value from kokolio.meta m where m.key = 'schema_version'), 'cloned', v_clone, 'users', v_users, 'db_bytes', v_bytes);
+end $$;
+
+-- Copie de la production vers le test. Tout ou rien : en cas d'échec, le test garde son contenu précédent.
+create or replace function kokolio._test_clone(me kokolio.users, p jsonb) returns jsonb language plpgsql as $$
+declare
+  v_dst constant text := 'kokolio_test'; v_tables text[] := kokolio._test_tables(); v_all text[]; t text; v_cols text; v_src text;
+  v_temoin constant bytea := convert_to('Ce justificatif n''a pas été copié dans l''environnement de test : les documents déposés par les salariés restent en production.', 'UTF8');
+  v_a jsonb; v_b jsonb; v_missing text; v_sql text := ''; v_sel text := ''; v_counts jsonb; v_total bigint := 0; v_seq record;
+  v_at timestamptz := kokolio._now(); k text;
+begin
+  if me.role <> 'admin' then perform kokolio._fail('interdit', 'Accès réservé aux administrateurs.'); end if;
+  if kokolio._env() <> 'production' then perform kokolio._fail('etat', 'La copie se lance depuis la production, pas depuis l''environnement de test.'); end if;
+  if to_regclass(v_dst || '.meta') is null or to_regclass(v_dst || '.users') is null then
+    perform kokolio._fail('etat', 'L''environnement de test n''est pas encore installé dans la base (script install-test.sql).');
+  end if;
+  select m.value into v_a from kokolio.meta m where m.key = 'schema_version';
+  execute format('select m.value from %I.meta m where m.key = ''schema_version''', v_dst) into v_b;
+  if v_a is distinct from v_b then
+    perform kokolio._fail('etat', 'L''environnement de test n''est pas à la même version que la production : rejouez son script d''installation, puis recommencez.');
+  end if;
+  -- toute table de la production est soit copiée, soit volontairement laissée de côté : une table oubliée arrête la copie
+  select string_agg(c.relname, ', ' order by c.relname) into v_missing from pg_class c join pg_namespace n on n.oid = c.relnamespace
+    where n.nspname = 'kokolio' and c.relkind = 'r' and c.relname <> all (v_tables || array['meta', 'sessions', 'throttle']);
+  if v_missing is not null then perform kokolio._fail('interne', 'Tables absentes de la copie : ' || v_missing); end if;
+
+  -- une copie à la fois
+  perform 1 from kokolio.meta m where m.key = 'schema_version' for update;
+  v_all := v_tables || array['sessions', 'throttle'];
+  -- vider le test ; ses protections (journal et pointages non effaçables, mois clôturés) sont suspendues le temps de la copie
+  foreach t in array v_all loop execute format('alter table %I.%I disable trigger user', v_dst, t); end loop;
+  execute 'truncate ' || (select string_agg(format('%I.%I', v_dst, x), ', ') from unnest(v_all) x) || ' restart identity';
+
+  -- une seule requête pour toutes les tables : elles sont lues au même instant, la copie est cohérente sans bloquer la production
+  foreach t in array v_tables loop
+    -- les justificatifs ne quittent pas la production : ce sont des documents personnels, souvent médicaux, et ce qui pèse le plus lourd.
+    -- Chaque absence garde sa pièce jointe dans le test, mais son contenu est remplacé par un fichier témoin de quelques octets.
+    select string_agg(quote_ident(s.column_name), ', ' order by s.ordinal_position),
+           string_agg(case when t <> 'attachments' then quote_ident(s.column_name)
+                           when s.column_name = 'filename' then quote_literal('justificatif-non-copie.txt')
+                           when s.column_name = 'mime' then quote_literal('text/plain')
+                           when s.column_name = 'size' then octet_length(v_temoin)::text
+                           when s.column_name = 'data' then format('decode(%L, ''hex'')', encode(v_temoin, 'hex'))
+                           else quote_ident(s.column_name) end, ', ' order by s.ordinal_position)
+      into v_cols, v_src
+      from information_schema.columns s
+      join information_schema.columns d on d.table_schema = v_dst and d.table_name = s.table_name and d.column_name = s.column_name
+      where s.table_schema = 'kokolio' and s.table_name = t and s.is_generated = 'NEVER' and d.is_generated = 'NEVER';
+    if v_cols is null then perform kokolio._fail('interne', 'Table introuvable dans l''environnement de test : ' || t); end if;
+    v_sql := v_sql || format('c_%s as (insert into %I.%I (%s) select %s from kokolio.%I returning 1), ', t, v_dst, t, v_cols, v_src, t);
+    v_sel := v_sel || format('%L, (select count(*) from c_%s), ', t, t);
+  end loop;
+  -- réglages et états (version du schéma exceptée) dans la même lecture : la tête du journal correspond à sa dernière ligne
+  v_sql := 'with ' || v_sql || format('c_meta as (insert into %I.meta (key, value) select m.key, m.value from kokolio.meta m where m.key not in (''schema_version'', ''test_clone'') '
+    || 'on conflict (key) do update set value = excluded.value, updated_at = now() returning 1) ', v_dst)
+    || 'select jsonb_build_object(' || v_sel || '''meta'', (select count(*) from c_meta))';
+  execute format('delete from %I.meta d where d.key <> ''schema_version'' and not exists (select 1 from kokolio.meta m where m.key = d.key)', v_dst);
+  execute v_sql into v_counts;
+  foreach t in array v_all loop execute format('alter table %I.%I enable trigger user', v_dst, t); end loop;
+
+  -- compteurs automatiques : repartir après la plus grande valeur copiée
+  for v_seq in select c.table_name, c.column_name, pg_get_serial_sequence(format('%I.%I', v_dst, c.table_name), c.column_name) as seq
+               from information_schema.columns c where c.table_schema = v_dst and c.table_name = any (v_tables) and c.column_default like 'nextval(%' loop
+    if v_seq.seq is not null then
+      execute format('select setval(%L, coalesce((select max(%I) from %I.%I), 0) + 1, false)', v_seq.seq, v_seq.column_name, v_dst, v_seq.table_name);
+    end if;
+  end loop;
+  foreach k in array v_tables loop v_total := v_total + coalesce((v_counts->>k)::bigint, 0); end loop;
+  -- la marque de la copie, affichée dans le bandeau de l'environnement de test
+  execute format('insert into %I.meta (key, value) values (''test_clone'', $1) on conflict (key) do update set value = excluded.value, updated_at = now()', v_dst)
+    using jsonb_build_object('at', v_at, 'by', me.login, 'rows', v_total, 'users', v_counts->'users');
+  perform kokolio._audit(me.id, 'test_copie', null, '', jsonb_build_object('lignes', v_total, 'comptes', v_counts->'users'), coalesce(p->>'ip', ''));
+  return jsonb_build_object('at', v_at, 'rows', v_total, 'counts', v_counts);
+end $$;
+-- =====================================================================
 -- Kokolio — mode démonstration
 -- Un jeu de données fictives se charge dans un outil vide ou en cours d'essai, pour le découvrir ou le présenter.
 -- Tant qu'il est là, l'outil est « en mode démonstration » : c'est le seul état où tout peut être effacé.
@@ -2599,6 +2725,13 @@ begin
     v_checks := v_checks || jsonb_build_object('name', 'Le schéma de données est inaccessible aux rôles de l''API',
       'ok', not exists (select 1 from pg_roles r where r.rolname in ('anon', 'authenticated', 'service_role') and has_schema_privilege(r.rolname, 'kokolio', 'usage')));
 
+    -- 8 bis. Environnement de test : la copie est réservée à l'administrateur, n'oublie aucune table, et ne part que de la production
+    v_r := public.kokolio_api(jsonb_build_object('action', 'test_clone', 'token', t_rh, 'args', '{}'::jsonb));
+    v_checks := v_checks || jsonb_build_object('name', 'Copie vers l''environnement de test réservée aux administrateurs', 'ok', v_r->>'code' = 'interdit');
+    v_checks := v_checks || jsonb_build_object('name', 'Copie vers l''environnement de test : aucune table oubliée',
+      'ok', not exists (select 1 from pg_class tb join pg_namespace ns on ns.oid = tb.relnamespace
+                        where ns.nspname = 'kokolio' and tb.relkind = 'r' and tb.relname <> all (kokolio._test_tables() || array['meta', 'sessions', 'throttle'])));
+
     -- 9. Mode démonstration : l'effacement des données n'existe que là
     if exists (select 1 from kokolio.meta m where m.key = 'demo') then
       v_checks := v_checks || jsonb_build_object('name', 'Effacement des données réservé au mode démonstration (actif ici : contrôle sans objet)', 'ok', true);
@@ -2633,6 +2766,11 @@ begin
     perform set_config('kokolio.test_now', p->>'_now', true);
   end if;
 
+  -- le serveur annonce l'environnement auquel il croit parler : cette installation ne répond pas à la place de l'autre
+  if p ? 'env' and p->>'env' <> kokolio._env() then
+    perform kokolio._fail('configuration', 'Cette adresse n''est pas reliée au bon environnement.');
+  end if;
+
   -- sans session
   case v_action
     when 'ping' then
@@ -2641,6 +2779,8 @@ begin
         'company', (select m.value->>'company' from kokolio.meta m where m.key = 'settings'),
         'logo_url', (select m.value->>'logo_url' from kokolio.meta m where m.key = 'settings'),
         'demo', exists (select 1 from kokolio.meta m where m.key = 'demo'),
+        'environment', kokolio._env(),
+        'cloned', case when kokolio._env() = 'test' then (select m.value from kokolio.meta m where m.key = 'test_clone') end,
         'today', kokolio._today());
     when 'auth_salt' then return kokolio._auth_salt(v_args);
     when 'login' then return kokolio._login(p, v_args);
@@ -2697,6 +2837,8 @@ begin
     when 'annual_period_save' then return kokolio._annual_period_save(me, p, v_args);
     when 'annual_goal_set' then return kokolio._annual_goal_set(me, p, v_args);
     when 'annual_entry_add' then return kokolio._annual_entry_add(me, p, v_args);
+    when 'test_status' then return kokolio._test_status(me);
+    when 'test_clone' then return kokolio._test_clone(me, p);
     when 'demo_seed' then return kokolio._demo_seed(me, p, v_args);
     when 'demo_reset' then return kokolio._demo_reset(me, p);
     when 'selftest' then
@@ -2774,7 +2916,7 @@ begin
 end $$;
 revoke all on function kokolio.bootstrap_admin(text, text) from public;
 
-insert into kokolio.meta (key, value) values ('schema_version', '7'::jsonb)
+insert into kokolio.meta (key, value) values ('schema_version', '8'::jsonb)
 on conflict (key) do update set value = excluded.value, updated_at = now();
 
 notify pgrst, 'reload schema';

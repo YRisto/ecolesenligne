@@ -7,6 +7,12 @@ begin
   raise exception 'KK:%:%', p_code, p_msg;
 end $$;
 
+-- Environnement de cette installation : « production », ou « test » pour la copie installée à côté (script install-test.sql).
+-- install-test.sql est ce même script où le nom du schéma est remplacé partout : la comparaison ci-dessous change alors de résultat.
+create or replace function kokolio._env() returns text language sql immutable as $$
+  select case when 'kokolio' like '%\_test' then 'test' else 'production' end
+$$;
+
 create or replace function kokolio._tz() returns text language sql stable as $$
   select coalesce((select m.value->>'timezone' from kokolio.meta m where m.key = 'settings'), 'Europe/Paris')
 $$;

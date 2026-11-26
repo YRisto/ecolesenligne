@@ -41,7 +41,7 @@ before(async () => {
 });
 after(() => fake?.kill());
 
-test("mise à jour de la base de la version 1 à la version 7, sans rien perdre", async () => {
+test("mise à jour de la base de la version 1 à la version 8, sans rien perdre", async () => {
   const code = sql("select kokolio.bootstrap_admin('admin')");
   await admin.ok("auth/activate", { login: "admin", code, password: "Tableau-Bleu-2026" });
   await admin.ok("admin/settings-save", { settings: { company: "Entreprise d'essai" } });
@@ -78,8 +78,17 @@ test("mise à jour de la base de la version 1 à la version 7, sans rien perdre"
   execFileSync("psql", [...PG, "-f", "-"], { input: v6, stdio: ["pipe", "ignore", "ignore"] });
   assert.equal(empreinte(), avant);
   assert.equal(sql("select value::text from kokolio.meta where key = 'schema_version'"), "6");
+  // … la version 7 (export au format Sage Paie : celle de la production avant l'environnement de test)
+  const v7 = execFileSync("git", ["-C", ROOT, "show", "c21d601:supabase/kokolio/install.sql"], { encoding: "utf8", maxBuffer: 32e6 });
+  execFileSync("psql", [...PG, "-f", "-"], { input: v7, stdio: ["pipe", "ignore", "ignore"] });
+  assert.equal(empreinte(), avant);
+  assert.equal(sql("select value::text from kokolio.meta where key = 'schema_version'"), "7");
   // … enfin la version courante, jouée deux fois de suite : le script est rejouable
   for (let i = 0; i < 2; i++) execFileSync("psql", [...PG, "-f", path.join(ROOT, "supabase/kokolio/install.sql")], { stdio: "ignore" });
+  // l'environnement de test s'installe à côté, deux fois de suite lui aussi, sans toucher à la production
+  for (let i = 0; i < 2; i++) execFileSync("psql", [...PG, "-f", path.join(ROOT, "supabase/kokolio/install-test.sql")], { stdio: "ignore" });
+  assert.equal(empreinte(), avant);
+  assert.equal(sql("select (select value::text from kokolio_test.meta where key = 'schema_version') || '|' || (select count(*) from kokolio_test.users)"), "8|0");
   // export de paie : chaque motif garde son code ; décompte en jours prévus ; seuls les congés payés voient leurs dates reportées sur le bulletin
   assert.equal(sql("select string_agg(code || ':' || export_code || ':' || export_unit || ':' || export_dates, ' ' order by sort) from kokolio.absence_types"),
     "cp:AB-CP:prevus:true rtt:AB-RTT:prevus:false maladie:AB-MAL:prevus:false sans_solde:AB-CSS:prevus:false evenement:AB-EVF:prevus:false formation:AB-FORM:prevus:false autre:AB-ABS:prevus:false");
@@ -91,7 +100,7 @@ test("mise à jour de la base de la version 1 à la version 7, sans rien perdre"
   assert.equal(empreinte(), avant);
   assert.equal(sql("select count(*) from kokolio.users where tracked_from is not null"), "0");
   const st = await admin.ok("admin/status");                             // la session ouverte avant la mise à jour reste valable
-  assert.deepEqual([st.schema, st.schema_expected, st.users, st.admins], [7, 7, 2, 1]);
+  assert.deepEqual([st.schema, st.schema_expected, st.users, st.admins], [8, 8, 2, 1]);
   // réglages d'avant conservés ; les nouveautés (anomalies, pauses payées) prennent leurs valeurs par défaut sans rien écrire
   const regl = (await admin.ok("admin/settings")).settings;
   assert.deepEqual([regl.company, regl.anomalies, regl.break_paid_min], ["Entreprise d'essai", undefined, undefined]);
@@ -106,7 +115,7 @@ test("mise à jour de la base de la version 1 à la version 7, sans rien perdre"
   assert.deepEqual([lib.models.length, lib.cycles.length], [0, 0]);
   assert.deepEqual([(await admin.ok("boot")).settings.night_until, (await admin.ok("boot")).annual], ["", null]);
   const t = await admin.ok("admin/selftest");
-  assert.equal(t.ok, true, JSON.stringify(t.checks.filter((c) => !c.ok))); assert.equal(t.count, 45);
+  assert.equal(t.ok, true, JSON.stringify(t.checks.filter((c) => !c.ok))); assert.equal(t.count, 47);
   // la fiche d'essai n'a servi qu'à cette vérification : la suite repart d'un outil qui ne contient que l'administrateur
   sql(`delete from kokolio.contracts where user_id = '${essai.user.id}'; delete from kokolio.users where id = '${essai.user.id}'`);
 });

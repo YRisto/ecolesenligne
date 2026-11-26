@@ -1,5 +1,5 @@
 // Connexion par identifiant et mot de passe ; première connexion ou mot de passe oublié par code d'activation.
-import { api } from "./api.js";
+import { api, ENV } from "./api.js";
 import { h, pose, logo, champ } from "./dom.js";
 import { S } from "./etat.js";
 
@@ -55,6 +55,13 @@ export function ecranActivation(surSucces, loginInitial = "") {
 
 export function ecranIndisponible(e, reessayer) {
   const installation = e?.code === "installation" || e?.code === "configuration";
+  if (installation && ENV === "test") {
+    cadre(h("h2", null, "Environnement de test pas encore installé"),
+      h("p", null, "Cette adresse est celle de l'environnement de test, mais il n'est pas encore installé dans la base de données. L'administrateur trouve la marche à suivre en production : Administration › Test."),
+      h("button", { class: "principal", onclick: reessayer }, "Réessayer"),
+      h("p", { class: "discret" }, h("a", { href: "/kokolio" }, "Aller à la production")));
+    return;
+  }
   cadre(h("h2", null, installation ? "Installation en cours" : "Service momentanément indisponible"),
     h("p", null, installation ? "L'outil est en ligne, mais sa base de données n'est pas encore installée. L'administrateur doit terminer l'installation."
       : (e?.message || "Le serveur ne répond pas.")),

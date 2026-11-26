@@ -8,6 +8,11 @@ bash tests/kokolio/pg-local.sh reset >/dev/null 2>&1
 PSQL="psql -h 127.0.0.1 -p 54329 -U postgres -d kokolio_test -v ON_ERROR_STOP=1 -qAt"
 $PSQL -f supabase/kokolio/install.sql >/dev/null
 $PSQL -c "insert into kokolio.meta (key, value) values ('test_mode', 'true'::jsonb) on conflict (key) do update set value = excluded.value" >/dev/null
+# l'environnement de test : seconde installation, à côté (KK_SANS_TEST=1 pour jouer le cas où il n'est pas installé)
+if [ -z "$KK_SANS_TEST" ]; then
+  $PSQL -f supabase/kokolio/install-test.sql >/dev/null
+  $PSQL -c "insert into kokolio_test.meta (key, value) values ('test_mode', 'true'::jsonb) on conflict (key) do update set value = excluded.value" >/dev/null
+fi
 pkill -f fake-postgrest.mjs 2>/dev/null || true
 # le serveur Next se renomme « next-server » une fois lancé : on l'arrête sous ses deux noms, puis on vérifie que le port est libre
 pkill -f "next start -p $PORT" 2>/dev/null || true

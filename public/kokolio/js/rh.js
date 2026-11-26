@@ -1,5 +1,5 @@
 // Ressources humaines : salariés et fiches, import, report des congés, clôture et export paie, journal.
-import { api } from "./api.js";
+import { api, CHEMIN } from "./api.js";
 import { h, pose, remplir, toast, agir, ouvrir, confirmer, demanderMotif, etiquette, tuile, champ, telecharger, pad,
   fmtMin, fmtJ, fmtNb, frCourt, frMois, frHorodatage, lireDuree, ecrireDuree, plusJours, jourSemaine } from "./dom.js";
 import { S, ecran, aller, recharger, estAdmin } from "./etat.js";
@@ -141,7 +141,7 @@ export function ecranCodes(codes, titre, suite) {
     h("div", { class: "bandeau" }, h("strong", null, "Ces codes ne seront plus affichés"), `${titre} Imprimez les fiches ou téléchargez la liste avant de quitter cette page. En cas de perte, vous pourrez générer un nouveau code depuis la fiche du salarié.`),
     h("div", { class: "ligne gauche sans-impression" },
       h("button", { class: "domaine", onclick: () => imprimerBons(codes) }, "Imprimer les fiches"),
-      h("button", { onclick: () => telecharger("codes-activation.csv", "﻿" + [["Nom", "Identifiant", "Code d'activation", "Adresse"], ...codes.map((c) => [c.name, c.login, c.code, `${location.origin}/kokolio`])].map(csvLigne).join("\r\n") + "\r\n") }, "Télécharger la liste (CSV)"),
+      h("button", { onclick: () => telecharger("codes-activation.csv", "﻿" + [["Nom", "Identifiant", "Code d'activation", "Adresse"], ...codes.map((c) => [c.name, c.login, c.code, `${location.origin}${CHEMIN}`])].map(csvLigne).join("\r\n") + "\r\n") }, "Télécharger la liste (CSV)"),
       h("button", { onclick: () => aller("#/rh/salaries") }, "Terminé")),
     suite || null,
     h("div", { class: "bons" }, codes.map(bonActivation)));
@@ -312,7 +312,7 @@ export function vueImport() {
       bloque ? (p.rows.length ? h("p", { class: "bandeau refus" }, "L'import est tout ou rien : corrigez les lignes en erreur dans le fichier, puis vérifiez de nouveau.") : null)
         : h("div", { class: "ligne gauche" }, h("button", { class: "domaine", onclick: (ev) => agir(ev.currentTarget, async () => {
           const r = await api("rh/import", { text: texte.value });
-          const msg = `${r.created.length} compte(s) créé(s), ${r.updated.length} fiche(s) mise(s) à jour.`;
+          const msg = `${r.created.length} compte(s) créé(s), ${r.updated.length} fiche(s) mise(s) à jour${r.tracked?.length ? `, dont ${r.tracked.length} début(s) de suivi déplacé(s)` : ""}.`;
           if (r.created.length) ecranCodes(r.created, msg); else { toast(msg); aller("#/rh/salaries"); }
         }) }, `Importer ${p.rows.length} ligne${p.rows.length > 1 ? "s" : ""}`)));
   });
@@ -323,7 +323,7 @@ export function vueImport() {
       h("ul", null, h("li", null, "Colonnes reconnues : identifiant, nom, prenom, matricule, email, equipe, poste, responsable (son identifiant), date_entree, date_sortie, regime (horaire ou forfait), heures_hebdo, jours_travailles (exemple : lun-ven), pause, solde_cp, droits_rtt, debut_suivi, presence (pointage ou automatique), cycle (son nom dans la bibliothèque)."),
         h("li", null, "Sans colonne identifiant, il est fabriqué : prenom.nom."), h("li", null, "Un salarié déjà présent (même identifiant) est mis à jour ; son mot de passe, son horaire et ses soldes ne changent pas."),
         h("li", null, "solde_cp : jours de congés restant à prendre à la date de mise en service. droits_rtt : droits de l'année."),
-        h("li", null, "debut_suivi : premier jour où le salarié est suivi, pour déployer équipe par équipe (pris en compte à la création de la fiche).")),
+        h("li", null, "debut_suivi : premier jour où le salarié est suivi, pour déployer équipe par équipe ou repousser un lancement. Pour une fiche déjà présente, la date est déplacée quand la colonne est remplie (sauf si un mois clôturé se trouve entre l'ancienne et la nouvelle).")),
       h("div", { class: "ligne gauche" }, h("button", { onclick: (ev) => agir(ev.currentTarget, async () => { const t = await api("rh/import-template"); telecharger(t.filename, t.text); }) }, "Télécharger le modèle (CSV)"))),
     h("div", { class: "carte" }, h("h3", null, "2. Vérifier"), h("label", null, "Fichier CSV", fichier), texte, h("div", { class: "ligne gauche" }, bouton),
       h("p", { class: "discret" }, "Rien n'est enregistré à cette étape : vous voyez d'abord ce qui sera créé ou modifié.")),
@@ -449,6 +449,7 @@ const ACTIONS = { connexion: "Connexion", compte_active: "Compte activé", compt
   export_telecharge: "Export paie téléchargé", donnees_demo_chargees: "Données de démonstration chargées", donnees_demo_effacees: "Données de démonstration effacées", parametres_modifies: "Réglages modifiés", motif_cree: "Motif d'absence créé", motif_modifie: "Motif d'absence modifié", administrateur_initialise: "Administrateur initialisé",
   planning_modifie: "Planning modifié", horaire_type_cree: "Horaire journalier créé", horaire_type_modifie: "Horaire journalier modifié", cycle_cree: "Cycle créé", cycle_modifie: "Cycle modifié", periode_annualisation_creee: "Période d'annualisation créée", periode_annualisation_modifiee: "Période d'annualisation modifiée",
   anomalies_acquittees: "Anomalies acquittées", acquittement_annule: "Acquittement annulé",
+  test_copie: "Production copiée vers l'environnement de test",
   objectif_annuel_fixe: "Objectif annuel fixé", objectif_annuel_retire: "Objectif annuel recalculé d'après le planning", objectif_annuel_ajuste: "Objectif annuel ajusté" };
 const CLES = { avant: "avant", apres: "après", motif: "motif", du: "du", au: "au", demi: "demi-journée", jours: "jours", justificatif: "justificatif", annee: "année", version: "version", auto_validation: "auto-validation",
   a_compter_du: "à compter du", regime: "régime", pause: "pause", crees: "créés", mis_a_jour: "mis à jour", ecritures: "écritures", ignorees: "ignorées", nom: "nom", role: "profil", deja_active: "compte déjà activé",

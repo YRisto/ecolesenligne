@@ -49,6 +49,9 @@ header.barre button.compte-btn{background:var(--surface);color:var(--encre);bord
 header.barre button.compte-btn svg{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
 @media (max-width:520px){header.barre h1 small{display:none}.logo-h{height:40px}header.barre h1{font-size:1.35rem}header.barre .nom-long{display:none}}
 
+.bandeau-test{margin:0;padding:9px 16px;background:#3b1d8f;color:#fff;font-size:var(--t-s);font-weight:650;text-align:center;letter-spacing:.01em}
+.bandeau-test a{color:#fff;text-decoration:underline;margin-left:8px;font-weight:600;white-space:nowrap}
+@media (max-width:640px){.bandeau-test .long{display:none}}
 .bandeau-demo{margin:0;padding:8px 16px;background:var(--attente-doux);color:#5c3700;font-size:var(--t-s);font-weight:650;text-align:center;border-bottom:1px solid color-mix(in srgb,var(--attente) 30%,transparent)}
 main{max-width:1040px;margin:0 auto;padding:20px 16px;display:flex;flex-direction:column;gap:16px}
 main.etroit{max-width:720px}
@@ -202,6 +205,8 @@ button.mode span.s{font-size:var(--t-xs);color:rgba(255,255,255,.88);line-height
 button.mode .compte{position:absolute;top:10px;right:10px;font-size:.85rem;min-width:26px;padding:2px 8px;border-radius:13px;background:#fff;color:var(--refus)}
 button.mode.m-cadre{background:var(--f-bleu2)} button.mode.m-equipe{background:var(--f-vert)} button.mode.m-rh{background:var(--f-brique)}
 button.mode.m-admin{background:var(--f-nuit)}
+button.mode.m-test{background:#3b1d8f}
+.marque-test{display:inline-block;margin:0 8px 0 2px;padding:2px 8px;border-radius:6px;background:#3b1d8f;color:#fff;font-family:var(--corps,inherit);font-size:.68rem;font-weight:700;letter-spacing:.1em;vertical-align:middle}
 button.mode.seul{grid-column:1/-1;aspect-ratio:auto;min-height:104px;padding-left:112px;justify-content:center}
 button.mode.seul svg{top:50%;transform:translateY(-50%);width:70px;height:70px}
 ul{margin:6px 0 12px;padding-left:20px} li{margin:3px 0}
@@ -308,7 +313,7 @@ nav.onglets button{min-width:60px}
 /* Impression : seulement la zone marquée (fiches d'activation) */
 @media print{
   body{padding:0}
-  header.barre,nav.onglets,#toast,.sans-impression,.bandeau-demo,dialog,dialog::backdrop{display:none!important}
+  header.barre,nav.onglets,#toast,.sans-impression,.bandeau-demo,.bandeau-test,dialog,dialog::backdrop{display:none!important}
   body.impression main>*:not(.imprimable){display:none!important}
   main{max-width:none;padding:0}
   .carte{box-shadow:none;border:0;padding:0}

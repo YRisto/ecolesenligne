@@ -1,5 +1,5 @@
 // Administration : réglages, motifs d'absence, état de l'installation, versions et fonctionnalités.
-import { api } from "./api.js";
+import { api, ENV } from "./api.js";
 import { h, pose, toast, agir, ouvrir, confirmer, etiquette, tuile, champ, coche, logo, fmtNb, frHorodatage, frCourt, frMois } from "./dom.js";
 import { S, ecran, recharger } from "./etat.js";
 import { ecranCodes } from "./rh.js";
@@ -189,6 +189,67 @@ export function vueEtat() {
         }) }, "Lancer l'autodiagnostic")), resultat),
       carteDemo(d),
       h("p", { class: "discret" }, `Relevé du ${frHorodatage(d.now)}.`));
+  });
+}
+
+/* ================= Environnement de test ================= */
+// Une copie complète de l'outil, à une adresse à part : mêmes écrans, données séparées. On y essaie ce qu'on veut sans risque.
+export function vueTest() {
+  if (ENV === "test") {
+    ecran(() => api("admin/test-status"), (d) => {
+      const c = d.cloned;
+      pose(h("h2", null, "Environnement de test"),
+        h("div", { class: "carte" }, h("h3", null, "Vous êtes dans l'environnement de test"),
+          h("p", null, "Les écrans sont ceux de la production, les données en sont une copie (les justificatifs exceptés : un fichier témoin les remplace). Tout ce qui est fait ici reste ici : rien ne remonte vers la production."),
+          h("p", null, c?.at ? `Dernière copie de la production : ${frHorodatage(c.at)}${c.by ? `, par ${c.by}` : ""}.` : "Aucune copie de la production n'a encore été faite : l'environnement est vide."),
+          h("p", { class: "discret" }, "La copie se relance depuis la production : Administration › Test. Elle remplace tout le contenu de cet environnement."),
+          h("div", { class: "ligne gauche" }, h("a", { class: "bouton domaine", href: "/kokolio#/admin/test" }, "Aller à la production"))));
+    });
+    return;
+  }
+  ecran(async () => {
+    const d = await api("admin/test-status");
+    // l'environnement de test répond-il ? (son contrôle de santé est public et ne renvoie aucune donnée)
+    let sante = null;
+    try { const r = await fetch("/api/kokolio-test/health", { cache: "no-store" }); sante = await r.json(); } catch { sante = null; }
+    return { d, sante };
+  }, ({ d, sante }) => {
+    const mo = (n) => `${fmtNb((n || 0) / 1048576)} Mo`;
+    const ligne = (a, b) => h("div", { class: "ligne" }, h("span", null, a), h("span", { class: "num" }, b));
+    const pret = d.installed && sante?.ok && String(d.schema) === String(d.schema_production);
+    const copie = d.cloned?.at ? `${frHorodatage(d.cloned.at)}${d.cloned.by ? `, par ${d.cloned.by}` : ""}` : "jamais";
+    pose(h("h2", null, "Environnement de test"),
+      h("div", { class: "carte" }, h("h3", null, "Une copie complète pour essayer sans risque"),
+        h("p", null, "L'environnement de test est une seconde installation de Kokolio : mêmes écrans, même version, mais des données à part. Ce qui y est fait ne touche jamais la production."),
+        h("p", null, "On s'y connecte avec les mêmes identifiants et mots de passe qu'en production, tels qu'ils étaient au moment de la dernière copie."),
+        h("div", { class: "ligne gauche" },
+          h("a", { class: "bouton domaine", href: "/kokolio-test", target: "_blank", rel: "noopener" }, "Ouvrir l'environnement de test"),
+          h("span", { class: "discret mono" }, `${location.origin}/kokolio-test`))),
+      !d.installed ? h("div", { class: "bandeau refus" }, h("strong", null, "Environnement de test pas encore installé"),
+        "Exécutez le script supabase/kokolio/install-test.sql dans la console SQL de la base : il crée le schéma kokolio_test sans toucher à la production.") : null,
+      d.installed && String(d.schema) !== String(d.schema_production) ? h("div", { class: "bandeau refus" }, h("strong", null, "Environnement de test à mettre à jour"),
+        `Il est en version ${d.schema} du schéma, la production en version ${d.schema_production}. Rejouez le script install-test.sql, puis relancez la copie.`) : null,
+      d.installed && !sante?.ok ? h("div", { class: "bandeau refus" }, h("strong", null, "L'environnement de test ne répond pas"), sante?.message || "Son adresse n'a pas donné de réponse lisible.") : null,
+      h("div", { class: "carte" }, h("h3", null, "État"),
+        ligne("Installation", d.installed ? `faite · schéma ${d.schema}` : "à faire"),
+        ligne("Réponse", sante?.ok ? `oui · application ${sante.app}` : "non"),
+        ligne("Dernière copie de la production", copie),
+        ligne("Comptes dans le test", d.installed ? String(d.users) : "—"),
+        ligne("Taille de ses données", d.installed ? mo(d.db_bytes) : "—"),
+        h("p", { class: "discret" }, "Le test est hébergé au même endroit que la production : ses données comptent dans la capacité de la base, et une charge forte sur le test peut ralentir la production.")),
+      h("div", { class: "carte" }, h("h3", null, "Remettre le test à l'image de la production"),
+        h("p", null, "La copie remplace tout le contenu de l'environnement de test par celui de la production à cet instant : salariés, horaires, pointages, absences, clôtures, réglages, journal. Ce qui avait été saisi dans le test est perdu ; les personnes qui y étaient connectées devront se reconnecter."),
+        h("p", null, "Les justificatifs déposés par les salariés ne sont pas copiés : dans le test, un fichier témoin les remplace."),
+        h("p", { class: "discret" }, "La production n'est ni modifiée ni interrompue. La copie est inscrite au journal."),
+        h("div", { class: "ligne gauche" }, h("button", { class: "domaine", disabled: !pret, onclick: () => {
+          const mot = h("input", { type: "text", autocomplete: "off", autocapitalize: "characters", spellcheck: "false" });
+          ouvrir("Copier la production vers le test",
+            h("div", { class: "pile" }, h("p", null, "Tout le contenu actuel de l'environnement de test sera remplacé. Cette action ne se défait pas."), champ("Pour confirmer, saisissez le mot COPIER", mot)),
+            "Lancer la copie", async () => {
+              const r = await api("admin/test-clone", { confirm: mot.value.trim().toUpperCase() });
+              toast(`Copie terminée : ${r.counts?.users ?? 0} comptes, ${fmtNb(r.rows)} lignes.`); recharger();
+            });
+        } }, "Copier la production vers le test"))));
   });
 }
 

@@ -1,5 +1,5 @@
 // Démarrage, navigation entre les espaces, accueil, compte.
-import { api, quandSessionPerdue } from "./api.js";
+import { api, quandSessionPerdue, ENV } from "./api.js";
 import { h, pose, icone, logo, toast, agir, champ, fmtMin, frHorodatage, frCourt, confirmer } from "./dom.js";
 import { S, ecran, aller, calerHorloge } from "./etat.js";
 import { ecranConnexion, ecranIndisponible } from "./auth.js";
@@ -15,7 +15,7 @@ const ESPACES = {
   moi: { titre: "Mon espace", onglets: [["pointer", "Pointer"], ["heures", "Heures"], ["absences", "Absences"], ["annee", "Année"]] },
   equipe: { titre: "Mon équipe", onglets: [["validation", "Validation"], ["planning", "Planning"], ["synthese", "Synthèse"]] },
   rh: { titre: "Ressources humaines", onglets: [["salaries", "Salariés"], ["validation", "Validation"], ["planning", "Planning"], ["synthese", "Synthèse"], ["cloture", "Clôture"], ["journal", "Journal"]] },
-  admin: { titre: "Administration", onglets: [["versions", "Versions"], ["reglages", "Réglages"], ["motifs", "Motifs"], ["etat", "État"]] },
+  admin: { titre: "Administration", onglets: [["versions", "Versions"], ["reglages", "Réglages"], ["motifs", "Motifs"], ["etat", "État"], ["test", "Test"]] },
 };
 const ROLES = { salarie: "Salarié", rh: "Ressources humaines", admin: "Administrateur" };
 
@@ -30,12 +30,26 @@ function espaces() {
 
 /* ---------- démarrage ---------- */
 async function demarrer() {
+  bandeauTest();   // dès l'ouverture : même si l'environnement ne répond pas, on sait où l'on est
   try { S.info = await api("public/info", null, { silencieux: true }); }
   catch (e) { S.info = S.info || {}; return ecranIndisponible(e, demarrer); }
   const l = logo(S.info.logo_url, "logo-h", S.info.company);
   document.getElementById("logo-h").replaceChildren(...(l ? [l] : []));
-  document.title = `Kokolio · ${S.info.company}`;
+  document.title = `Kokolio${ENV === "test" ? " TEST" : ""} · ${S.info.company}`;
+  bandeauTest();
   await ouvrirSession();
+}
+// Dans l'environnement de test, un bandeau permanent dit où l'on est et de quand date la copie des données.
+function bandeauTest() {
+  const b = document.getElementById("bandeau-test");
+  if (ENV !== "test") { b.hidden = true; return; }
+  document.querySelector('link[rel="manifest"]')?.remove();   // le test ne s'installe pas comme une application : l'icône ouvrirait la production
+  const titre = document.querySelector("header.barre h1");
+  if (titre && !titre.querySelector(".marque-test")) titre.insertBefore(h("span", { class: "marque-test" }, "TEST"), titre.querySelector("small"));
+  const c = S.info?.cloned;
+  b.replaceChildren("Environnement de test", !S.info?.app ? "" : c?.at ? ` · copie de la production du ${frHorodatage(c.at)}` : " · aucune copie de la production pour l'instant",
+    h("span", { class: "long" }, " · rien de ce qui est fait ici ne touche la production"), h("a", { href: "/kokolio" }, "Aller à la production"));
+  b.hidden = false;
 }
 async function ouvrirSession(message) {
   try { S.boot = await api("boot", null, { silencieux: true }); }
@@ -124,6 +138,7 @@ function afficher() {
     "rh/annualisation": () => (r.a === "periode" ? annuel.vueAnnuelEquipe("rh", r.b) : r.a ? annuel.vueAnnuelSalarie("rh", r.a, r.b) : annuel.vueAnnuelEquipe("rh")),
     "equipe/planning": () => planning.vuePlanning("equipe", r.a), "rh/planning": () => planning.vuePlanning("rh", r.a), "rh/horaires": () => planning.vueBibliotheque(),
     "admin/reglages": () => admin.vueReglages(), "admin/motifs": () => admin.vueMotifs(), "admin/etat": () => admin.vueEtat(), "admin/versions": () => admin.vueVersions(false),
+    "admin/test": () => admin.vueTest(),
   };
   (vues[k] || (() => { history.replaceState(null, "", "#/"); afficher(); }))();
 }
@@ -140,7 +155,7 @@ function vueAccueil() {
     moi: ["Mon espace", cadre ? "Forfait jours : pointer, suivre mes journées, demander un congé" : `${fmtMin(me.weekly_minutes)} par semaine : pointer, voir mes heures, demander un congé`, cadre ? "cadre" : "salarie", cadre ? "m-cadre" : ""],
     equipe: ["Mon équipe", "Valider les pointages et les congés, planifier, suivre le mois", "equipe", "m-equipe"],
     rh: ["Ressources humaines", "Salariés, validations, planning et cycles, clôture et export paie, journal", "rh", "m-rh"],
-    admin: ["Administration", "Fonctionnalités et versions, réglages, motifs d'absence, état de l'outil", "admin", "m-admin"],
+    admin: ["Administration", "Fonctionnalités et versions, réglages, motifs d'absence, état de l'outil, environnement de test", "admin", "m-admin"],
   };
   pose(h("div", { class: "bienvenue pile" }, logo(S.boot.settings.logo_url, "logo-g", S.boot.settings.company),
       h("p", { class: "eyebrow" }, S.boot.settings.company), h("h2", null, `Bonjour ${me.first_name || me.name}`)),
@@ -148,7 +163,11 @@ function vueAccueil() {
       const [t, s, ic, cls] = tuiles[id];
       return h("button", { class: `mode ${cls}${liste.length === 3 && i === 2 ? " seul" : ""}`, onclick: () => aller(`#/${id}`) }, icone(ic), h("strong", null, t), h("span", { class: "s" }, s),
         id === "equipe" || id === "rh" ? h("span", { class: "compte", hidden: true, "data-attente": id }) : null);
-    })),
+    }),
+      // l'accès à l'environnement de test, bien en vue pour l'administrateur (et, depuis le test, le rappel de l'endroit où l'on est)
+      liste.includes("admin") ? h("button", { class: "mode m-test seul", onclick: () => aller("#/admin/test") }, icone("test"),
+        h("strong", null, "Environnement de test"),
+        h("span", { class: "s" }, ENV === "test" ? "Vous y êtes : une copie de la production, où tout peut être essayé sans risque" : "Une copie complète de l'outil pour essayer sans risque : l'ouvrir, la remettre à l'image de la production")) : null),
     h("p", { class: "pied" }, h("button", { class: "lien", onclick: () => aller("#/apropos") }, `Kokolio ${S.boot.app} · versions et fonctionnalités`)));
   majPastilles();
 }

@@ -26,6 +26,7 @@ Les tables du site (`ecoles`, `formations`, `leads`, `jeu_dg_*`…) ne sont pas 
 ## Installation
 
 1. Dans la console SQL du projet Supabase, exécuter **`supabase/kokolio/install.sql`** en entier. Le script crée le schéma, les tables et les fonctions. Il est rejouable : il ne supprime ni table ni donnée.
+   Pour disposer de l'environnement de test, exécuter ensuite **`supabase/kokolio/install-test.sql`** (voir plus bas).
 2. Toujours dans la console SQL : `select kokolio.bootstrap_admin('admin');` — la requête renvoie un **code d'activation à usage unique**.
    Pour une première installation, `supabase/kokolio/premiere-installation.sql` fait les étapes 1 et 2 d'un coup : son résultat est le code d'activation. La console peut demander de confirmer une « opération destructrice » : les mots `delete` et `truncate` figurent dans les fonctions de l'outil, le script lui-même ne supprime rien.
 3. Ouvrir `/kokolio`, choisir « Première connexion ou mot de passe oublié », saisir l'identifiant `admin`, le code, et choisir un mot de passe.
@@ -75,6 +76,26 @@ Administration › État › « Charger les données de démonstration » crée 
 - L'historique fictif ne concerne pas les comptes déjà présents : le chargement note sur chacun la date de mise en service qui s'appliquait jusque-là (colonne `users.tracked_from`), et le calcul ne suit jamais un compte avant cette date. Sans cela, ils apparaîtraient avec deux mois de journées sans pointage. C'est le seul usage de cette colonne ; l'effacement la remet à vide sur les comptes qui restent.
 - « Effacer les données de démonstration » (mot de confirmation exigé) supprime tout : salariés, pointages, absences, clôtures, journal. Restent les comptes administrateur, les réglages et les motifs d'absence. La date de mise en service revient au jour de l'effacement.
 - À faire avant la vraie mise en service : effacer, fixer la date de mise en service, importer les vrais salariés.
+
+## Environnement de test (depuis la version 2.4)
+
+Une seconde installation complète de l'outil vit à côté de la production : mêmes écrans, même version, données à part.
+
+| | Production | Environnement de test |
+|---|---|---|
+| Adresse | `/kokolio` | `/kokolio-test` |
+| API | `/api/kokolio/…` | `/api/kokolio-test/…` |
+| Schéma et fonction d'entrée | `kokolio`, `public.kokolio_api` | `kokolio_test`, `public.kokolio_test_api` |
+| Script d'installation | `install.sql` | `install-test.sql` |
+| Cookie de session | `kk_session` | `kkt_session` |
+
+- **Un seul code.** `install-test.sql` est produit par `build.sh` : c'est `install.sql` où le nom du schéma est remplacé partout. Le serveur est le même ; l'adresse appelée décide de la fonction de la base, du cookie et de l'environnement annoncé. La base refuse de répondre si le serveur lui annonce l'autre environnement (branchement croisé).
+- **Aucune table partagée.** Ce qui est fait dans le test ne touche jamais la production, et l'inverse. Une session de l'un ne vaut rien dans l'autre.
+- **Accès.** Pour l'administrateur : une tuile sur l'accueil et l'onglet Administration › Test (état, bouton d'ouverture, copie). Dans le test, un bandeau permanent et le repère « TEST » dans l'en-tête.
+- **Copie de la production vers le test** (Administration › Test, mot de confirmation `COPIER`, administrateur seulement). Elle remplace tout le contenu du test par celui de la production à cet instant : comptes et mots de passe, horaires, pointages, absences, clôtures, réglages, journal. Tout ou rien ; la production n'est ni modifiée ni bloquée ; la copie est inscrite au journal. Ne sont pas copiés : les sessions (chacun se reconnecte au test) et **le contenu des justificatifs**, remplacé par un fichier témoin de quelques octets.
+- **Seule passerelle, à sens unique.** Rien, dans le test, ne peut écrire en production : la copie ne se lance que depuis la production.
+- **Installation et mise à jour** : exécuter `install.sql`, puis `install-test.sql`, dans la console SQL. Les deux doivent être à la même version du schéma pour copier ; l'onglet Test le signale sinon.
+- **Limites à connaître.** Le test est hébergé au même endroit que la production : ses données comptent dans la capacité de la base, et une forte charge sur le test (essais k6) peut ralentir la production. Une copie se fait en une seule requête : à plusieurs centaines de milliers de lignes, elle peut dépasser le délai accordé par l'hébergement ; elle échoue alors sans rien changer.
 
 ## Comptes et mots de passe
 
@@ -153,7 +174,7 @@ Le fichier d'export existe en deux formats, au choix dans Administration › Ré
 
 - **Sauvegardes** : elles relèvent de l'hébergement de la base. Vérifier que le projet Supabase dispose de sauvegardes quotidiennes (offre payante) ; sans elles, une suppression accidentelle serait irréversible.
 - **Volume** : les justificatifs (2,5 Mo au plus chacun, les photos sont réduites avant l'envoi) sont stockés dans la base. Administration › État affiche la taille.
-- **Surveillance** : `GET /api/kokolio/health`.
+- **Surveillance** : `GET /api/kokolio/health` (production) et `GET /api/kokolio-test/health` (environnement de test) ; chacun annonce son environnement.
 - **Charge** : les écrans RH « tous les salariés » lisent un mois entier de pointages ; à plusieurs milliers de salariés il faudrait agréger côté base.
 - **Dépendance** : le site et l'outil partagent le même projet Supabase et la même clé serveur. Une fuite de cette clé ne donnerait pas accès aux données de l'outil (il faut une session), mais permettrait de tenter des connexions.
 
@@ -166,7 +187,9 @@ cd tests/kokolio && npm install && cd ../..     # une fois : client PostgreSQL d
 node --test tests/kokolio/api.test.mjs          # scénario complet contre une vraie base, export Sage compris
 node --test tests/kokolio/planning.test.mjs     # versions 2.0 à 2.2 : planification, annualisation, anomalies, présents, nuit, clôture
 node --test tests/kokolio/demo.test.mjs         # mise à jour de la base (version 1 → version courante) et mode démonstration (un fichier à la fois : même base locale)
-bash tests/kokolio/e2e/tout.sh                  # navigateur (Playwright) : mise en route, quotidien, RH, démonstration (outil vide, puis avec des comptes déjà créés), planification, annualisation, anomalies et présents
+node --test tests/kokolio/env.test.mjs          # environnement de test : copie, cloisonnement des deux installations, sessions, justificatifs non copiés
+bash tests/kokolio/sur-environnement-test.sh    # rejoue les suites « api » et « planning » contre l'environnement de test installé seul
+bash tests/kokolio/e2e/tout.sh                  # navigateur (Playwright) : mise en route, quotidien, RH, démonstration (outil vide, puis avec des comptes déjà créés), planification, annualisation, anomalies et présents, environnement de test
 node tests/kokolio/charge.mjs 500               # volume : 500 salariés, un mois de pointages, 200 pointages simultanés
 ```
 
