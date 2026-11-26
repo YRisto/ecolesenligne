@@ -5,7 +5,8 @@ import { addDays, addMonths, holidaysFR, isoDow, isYmd, mondayOf, monthEnd } fro
 import { buildDays, contractAt, countAbsenceDays, netMinutes, rawMinutes, sortContracts, summarize } from "../../lib/kokolio/engine/model.mjs";
 import { balances, yearEndCp } from "../../lib/kokolio/engine/balances.mjs";
 import { yearView } from "../../lib/kokolio/engine/yearview.mjs";
-import { buildExport, buildSnapshot } from "../../lib/kokolio/engine/closure.mjs";
+import { buildExport, buildSnapshot, exportFormat } from "../../lib/kokolio/engine/closure.mjs";
+import { SAGE, buildSageExport, ligneEV, ligneVB, ligneVM, sageParse, sageText, sageWarnings } from "../../lib/kokolio/engine/sage.mjs";
 import { parseTable, prepareImport, slugLogin } from "../../lib/kokolio/engine/importcsv.mjs";
 import { passwordIssues } from "../../lib/kokolio/engine/password.mjs";
 
@@ -524,4 +525,120 @@ test("pauses : non prise, trop courte, trop longue ; pauses payées sur réglage
   assert.equal(netMinutes(["09:00", "12:00", "12:10", "17:00"], C35, paye), 470 + 10);
   assert.equal(netMinutes(["09:00", "12:00", "12:45", "17:00"], C35, SETTINGS), 435);          // sans le réglage, rien ne change
   assert.equal(netMinutes(["09:00", "17:00"], C35, paye), 480 - 45);                           // sans pause pointée : la pause de l'horaire reste déduite
+});
+
+/* ---------- Export de paie au format Sage (lignes EV, VB, VM). Les matricules de ces tests sont inventés. ---------- */
+test("export Sage : chaque type de ligne, à la colonne près", () => {
+  const ev = ligneEV({ matricule: "90041", code: "0950", start: "2026-10-19", end: "2026-10-23", quantity: 5 }, { date: "2026-11-10", label: SAGE.LIBELLE, n: 1 });
+  assert.equal(ev.length, 235);
+  assert.equal(ev.slice(0, 54), "EV90041     095019/10/2600:0023/10/2600:00        5.00", "type, matricule sur 10, code sur 4, dates et heures, nombre sur 12 avec 2 décimales");
+  assert.equal(ev.slice(54, 173).trim(), "", "zone réservée vide");
+  assert.equal(ev.slice(173, 203), "du %DEB au %FIN".padEnd(30), "libellé en colonne 174");
+  assert.equal(ev.slice(203), "10/11/2600:00:00:01   0010/11/26", "date de production, rang, indicateur de demi-journée, date");
+  assert.equal(ligneEV({ matricule: "90041", code: "0440", start: "2026-10-07", end: "2026-10-07", quantity: 0.5, flag: "10" }, { date: "2026-11-10", label: SAGE.LIBELLE, n: 99 }).slice(203), "10/11/2600:00:01:39   1010/11/26", "le rang s'écrit comme une durée : 99 → 1 min 39");
+  assert.equal(ligneEV({ matricule: "90041", code: "0440", start: "2026-10-07", end: "2026-10-07", quantity: 1 }, { date: "2026-11-10", label: "", n: 3661 }).slice(211, 222), "00:01:01:01");
+  const vb = ligneVB({ matricule: "9004", ranges: [["2026-10-02", "2026-10-02"], ["2026-10-19", "2026-10-23"]] });
+  assert.equal(vb.length, 1347);
+  assert.equal(vb.slice(0, 13), "VB9004      0"); assert.equal(vb.slice(13, 507).trim(), "");
+  assert.equal(vb.slice(507, 539), "02/10/2602/10/2619/10/2623/10/26", "les périodes commencent en colonne 508, seize caractères chacune");
+  assert.equal(vb.slice(539).trim(), "");
+  assert.equal(ligneVB({ matricule: "9004", ranges: [1, 2, 3, 4].map((d) => [`2026-10-0${d}`, `2026-10-0${d}`]) }).trimEnd().length, 507 + 48, "trois périodes au plus");
+  assert.equal(ligneVM({ matricule: "A90412", code: "HA16", value: 103 / 60 }), "VMA90412    255HA16             1.717");
+  assert.equal(ligneVM({ matricule: "9004", type: "3", code: "PRIME", value: 12 }).length, 37);
+});
+
+test("export Sage : tri par matricule, blocs de cent salariés, relecture identique", () => {
+  // 230 salariés : trois blocs. Les matricules se trient comme du texte cadré à gauche (« 10004 » avant « 2280 », les lettres après les chiffres).
+  const employees = [];
+  for (let i = 0; i < 230; i++) {
+    const matricule = i === 0 ? "A90001" : i % 2 ? String(90000 + i) : String(9000 + i);
+    employees.push({ matricule, events: i % 3 === 0 ? [{ code: "0960", start: "2026-10-15", end: "2026-10-16", quantity: 2, flag: "00" }, { code: "0950", start: "2026-10-05", end: "2026-10-05", quantity: 0.5, flag: "01" }] : [],
+      ranges: i % 3 === 0 ? [["2026-10-05", "2026-10-05"]] : [], values: i % 5 === 0 ? [{ type: "255", code: "HA16", value: (i + 1) / 60 }] : [] });
+  }
+  const text = sageText({ employees: [...employees].reverse(), date: "2026-11-10" });
+  assert.ok(text.endsWith("\r\n")); assert.ok(/^[\x20-\x7e\r\n]*$/.test(text), "ASCII seulement");
+  const lignes = text.split("\r\n").slice(0, -1);
+  assert.deepEqual([...new Set(lignes.map((l) => l.length))].sort((a, b) => a - b), [37, 235, 1347]);
+  const types = lignes.map((l) => l.slice(0, 2)).join("").replace(/(EV)+/g, "E").replace(/(VB)+/g, "B").replace(/(VM)+/g, "M");
+  assert.equal(types, "EBMEBMEBM", "pour chaque bloc : ses événements, puis ses lignes de base, puis ses valeurs");
+  const vb = lignes.filter((l) => l.startsWith("VB")).map((l) => l.slice(2, 12));
+  assert.equal(vb.length, 230); assert.deepEqual(vb, [...vb].sort()); assert.equal(vb[vb.length - 1].trim(), "A90001");
+  const ev = lignes.filter((l) => l.startsWith("EV"));
+  assert.equal(ev[0].slice(12, 24) + ev[1].slice(12, 24), "095005/10/26096015/10/26", "les événements d'un salarié sont rangés par date");
+  assert.deepEqual(ev.map((l) => l.slice(211, 222)).slice(-1), [`00:00:0${Math.floor(ev.length / 60)}:${String(ev.length % 60).padStart(2, "0")}`], "le rang court sur tout le fichier");
+  const relu = sageParse(text);
+  assert.equal(relu.date, "2026-11-10"); assert.equal(relu.label, SAGE.LIBELLE);
+  assert.equal(sageText(relu), text, "relire puis réécrire redonne le même fichier, octet pour octet");
+  assert.throws(() => sageParse("XX123\r\n"), /inconnu/);
+});
+
+test("export Sage : du mois clôturé au fichier (codes, décompte, demi-journées, dates au bulletin, heures)", () => {
+  const types = [
+    { code: "cp", label: "Congé payé", category: "cp", export_code: "0950", export_unit: "prevus", export_dates: true },
+    { code: "maladie", label: "Arrêt maladie", category: "maladie", export_code: "0960", export_unit: "calendaires", export_dates: false },
+    { code: "rtt", label: "RTT", category: "rtt", export_code: "", export_unit: "prevus", export_dates: false },
+  ];
+  const sage = { ...SETTINGS, export: { ...SETTINGS.export, format: "sage", sage: { label: "du %DEB au %FIN", vm_type: "255", vm_code: "HA16", vm_source: "manque" } } };
+  const cadre = { ...USER, id: "u2", login: "nadia", name: "Nadia Benali", matricule: "0040" };
+  const snap = buildSnapshot({ users: [USER, cadre], month: "2026-10", today: "2026-11-10", types, settings: sage,
+    contracts: [C35, { ...C35, user_id: "u2", regime: "forfait_jours", day_minutes: [0, 0, 0, 0, 0, 0, 0] }],
+    days: [day("2026-10-01", ["09:00", "12:00", "13:00", "16:17"])],
+    absences: [abs("cp", "2026-10-19", "2026-10-23"), abs("cp", "2026-10-07", "2026-10-07", "valide", "apres_midi"), abs("cp", "2026-10-12", "2026-10-12", "valide", "matin"),
+      abs("maladie", "2026-10-29", "2026-11-03"), abs("rtt", "2026-10-02", "2026-10-02"), abs("cp", "2026-10-26", "2026-10-26", "en_attente"),
+      { ...abs("cp", "2026-10-05", "2026-10-06"), id: "a-n", user_id: "u2" }] });
+  assert.equal(exportFormat(sage), "sage"); assert.equal(exportFormat(SETTINGS), "csv");
+  const a = snap.employees.find((e) => e.matricule === "0012").absences.find((x) => x.type === "maladie");
+  assert.deepEqual([a.start, a.end, a.days, a.cal, a.unit], ["2026-10-29", "2026-10-31", 2, 3, "calendaires"], "arrêt du jeudi au samedi dans le mois : 2 jours prévus, 3 jours calendaires");
+  const text = buildExport(snap, sage, { today: "2026-11-10" });
+  const lignes = text.split("\r\n").slice(0, -1);
+  const ev = lignes.filter((l) => l.startsWith("EV")).map((l) => [l.slice(2, 12).trim(), l.slice(12, 16), l.slice(16, 24), l.slice(29, 37), l.slice(42, 54).trim(), l.slice(225, 227)]);
+  assert.deepEqual(ev, [
+    ["0012", "    ", "02/10/26", "02/10/26", "1.00", "00"],      // motif sans code : la ligne part, avec un code vide, et la clôture le signale
+    ["0012", "0950", "07/10/26", "07/10/26", "0.50", "10"],      // après-midi
+    ["0012", "0950", "12/10/26", "12/10/26", "0.50", "01"],      // matin
+    ["0012", "0950", "19/10/26", "23/10/26", "5.00", "00"],
+    ["0012", "0960", "29/10/26", "31/10/26", "3.00", "00"],      // jours calendaires, arrêtés à la fin du mois
+    ["0040", "0950", "05/10/26", "06/10/26", "2.00", "00"],
+  ]);
+  const vb = lignes.filter((l) => l.startsWith("VB"));
+  assert.equal(vb.length, 2, "une ligne par salarié, même sans congé");
+  assert.equal(vb[0].slice(507).trim(), "07/10/2607/10/2612/10/2612/10/2619/10/2623/10/26", "les dates des congés payés, dans l'ordre, trois périodes au plus");
+  assert.equal(vb[1].slice(507).trim(), "05/10/2606/10/26");
+  const e = snap.employees[0];
+  assert.deepEqual(lignes.filter((l) => l.startsWith("VM")), [`VM0012      255HA16      ${((e.theo - e.worked) / 60).toFixed(3).padStart(12)}`], "heures manquantes du salarié à l'horaire ; rien pour le forfait jours");
+  assert.ok(e.theo - e.worked > 0);
+  const plus = buildSageExport(snap, { export: { sage: { vm_code: "HSUP", vm_source: "surplus" } } }, { today: "2026-11-10" });
+  assert.equal(plus.split("\r\n").filter((l) => l.startsWith("VM")).length, 0, "aucune heure en plus : aucune ligne");
+  assert.equal(buildSageExport(snap, { export: { sage: { vm_code: "HTRAV", vm_source: "travaille", vm_type: "3" } } }, { today: "2026-11-10" }).split("\r\n").find((l) => l.startsWith("VM")).slice(12, 25), "  3HTRAV     ");
+  assert.equal(buildSageExport(snap, sage, { today: "2026-11-10" }), text);
+  assert.deepEqual(sageWarnings(snap), { no_code: ["RTT"], long_code: [], long_matricule: [] });
+  // le même mois au format à colonnes : le décompte calendaire du motif s'y applique aussi
+  const csv = buildExport(snap, { export: { include_hours: false, header: false } });
+  assert.ok(csv.includes("0012;0960;3;29/10/2026;31/10/2026"));
+  // une clôture antérieure à la version 2.3 ne porte ni décompte ni report : jours prévus, aucune date au bulletin
+  const ancien = { ...snap, employees: snap.employees.map((x) => ({ ...x, absences: x.absences.map(({ unit, dates, cal, ...r }) => r) })) };
+  const t2 = buildSageExport(ancien, sage, { today: "2026-11-10" }).split("\r\n");
+  assert.equal(t2.filter((l) => l.startsWith("VB")).every((l) => l.slice(507).trim() === ""), true);
+  assert.equal(t2.find((l) => l.startsWith("EV") && l.slice(12, 16) === "0960").slice(42, 54).trim(), "2.00");
+});
+
+test("export : une absence comptée en jours calendaires part même sans jour prévu, et s'arrête à la sortie du salarié", () => {
+  const types = [
+    { code: "maladie", label: "Arrêt maladie", category: "maladie", export_code: "0960", export_unit: "calendaires", export_dates: false },
+    { code: "cp", label: "Congé payé", category: "cp", export_code: "0950", export_unit: "prevus", export_dates: true },
+  ];
+  const sage = { ...SETTINGS, export: { ...SETTINGS.export, format: "sage" } };
+  const lignes = (user, absences) => buildExport(buildSnapshot({ users: [user], contracts: [C35], days: [], absences, types, settings: sage, month: "2026-10", today: "2026-11-10" }), sage, { today: "2026-11-10" })
+    .split("\r\n").filter((l) => l.startsWith("EV")).map((l) => [l.slice(12, 16), l.slice(16, 24), l.slice(29, 37), l.slice(42, 54).trim()]);
+  // samedi 17 seul ; du samedi 24 au lundi 26 ; un congé payé posé un samedi ne compte pour rien et ne part pas
+  assert.deepEqual(lignes(USER, [abs("maladie", "2026-10-17", "2026-10-17"), abs("maladie", "2026-10-24", "2026-10-26"), abs("cp", "2026-10-10", "2026-10-10")]),
+    [["0960", "17/10/26", "17/10/26", "1.00"], ["0960", "24/10/26", "26/10/26", "3.00"]]);
+  // une demi-journée un jour non prévu ne part pas davantage
+  assert.deepEqual(lignes(USER, [abs("maladie", "2026-10-18", "2026-10-18", "valide", "matin")]), []);
+  // sortie le jeudi 15 : l'arrêt du lundi 12 au vendredi 23 est transmis jusqu'au 15, quatre jours
+  assert.deepEqual(lignes({ ...USER, exit_date: "2026-10-15" }, [abs("maladie", "2026-10-12", "2026-10-23")]), [["0960", "12/10/26", "15/10/26", "4.00"]]);
+  // entrée le mercredi 21 : le congé du lundi 19 au vendredi 23 compte trois jours prévus, à partir du 21
+  assert.deepEqual(lignes({ ...USER, entry_date: "2026-10-21" }, [abs("cp", "2026-10-19", "2026-10-23")]), [["0950", "21/10/26", "23/10/26", "3.00"]]);
+  // un arrêt entièrement après la sortie n'est pas transmis
+  assert.deepEqual(lignes({ ...USER, exit_date: "2026-10-15" }, [abs("maladie", "2026-10-17", "2026-10-18")]), []);
 });

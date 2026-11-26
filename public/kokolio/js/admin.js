@@ -37,20 +37,38 @@ export function vueReglages() {
     const [enteteLib, entete] = coche("Première ligne d'en-tête (noms de colonnes)", { checked: x.header !== false });
     const sep = h("select", { value: x.sep || ";" }, h("option", { value: ";" }, "Point-virgule"), h("option", { value: "," }, "Virgule"), h("option", { value: "\t" }, "Tabulation"));
     const dec = h("select", { value: x.decimal || "," }, h("option", { value: "," }, "Virgule (7,5)"), h("option", { value: "." }, "Point (7.5)"));
+    // format du fichier de paie : colonnes séparées, ou import de Sage Paie (lignes EV, VB, VM à largeur fixe)
+    const sg = x.sage || {};
+    const format = h("select", { value: x.format === "sage" ? "sage" : "csv" }, h("option", { value: "csv" }, "Colonnes séparées (CSV) : une ligne par élément"), h("option", { value: "sage" }, "Sage Paie : lignes EV, VB et VM à largeur fixe"));
+    const vmSource = h("select", { value: sg.vm_source || "" }, h("option", { value: "" }, "Aucune"), h("option", { value: "manque" }, "Heures manquantes (prévu − travaillé)"),
+      h("option", { value: "surplus" }, "Heures en plus (travaillé − prévu)"), h("option", { value: "travaille" }, "Heures travaillées"));
+    const vmCode = h("input", { type: "text", value: sg.vm_code || "", maxlength: 10, placeholder: "Exemple : HA16", autocapitalize: "characters" });
+    const vmType = h("input", { type: "text", inputmode: "numeric", value: sg.vm_type || "255", maxlength: 3 });
+    const libelleEv = h("input", { type: "text", value: sg.label ?? "du %DEB au %FIN", maxlength: 30 });
+    const blocCsv = h("div", { class: "pile" });
+    const blocSage = h("div", { class: "pile" });
+    const majFormat = () => { blocCsv.hidden = format.value !== "csv"; blocSage.hidden = format.value !== "sage"; };
+    format.addEventListener("change", majFormat);
     const ok = h("button", { class: "domaine", type: "submit" }, "Enregistrer les réglages");
     const enMinutes = (el, nom) => { const n = Number(el.value.trim().replace(",", ".")); if (!Number.isFinite(n) || n < 0 || n > 100) throw new Error(`Valeur illisible : ${nom}.`); return Math.round(n * 60); };
+    const remplirBloc = (bloc, ...enfants) => { bloc.append(...enfants.filter(Boolean)); return bloc; };
+    majFormat();
     pose(h("h2", null, "Réglages"),
       h("form", { class: "pile", novalidate: true, onsubmit: (ev) => { ev.preventDefault(); agir(ok, async () => {
         const vus = new Set();
         const liste = [...lieux.children].map((row) => { const label = row.querySelector("input").value.trim(); let code = row.dataset.code || slug(label); while (vus.has(code)) code += "2"; vus.add(code); return { code, label }; }).filter((l) => l.label);
         if (!liste.length) throw new Error("Gardez au moins un lieu de travail.");
         if (liste.some((l) => l.code.length < 2)) throw new Error("Un nom de lieu est trop court.");
+        if (format.value === "sage" && vmSource.value && !vmCode.value.trim()) throw new Error("Export Sage : indiquez le code de la constante de paie qui reçoit les heures, ou choisissez « Aucune ».");
+        if (!/^[A-Za-z0-9_]{0,10}$/.test(vmCode.value.trim()) || !/^[0-9]{0,3}$/.test(vmType.value.trim())) throw new Error("Export Sage : le code de la constante tient en dix lettres ou chiffres, le type d'élément en trois chiffres.");
+        if (!/^[ -~]{0,30}$/.test(libelleEv.value.trim())) throw new Error("Export Sage : le libellé des événements s'écrit sans accent, en trente caractères au plus.");
         await api("admin/settings-save", { version: s.version, settings: {
           company: societe.value.trim(), logo_url: logoUrl.value.trim(), go_live: service.value,
           pause_threshold_min: enMinutes(seuilPause, "seuil de pause"), max_day_min: enMinutes(maxJour, "durée par jour"), max_week_min: enMinutes(maxSemaine, "durée par semaine"), min_rest_min: enMinutes(repos, "repos"),
           activation_days: +validite.value, night_until: nuit.value || "", lieux: liste, break_paid_min: Math.round(+pausePayee.value || 0),
           anomalies: { ...Object.fromEntries(TOLERANCES.map(([k]) => [k, Math.round(+tol[k].value || 0)])), levels: Object.fromEntries(Object.keys(TYPES_ANOMALIE).map((k) => [k, niv[k].value])) },
-          export: { hours_code: codeHeures.value.trim(), include_hours: avecHeures.checked, header: entete.checked, sep: sep.value, decimal: dec.value },
+          export: { format: format.value, hours_code: codeHeures.value.trim(), include_hours: avecHeures.checked, header: entete.checked, sep: sep.value, decimal: dec.value,
+            sage: { label: libelleEv.value.trim(), vm_source: vmSource.value, vm_code: vmCode.value.trim().toUpperCase(), vm_type: vmType.value.trim() || "255" } },
         } });
         toast("Réglages enregistrés."); await rafraichir();
       }); } },
@@ -74,10 +92,15 @@ export function vueReglages() {
           h("p", { class: "discret" }, "Quand elle est activée : un salarié arrivé la veille au soir et encore en poste pointe son départ après minuit, et la journée entière compte pour la veille. Au-delà de seize heures depuis l'arrivée, le pointage ouvre une nouvelle journée (le départ de la veille a été oublié).")),
         h("div", { class: "carte" }, h("h3", null, "Lieux de travail"), lieux, h("div", { class: "ligne gauche" }, h("button", { type: "button", onclick: () => ajouteLieu() }, "Ajouter un lieu")),
           h("p", { class: "discret" }, "Le lieu nommé « Télétravail » alimente le code TT de la vue annuelle.")),
-        h("div", { class: "carte" }, h("h3", null, "Export paie (Silae)"),
-          h("p", null, "Le fichier contient une ligne par absence validée (matricule, code, nombre de jours, dates) et, si vous le souhaitez, une ligne d'heures par salarié."),
-          champ("Code de la ligne d'heures", codeHeures), avecHeuresLib, enteteLib, h("div", { class: "grille2" }, champ("Séparateur de colonnes", sep), champ("Séparateur décimal", dec)),
-          h("p", { class: "bandeau" }, h("strong", null, "À faire valider par votre gestionnaire de paie"), "Les codes et le format d'import dépendent du paramétrage de votre dossier Silae. Les codes des absences se règlent dans l'onglet Motifs. Faites un essai d'import avec un brouillon avant la première clôture.")),
+        h("div", { class: "carte" }, h("h3", null, "Export paie"),
+          champ("Format du fichier remis à la paie", format, "S'applique aux prochaines clôtures : un mois déjà clôturé garde le fichier produit ce jour-là."),
+          remplirBloc(blocCsv, h("p", null, "Le fichier contient une ligne par absence validée (matricule, code, nombre de jours, dates) et, si vous le souhaitez, une ligne d'heures par salarié."),
+            champ("Code de la ligne d'heures", codeHeures), avecHeuresLib, enteteLib, h("div", { class: "grille2" }, champ("Séparateur de colonnes", sep), champ("Séparateur décimal", dec))),
+          remplirBloc(blocSage, h("p", null, "Le fichier suit le format d'import de Sage Paie. Une ligne EV par absence validée : matricule, code du motif sur quatre caractères, dates, nombre de jours. Une ligne VB par salarié, avec les dates des congés à reporter sur le bulletin (trois périodes au plus). Et, si vous le demandez, une ligne VM d'heures par salarié à l'horaire."),
+            champ("Heures transmises (lignes VM)", vmSource, "Calculées sur le mois clôturé, au millième d'heure. Rien n'est transmis pour les salariés au forfait jours."),
+            h("div", { class: "grille2" }, champ("Constante ou rubrique de paie qui reçoit ces heures", vmCode), champ("Type d'élément Sage", vmType, "255 dans la plupart des dossiers.")),
+            champ("Libellé des événements", libelleEv, "Sage remplace %DEB et %FIN par les dates de l'absence.")),
+          h("p", { class: "bandeau" }, h("strong", null, "À faire valider par votre gestionnaire de paie"), "Les codes dépendent du paramétrage de votre dossier de paie. Le code de chaque absence, le nombre de jours transmis et le report des dates sur le bulletin se règlent dans l'onglet Motifs. Faites un essai d'import avec un brouillon avant la première clôture.")),
         h("div", { class: "ligne gauche" }, ok)));
   });
 }
@@ -92,6 +115,7 @@ const NIVEAUX = [["corriger", "À corriger"], ["verifier", "À vérifier"], ["in
 
 /* ================= Motifs d'absence ================= */
 const FAMILLES = { cp: "Congés payés (déduit du solde CP)", rtt: "RTT (déduit du solde RTT)", maladie: "Maladie", autre: "Autre" };
+const UNITES = { prevus: "Jours prévus au planning (cas général)", calendaires: "Jours calendaires, week-ends compris" };
 const ANNUEL = { retire: "Retiré de l'objectif (cas général)", realise: "Compté comme du temps réalisé", neutre: "Laissé à faire (l'objectif ne bouge pas)" };
 export function vueMotifs() {
   ecran(() => api("admin/settings"), ({ types }) => {
@@ -105,23 +129,35 @@ export function vueMotifs() {
       const [actLib, act] = coche("Proposé aux salariés", { checked: t.active });
       const ordre = h("input", { type: "number", value: t.sort, min: 0, max: 999 });
       const annuel = h("select", { value: t.annual || "retire" }, Object.entries(ANNUEL).map(([v, l]) => h("option", { value: v }, l)));
-      ouvrir(neuf ? "Nouveau motif d'absence" : `Motif : ${t.label}`, [champ("Libellé", label), champ("Famille", famille), champ("Code dans l'export paie", code), docLib, absLib, actLib, champ("Ordre d'affichage", ordre),
+      const unite = h("select", { value: t.export_unit || "prevus" }, Object.entries(UNITES).map(([v, l]) => h("option", { value: v }, l)));
+      // les dates d'un congé payé se reportent sur le bulletin : proposé d'office pour un nouveau motif de cette famille
+      const [datesLib, dates] = coche("Dates reportées sur le bulletin de paie (format Sage, ligne VB)", { checked: neuf ? false : !!t.export_dates });
+      let datesTouche = !neuf;
+      dates.addEventListener("change", () => { datesTouche = true; });
+      famille.addEventListener("change", () => { if (!datesTouche) dates.checked = famille.value === "cp"; });
+      ouvrir(neuf ? "Nouveau motif d'absence" : `Motif : ${t.label}`, [champ("Libellé", label), champ("Famille", famille), docLib, absLib, actLib, champ("Ordre d'affichage", ordre),
         champ("Pour les salariés annualisés, le temps prévu pendant cette absence est", annuel, "Sans effet pour les salariés qui ne sont pas annualisés."),
+        h("span", { class: "eyebrow" }, "Export paie"),
+        champ("Code dans l'export paie", code, "Repris tel quel. Au format Sage : le code de la nature d'événement, sur quatre caractères (exemple : 0950)."),
+        champ("Nombre de jours transmis à la paie", unite, "Jours prévus : seuls comptent les jours où le salarié devait travailler. Jours calendaires : du premier au dernier jour, week-ends et jours fériés compris."),
+        datesLib,
         neuf ? null : h("p", { class: "discret" }, "Un motif déjà utilisé ne se supprime pas : décochez « Proposé aux salariés » pour le retirer des listes.")], "Enregistrer", async () => {
         const c = neuf ? slug(label.value) : t.code;
         if (c.length < 2) throw new Error("Libellé trop court.");
         if (neuf && types.some((x) => x.code === c)) throw new Error("Un motif porte déjà ce nom.");
-        await api("admin/type-save", { type: { code: c, label: label.value.trim(), category: famille.value, export_code: code.value.trim(), needs_doc: doc.checked, absenteeism: abs.checked, active: act.checked, sort: +ordre.value || 100, annual: annuel.value } });
+        await api("admin/type-save", { type: { code: c, label: label.value.trim(), category: famille.value, export_code: code.value.trim(), needs_doc: doc.checked, absenteeism: abs.checked, active: act.checked, sort: +ordre.value || 100, annual: annuel.value,
+          export_unit: unite.value, export_dates: dates.checked } });
         toast("Motif enregistré."); await rafraichir();
       });
     };
     pose(h("div", { class: "ligne" }, h("h2", null, "Motifs d'absence"), h("button", { class: "domaine", onclick: () => editer(null) }, "Nouveau motif")),
       h("div", { class: "carte" }, h("h3", null, "Motifs"),
-        h("div", { class: "table-zone" }, h("table", null, h("thead", null, h("tr", null, ["Libellé", "Famille", "Code d'export", "Justificatif", "Absentéisme", "Annualisation", "État"].map((x) => h("th", null, x)))),
+        h("div", { class: "table-zone" }, h("table", null, h("thead", null, h("tr", null, ["Libellé", "Famille", "Code paie", "Jours transmis", "Justificatif", "Absentéisme", "Annualisation", "État"].map((x) => h("th", null, x)))),
           h("tbody", null, types.map((t) => h("tr", { class: "cliquable", tabindex: 0, onclick: () => editer(t), onkeydown: (ev) => { if (ev.key === "Enter") editer(t); } },
             h("td", null, h("strong", null, t.label)), h("td", null, FAMILLES[t.category].split(" (")[0]), h("td", { class: "mono" }, t.export_code || h("span", { class: "moins" }, "manquant")),
+            h("td", null, t.export_unit === "calendaires" ? "Calendaires" : "Prévus", t.export_dates ? h("div", { class: "discret" }, "dates au bulletin") : null),
             h("td", null, t.needs_doc ? "Demandé" : "—"), h("td", null, t.absenteeism ? "Compté" : "—"), h("td", null, { retire: "Retiré", realise: "Réalisé", neutre: "À faire" }[t.annual || "retire"]), h("td", null, t.active ? etiquette("Actif", "p-ok") : etiquette("Retiré", "p-gris")))))))),
-      h("p", { class: "discret" }, "Touchez un motif pour le modifier. Les codes d'export sont repris tels quels dans le fichier de paie."));
+      h("p", { class: "discret" }, "Touchez un motif pour le modifier. Les codes d'export sont repris tels quels dans le fichier de paie ; le format du fichier se choisit dans l'onglet Réglages."));
   });
 }
 

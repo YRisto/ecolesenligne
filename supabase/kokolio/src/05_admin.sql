@@ -471,7 +471,7 @@ end $$;
 -- Paramètres (administrateur)
 -- ---------------------------------------------------------------------
 create or replace function kokolio._settings_set(me kokolio.users, p jsonb, p_args jsonb) returns jsonb language plpgsql as $$
-declare v_old jsonb; v_new jsonb; v_in jsonb := coalesce(p_args->'settings', '{}'::jsonb); v_k text; v_l jsonb; v_e jsonb;
+declare v_old jsonb; v_new jsonb; v_in jsonb := coalesce(p_args->'settings', '{}'::jsonb); v_k text; v_l jsonb; v_e jsonb; v_s jsonb;
 begin
   if me.role <> 'admin' then perform kokolio._fail('interdit', 'Accès réservé aux administrateurs.'); end if;
   select m.value into v_old from kokolio.meta m where m.key = 'settings' for update;
@@ -549,8 +549,19 @@ begin
        or coalesce(v_e->>'decimal', ',') not in (',', '.') then
       perform kokolio._fail('parametre', 'Format d''export invalide.');
     end if;
+    -- format du fichier : « csv » (une ligne par élément, colonnes séparées) ou « sage » (import de Sage Paie, lignes EV, VB et VM à largeur fixe).
+    -- Ce qui n'est pas envoyé garde sa valeur. Pour Sage : le libellé des événements, et la constante de paie qui reçoit des heures (facultative).
+    v_s := coalesce(v_new #> '{export,sage}', '{}'::jsonb) || case when jsonb_typeof(v_e->'sage') = 'object' then v_e->'sage' else '{}'::jsonb end;
+    if coalesce(v_e->>'format', v_new #>> '{export,format}', 'csv') not in ('csv', 'sage') then perform kokolio._fail('parametre', 'Format d''export inconnu.'); end if;
+    if (v_e ? 'sage' and jsonb_typeof(v_e->'sage') <> 'object') or coalesce(v_s->>'label', '') !~ '^[ -~]{0,30}$' or coalesce(v_s->>'vm_type', '') !~ '^[0-9]{0,3}$'
+       or coalesce(v_s->>'vm_code', '') !~ '^[A-Za-z0-9_]{0,10}$' or coalesce(v_s->>'vm_source', '') not in ('', 'manque', 'surplus', 'travaille') then
+      perform kokolio._fail('parametre', 'Réglage de l''export Sage invalide.');
+    end if;
     v_new := jsonb_set(v_new, '{export}', jsonb_build_object('hours_code', coalesce(v_e->>'hours_code', ''), 'include_hours', coalesce((v_e->>'include_hours')::boolean, true),
-      'sep', coalesce(v_e->>'sep', ';'), 'decimal', coalesce(v_e->>'decimal', ','), 'header', coalesce((v_e->>'header')::boolean, true)));
+      'sep', coalesce(v_e->>'sep', ';'), 'decimal', coalesce(v_e->>'decimal', ','), 'header', coalesce((v_e->>'header')::boolean, true),
+      'format', coalesce(v_e->>'format', v_new #>> '{export,format}', 'csv'),
+      'sage', jsonb_build_object('label', coalesce(v_s->>'label', 'du %DEB au %FIN'), 'vm_type', coalesce(nullif(v_s->>'vm_type', ''), '255'),
+        'vm_code', upper(coalesce(v_s->>'vm_code', '')), 'vm_source', coalesce(v_s->>'vm_source', ''))));
   end if;
   v_new := jsonb_set(v_new, '{version}', to_jsonb(coalesce((v_old->>'version')::int, 1) + 1));
   update kokolio.meta set value = v_new, updated_at = now() where key = 'settings';
@@ -570,17 +581,22 @@ begin
   if coalesce(v_t->>'category', 'autre') not in ('cp', 'rtt', 'maladie', 'autre') then perform kokolio._fail('parametre', 'Catégorie inconnue.'); end if;
   if length(coalesce(v_t->>'export_code', '')) > 30 then perform kokolio._fail('parametre', 'Code d''export trop long.'); end if;
   if coalesce(v_t->>'annual', 'retire') not in ('retire', 'realise', 'neutre') then perform kokolio._fail('parametre', 'Effet sur l''annualisation inconnu.'); end if;
+  if coalesce(v_t->>'export_unit', 'prevus') not in ('prevus', 'calendaires') then perform kokolio._fail('parametre', 'Décompte pour la paie inconnu.'); end if;
+  if v_t ? 'export_dates' and jsonb_typeof(v_t->'export_dates') <> 'boolean' then perform kokolio._fail('parametre', 'Report des dates sur le bulletin : oui ou non.'); end if;
   select * into o from kokolio.absence_types x where x.code = v_code;
-  -- l'effet sur l'annualisation n'est modifié que s'il est envoyé : sinon il garde sa valeur
-  insert into kokolio.absence_types as x (code, label, category, export_code, needs_doc, absenteeism, active, sort, annual)
+  -- l'effet sur l'annualisation et les réglages d'export ne sont modifiés que s'ils sont envoyés : sinon ils gardent leur valeur
+  -- (un nouveau motif de la famille des congés payés voit ses dates reportées sur le bulletin, comme les motifs d'origine)
+  insert into kokolio.absence_types as x (code, label, category, export_code, needs_doc, absenteeism, active, sort, annual, export_unit, export_dates)
   values (v_code, trim(v_t->>'label'), coalesce(v_t->>'category', 'autre'), trim(coalesce(v_t->>'export_code', '')),
           coalesce((v_t->>'needs_doc')::boolean, false), coalesce((v_t->>'absenteeism')::boolean, true),
-          coalesce((v_t->>'active')::boolean, true), coalesce((v_t->>'sort')::int, 100), coalesce(v_t->>'annual', o.annual, 'retire'))
+          coalesce((v_t->>'active')::boolean, true), coalesce((v_t->>'sort')::int, 100), coalesce(v_t->>'annual', o.annual, 'retire'),
+          coalesce(v_t->>'export_unit', o.export_unit, 'prevus'), coalesce((v_t->>'export_dates')::boolean, o.export_dates, coalesce(v_t->>'category', 'autre') = 'cp'))
   on conflict (code) do update set label = excluded.label, category = excluded.category, export_code = excluded.export_code,
-    needs_doc = excluded.needs_doc, absenteeism = excluded.absenteeism, active = excluded.active, sort = excluded.sort, annual = excluded.annual
+    needs_doc = excluded.needs_doc, absenteeism = excluded.absenteeism, active = excluded.active, sort = excluded.sort, annual = excluded.annual,
+    export_unit = excluded.export_unit, export_dates = excluded.export_dates
   returning * into t;
   perform kokolio._audit(me.id, case when o.code is null then 'motif_cree' else 'motif_modifie' end, null, v_code,
-    kokolio._diff(coalesce(to_jsonb(o), '{}'::jsonb), to_jsonb(t), array['label', 'category', 'export_code', 'needs_doc', 'absenteeism', 'active', 'sort', 'annual']), coalesce(p->>'ip', ''));
+    kokolio._diff(coalesce(to_jsonb(o), '{}'::jsonb), to_jsonb(t), array['label', 'category', 'export_code', 'needs_doc', 'absenteeism', 'active', 'sort', 'annual', 'export_unit', 'export_dates']), coalesce(p->>'ip', ''));
   return jsonb_build_object('type', to_jsonb(t));
 end $$;
 

@@ -94,6 +94,48 @@ with sync_playwright() as p:
     # --- administrateur
     ad = Poste(nav, "admin", BUREAU, etat=E("admin")).a("2026-12-01", "11:00"); ad.ouvre("/kokolio#/admin/motifs"); ad.voit("Motifs d'absence"); ad.photo("46-motifs")
     ad.clic("Nouveau motif"); ad.champ("Libellé", "Congé paternité"); ad.champ("Code dans l'export paie", "AB-PAT"); ad.valider_fenetre("Enregistrer"); ad.voit("Congé paternité")
+    # --- export de paie au format Sage : réglage, contrôle avant clôture, motifs, fichier relu comme le lira la paie
+    ad.va("#/admin/reglages"); ad.voit("Export paie")
+    fmt = ad.page.get_by_label("Format du fichier remis à la paie"); assert fmt.input_value() == "csv"
+    ad.voit("Code de la ligne d'heures"); fmt.select_option("sage"); ad.voit("Libellé des événements")
+    expect(ad.page.get_by_label("Code de la ligne d'heures")).to_be_hidden()
+    ad.page.get_by_label("Heures transmises (lignes VM)").select_option("manque"); ad.clic("Enregistrer les réglages"); ad.voit("indiquez le code de la constante")
+    ad.champ("Constante ou rubrique de paie qui reçoit ces heures", "ha16"); ad.clic("Enregistrer les réglages"); ad.voit("Réglages enregistrés"); ad.photo("46b-reglages-export-sage")
+    # le mois rouvert : la préparation de la clôture signale les codes que Sage couperait
+    so.a("2026-12-01", "11:10").va("#/rh/cloture"); so.recharge(); so.voit("Sage Paie (lignes EV, VB et VM)")
+    so.clic("Rouvrir"); so.page.locator("#dlg textarea").fill("Passage de l'export au format Sage"); so.valider_fenetre("Rouvrir le mois"); so.voit("Rouvert")
+    so.clic("Préparer la clôture"); so.voit("Code de paie de plus de quatre caractères"); so.voit("Congé payé (AB-CP)"); so.photo("46c-cloture-codes-a-revoir", pleine=False)
+    so.page.locator("#dlg").get_by_role("button", name="Annuler").click()
+    # les motifs : code sur quatre caractères, décompte en jours calendaires pour la maladie, dates des congés reportées sur le bulletin
+    ad.va("#/admin/motifs"); ad.page.locator("tr.cliquable", has_text="Congé payé").first.click()
+    assert ad.page.get_by_label("Dates reportées sur le bulletin de paie").is_checked(), "les congés payés d'origine sont reportés sur le bulletin"
+    ad.champ("Code dans l'export paie", "0950"); ad.valider_fenetre("Enregistrer"); ad.voit("dates au bulletin")
+    ad.page.locator("tr.cliquable", has_text="Arrêt maladie").first.click(); ad.champ("Code dans l'export paie", "0960")
+    ad.page.get_by_label("Nombre de jours transmis à la paie").select_option("calendaires"); ad.valider_fenetre("Enregistrer"); ad.voit("Calendaires")
+    ad.clic("Nouveau motif"); ad.champ("Libellé", "Congé d'ancienneté")
+    assert not ad.page.get_by_label("Dates reportées sur le bulletin de paie").is_checked()
+    ad.page.get_by_label("Famille").select_option("cp"); assert ad.page.get_by_label("Dates reportées sur le bulletin de paie").is_checked(), "proposé d'office pour un congé payé"
+    ad.champ("Code dans l'export paie", "0951"); ad.valider_fenetre("Enregistrer"); ad.voit("Congé d'ancienneté")
+    # la clôture suivante produit le fichier Sage ; les versions précédentes gardent le leur
+    so.va("#/rh/cloture"); so.recharge(); so.clic("Préparer la clôture"); so.voit("Événement familial (AB-EVF)"); so.ne_voit_pas("Congé payé (AB-CP)")   # il reste un motif à régler : il est seul signalé
+    so.page.locator("#dlg").get_by_role("button", name="Annuler").click()
+    ad.page.locator("tr.cliquable", has_text="Événement familial").first.click(); ad.champ("Code dans l'export paie", "1080"); ad.valider_fenetre("Enregistrer"); ad.voit("1080"); ad.photo("46d-motifs-export")
+    so.clic("Préparer la clôture"); so.voit("Toutes les journées sont validées"); so.ne_voit_pas("plus de quatre caractères")
+    with so.page.expect_download() as dl: so.clic("Télécharger le brouillon de l'export")
+    assert dl.value.suggested_filename == "BROUILLON-Paye_Sage_2026-11.txt", dl.value.suggested_filename
+    so.valider_fenetre("Clôturer le mois"); so.voit("Clôturé · version 3"); so.photo("46e-cloture-sage")
+    with so.page.expect_download() as dl: so.clic("Télécharger l'export paie")
+    assert dl.value.suggested_filename == "Paye_Sage_2026-11-v3.txt", dl.value.suggested_filename
+    brut = open(dl.value.path(), "rb").read()
+    assert not brut.startswith(b"\xef\xbb\xbf") and all(o < 128 for o in brut) and brut.endswith(b"\r\n"), "texte sans accent ni marque d'encodage, lignes terminées par CR LF"
+    lignes = brut.decode("ascii").split("\r\n")[:-1]
+    assert all((l[:2] == "EV" and len(l) == 235) or (l[:2] == "VB" and len(l) == 1347) or (l[:2] == "VM" and len(l) == 37) for l in lignes), "trois types de lignes, à largeur fixe"
+    ev = [(l[2:12].strip(), l[12:16], l[16:24], l[29:37], l[42:54].strip(), l[225:227]) for l in lignes if l[:2] == "EV"]
+    assert ("0012", "0950", "09/11/26", "13/11/26", "4.00", "00") in ev and ("0020", "0960", "16/11/26", "20/11/26", "5.00", "00") in ev, ev
+    assert ("0020", "1080", "06/11/26", "06/11/26", "0.50", "10") in ev, "une demi-journée de l'après-midi porte l'indicateur 10"
+    vb = {l[2:12].strip(): l[507:].strip() for l in lignes if l[:2] == "VB"}
+    assert vb["0012"] == "09/11/2613/11/26" and vb["0020"] == "", vb
+    assert any(l[:2] == "VM" and l[12:19] == "255HA16" for l in lignes), "les heures manquantes partent dans la constante réglée"
     ad.va("#/admin/etat"); ad.voit("État de l'installation"); ad.clic("Lancer l'autodiagnostic"); ad.voit("contrôles réussis", delai=30000); ad.photo("47-etat")
     ad.va("#/"); ad.clic("Administration"); ad.voit("Première version de production"); ad.photo("48-versions")   # l'espace s'ouvre sur les fonctionnalités et les versions
     # l'administrateur attribue le profil RH

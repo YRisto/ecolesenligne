@@ -376,7 +376,8 @@ export function vueCloture() {
     pose(h("h2", null, "Clôture et export paie"),
       h("div", { class: "carte" }, h("h3", null, "Principe"),
         h("p", null, "La clôture fige les chiffres d'un mois terminé et produit le fichier pour la paie. Après clôture, plus personne ne peut modifier le mois, ni par l'outil ni directement dans la base."),
-        h("p", { class: "discret" }, "Un mois se clôture quand toutes ses journées sont validées et qu'aucune demande d'absence n'est en attente. Une réouverture demande un motif ; la clôture suivante crée une nouvelle version, l'ancienne reste consultable.")),
+        h("p", { class: "discret" }, "Un mois se clôture quand toutes ses journées sont validées et qu'aucune demande d'absence n'est en attente. Une réouverture demande un motif ; la clôture suivante crée une nouvelle version, l'ancienne reste consultable."),
+        h("p", { class: "discret" }, `Format du fichier des prochaines clôtures : ${d.format === "sage" ? "Sage Paie (lignes EV, VB et VM)" : "colonnes séparées (CSV)"}. Il se choisit dans Administration › Réglages.`)),
       d.months.length ? d.months.map((mo) => {
         const derniere = mo.versions[0];
         return h("div", { class: "carte" }, h("div", { class: "ligne" }, h("strong", { class: "titre-mois" }, frMois(mo.month)),
@@ -398,7 +399,8 @@ export function vueCloture() {
 }
 async function exporter(month, version) {
   const e = await api("rh/export", version ? { month, version } : { month });
-  telecharger(e.filename, e.text);
+  // le fichier Sage est du texte sans accent, à largeur fixe : il part tel quel, sans marque d'encodage
+  telecharger(e.filename, e.text, e.format === "sage" ? "text/plain;charset=us-ascii" : undefined);
   toast(e.draft ? "Brouillon téléchargé : il n'a aucune valeur tant que le mois n'est pas clôturé." : "Export téléchargé. Le téléchargement est inscrit au journal.");
 }
 async function preparer(month) {
@@ -415,6 +417,11 @@ async function preparer(month) {
       c.empty.slice(0, 12).map((e) => h("div", null, `${e.name} : ${e.days.map((x) => frCourt(x).slice(0, 5)).join(", ")}`)), c.empty.length > 12 ? h("div", null, `… et ${c.empty.length - 12} autres salariés`) : null) : null,
     c.no_matricule.length ? h("div", { class: "bandeau" }, h("strong", null, `${c.no_matricule.length} salarié${c.no_matricule.length > 1 ? "s" : ""} sans matricule`), "Dans l'export, leur identifiant remplacera le matricule : la paie ne saura pas les rattacher.",
       h("div", null, c.no_matricule.slice(0, 15).join(", "))) : null,
+    c.sage?.no_code.length ? h("div", { class: "bandeau" }, h("strong", null, `${c.sage.no_code.length} motif${c.sage.no_code.length > 1 ? "s" : ""} sans code de paie`), "Leurs absences partiront avec un code vide, que Sage refusera. Renseignez le code dans Administration › Motifs.",
+      h("div", null, c.sage.no_code.join(", "))) : null,
+    c.sage?.long_code.length ? h("div", { class: "bandeau" }, h("strong", null, "Code de paie de plus de quatre caractères"), "Au format Sage, le code d'un motif est coupé au quatrième caractère.", h("div", null, c.sage.long_code.join(", "))) : null,
+    c.sage?.long_matricule.length ? h("div", { class: "bandeau" }, h("strong", null, `${c.sage.long_matricule.length} matricule${c.sage.long_matricule.length > 1 ? "s" : ""} de plus de dix caractères`), "Au format Sage, le matricule est coupé au dixième caractère.",
+      h("div", null, c.sage.long_matricule.slice(0, 15).join(", "))) : null,
     h("div", { class: "ligne gauche" }, h("button", { type: "button", onclick: (ev) => agir(ev.currentTarget, () => exporter(month)) }, "Télécharger le brouillon de l'export")),
     h("p", { class: "discret" }, "Une fois le mois clôturé, ses chiffres et son export sont figés. Toute correction passera par une réouverture motivée."),
   ], bloque ? null : "Clôturer le mois", async () => {
@@ -450,7 +457,7 @@ const CLES = { avant: "avant", apres: "après", motif: "motif", du: "du", au: "a
   category: "famille", export_code: "code d'export", needs_doc: "justificatif demandé", absenteeism: "compte dans l'absentéisme", active: "actif",
   tracked_from: "début du suivi", presence: "présence", cycle: "cycle", semaine_1_du_cycle: "semaine 1 du cycle", night_until: "limite de nuit", minutes: "durée (minutes)", plages: "plages", ranges: "plages",
   nombre: "nombre", commentaire: "commentaire", break_paid_min: "pause payée (min)", anomalies: "anomalies",
-  annualise: "annualisé", annual: "effet sur l'annualisation", start_date: "début", end_date: "fin", avant_minutes: "avant (minutes)", jour: "jour",
+  annualise: "annualisé", annual: "effet sur l'annualisation", export_unit: "jours transmis à la paie", export_dates: "dates reportées sur le bulletin", start_date: "début", end_date: "fin", avant_minutes: "avant (minutes)", jour: "jour",
   semaines: "semaines", composition: "composition", weeks: "composition", name: "nom", color: "couleur", detail: "détail", comptes_deja_presents: "comptes déjà présents" };
 const ORDRE = ["du", "au", "demi", "jours", "annee", "a_compter_du", "regime", "avant", "apres", "motif", "justificatif", "version"];
 function texteDetail(r) {
@@ -468,7 +475,7 @@ function texteDetail(r) {
     if (typeof v === "object") return "…";
     if (typeof v === "number") return fmtNb(v);
     const t = String(v);
-    return /^\d{4}-\d{2}-\d{2}$/.test(t) ? frCourt(t) : t === "apres_midi" ? "après-midi" : t === "forfait_jours" ? "forfait jours" : t;
+    return /^\d{4}-\d{2}-\d{2}$/.test(t) ? frCourt(t) : t === "apres_midi" ? "après-midi" : t === "forfait_jours" ? "forfait jours" : t === "prevus" ? "jours prévus" : t === "calendaires" ? "jours calendaires" : t;
   };
   const rang = (k) => { const i = ORDRE.indexOf(k); return i < 0 ? 99 : i; };
   return Object.entries(r.detail || {}).filter(([, v]) => v != null).sort((a, b) => rang(a[0]) - rang(b[0])).map(([k, v]) => {

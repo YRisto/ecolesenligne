@@ -68,7 +68,7 @@ after(() => { fake?.kill(); });
 
 test("santé, et refus des requêtes forgées", async () => {
   const h = await admin.call("health", {}, { method: "GET" });
-  assert.equal(h.ok, true); assert.equal(h.schema, 6);
+  assert.equal(h.ok, true); assert.equal(h.schema, 7);
   assert.equal((await admin.call("boot", {}, { drop: ["x-kokolio"] })).status, 403);
   assert.equal((await admin.call("boot", {}, { headers: { origin: "https://pirate.example" } })).status, 403);
   await admin.fail("boot", {}, "session", 401);
@@ -548,7 +548,7 @@ test("sorties, mots de passe, sessions", async () => {
 
 test("administration : motifs, état, autodiagnostic", async () => {
   const st = await admin.ok("admin/status");
-  assert.equal(st.users, 7); assert.equal(st.closures, 2); assert.ok(st.audit > 50); assert.equal(st.schema, 6);
+  assert.equal(st.users, 7); assert.equal(st.closures, 2); assert.ok(st.audit > 50); assert.equal(st.schema, 7);
   await admin.ok("admin/type-save", { type: { code: "paternite", label: "Congé paternité", category: "autre", export_code: "AB-PAT", needs_doc: true, absenteeism: false, sort: 45 } });
   await admin.fail("admin/type-save", { type: { code: "Pas Bon", label: "X" } }, "parametre");
   assert.ok((await nadia.ok("boot")).types.some((t) => t.code === "paternite" && t.needs_doc));
@@ -579,4 +579,69 @@ test("report des congés en fin d'année", async () => {
   const mine = await c5.ok("my/absences"), b = mine.balances;
   assert.deepEqual([b.year, b.cp.entries, b.cp.accrued, mine.report_pending], [2027, cam.amount, 0, false]);
   assert.equal((await sophie.ok("rh/employees")).rollover_due, null);
+});
+
+test("export de paie au format Sage : réglages, motifs, brouillon, nouvelle clôture, mois déjà clôturé", async () => {
+  const { sageParse } = await import(path.join(ROOT, "lib/kokolio/engine/sage.mjs"));
+  const base = { hours_code: "HS-HN", include_hours: true, sep: ";", decimal: ",", header: true };
+  await admin.ok("auth/login", { login: "admin", password: PW.admin });   // janvier 2027 : la session d'octobre a expiré
+  // au départ : colonnes séparées, et septembre clôturé sous cette forme
+  const avant = await sophie.ok("rh/export", { month: "2026-09" });
+  assert.deepEqual([avant.format, avant.filename, avant.draft], ["csv", "paie-2026-09-v2.csv", false]);
+  assert.equal((await sophie.ok("rh/closures")).format, "csv");
+  // réglages : réservés à l'administrateur, et refusés quand Sage ne saurait pas les lire
+  await sophie.fail("admin/settings-save", { settings: { export: { ...base, format: "sage" } } }, "interdit", 403);
+  await admin.fail("admin/settings-save", { settings: { export: { ...base, format: "xml" } } }, "parametre");
+  await admin.fail("admin/settings-save", { settings: { export: { ...base, format: "sage", sage: { vm_code: "CODE-TROP-LONG" } } } }, "parametre");
+  await admin.fail("admin/settings-save", { settings: { export: { ...base, format: "sage", sage: { label: "été" } } } }, "parametre");
+  await admin.fail("admin/settings-save", { settings: { export: { ...base, format: "sage", sage: { vm_source: "autre" } } } }, "parametre");
+  await admin.fail("admin/settings-save", { settings: { export: { ...base, format: "sage", sage: "HA16" } } }, "parametre");
+  await admin.ok("admin/settings-save", { settings: { export: { ...base, format: "sage", sage: { vm_code: "ha16", vm_source: "manque" } } } });
+  let x = (await admin.ok("admin/settings")).settings.export;
+  assert.deepEqual([x.format, x.sage.vm_code, x.sage.vm_type, x.sage.vm_source, x.sage.label, x.hours_code], ["sage", "HA16", "255", "manque", "du %DEB au %FIN", "HS-HN"]);
+  // un enregistrement qui ne parle ni du format ni de Sage les laisse en place
+  await admin.ok("admin/settings-save", { settings: { export: { ...base, decimal: "." } } });
+  x = (await admin.ok("admin/settings")).settings.export;
+  assert.deepEqual([x.format, x.sage.vm_code, x.sage.vm_source, x.decimal], ["sage", "HA16", "manque", "."]);
+  // motifs : code de paie, décompte, report des dates sur le bulletin
+  await admin.fail("admin/type-save", { type: { code: "maladie", label: "Arrêt maladie", category: "maladie", export_unit: "heures" } }, "parametre");
+  await admin.fail("admin/type-save", { type: { code: "maladie", label: "Arrêt maladie", category: "maladie", export_dates: "oui" } }, "parametre");
+  await admin.ok("admin/type-save", { type: { code: "maladie", label: "Arrêt maladie", category: "maladie", export_code: "0960", needs_doc: true, absenteeism: true, sort: 30, export_unit: "calendaires" } });
+  await admin.ok("admin/type-save", { type: { code: "cp", label: "Congé payé", category: "cp", export_code: "0950", absenteeism: false, sort: 10 } });   // ni décompte ni report envoyés : ils gardent leur valeur
+  await admin.ok("admin/type-save", { type: { code: "anciennete", label: "Congé d'ancienneté", category: "cp", export_code: "0951", absenteeism: false, sort: 15 } });
+  const types = Object.fromEntries((await admin.ok("admin/settings")).types.map((t) => [t.code, [t.export_code, t.export_unit, t.export_dates]]));
+  assert.deepEqual([types.cp, types.maladie, types.anciennete, types.rtt], [["0950", "prevus", true], ["0960", "calendaires", false], ["0951", "prevus", true], ["AB-RTT", "prevus", false]]);
+  const journal = (await admin.ok("rh/journal", { action: "motif_modifie" })).rows.find((r) => r.detail?.export_code);
+  assert.deepEqual(journal.detail.export_code, ["AB-CP", "0950"], "le changement de code est inscrit au journal");
+  // le mois déjà clôturé garde son fichier, à l'identique
+  const apres = await sophie.ok("rh/export", { month: "2026-09" });
+  assert.deepEqual([apres.format, apres.filename, apres.text], ["csv", "paie-2026-09-v2.csv", avant.text]);
+  // les prochains fichiers sont au format Sage : brouillon d'octobre
+  assert.equal((await sophie.ok("rh/closures")).format, "sage");
+  const d = await sophie.ok("rh/export", { month: "2026-10" });
+  assert.deepEqual([d.draft, d.format, d.filename], [true, "sage", "BROUILLON-Paye_Sage_2026-10.txt"]);
+  assert.ok(d.text.endsWith("\r\n")); assert.ok(/^[\x20-\x7e\r\n]+$/.test(d.text), "texte sans accent");
+  const lignes = d.text.split("\r\n").slice(0, -1);
+  assert.ok(lignes.every((l) => (l.startsWith("EV") && l.length === 235) || (l.startsWith("VB") && l.length === 1347) || (l.startsWith("VM") && l.length === 37)));
+  const chk = await sophie.ok("rh/closure-check", { month: "2026-10" });
+  assert.equal(chk.format, "sage"); assert.deepEqual(Object.keys(chk.sage).sort(), ["long_code", "long_matricule", "no_code"]);
+  assert.equal(lignes.filter((l) => l.startsWith("VB")).length, chk.totals.employees, "une ligne VB par salarié du mois");
+  // septembre rouvert puis clôturé de nouveau : la version 3 est au format Sage, les versions 1 et 2 restent en colonnes
+  await sophie.ok("rh/reopen", { month: "2026-09", reason: "Essai du format Sage" });
+  const bloque = await sophie.ok("rh/closure-check", { month: "2026-09" });
+  assert.deepEqual(bloque.sage.long_code, ["Autre absence (AB-ABS)"], "un code de plus de quatre caractères est signalé avant la clôture");
+  assert.equal((await sophie.ok("rh/close", { month: "2026-09" })).version, 3);
+  const v3 = await sophie.ok("rh/export", { month: "2026-09" });
+  assert.deepEqual([v3.draft, v3.format, v3.filename, v3.version], [false, "sage", "Paye_Sage_2026-09-v3.txt", 3]);
+  const relu = sageParse(v3.text), par = Object.fromEntries(relu.employees.map((e) => [e.matricule, e]));
+  assert.equal(relu.date, "2027-01-04", "le fichier porte le jour où il est produit");
+  assert.deepEqual(par["0012"].events, [{ code: "0950", start: "2026-09-14", end: "2026-09-18", quantity: 5, flag: "00" }]);
+  assert.deepEqual(par["0012"].ranges, [["2026-09-14", "2026-09-18"]], "les dates du congé payé sont reportées sur le bulletin");
+  assert.deepEqual(par["0020"].events.map((e) => [e.code, e.start, e.end, e.quantity]), [["0960", "2026-09-08", "2026-09-11", 4], ["AB-A", "2026-09-21", "2026-09-21", 1]]);
+  assert.deepEqual(par["0020"].ranges, []);
+  assert.ok(relu.employees.every((e) => e.values.every((v) => v.type === "255" && v.code === "HA16" && v.value > 0)));
+  const detail = await sophie.ok("rh/closure-detail", { month: "2026-09", version: 3 });
+  assert.equal(detail.snapshot.export_format, "sage");
+  const v2 = await sophie.ok("rh/export", { month: "2026-09", version: 2 });
+  assert.deepEqual([v2.format, v2.filename, v2.text], ["csv", "paie-2026-09-v2.csv", avant.text]);
 });

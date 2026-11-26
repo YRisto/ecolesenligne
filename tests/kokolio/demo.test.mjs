@@ -41,7 +41,7 @@ before(async () => {
 });
 after(() => fake?.kill());
 
-test("mise à jour de la base de la version 1 à la version 6, sans rien perdre", async () => {
+test("mise à jour de la base de la version 1 à la version 7, sans rien perdre", async () => {
   const code = sql("select kokolio.bootstrap_admin('admin')");
   await admin.ok("auth/activate", { login: "admin", code, password: "Tableau-Bleu-2026" });
   await admin.ok("admin/settings-save", { settings: { company: "Entreprise d'essai" } });
@@ -73,8 +73,16 @@ test("mise à jour de la base de la version 1 à la version 6, sans rien perdre"
   assert.equal(empreinte(), avant);
   assert.equal(sql("select value::text from kokolio.meta where key = 'schema_version'"), "4");
   sql("insert into kokolio.day_models (code, label, minutes) values ('V4', 'Horaire créé en version 4', 400); insert into kokolio.cycles (name, weeks) values ('Cycle créé en version 4', '[[\"V4\",null,null,null,null,null,null]]')");
+  // … la version 6 (planification, annualisation, anomalies : celle de la production avant l'export au format Sage)
+  const v6 = execFileSync("git", ["-C", ROOT, "show", "a70b431:supabase/kokolio/install.sql"], { encoding: "utf8", maxBuffer: 32e6 });
+  execFileSync("psql", [...PG, "-f", "-"], { input: v6, stdio: ["pipe", "ignore", "ignore"] });
+  assert.equal(empreinte(), avant);
+  assert.equal(sql("select value::text from kokolio.meta where key = 'schema_version'"), "6");
   // … enfin la version courante, jouée deux fois de suite : le script est rejouable
   for (let i = 0; i < 2; i++) execFileSync("psql", [...PG, "-f", path.join(ROOT, "supabase/kokolio/install.sql")], { stdio: "ignore" });
+  // export de paie : chaque motif garde son code ; décompte en jours prévus ; seuls les congés payés voient leurs dates reportées sur le bulletin
+  assert.equal(sql("select string_agg(code || ':' || export_code || ':' || export_unit || ':' || export_dates, ' ' order by sort) from kokolio.absence_types"),
+    "cp:AB-CP:prevus:true rtt:AB-RTT:prevus:false maladie:AB-MAL:prevus:false sans_solde:AB-CSS:prevus:false evenement:AB-EVF:prevus:false formation:AB-FORM:prevus:false autre:AB-ABS:prevus:false");
   // le cycle d'avant n'est pas annualisé, les motifs prennent l'effet par défaut, aucune période n'existe
   assert.equal(sql("select name || '|' || annualise || '|' || weeks::text from kokolio.cycles"), 'Cycle créé en version 4|false|[["V4", null, null, null, null, null, null]]');
   assert.equal(sql("select string_agg(distinct annual, ',') || '|' || count(*) from kokolio.absence_types"), "retire|7");
@@ -83,7 +91,7 @@ test("mise à jour de la base de la version 1 à la version 6, sans rien perdre"
   assert.equal(empreinte(), avant);
   assert.equal(sql("select count(*) from kokolio.users where tracked_from is not null"), "0");
   const st = await admin.ok("admin/status");                             // la session ouverte avant la mise à jour reste valable
-  assert.deepEqual([st.schema, st.schema_expected, st.users, st.admins], [6, 6, 2, 1]);
+  assert.deepEqual([st.schema, st.schema_expected, st.users, st.admins], [7, 7, 2, 1]);
   // réglages d'avant conservés ; les nouveautés (anomalies, pauses payées) prennent leurs valeurs par défaut sans rien écrire
   const regl = (await admin.ok("admin/settings")).settings;
   assert.deepEqual([regl.company, regl.anomalies, regl.break_paid_min], ["Entreprise d'essai", undefined, undefined]);

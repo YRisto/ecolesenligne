@@ -135,9 +135,19 @@ Clôture : le planning entre dans l'empreinte du mois. Une fois le mois clôtur�
 
 La clôture d'un mois exige : mois terminé, toutes les journées validées, aucune demande d'absence en attente. Elle enregistre une photographie des chiffres par salarié et le fichier d'export, avec son empreinte. Une réouverture demande un motif ; la clôture suivante crée une nouvelle version, les précédentes restent téléchargeables à l'identique.
 
-Fichier d'export : une ligne par absence validée et, en option, une ligne d'heures par salarié — `Matricule;Code;Valeur;Date début;Date fin`. Codes, séparateurs et en-tête se règlent dans Administration (Réglages et Motifs).
+Le fichier d'export existe en deux formats, au choix dans Administration › Réglages. Le format s'applique aux prochaines clôtures : un mois déjà clôturé garde le fichier produit ce jour-là.
 
-**Le format d'import attendu par Silae n'a pas été validé** : il dépend du paramétrage du dossier de paie. Avant la première clôture, faire un essai d'import avec un brouillon et ajuster les codes.
+- **Colonnes séparées** (format d'origine) : une ligne par absence validée et, en option, une ligne d'heures par salarié — `Matricule;Code;Valeur;Date début;Date fin`. Codes, séparateurs et en-tête sont réglables.
+- **Sage Paie** (depuis la version 2.3) : le format d'import de Sage Paie, texte sans accent à largeur fixe, lignes terminées par CR LF. Trois types de lignes :
+  - `EV`, 235 caractères, une par absence : matricule (colonnes 3 à 12), code du motif (13 à 16), date et heure de début (17 à 29), date et heure de fin (30 à 42), nombre de jours avec deux décimales (43 à 54), libellé (174 à 203), jour de production et rang de la ligne (204 à 222), indicateur de demi-journée (226-227 : `01` le matin, `10` l'après-midi), jour de production (228 à 235) ;
+  - `VB`, 1 347 caractères, une par salarié : matricule, puis à partir de la colonne 508 les dates de début et de fin des congés à reporter sur le bulletin, trois périodes au plus ;
+  - `VM`, 37 caractères : matricule, type d'élément (255 pour une constante), code de la constante, valeur avec trois décimales.
+
+  Les salariés sont triés par matricule et regroupés par cent : pour chaque groupe, ses lignes EV, puis VB, puis VM. Cette disposition est celle du fichier que la paie reçoit de l'outil de gestion des temps actuel : `sageParse` puis `sageText` (`lib/kokolio/engine/sage.mjs`) redonnent ce fichier à l'octet près.
+
+  Pour chaque motif (Administration › Motifs) : le code de paie, le nombre de jours transmis (jours prévus au planning, ou jours calendaires) et le report de ses dates sur le bulletin. Dans les réglages : le libellé des événements et, si besoin, la constante de paie qui reçoit des heures (heures manquantes, heures en plus ou heures travaillées ; rien pour le forfait jours). La préparation de la clôture signale les motifs sans code et les codes ou matricules trop longs.
+
+**Ce qui reste à valider avec la paie** : la table des codes (seul le code des congés payés a pu être déduit du fichier de référence), le sens de la constante d'heures, et le fait que ce fichier est bien celui qu'importe le logiciel de paie. Deux écarts connus avec le fichier de référence : il compte des absences d'une partie de journée en fraction de jour (Kokolio ne connaît que la journée et la demi-journée), et il ne liste que les salariés présents le jour de l'export (Kokolio liste tous ceux qui ont été suivis dans le mois). Avant la première clôture, faire un essai d'import avec un brouillon.
 
 ## Exploitation
 
@@ -153,7 +163,7 @@ Fichier d'export : une ligne par absence validée et, en option, une ligne d'heu
 node --test tests/kokolio/engine.test.mjs      # calculs (aucune dépendance)
 bash tests/kokolio/pg-local.sh reset            # PostgreSQL 16 local jetable
 cd tests/kokolio && npm install && cd ../..     # une fois : client PostgreSQL des tests
-node --test tests/kokolio/api.test.mjs          # scénario complet contre une vraie base
+node --test tests/kokolio/api.test.mjs          # scénario complet contre une vraie base, export Sage compris
 node --test tests/kokolio/planning.test.mjs     # versions 2.0 à 2.2 : planification, annualisation, anomalies, présents, nuit, clôture
 node --test tests/kokolio/demo.test.mjs         # mise à jour de la base (version 1 → version courante) et mode démonstration (un fichier à la fois : même base locale)
 bash tests/kokolio/e2e/tout.sh                  # navigateur (Playwright) : mise en route, quotidien, RH, démonstration (outil vide, puis avec des comptes déjà créés), planification, annualisation, anomalies et présents
@@ -164,5 +174,5 @@ Dans l'outil : Administration › État › « Lancer l'autodiagnostic » rejoue
 
 ## Non géré dans cette version
 
-Heures supplémentaires majorées, majorations de nuit ou du dimanche, astreintes, période de référence des congés du 1er juin au 31 mai, validation à plusieurs niveaux, connexion Microsoft, badgeuses.
+Heures supplémentaires majorées, majorations de nuit ou du dimanche, astreintes, absences comptées en heures, période de référence des congés du 1er juin au 31 mai, validation à plusieurs niveaux, connexion Microsoft, badgeuses.
 La suite prévue (annualisation, anomalies liées à l'horaire, pauses, tableau des présents, puis télétravail, compteurs, activités…) est tenue à jour dans l'outil : Administration › Versions. Le découpage des lots 1 et 2 de la version 2 est décrit dans `docs/kokolio/V2-CONCEPTION.md`.

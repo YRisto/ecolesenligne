@@ -1,5 +1,15 @@
 // Fonctionnalités et historique des versions. À mettre à jour à chaque mise en ligne, avec lib/kokolio/version.mjs.
 export const VERSIONS = [
+  { v: "2.3.0", date: "26/11/2026", titre: "Export de paie au format Sage Paie", points: [
+    "Export de paie au format d'import de Sage Paie, au choix dans les réglages : lignes EV (une par absence), VB (dates des congés) et VM (heures), à largeur fixe",
+    "Disposition reprise du fichier que la paie reçoit de l'outil de gestion des temps actuel : relu puis réécrit, ce fichier ressort identique, octet pour octet",
+    "Pour chaque motif d'absence : code de paie, nombre de jours transmis (jours prévus au planning ou jours calendaires), report des dates sur le bulletin (congés payés)",
+    "Demi-journées signalées à la paie, matin ou après-midi",
+    "Sur réglage, des heures transmises dans une constante de paie : heures manquantes, heures en plus ou heures travaillées",
+    "Avant la clôture, l'outil signale ce que Sage ne saurait pas lire : motif sans code, code de plus de quatre caractères, matricule de plus de dix",
+    "Un mois déjà clôturé garde le fichier produit ce jour-là ; le format à colonnes séparées reste disponible",
+    "Base de données en version 7 (deux colonnes ajoutées, aucune donnée modifiée)",
+  ] },
   { v: "2.2.0", date: "25/11/2026", titre: "Anomalies liées à l'horaire, pauses, tableau des présents", points: [
     "Anomalies calculées d'après l'horaire prévu : retard, départ anticipé, pointage hors plage, temps de présence insuffisant, travail pendant une absence",
     "Pauses pointées : trop courtes, trop longues, non prises ; pauses payées sur réglage",
@@ -145,14 +155,14 @@ export const FONCTIONS = [
     "Bibliothèque des horaires journaliers et des cycles ; planning de tous les salariés",
     "Vision et validation pour l'ensemble des salariés",
     "Clôture mensuelle : contrôle, figement des chiffres, réouverture motivée, versions successives",
-    "Export paie pour Silae : codes et séparateurs réglables",
+    "Export paie, au choix : colonnes séparées (codes et séparateurs réglables) ou format d'import de Sage Paie (lignes EV, VB et VM)",
     "Report des congés en fin d'année ; écritures de solde par fichier (droits RTT de l'année, corrections en nombre)",
     "Journal de toutes les actions, avec vérification d'intégrité",
   ]],
   ["Administration", [
     "Attribution des profils RH et administrateur",
     "Réglages : entreprise, logo, date de mise en service, seuils d'alerte, anomalies (tolérances, niveaux), pauses payées, travail de nuit, lieux de travail, format de l'export paie",
-    "Motifs d'absence : libellé, famille, code d'export, justificatif demandé",
+    "Motifs d'absence : libellé, famille, justificatif demandé ; pour la paie : code, nombre de jours transmis, report des dates sur le bulletin",
     "État de l'installation et autodiagnostic des règles de sécurité",
     "Mode démonstration : jeu de données fictives à charger dans un outil vide, effaçable avant la mise en service",
   ]],
@@ -177,6 +187,7 @@ export const A_VENIR = [
 
 export const NON_GERE = [
   "Heures supplémentaires majorées et repos compensateur",
+  "Absences comptées en heures (une partie de journée) : elles se posent à la journée ou à la demi-journée",
   "Majorations de nuit, du dimanche et des jours fériés ; astreintes",
   "Période de référence des congés du 1er juin au 31 mai (les soldes sont tenus en année civile)",
   "Validation à plusieurs niveaux",

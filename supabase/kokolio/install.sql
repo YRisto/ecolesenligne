@@ -256,6 +256,18 @@ do $$ begin
     alter table kokolio.absence_types add constraint absence_types_annual_check check (annual in ('retire', 'realise', 'neutre'));
   end if;
 end $$;
+-- Export de paie (schéma 7) : pour chaque motif, le décompte transmis à la paie (jours prévus au planning, ou jours calendaires)
+-- et, au format Sage, le report de ses dates sur le bulletin (lignes VB). À la création de la colonne, les congés payés y sont reportés.
+alter table kokolio.absence_types add column if not exists export_unit text not null default 'prevus';
+do $$ begin
+  if not exists (select 1 from pg_constraint where conname = 'absence_types_export_unit_check' and conrelid = 'kokolio.absence_types'::regclass) then
+    alter table kokolio.absence_types add constraint absence_types_export_unit_check check (export_unit in ('prevus', 'calendaires'));
+  end if;
+  if not exists (select 1 from information_schema.columns where table_schema = 'kokolio' and table_name = 'absence_types' and column_name = 'export_dates') then
+    alter table kokolio.absence_types add column export_dates boolean not null default false;
+    update kokolio.absence_types set export_dates = true where category = 'cp';
+  end if;
+end $$;
 create index if not exists absences_user_idx on kokolio.absences (user_id, start_date);
 create index if not exists absences_dates_idx on kokolio.absences (start_date, end_date);
 create index if not exists absences_pending_idx on kokolio.absences (user_id) where status = 'en_attente';
@@ -382,14 +394,14 @@ insert into kokolio.meta (key, value) values
     'export', jsonb_build_object('hours_code', 'HS-HN', 'include_hours', true, 'sep', ';', 'decimal', ',', 'header', true)))
 on conflict (key) do nothing;
 
-insert into kokolio.absence_types (code, label, category, export_code, needs_doc, absenteeism, sort) values
-  ('cp', 'Congé payé', 'cp', 'AB-CP', false, false, 10),
-  ('rtt', 'RTT', 'rtt', 'AB-RTT', false, false, 20),
-  ('maladie', 'Arrêt maladie', 'maladie', 'AB-MAL', true, true, 30),
-  ('sans_solde', 'Congé sans solde', 'autre', 'AB-CSS', false, true, 40),
-  ('evenement', 'Événement familial', 'autre', 'AB-EVF', false, true, 50),
-  ('formation', 'Formation', 'autre', 'AB-FORM', false, false, 60),
-  ('autre', 'Autre absence', 'autre', 'AB-ABS', false, true, 70)
+insert into kokolio.absence_types (code, label, category, export_code, needs_doc, absenteeism, sort, export_dates) values
+  ('cp', 'Congé payé', 'cp', 'AB-CP', false, false, 10, true),
+  ('rtt', 'RTT', 'rtt', 'AB-RTT', false, false, 20, false),
+  ('maladie', 'Arrêt maladie', 'maladie', 'AB-MAL', true, true, 30, false),
+  ('sans_solde', 'Congé sans solde', 'autre', 'AB-CSS', false, true, 40, false),
+  ('evenement', 'Événement familial', 'autre', 'AB-EVF', false, true, 50, false),
+  ('formation', 'Formation', 'autre', 'AB-FORM', false, false, 60, false),
+  ('autre', 'Autre absence', 'autre', 'AB-ABS', false, true, 70, false)
 on conflict (code) do nothing;
 -- =====================================================================
 -- Kokolio — socle : horloge, erreurs, verrous de clôture, journal, sessions, droits
@@ -1773,7 +1785,7 @@ end $$;
 -- Paramètres (administrateur)
 -- ---------------------------------------------------------------------
 create or replace function kokolio._settings_set(me kokolio.users, p jsonb, p_args jsonb) returns jsonb language plpgsql as $$
-declare v_old jsonb; v_new jsonb; v_in jsonb := coalesce(p_args->'settings', '{}'::jsonb); v_k text; v_l jsonb; v_e jsonb;
+declare v_old jsonb; v_new jsonb; v_in jsonb := coalesce(p_args->'settings', '{}'::jsonb); v_k text; v_l jsonb; v_e jsonb; v_s jsonb;
 begin
   if me.role <> 'admin' then perform kokolio._fail('interdit', 'Accès réservé aux administrateurs.'); end if;
   select m.value into v_old from kokolio.meta m where m.key = 'settings' for update;
@@ -1851,8 +1863,19 @@ begin
        or coalesce(v_e->>'decimal', ',') not in (',', '.') then
       perform kokolio._fail('parametre', 'Format d''export invalide.');
     end if;
+    -- format du fichier : « csv » (une ligne par élément, colonnes séparées) ou « sage » (import de Sage Paie, lignes EV, VB et VM à largeur fixe).
+    -- Ce qui n'est pas envoyé garde sa valeur. Pour Sage : le libellé des événements, et la constante de paie qui reçoit des heures (facultative).
+    v_s := coalesce(v_new #> '{export,sage}', '{}'::jsonb) || case when jsonb_typeof(v_e->'sage') = 'object' then v_e->'sage' else '{}'::jsonb end;
+    if coalesce(v_e->>'format', v_new #>> '{export,format}', 'csv') not in ('csv', 'sage') then perform kokolio._fail('parametre', 'Format d''export inconnu.'); end if;
+    if (v_e ? 'sage' and jsonb_typeof(v_e->'sage') <> 'object') or coalesce(v_s->>'label', '') !~ '^[ -~]{0,30}$' or coalesce(v_s->>'vm_type', '') !~ '^[0-9]{0,3}$'
+       or coalesce(v_s->>'vm_code', '') !~ '^[A-Za-z0-9_]{0,10}$' or coalesce(v_s->>'vm_source', '') not in ('', 'manque', 'surplus', 'travaille') then
+      perform kokolio._fail('parametre', 'Réglage de l''export Sage invalide.');
+    end if;
     v_new := jsonb_set(v_new, '{export}', jsonb_build_object('hours_code', coalesce(v_e->>'hours_code', ''), 'include_hours', coalesce((v_e->>'include_hours')::boolean, true),
-      'sep', coalesce(v_e->>'sep', ';'), 'decimal', coalesce(v_e->>'decimal', ','), 'header', coalesce((v_e->>'header')::boolean, true)));
+      'sep', coalesce(v_e->>'sep', ';'), 'decimal', coalesce(v_e->>'decimal', ','), 'header', coalesce((v_e->>'header')::boolean, true),
+      'format', coalesce(v_e->>'format', v_new #>> '{export,format}', 'csv'),
+      'sage', jsonb_build_object('label', coalesce(v_s->>'label', 'du %DEB au %FIN'), 'vm_type', coalesce(nullif(v_s->>'vm_type', ''), '255'),
+        'vm_code', upper(coalesce(v_s->>'vm_code', '')), 'vm_source', coalesce(v_s->>'vm_source', ''))));
   end if;
   v_new := jsonb_set(v_new, '{version}', to_jsonb(coalesce((v_old->>'version')::int, 1) + 1));
   update kokolio.meta set value = v_new, updated_at = now() where key = 'settings';
@@ -1872,17 +1895,22 @@ begin
   if coalesce(v_t->>'category', 'autre') not in ('cp', 'rtt', 'maladie', 'autre') then perform kokolio._fail('parametre', 'Catégorie inconnue.'); end if;
   if length(coalesce(v_t->>'export_code', '')) > 30 then perform kokolio._fail('parametre', 'Code d''export trop long.'); end if;
   if coalesce(v_t->>'annual', 'retire') not in ('retire', 'realise', 'neutre') then perform kokolio._fail('parametre', 'Effet sur l''annualisation inconnu.'); end if;
+  if coalesce(v_t->>'export_unit', 'prevus') not in ('prevus', 'calendaires') then perform kokolio._fail('parametre', 'Décompte pour la paie inconnu.'); end if;
+  if v_t ? 'export_dates' and jsonb_typeof(v_t->'export_dates') <> 'boolean' then perform kokolio._fail('parametre', 'Report des dates sur le bulletin : oui ou non.'); end if;
   select * into o from kokolio.absence_types x where x.code = v_code;
-  -- l'effet sur l'annualisation n'est modifié que s'il est envoyé : sinon il garde sa valeur
-  insert into kokolio.absence_types as x (code, label, category, export_code, needs_doc, absenteeism, active, sort, annual)
+  -- l'effet sur l'annualisation et les réglages d'export ne sont modifiés que s'ils sont envoyés : sinon ils gardent leur valeur
+  -- (un nouveau motif de la famille des congés payés voit ses dates reportées sur le bulletin, comme les motifs d'origine)
+  insert into kokolio.absence_types as x (code, label, category, export_code, needs_doc, absenteeism, active, sort, annual, export_unit, export_dates)
   values (v_code, trim(v_t->>'label'), coalesce(v_t->>'category', 'autre'), trim(coalesce(v_t->>'export_code', '')),
           coalesce((v_t->>'needs_doc')::boolean, false), coalesce((v_t->>'absenteeism')::boolean, true),
-          coalesce((v_t->>'active')::boolean, true), coalesce((v_t->>'sort')::int, 100), coalesce(v_t->>'annual', o.annual, 'retire'))
+          coalesce((v_t->>'active')::boolean, true), coalesce((v_t->>'sort')::int, 100), coalesce(v_t->>'annual', o.annual, 'retire'),
+          coalesce(v_t->>'export_unit', o.export_unit, 'prevus'), coalesce((v_t->>'export_dates')::boolean, o.export_dates, coalesce(v_t->>'category', 'autre') = 'cp'))
   on conflict (code) do update set label = excluded.label, category = excluded.category, export_code = excluded.export_code,
-    needs_doc = excluded.needs_doc, absenteeism = excluded.absenteeism, active = excluded.active, sort = excluded.sort, annual = excluded.annual
+    needs_doc = excluded.needs_doc, absenteeism = excluded.absenteeism, active = excluded.active, sort = excluded.sort, annual = excluded.annual,
+    export_unit = excluded.export_unit, export_dates = excluded.export_dates
   returning * into t;
   perform kokolio._audit(me.id, case when o.code is null then 'motif_cree' else 'motif_modifie' end, null, v_code,
-    kokolio._diff(coalesce(to_jsonb(o), '{}'::jsonb), to_jsonb(t), array['label', 'category', 'export_code', 'needs_doc', 'absenteeism', 'active', 'sort', 'annual']), coalesce(p->>'ip', ''));
+    kokolio._diff(coalesce(to_jsonb(o), '{}'::jsonb), to_jsonb(t), array['label', 'category', 'export_code', 'needs_doc', 'absenteeism', 'active', 'sort', 'annual', 'export_unit', 'export_dates']), coalesce(p->>'ip', ''));
   return jsonb_build_object('type', to_jsonb(t));
 end $$;
 
@@ -2741,7 +2769,7 @@ begin
 end $$;
 revoke all on function kokolio.bootstrap_admin(text, text) from public;
 
-insert into kokolio.meta (key, value) values ('schema_version', '6'::jsonb)
+insert into kokolio.meta (key, value) values ('schema_version', '7'::jsonb)
 on conflict (key) do update set value = excluded.value, updated_at = now();
 
 notify pgrst, 'reload schema';

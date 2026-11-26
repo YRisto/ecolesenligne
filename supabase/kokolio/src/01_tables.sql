@@ -253,6 +253,18 @@ do $$ begin
     alter table kokolio.absence_types add constraint absence_types_annual_check check (annual in ('retire', 'realise', 'neutre'));
   end if;
 end $$;
+-- Export de paie (schéma 7) : pour chaque motif, le décompte transmis à la paie (jours prévus au planning, ou jours calendaires)
+-- et, au format Sage, le report de ses dates sur le bulletin (lignes VB). À la création de la colonne, les congés payés y sont reportés.
+alter table kokolio.absence_types add column if not exists export_unit text not null default 'prevus';
+do $$ begin
+  if not exists (select 1 from pg_constraint where conname = 'absence_types_export_unit_check' and conrelid = 'kokolio.absence_types'::regclass) then
+    alter table kokolio.absence_types add constraint absence_types_export_unit_check check (export_unit in ('prevus', 'calendaires'));
+  end if;
+  if not exists (select 1 from information_schema.columns where table_schema = 'kokolio' and table_name = 'absence_types' and column_name = 'export_dates') then
+    alter table kokolio.absence_types add column export_dates boolean not null default false;
+    update kokolio.absence_types set export_dates = true where category = 'cp';
+  end if;
+end $$;
 create index if not exists absences_user_idx on kokolio.absences (user_id, start_date);
 create index if not exists absences_dates_idx on kokolio.absences (start_date, end_date);
 create index if not exists absences_pending_idx on kokolio.absences (user_id) where status = 'en_attente';
@@ -379,12 +391,12 @@ insert into kokolio.meta (key, value) values
     'export', jsonb_build_object('hours_code', 'HS-HN', 'include_hours', true, 'sep', ';', 'decimal', ',', 'header', true)))
 on conflict (key) do nothing;
 
-insert into kokolio.absence_types (code, label, category, export_code, needs_doc, absenteeism, sort) values
-  ('cp', 'Congé payé', 'cp', 'AB-CP', false, false, 10),
-  ('rtt', 'RTT', 'rtt', 'AB-RTT', false, false, 20),
-  ('maladie', 'Arrêt maladie', 'maladie', 'AB-MAL', true, true, 30),
-  ('sans_solde', 'Congé sans solde', 'autre', 'AB-CSS', false, true, 40),
-  ('evenement', 'Événement familial', 'autre', 'AB-EVF', false, true, 50),
-  ('formation', 'Formation', 'autre', 'AB-FORM', false, false, 60),
-  ('autre', 'Autre absence', 'autre', 'AB-ABS', false, true, 70)
+insert into kokolio.absence_types (code, label, category, export_code, needs_doc, absenteeism, sort, export_dates) values
+  ('cp', 'Congé payé', 'cp', 'AB-CP', false, false, 10, true),
+  ('rtt', 'RTT', 'rtt', 'AB-RTT', false, false, 20, false),
+  ('maladie', 'Arrêt maladie', 'maladie', 'AB-MAL', true, true, 30, false),
+  ('sans_solde', 'Congé sans solde', 'autre', 'AB-CSS', false, true, 40, false),
+  ('evenement', 'Événement familial', 'autre', 'AB-EVF', false, true, 50, false),
+  ('formation', 'Formation', 'autre', 'AB-FORM', false, false, 60, false),
+  ('autre', 'Autre absence', 'autre', 'AB-ABS', false, true, 70, false)
 on conflict (code) do nothing;
