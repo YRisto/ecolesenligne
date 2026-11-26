@@ -659,7 +659,7 @@ test("import : le responsable peut être désigné par son matricule", () => {
 });
 
 /* ---------------------------------------------------------------- simulation d'activité */
-import { REGLAGES, absencesEnCours, demandesDuJour, evenements, instantParis, journeeSimulee, parisDe, tirage } from "../../lib/kokolio/engine/simulation.mjs";
+import { REGLAGES, absencesEnCours, demandesDuJour, evenements, hm, instantParis, journeeSimulee, parisDe, tirage } from "../../lib/kokolio/engine/simulation.mjs";
 import { toMin } from "../../lib/kokolio/engine/model.mjs";
 
 const SIM_TYPES = [...TYPES, { code: "sans_solde", label: "Congé sans solde", category: "autre" }, { code: "evenement", label: "Événement familial", category: "autre" }].map((t) => ({ ...t, active: true }));
@@ -835,4 +835,25 @@ test("simulation : demandes d'absence plausibles, sans chevauchement ; amorce de
     parU.set(a.user_id, [...(parU.get(a.user_id) || []), a]);
   }
   assert.ok(amorce.some((a) => a.start <= "2026-11-26" && a.end >= "2026-11-25"), "certains sont absents dès la veille ou le jour même");
+});
+
+test("simulation : une journée déjà commencée autrement (démonstration, saisie à la main) n'est pas touchée", () => {
+  const base = entreprise(), jour = "2026-11-25";
+  const plan = (id) => journeeSimulee({ id, rec: buildDays({ user: base.users.find((u) => u.id === id), contracts: [{ ...C35, user_id: id }], days: [], absences: [], types: SIM_TYPES, settings: SIM_SETTINGS, from: jour, to: jour, today: jour })[0], contract: C35, settings: SIM_SETTINGS });
+  // quatre salariés présents ce jour-là d'après la simulation, avec au moins trois pointages prévus
+  const [suite, ailleurs, enTrop, decale] = base.users.map((u) => u.id).filter((id) => id.startsWith("s") && plan(id).times.length >= 3);
+  const ligne = (id, times) => ({ id: "d-" + id, user_id: id, day: jour, times, status: "a_valider", corrected: false, version: 1, lieu: "bureau" });
+  const d = entreprise({ jours: [
+    ligne(suite, plan(suite).times.slice(0, 1)),                                       // son arrivée simulée, déjà jouée : la suite viendra
+    ligne(ailleurs, ["07:02"]),                                                        // une arrivée venue d'ailleurs
+    ligne(enTrop, [...plan(enTrop).times, "23:10"]),                                   // la journée simulée, plus un pointage ajouté à la main
+    ligne(decale, [hm(toMin(plan(decale).times[0]) + 1), ...plan(decale).times.slice(1, 2)]),   // presque la même, à une minute près
+  ] });
+  const ev = evenements(d, { apres: instantParis(jour, "00:00"), jusqua: instantParis(jour, "23:59"), limite: 100000 }).events.filter((e) => e.kind === "punch");
+  const de = (id) => ev.filter((e) => e.user === id).map((e) => parisDe(e.t).heure);
+  assert.deepEqual(de(suite), plan(suite).times);                // (ceux déjà joués sont écartés par l'heure du dernier passage, pas ici)
+  assert.deepEqual([de(ailleurs), de(enTrop), de(decale)], [[], [], []]);
+  // et le passage suivant, qui repart après l'arrivée déjà jouée, ne la rejoue pas
+  const apres = instantParis(jour, plan(suite).times[0]);
+  assert.deepEqual(evenements(d, { apres, jusqua: instantParis(jour, "23:59"), limite: 100000 }).events.filter((e) => e.kind === "punch" && e.user === suite).map((e) => parisDe(e.t).heure), plan(suite).times.slice(1));
 });

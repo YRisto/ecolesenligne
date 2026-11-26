@@ -7,7 +7,7 @@ export const VERSIONS = [
     "Validation côté RH : par défaut, seuls les salariés sans responsable ; « Tout, responsables compris » montre le reste, pour suivre ou valider à la place d'un responsable. Depuis la clôture, la validation s'ouvre sur tout ce qui bloque",
     "Simulation d'activité (environnement de test, ou production pendant le mode démonstration) : des salariés fictifs pointent au fil de la journée — tous, sauf les absents —, posent des congés, déclarent des arrêts, corrigent un départ oublié ; leurs responsables valident",
     "Scénario vraisemblable et différent chaque jour ; à la première mise en marche, la journée de la veille est créée avec les absences déjà en cours",
-    "Seules les fiches jamais activées sont simulées : un compte dont le mot de passe est posé n'est plus touché, et son équipe attend ses validations",
+    "Seules les fiches jamais activées sont simulées : un compte dont le mot de passe est posé n'est plus touché, et son équipe attend ses validations ; une journée déjà commencée autrement (données de démonstration, saisie à la main) n'est jamais complétée par la simulation",
     "La simulation avance toutes les heures, et dès qu'une page de l'outil est ouverte ; elle se met en marche et s'arrête dans l'onglet « Test » de l'administration, et disparaît avec les données de démonstration",
     "Après une copie vers le test, la simulation y arrive arrêtée : le test reste une image fixe de la production tant qu'on ne l'anime pas",
     "Scénarios de charge k6 livrés avec l'outil (tests/kokolio/k6) : pic du matin, journée type, écrans lourds, montée en charge, endurance, robustesse",
