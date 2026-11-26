@@ -1,0 +1,40 @@
+# Kokolio · simulation d'activité : un passage par heure.
+#
+# Là où un administrateur a mis la simulation en marche (Administration › Test), des salariés fictifs pointent au fil de la journée,
+# posent des absences, et leurs responsables valident. Ce passage horaire la fait avancer jusqu'à l'instant présent, même quand
+# personne n'a l'outil ouvert. Il est sans effet si la simulation est arrêtée.
+#
+# L'adresse appelée est publique : elle ne reçoit aucune donnée, ne renvoie que des compteurs, et ne fait rien si un passage
+# a déjà eu lieu dans les cinq dernières minutes. Aucun secret n'est utilisé ici.
+#
+# Pour l'arrêter : arrêter la simulation dans l'outil, ou désactiver ce flux dans l'onglet « Actions » du dépôt.
+name: Kokolio · simulation d'activité
+
+on:
+  schedule:
+    - cron: "7 * * * *"      # chaque heure, à la minute 7 (GitHub peut décaler de quelques minutes)
+  workflow_dispatch:
+
+permissions: {}
+
+concurrency:
+  group: kokolio-simulation
+  cancel-in-progress: false
+
+jobs:
+  passage:
+    runs-on: ubuntu-latest
+    timeout-minutes: 6
+    steps:
+      - name: Faire avancer la simulation (production en mode démonstration, environnement de test)
+        run: |
+          for chemin in kokolio kokolio-test; do
+            for essai in 1 2 3 4 5 6 7 8; do
+              reponse=$(curl -sS --max-time 45 -X POST "https://ecolesenligne.fr/api/$chemin/sim/tick" \
+                -H "content-type: application/json" -H "x-kokolio: 1" \
+                -d '{}' || echo '{"ok":false,"message":"pas de réponse"}')
+              echo "$chemin · passage $essai : $reponse"
+              # il reste du retard à rattraper (premier passage, longue interruption) : on repasse ; sinon, terminé
+              if echo "$reponse" | grep -q '"due":true' && echo "$reponse" | grep -q '"passages":[1-9]'; then sleep 2; else break; fi
+            done
+          done
