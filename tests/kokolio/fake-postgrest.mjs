@@ -4,7 +4,7 @@ import http from "node:http";
 import pg from "pg";
 
 const PORT = +(process.env.FAKE_PGRST_PORT || 54321);
-const pool = new pg.Pool({ host: "127.0.0.1", port: +(process.env.KK_PG_PORT || 54329), user: "postgres", database: process.env.KK_PG_DB || "kokolio_test", max: 8 });
+const pool = new pg.Pool({ host: "127.0.0.1", port: +(process.env.KK_PG_PORT || 54329), user: "postgres", database: process.env.KK_PG_DB || "kokolio_test", max: +(process.env.KK_PG_POOL || 8) });
 
 http.createServer(async (req, res) => {
   const send = (status, body) => { res.writeHead(status, { "Content-Type": "application/json" }); res.end(JSON.stringify(body)); };

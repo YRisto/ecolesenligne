@@ -1,0 +1,3 @@
+# résultats des essais et fichiers de comptes : propres à chaque poste, jamais dans le dépôt
+resultats/
+*.csv

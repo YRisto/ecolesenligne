@@ -20,7 +20,7 @@ pkill -f "next-server" 2>/dev/null || true
 for i in $(seq 1 20); do curl -s -o /dev/null "http://127.0.0.1:$PORT/" 2>/dev/null || break; sleep 0.3; done
 nohup node tests/kokolio/fake-postgrest.mjs > /tmp/kk-fake.log 2>&1 &
 [ -f .next/BUILD_ID ] || SUPABASE_URL=http://127.0.0.1:54321 SUPABASE_SERVICE_ROLE_KEY=test-service-key npx next build >/dev/null
-SUPABASE_URL=http://127.0.0.1:54321 SUPABASE_SERVICE_ROLE_KEY=test-service-key KOKOLIO_TEST_HOOKS=1 nohup npx next start -p $PORT > /tmp/kk-next.log 2>&1 &
+SUPABASE_URL=http://127.0.0.1:54321 SUPABASE_SERVICE_ROLE_KEY=test-service-key KOKOLIO_TEST_HOOKS=1 nohup npx next start -p $PORT --keepAliveTimeout 75000 > /tmp/kk-next.log 2>&1 &
 for i in $(seq 1 40); do curl -sf "http://127.0.0.1:$PORT/api/kokolio/health" >/dev/null 2>&1 && break; sleep 0.5; done
 grep -q EADDRINUSE /tmp/kk-next.log && { echo "le port $PORT est déjà pris : l'ancien serveur tourne encore"; exit 1; }
 curl -s "http://127.0.0.1:$PORT/api/kokolio/health"; echo
