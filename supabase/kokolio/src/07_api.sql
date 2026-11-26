@@ -25,6 +25,7 @@ begin
         'demo', exists (select 1 from kokolio.meta m where m.key = 'demo'),
         'environment', kokolio._env(),
         'cloned', case when kokolio._env() = 'test' then (select m.value from kokolio.meta m where m.key = 'test_clone') end,
+        'simulation', coalesce((select (m.value->>'on')::boolean from kokolio.meta m where m.key = 'simulation'), false) and kokolio._sim_allowed(),
         'today', kokolio._today());
     when 'auth_salt' then return kokolio._auth_salt(v_args);
     when 'login' then return kokolio._login(p, v_args);
@@ -32,6 +33,9 @@ begin
     when 'logout' then
       delete from kokolio.sessions s where s.token_hash = coalesce(p->>'token', '');
       return '{}'::jsonb;
+    -- simulation d'activité : un passage ne lit et n'écrit que si elle est en marche, là où elle est permise
+    when 'sim_read' then return kokolio._sim_read(v_args);
+    when 'sim_apply' then return kokolio._sim_apply(p, v_args);
     else null;
   end case;
 
@@ -81,6 +85,9 @@ begin
     when 'annual_period_save' then return kokolio._annual_period_save(me, p, v_args);
     when 'annual_goal_set' then return kokolio._annual_goal_set(me, p, v_args);
     when 'annual_entry_add' then return kokolio._annual_entry_add(me, p, v_args);
+    when 'org_chart' then return kokolio._org_chart(me);
+    when 'sim_state' then return kokolio._sim_state(me);
+    when 'sim_set' then return kokolio._sim_set(me, p, v_args);
     when 'test_status' then return kokolio._test_status(me);
     when 'test_clone' then return kokolio._test_clone(me, p);
     when 'demo_seed' then return kokolio._demo_seed(me, p, v_args);
@@ -160,7 +167,7 @@ begin
 end $$;
 revoke all on function kokolio.bootstrap_admin(text, text) from public;
 
-insert into kokolio.meta (key, value) values ('schema_version', '8'::jsonb)
+insert into kokolio.meta (key, value) values ('schema_version', '9'::jsonb)
 on conflict (key) do update set value = excluded.value, updated_at = now();
 
 notify pgrst, 'reload schema';

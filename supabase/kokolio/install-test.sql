@@ -422,10 +422,13 @@ create or replace function kokolio_test._tz() returns text language sql stable a
   select coalesce((select m.value->>'timezone' from kokolio_test.meta m where m.key = 'settings'), 'Europe/Paris')
 $$;
 
--- L'heure fait foi côté serveur. Elle n'est remplaçable qu'en mode test (ligne « test_mode » absente en production).
+-- L'heure fait foi côté serveur. Elle n'est remplaçable qu'en mode test (ligne « test_mode » absente en production),
+-- et, le temps de jouer un événement simulé, par la simulation d'activité (environnement de test ou mode démonstration seulement).
 create or replace function kokolio_test._now() returns timestamptz language plpgsql stable as $$
 declare v_fake text;
 begin
+  v_fake := nullif(current_setting('kokolio_test.sim_now', true), '');
+  if v_fake is not null and kokolio_test._sim_allowed() then return v_fake::timestamptz; end if;
   v_fake := nullif(current_setting('kokolio_test.test_now', true), '');
   if v_fake is not null and exists (select 1 from kokolio_test.meta m where m.key = 'test_mode' and m.value = 'true'::jsonb) then
     return v_fake::timestamptz;
@@ -979,12 +982,17 @@ end $$;
 -- Ce qui attend une décision : pour un responsable, son équipe ; pour les RH, tout le monde.
 create or replace function kokolio_test._pending(me kokolio_test.users, p_args jsonb) returns jsonb language plpgsql stable as $$
 declare
-  v_all boolean := coalesce(p_args->>'scope', 'team') = 'all'; v_ids uuid[]; v_one uuid := nullif(p_args->>'user_id', '')::uuid;
+  v_scope text := coalesce(p_args->>'scope', 'team'); v_all boolean := coalesce(p_args->>'scope', 'team') in ('all', 'rh');
+  v_ids uuid[]; v_one uuid := nullif(p_args->>'user_id', '')::uuid; v_today date := kokolio_test._today();
   v_self boolean := me.role = 'admin' and me.manager_id is null;
 begin
   if v_all then
     if me.role not in ('rh', 'admin') then perform kokolio_test._fail('interdit', 'Accès réservé aux RH.'); end if;
-    select coalesce(array_agg(u.id), '{}') into v_ids from kokolio_test.users u where u.id <> me.id or v_self;
+    -- « rh » : ce qui revient aux RH, c'est-à-dire les salariés sans responsable en activité. Les autres attendent chez leur responsable.
+    select coalesce(array_agg(u.id), '{}') into v_ids from kokolio_test.users u
+    where (u.id <> me.id or v_self)
+      and (v_scope = 'all' or u.manager_id is null
+           or exists (select 1 from kokolio_test.users m where m.id = u.manager_id and (m.disabled or (m.exit_date is not null and m.exit_date < v_today))));
   else
     select coalesce(array_agg(u.id), '{}') into v_ids from kokolio_test.users u where u.manager_id = me.id or (v_self and u.id = me.id);
   end if;
@@ -1001,6 +1009,7 @@ begin
                                 from kokolio_test.days d where d.user_id = any(v_ids) and d.status = 'a_valider'), '[]'::jsonb) end,
     'absences', coalesce((select jsonb_agg(kokolio_test._abs_json(a) order by a.created_at)
                           from kokolio_test.absences a where a.user_id = any(v_ids) and a.status = 'en_attente'), '[]'::jsonb),
+    'encadres', (select count(*) from kokolio_test.users u where u.manager_id is not null and not u.disabled),
     'today', kokolio_test._today(), 'hm', kokolio_test._hm());
 end $$;
 
@@ -2349,9 +2358,12 @@ begin
     v_sql := v_sql || format('c_%s as (insert into %I.%I (%s) select %s from kokolio_test.%I returning 1), ', t, v_dst, t, v_cols, v_src, t);
     v_sel := v_sel || format('%L, (select count(*) from c_%s), ', t, t);
   end loop;
-  -- réglages et états (version du schéma exceptée) dans la même lecture : la tête du journal correspond à sa dernière ligne
-  v_sql := 'with ' || v_sql || format('c_meta as (insert into %I.meta (key, value) select m.key, m.value from kokolio_test.meta m where m.key not in (''schema_version'', ''test_clone'') '
-    || 'on conflict (key) do update set value = excluded.value, updated_at = now() returning 1) ', v_dst)
+  -- réglages et états (version du schéma exceptée) dans la même lecture : la tête du journal correspond à sa dernière ligne.
+  -- La simulation d'activité arrive arrêtée : le test est une image fixe de la production, qu'on anime ou non depuis son propre onglet « Test ».
+  v_sql := 'with ' || v_sql || format('c_meta as (insert into %I.meta (key, value) select m.key, '
+    || 'case when m.key = ''simulation'' and coalesce((m.value->>''on'')::boolean, false) then m.value || jsonb_build_object(''on'', false, ''stopped_at'', %L::text) else m.value end '
+    || 'from kokolio_test.meta m where m.key not in (''schema_version'', ''test_clone'') '
+    || 'on conflict (key) do update set value = excluded.value, updated_at = now() returning 1) ', v_dst, kokolio_test._iso(v_at))
     || 'select jsonb_build_object(' || v_sel || '''meta'', (select count(*) from c_meta))';
   execute format('delete from %I.meta d where d.key <> ''schema_version'' and not exists (select 1 from kokolio_test.meta m where m.key = d.key)', v_dst);
   execute v_sql into v_counts;
@@ -2370,6 +2382,191 @@ begin
     using jsonb_build_object('at', v_at, 'by', me.login, 'rows', v_total, 'users', v_counts->'users');
   perform kokolio_test._audit(me.id, 'test_copie', null, '', jsonb_build_object('lignes', v_total, 'comptes', v_counts->'users'), coalesce(p->>'ip', ''));
   return jsonb_build_object('at', v_at, 'rows', v_total, 'counts', v_counts);
+end $$;
+-- =====================================================================
+-- Kokolio — organigramme, et simulation d'activité
+-- =====================================================================
+
+-- ---------------------------------------------------------------------
+-- Organigramme : la ligne hiérarchique, visible de tous. On n'y trouve que les personnes qui encadrent quelqu'un
+-- (nom, poste, équipe, effectif), la place de celui qui regarde et la chaîne de ses responsables. Aucune liste de salariés.
+-- ---------------------------------------------------------------------
+create or replace function kokolio_test._org_chart(me kokolio_test.users) returns jsonb language plpgsql stable as $$
+declare v_today date := kokolio_test._today(); v_nodes jsonb; v_chain jsonb := '[]'::jsonb; v_total int; v_id uuid := me.manager_id; v_n int := 0;
+begin
+  with recursive actifs as (
+    select u.id, u.manager_id, trim(u.first_name || ' ' || u.last_name) as name, u.job, u.team
+    from kokolio_test.users u where not u.disabled and (u.exit_date is null or u.exit_date >= v_today)
+  ),
+  -- chaque salarié sous chacun de ses responsables, directs ou non (profondeur bornée : une boucle de rattachements ne tourne pas sans fin)
+  sous (chef, id, niveau) as (
+    select a.manager_id, a.id, 1 from actifs a where a.manager_id is not null
+    union
+    select c.manager_id, s.id, s.niveau + 1 from sous s join actifs c on c.id = s.chef where c.manager_id is not null and s.niveau < 12
+  ),
+  effectifs as (select s.chef, count(distinct s.id) filter (where s.niveau = 1) as direct, count(distinct s.id) as total from sous s group by s.chef)
+  select coalesce(jsonb_agg(jsonb_build_object('id', a.id, 'name', a.name, 'job', a.job, 'team', a.team, 'manager_id', a.manager_id, 'direct', e.direct, 'total', e.total)
+                            order by e.total desc, a.name), '[]'::jsonb),
+         (select count(*) from actifs)
+    into v_nodes, v_total
+  from actifs a join effectifs e on e.chef = a.id;
+  -- la chaîne des responsables de celui qui regarde, du plus proche au plus haut
+  while v_id is not null and v_n < 12 loop
+    v_chain := v_chain || to_jsonb(v_id);
+    select u.manager_id into v_id from kokolio_test.users u where u.id = v_id;
+    v_n := v_n + 1;
+  end loop;
+  return jsonb_build_object('nodes', v_nodes, 'total', v_total, 'chain', v_chain,
+    'me', jsonb_build_object('id', me.id, 'name', trim(me.first_name || ' ' || me.last_name), 'job', me.job, 'team', me.team, 'manager_id', me.manager_id));
+end $$;
+
+-- ---------------------------------------------------------------------
+-- Simulation d'activité : des salariés fictifs pointent, s'absentent, corrigent ; leurs responsables valident.
+-- Elle n'existe que dans l'environnement de test, ou en production tant que le mode démonstration est actif.
+-- Elle ne touche que des fiches jamais activées (aucun mot de passe posé) et présentes au moment de sa mise en marche :
+-- une personne réelle, ou une fiche importée ensuite, n'est jamais simulée.
+-- Le serveur calcule les événements (lib/kokolio_test/engine/simulation.mjs) ; ici, ils sont joués un à un par les fonctions
+-- ordinaires de l'outil, à l'heure simulée de chacun : mêmes règles, mêmes refus, même journal qu'une action réelle.
+-- ---------------------------------------------------------------------
+create or replace function kokolio_test._sim_allowed() returns boolean language sql stable as $$
+  select kokolio_test._env() = 'test' or exists (select 1 from kokolio_test.meta m where m.key = 'demo')
+$$;
+
+create or replace function kokolio_test._iso(p timestamptz) returns text language sql immutable as $$
+  select to_char(p at time zone 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS.MS"Z"')
+$$;
+
+create or replace function kokolio_test._sim_ids(st jsonb) returns uuid[] language sql stable as $$
+  select coalesce(array_agg(u.id), '{}') from kokolio_test.users u
+  where u.pw_hash is null and not u.disabled and u.role = 'salarie' and u.created_at <= (st->>'enrolled_at')::timestamptz
+$$;
+
+-- État, pour l'écran de l'administrateur.
+create or replace function kokolio_test._sim_state(me kokolio_test.users) returns jsonb language plpgsql stable as $$
+declare st jsonb;
+begin
+  if me.role <> 'admin' then perform kokolio_test._fail('interdit', 'Accès réservé aux administrateurs.'); end if;
+  select m.value into st from kokolio_test.meta m where m.key = 'simulation';
+  return jsonb_build_object('allowed', kokolio_test._sim_allowed(), 'environment', kokolio_test._env(),
+    'demo', exists (select 1 from kokolio_test.meta m where m.key = 'demo'),
+    'on', coalesce((st->>'on')::boolean, false) and kokolio_test._sim_allowed(), 'state', st - 'by_id' - 'claim',
+    'enrolled', case when st is not null then coalesce(array_length(kokolio_test._sim_ids(st), 1), 0) end,
+    'candidates', (select count(*) from kokolio_test.users u where u.pw_hash is null and not u.disabled and u.role = 'salarie'),
+    'now', kokolio_test._iso(kokolio_test._now()));
+end $$;
+
+-- Mise en marche et arrêt. La première mise en marche part de la veille ; une reprise repart de l'instant présent.
+create or replace function kokolio_test._sim_set(me kokolio_test.users, p jsonb, p_args jsonb) returns jsonb language plpgsql as $$
+declare st jsonb; v_on boolean := coalesce((p_args->>'on')::boolean, false); v_now timestamptz := kokolio_test._now(); v_depart timestamptz;
+begin
+  if me.role <> 'admin' then perform kokolio_test._fail('interdit', 'Accès réservé aux administrateurs.'); end if;
+  select m.value into st from kokolio_test.meta m where m.key = 'simulation' for update;
+  if v_on then
+    if not kokolio_test._sim_allowed() then
+      perform kokolio_test._fail('etat', 'La simulation d''activité n''existe que dans l''environnement de test, ou en production tant que le mode démonstration est actif.');
+    end if;
+    if coalesce((st->>'on')::boolean, false) then return kokolio_test._sim_state(me); end if;
+    -- première mise en marche : la journée de la veille est créée, et les absences déjà en cours sont posées (amorce)
+    v_depart := case when st is null then ((kokolio_test._today() - 1)::timestamp at time zone kokolio_test._tz()) else v_now end;
+    st := (coalesce(st, '{}'::jsonb) - 'claim') || jsonb_build_object('on', true, 'by', me.login, 'by_id', me.id, 'enrolled_at', clock_timestamp(),   -- horloge réelle, comme la date de création des fiches
+      'started_at', kokolio_test._iso(v_now), 'last', kokolio_test._iso(v_depart), 'amorce', coalesce((st->>'amorce')::boolean, false));
+    if not (st ? 'since') then st := st || jsonb_build_object('since', kokolio_test._today() - 1); end if;
+    insert into kokolio_test.meta (key, value) values ('simulation', st) on conflict (key) do update set value = excluded.value, updated_at = now();
+    perform kokolio_test._audit(me.id, 'simulation_activee', null, '', jsonb_build_object('comptes', coalesce(array_length(kokolio_test._sim_ids(st), 1), 0)), coalesce(p->>'ip', ''));
+  else
+    if st is null or not coalesce((st->>'on')::boolean, false) then return kokolio_test._sim_state(me); end if;
+    update kokolio_test.meta set value = (st - 'claim') || jsonb_build_object('on', false, 'stopped_at', kokolio_test._iso(v_now)), updated_at = now() where key = 'simulation';
+    perform kokolio_test._audit(me.id, 'simulation_arretee', null, '', '{}'::jsonb, coalesce(p->>'ip', ''));
+  end if;
+  return kokolio_test._sim_state(me);
+end $$;
+
+-- Lecture pour un passage de la simulation (appelée par le serveur, sans session : elle ne renvoie rien si la simulation est arrêtée,
+-- et le serveur n'en transmet que des compteurs). Un passage par tranche de cinq minutes au plus.
+create or replace function kokolio_test._sim_read(p_args jsonb) returns jsonb language plpgsql as $$
+declare st jsonb; me kokolio_test.users; v_ids uuid[]; v_last timestamptz; v_now timestamptz := kokolio_test._now(); v_from date;
+begin
+  select m.value into st from kokolio_test.meta m where m.key = 'simulation';
+  if st is null or not coalesce((st->>'on')::boolean, false) or not kokolio_test._sim_allowed() then return jsonb_build_object('on', false); end if;
+  v_last := (st->>'last')::timestamptz;
+  if coalesce((st->>'amorce')::boolean, false) and v_now - v_last < interval '5 minutes' then
+    return jsonb_build_object('on', true, 'due', false, 'last', st->>'last');
+  end if;
+  -- un passage à la fois : celui qui lit réserve le passage (horloge réelle), les autres repartent aussitôt, sans rien lire de lourd.
+  -- La réservation tombe à l'application du lot, ou d'elle-même au bout d'une minute si le passage n'est pas allé au bout.
+  select m.value into st from kokolio_test.meta m where m.key = 'simulation' for update;
+  if not coalesce((st->>'on')::boolean, false) then return jsonb_build_object('on', false); end if;
+  if (st->>'last')::timestamptz is distinct from v_last then                      -- un autre passage vient d'avancer pendant l'attente du verrou
+    return jsonb_build_object('on', true, 'due', false, 'busy', true, 'last', st->>'last');
+  end if;
+  if (st->>'claim') is not null and clock_timestamp() - (st->>'claim')::timestamptz < interval '60 seconds' then
+    return jsonb_build_object('on', true, 'due', false, 'busy', true, 'last', st->>'last');
+  end if;
+  update kokolio_test.meta set value = st || jsonb_build_object('claim', clock_timestamp()) where key = 'simulation';
+  select * into me from kokolio_test.users u where u.role = 'admin' and not u.disabled order by u.created_at limit 1;
+  if me.id is null then return jsonb_build_object('on', false); end if;
+  v_ids := kokolio_test._sim_ids(st);
+  v_from := greatest((v_last at time zone kokolio_test._tz())::date, kokolio_test._today() - 7) - 6;
+  return kokolio_test._read(me, jsonb_build_object('scope', 'users', 'user_ids', to_jsonb(v_ids), 'from', v_from, 'to', kokolio_test._today() + 120, 'days', true, 'ctx', true))
+    || jsonb_build_object('on', true, 'due', true, 'last', st->>'last', 'now', kokolio_test._iso(v_now), 'amorce', coalesce((st->>'amorce')::boolean, false),
+                          'enrolled', coalesce(array_length(v_ids, 1), 0));
+end $$;
+
+-- Application d'un lot d'événements. Chaque événement est joué par la fonction ordinaire de l'outil, au nom du salarié simulé,
+-- à l'heure de l'événement. Un refus de gestion (journée validée, absence qui en chevauche une autre…) est compté, pas bloquant.
+create or replace function kokolio_test._sim_apply(p jsonb, p_args jsonb) returns jsonb language plpgsql as $$
+declare
+  st jsonb; ev jsonb; u kokolio_test.users; v_rh kokolio_test.users; v_ids uuid[]; v_kind text; v_code text; r jsonb;
+  v_faits jsonb := '{}'::jsonb; v_refus jsonb := '{}'::jsonb; v_p jsonb := jsonb_build_object('ip', 'simulation', 'ua', 'simulation');
+begin
+  select m.value into st from kokolio_test.meta m where m.key = 'simulation' for update;
+  if st is null or not coalesce((st->>'on')::boolean, false) or not kokolio_test._sim_allowed() then return jsonb_build_object('on', false); end if;
+  -- un autre passage a déjà avancé la simulation : celui-ci ne rejoue rien
+  if coalesce(st->>'last', '') <> coalesce(p_args->>'expect_last', '') then return jsonb_build_object('on', true, 'skipped', true, 'last', st->>'last'); end if;
+  if jsonb_typeof(p_args->'events') is distinct from 'array' or jsonb_array_length(p_args->'events') > 4000 then
+    perform kokolio_test._fail('requete', 'Lot d''événements invalide.');
+  end if;
+  if coalesce(p_args->>'upto', '') < coalesce(st->>'last', '') or (p_args->>'upto')::timestamptz > kokolio_test._now() + interval '1 minute' then
+    perform kokolio_test._fail('requete', 'Borne de simulation invalide.');
+  end if;
+  v_ids := kokolio_test._sim_ids(st);
+  select * into v_rh from kokolio_test.users x where x.id = (st->>'by_id')::uuid and x.role = 'admin' and not x.disabled;
+  for ev in select x from jsonb_array_elements(p_args->'events') x loop
+    v_kind := coalesce(ev->>'kind', '');
+    begin
+      if v_kind = 'absence_rh' then
+        -- amorce : absence déjà en cours, saisie d'un coup au nom de l'administrateur qui a mis la simulation en marche
+        if v_rh.id is null or not ((ev#>>'{args,user_id}')::uuid = any (v_ids)) then perform kokolio_test._fail('simulation', 'Compte non simulé.'); end if;
+        r := kokolio_test._absence_create(v_rh, v_p, ev->'args');
+      else
+        select * into u from kokolio_test.users x where x.id = (ev->>'user')::uuid;
+        if u.id is null or not (u.id = any (v_ids)) then perform kokolio_test._fail('simulation', 'Compte non simulé.'); end if;
+        if (ev->>'t')::timestamptz > kokolio_test._now() + interval '1 minute' then perform kokolio_test._fail('simulation', 'Événement à venir.'); end if;
+        perform set_config('kokolio_test.sim_now', ev->>'t', true);
+        case v_kind
+          when 'punch' then r := kokolio_test._punch(u, v_p, coalesce(ev->'args', '{}'::jsonb));
+          when 'absence' then r := kokolio_test._absence_create(u, v_p, (ev->'args') - 'user_id');
+          when 'correct' then r := kokolio_test._day_set(u, v_p, (ev->'args') - 'user_id');
+          when 'decide_days' then r := kokolio_test._days_decide(u, v_p, ev->'args');
+          when 'decide_absence' then r := kokolio_test._absence_decide(u, v_p, ev->'args');
+          else perform kokolio_test._fail('simulation', 'Événement inconnu.');
+        end case;
+        perform set_config('kokolio_test.sim_now', '', true);
+      end if;
+      v_faits := jsonb_set(v_faits, array[v_kind], to_jsonb(coalesce((v_faits->>v_kind)::int, 0) + 1));
+    exception when others then
+      perform set_config('kokolio_test.sim_now', '', true);
+      if sqlerrm not like 'KK:%' then raise; end if;
+      v_code := split_part(sqlerrm, ':', 2);
+      v_refus := jsonb_set(v_refus, array[v_code], to_jsonb(coalesce((v_refus->>v_code)::int, 0) + 1));
+    end;
+  end loop;
+  perform set_config('kokolio_test.sim_now', '', true);
+  st := (st - 'claim') || jsonb_build_object('last', p_args->>'upto', 'amorce', coalesce((st->>'amorce')::boolean, false) or coalesce((p_args->>'amorce')::boolean, false),
+    'passages', coalesce((st->>'passages')::int, 0) + 1, 'dernier_passage', kokolio_test._iso(kokolio_test._now()),
+    'total', coalesce((st->>'total')::int, 0) + jsonb_array_length(p_args->'events'));
+  update kokolio_test.meta set value = st, updated_at = now() where key = 'simulation';
+  return jsonb_build_object('on', true, 'last', st->>'last', 'faits', v_faits, 'refus', v_refus);
 end $$;
 -- =====================================================================
 -- Kokolio — mode démonstration
@@ -2547,6 +2744,7 @@ begin
   update kokolio_test.meta set value = jsonb_set(jsonb_set(value, '{go_live}', to_jsonb(kokolio_test._today()::text)), '{version}', to_jsonb(coalesce((value->>'version')::int, 1) + 1)), updated_at = now()
   where key = 'settings';
   delete from kokolio_test.meta where key = 'demo';
+  delete from kokolio_test.meta where key = 'simulation';   -- la simulation d'activité s'arrête avec la démonstration
   perform kokolio_test._audit(me.id, 'donnees_demo_effacees', null, '', jsonb_build_object('comptes', v_users, 'journees', v_days), coalesce(p->>'ip', ''));
   return jsonb_build_object('users', v_users, 'days', v_days);
 end $$;
@@ -2559,7 +2757,7 @@ create or replace function kokolio_test.selftest() returns jsonb language plpgsq
 declare
   v_checks jsonb := '[]'::jsonb; v_r jsonb; v_tag text := 'kktest_' || substr(replace(gen_random_uuid()::text, '-', ''), 1, 12);
   v_rh uuid; v_mgr uuid; v_e1 uuid; v_e2 uuid; v_seq0 bigint; v_fp text; v_ok boolean; v_day uuid; v_abs uuid; c kokolio_test.contracts;
-  t_rh text; t_mgr text; t_e1 text; t_e2 text; v_t0 timestamptz := '2001-02-15T09:00:00+01:00'; v_adm uuid; t_adm text;
+  t_rh text; t_mgr text; t_e1 text; t_e2 text; v_t0 timestamptz := '2001-02-15T09:00:00+01:00'; v_adm uuid; t_adm text; v_n bigint;
 begin
   begin
     insert into kokolio_test.meta (key, value) values ('test_mode', 'true'::jsonb) on conflict (key) do update set value = 'true'::jsonb;
@@ -2727,15 +2925,34 @@ begin
       'ok', not exists (select 1 from pg_class tb join pg_namespace ns on ns.oid = tb.relnamespace
                         where ns.nspname = 'kokolio_test' and tb.relkind = 'r' and tb.relname <> all (kokolio_test._test_tables() || array['meta', 'sessions', 'throttle'])));
 
-    -- 9. Mode démonstration : l'effacement des données n'existe que là
+    -- 8 ter. Organigramme : la structure, pas la liste des salariés. Simulation d'activité : réservée, et sourde aux passages forgés.
+    v_r := public.kokolio_test_api(jsonb_build_object('action', 'org_chart', 'token', t_e2));
+    v_checks := v_checks || jsonb_build_object('name', 'Organigramme : seuls ceux qui encadrent y figurent',
+      'ok', coalesce((v_r->>'ok')::boolean, false)
+            and exists (select 1 from jsonb_array_elements(v_r #> '{data,nodes}') x where (x->>'id')::uuid = v_mgr)
+            and not exists (select 1 from jsonb_array_elements(v_r #> '{data,nodes}') x where (x->>'id')::uuid in (v_e1, v_e2, v_rh)));
+    v_r := public.kokolio_test_api(jsonb_build_object('action', 'sim_set', 'token', t_rh, 'args', jsonb_build_object('on', true)));
+    v_checks := v_checks || jsonb_build_object('name', 'Simulation d''activité : mise en marche réservée aux administrateurs', 'ok', v_r->>'code' = 'interdit');
+    select count(*) into v_n from kokolio_test.punch_log l where l.user_id = v_e1;
+    v_r := public.kokolio_test_api(jsonb_build_object('action', 'sim_apply', 'args', jsonb_build_object('expect_last', 'x', 'upto', 'x',
+      'events', jsonb_build_array(jsonb_build_object('kind', 'punch', 'user', v_e1, 't', kokolio_test._iso(v_t0))))));
+    v_checks := v_checks || jsonb_build_object('name', 'Simulation d''activité : un passage forgé ne fait pointer personne',
+      'ok', (select count(*) from kokolio_test.punch_log l where l.user_id = v_e1) = v_n);
+
+    -- 9. Mode démonstration : l'effacement des données n'existe que là, et la simulation d'activité ne sort pas de son périmètre
     if exists (select 1 from kokolio_test.meta m where m.key = 'demo') then
       v_checks := v_checks || jsonb_build_object('name', 'Effacement des données réservé au mode démonstration (actif ici : contrôle sans objet)', 'ok', true);
+      v_checks := v_checks || jsonb_build_object('name', 'Simulation d''activité réservée au test et au mode démonstration (actif ici : contrôle sans objet)', 'ok', true);
     else
       insert into kokolio_test.users (login, role, last_name) values (v_tag || '_adm', 'admin', 'Test Admin') returning id into v_adm;
       t_adm := encode(sha256(convert_to(v_tag || 'adm', 'UTF8')), 'hex');
       insert into kokolio_test.sessions (token_hash, user_id, created_at, last_seen, expires_at) values (t_adm, v_adm, v_t0, v_t0, v_t0 + interval '1 day');
       v_r := public.kokolio_test_api(jsonb_build_object('action', 'demo_reset', 'token', t_adm, 'args', '{}'::jsonb));
       v_checks := v_checks || jsonb_build_object('name', 'Effacement des données impossible hors mode démonstration', 'ok', v_r->>'code' = 'etat');
+      v_r := public.kokolio_test_api(jsonb_build_object('action', 'sim_set', 'token', t_adm, 'args', jsonb_build_object('on', true)));
+      v_checks := v_checks || jsonb_build_object('name', case when kokolio_test._env() = 'test' then 'Simulation d''activité : permise dans l''environnement de test'
+                                                              else 'Simulation d''activité impossible en production hors mode démonstration' end,
+        'ok', case when kokolio_test._env() = 'test' then coalesce((v_r->>'ok')::boolean, false) else v_r->>'code' = 'etat' end);
     end if;
 
     raise exception 'KKTEST:%', v_checks::text;
@@ -2776,6 +2993,7 @@ begin
         'demo', exists (select 1 from kokolio_test.meta m where m.key = 'demo'),
         'environment', kokolio_test._env(),
         'cloned', case when kokolio_test._env() = 'test' then (select m.value from kokolio_test.meta m where m.key = 'test_clone') end,
+        'simulation', coalesce((select (m.value->>'on')::boolean from kokolio_test.meta m where m.key = 'simulation'), false) and kokolio_test._sim_allowed(),
         'today', kokolio_test._today());
     when 'auth_salt' then return kokolio_test._auth_salt(v_args);
     when 'login' then return kokolio_test._login(p, v_args);
@@ -2783,6 +3001,9 @@ begin
     when 'logout' then
       delete from kokolio_test.sessions s where s.token_hash = coalesce(p->>'token', '');
       return '{}'::jsonb;
+    -- simulation d'activité : un passage ne lit et n'écrit que si elle est en marche, là où elle est permise
+    when 'sim_read' then return kokolio_test._sim_read(v_args);
+    when 'sim_apply' then return kokolio_test._sim_apply(p, v_args);
     else null;
   end case;
 
@@ -2832,6 +3053,9 @@ begin
     when 'annual_period_save' then return kokolio_test._annual_period_save(me, p, v_args);
     when 'annual_goal_set' then return kokolio_test._annual_goal_set(me, p, v_args);
     when 'annual_entry_add' then return kokolio_test._annual_entry_add(me, p, v_args);
+    when 'org_chart' then return kokolio_test._org_chart(me);
+    when 'sim_state' then return kokolio_test._sim_state(me);
+    when 'sim_set' then return kokolio_test._sim_set(me, p, v_args);
     when 'test_status' then return kokolio_test._test_status(me);
     when 'test_clone' then return kokolio_test._test_clone(me, p);
     when 'demo_seed' then return kokolio_test._demo_seed(me, p, v_args);
@@ -2911,7 +3135,7 @@ begin
 end $$;
 revoke all on function kokolio_test.bootstrap_admin(text, text) from public;
 
-insert into kokolio_test.meta (key, value) values ('schema_version', '8'::jsonb)
+insert into kokolio_test.meta (key, value) values ('schema_version', '9'::jsonb)
 on conflict (key) do update set value = excluded.value, updated_at = now();
 
 notify pgrst, 'reload schema';

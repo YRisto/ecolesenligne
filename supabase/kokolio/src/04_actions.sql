@@ -94,12 +94,17 @@ end $$;
 -- Ce qui attend une décision : pour un responsable, son équipe ; pour les RH, tout le monde.
 create or replace function kokolio._pending(me kokolio.users, p_args jsonb) returns jsonb language plpgsql stable as $$
 declare
-  v_all boolean := coalesce(p_args->>'scope', 'team') = 'all'; v_ids uuid[]; v_one uuid := nullif(p_args->>'user_id', '')::uuid;
+  v_scope text := coalesce(p_args->>'scope', 'team'); v_all boolean := coalesce(p_args->>'scope', 'team') in ('all', 'rh');
+  v_ids uuid[]; v_one uuid := nullif(p_args->>'user_id', '')::uuid; v_today date := kokolio._today();
   v_self boolean := me.role = 'admin' and me.manager_id is null;
 begin
   if v_all then
     if me.role not in ('rh', 'admin') then perform kokolio._fail('interdit', 'Accès réservé aux RH.'); end if;
-    select coalesce(array_agg(u.id), '{}') into v_ids from kokolio.users u where u.id <> me.id or v_self;
+    -- « rh » : ce qui revient aux RH, c'est-à-dire les salariés sans responsable en activité. Les autres attendent chez leur responsable.
+    select coalesce(array_agg(u.id), '{}') into v_ids from kokolio.users u
+    where (u.id <> me.id or v_self)
+      and (v_scope = 'all' or u.manager_id is null
+           or exists (select 1 from kokolio.users m where m.id = u.manager_id and (m.disabled or (m.exit_date is not null and m.exit_date < v_today))));
   else
     select coalesce(array_agg(u.id), '{}') into v_ids from kokolio.users u where u.manager_id = me.id or (v_self and u.id = me.id);
   end if;
@@ -116,6 +121,7 @@ begin
                                 from kokolio.days d where d.user_id = any(v_ids) and d.status = 'a_valider'), '[]'::jsonb) end,
     'absences', coalesce((select jsonb_agg(kokolio._abs_json(a) order by a.created_at)
                           from kokolio.absences a where a.user_id = any(v_ids) and a.status = 'en_attente'), '[]'::jsonb),
+    'encadres', (select count(*) from kokolio.users u where u.manager_id is not null and not u.disabled),
     'today', kokolio._today(), 'hm', kokolio._hm());
 end $$;
 

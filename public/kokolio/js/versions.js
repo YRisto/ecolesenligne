@@ -1,5 +1,18 @@
 // Fonctionnalités et historique des versions. À mettre à jour à chaque mise en ligne, avec lib/kokolio/version.mjs.
 export const VERSIONS = [
+  { v: "2.5.0", date: "26/11/2026", titre: "Organigramme, validation par les responsables, simulation d'activité", points: [
+    "Organigramme sur la page d'accueil de chacun : la direction générale, puis trois étages de responsables à déplier, avec le poste et l'effectif de chaque équipe ; il se déduit du responsable indiqué sur chaque fiche",
+    "Le salarié voit sa ligne hiérarchique sous son écran de pointage, et l'organigramme complet en un geste ; on n'y lit que la structure, jamais la liste des salariés",
+    "Import de salariés : la colonne matricule_responsable rattache chacun à son responsable par son matricule, y compris pour des fiches déjà présentes",
+    "Validation côté RH : par défaut, seuls les salariés sans responsable ; « Tout, responsables compris » montre le reste, pour suivre ou valider à la place d'un responsable. Depuis la clôture, la validation s'ouvre sur tout ce qui bloque",
+    "Simulation d'activité (environnement de test, ou production pendant le mode démonstration) : des salariés fictifs pointent au fil de la journée — tous, sauf les absents —, posent des congés, déclarent des arrêts, corrigent un départ oublié ; leurs responsables valident",
+    "Scénario vraisemblable et différent chaque jour ; à la première mise en marche, la journée de la veille est créée avec les absences déjà en cours",
+    "Seules les fiches jamais activées sont simulées : un compte dont le mot de passe est posé n'est plus touché, et son équipe attend ses validations",
+    "La simulation avance toutes les heures, et dès qu'une page de l'outil est ouverte ; elle se met en marche et s'arrête dans l'onglet « Test » de l'administration, et disparaît avec les données de démonstration",
+    "Après une copie vers le test, la simulation y arrive arrêtée : le test reste une image fixe de la production tant qu'on ne l'anime pas",
+    "Scénarios de charge k6 livrés avec l'outil (tests/kokolio/k6) : pic du matin, journée type, écrans lourds, montée en charge, endurance, robustesse",
+    "Base de données en version 9 (aucune donnée modifiée)",
+  ] },
   { v: "2.4.0", date: "26/11/2026", titre: "Environnement de test", points: [
     "Environnement de test : une seconde installation complète de l'outil, à l'adresse /kokolio-test, avec ses propres données ; rien de ce qui s'y fait ne touche la production",
     "Accès bien en vue pour l'administrateur : une tuile sur son accueil et l'onglet « Test » de l'administration ; dans le test, un bandeau permanent et le repère « TEST »",

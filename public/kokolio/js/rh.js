@@ -320,7 +320,7 @@ export function vueImport() {
   pose(h("div", { class: "ligne" }, h("h2", null, "Importer des salariés"), h("button", { onclick: () => aller("#/rh/salaries") }, "‹ Salariés")),
     h("div", { class: "carte" }, h("h3", null, "1. Préparer le fichier"),
       h("p", null, "Un tableau avec une ligne d'en-tête et une ligne par salarié, enregistré au format CSV. Seule la colonne « nom » est obligatoire."),
-      h("ul", null, h("li", null, "Colonnes reconnues : identifiant, nom, prenom, matricule, email, equipe, poste, responsable (son identifiant), date_entree, date_sortie, regime (horaire ou forfait), heures_hebdo, jours_travailles (exemple : lun-ven), pause, solde_cp, droits_rtt, debut_suivi, presence (pointage ou automatique), cycle (son nom dans la bibliothèque)."),
+      h("ul", null, h("li", null, "Colonnes reconnues : identifiant, nom, prenom, matricule, email, equipe, poste, responsable (son identifiant) ou matricule_responsable, date_entree, date_sortie, regime (horaire ou forfait), heures_hebdo, jours_travailles (exemple : lun-ven), pause, solde_cp, droits_rtt, debut_suivi, presence (pointage ou automatique), cycle (son nom dans la bibliothèque)."),
         h("li", null, "Sans colonne identifiant, il est fabriqué : prenom.nom."), h("li", null, "Un salarié déjà présent (même identifiant) est mis à jour ; son mot de passe, son horaire et ses soldes ne changent pas."),
         h("li", null, "solde_cp : jours de congés restant à prendre à la date de mise en service. droits_rtt : droits de l'année."),
         h("li", null, "debut_suivi : premier jour où le salarié est suivi, pour déployer équipe par équipe ou repousser un lancement. Pour une fiche déjà présente, la date est déplacée quand la colonne est remplie (sauf si un mois clôturé se trouve entre l'ancienne et la nouvelle).")),
@@ -409,7 +409,7 @@ async function preparer(month) {
   ouvrir(`Clôturer ${frMois(month)}`, [
     !c.ended ? h("p", { class: "bandeau refus" }, "Ce mois n'est pas terminé.") : null,
     c.pending_days ? h("div", { class: "bandeau refus" }, h("strong", null, `${c.pending_days} journée${c.pending_days > 1 ? "s" : ""} non validée${c.pending_days > 1 ? "s" : ""}`), "Elles bloquent la clôture. Relancez les responsables, ou validez-les vous-même.",
-      h("div", { class: "ligne" }, h("button", { type: "button", class: "petit", onclick: () => { document.getElementById("dlg").close(); aller("#/rh/validation"); } }, "Ouvrir la validation"))) : null,
+      h("div", { class: "ligne" }, h("button", { type: "button", class: "petit", onclick: () => { document.getElementById("dlg").close(); aller("#/rh/validation/tout"); } }, "Ouvrir la validation"))) : null,
     c.pending_absences ? h("p", { class: "bandeau refus" }, `${c.pending_absences} demande${c.pending_absences > 1 ? "s" : ""} d'absence en attente sur ce mois : à valider ou refuser avant de clôturer.`) : null,
     !bloque ? h("p", { class: "bandeau ok" }, "Toutes les journées sont validées et aucune demande n'est en attente.") : null,
     h("div", { class: "tuiles" }, tuile("Salariés", String(c.totals.employees)), tuile("Heures", fmtMin(c.totals.worked)), tuile("Absences", fmtJ(c.totals.abs_days))),
@@ -450,6 +450,7 @@ const ACTIONS = { connexion: "Connexion", compte_active: "Compte activé", compt
   planning_modifie: "Planning modifié", horaire_type_cree: "Horaire journalier créé", horaire_type_modifie: "Horaire journalier modifié", cycle_cree: "Cycle créé", cycle_modifie: "Cycle modifié", periode_annualisation_creee: "Période d'annualisation créée", periode_annualisation_modifiee: "Période d'annualisation modifiée",
   anomalies_acquittees: "Anomalies acquittées", acquittement_annule: "Acquittement annulé",
   test_copie: "Production copiée vers l'environnement de test",
+  simulation_activee: "Simulation d'activité mise en marche", simulation_arretee: "Simulation d'activité arrêtée",
   objectif_annuel_fixe: "Objectif annuel fixé", objectif_annuel_retire: "Objectif annuel recalculé d'après le planning", objectif_annuel_ajuste: "Objectif annuel ajusté" };
 const CLES = { avant: "avant", apres: "après", motif: "motif", du: "du", au: "au", demi: "demi-journée", jours: "jours", justificatif: "justificatif", annee: "année", version: "version", auto_validation: "auto-validation",
   a_compter_du: "à compter du", regime: "régime", pause: "pause", crees: "créés", mis_a_jour: "mis à jour", ecritures: "écritures", ignorees: "ignorées", nom: "nom", role: "profil", deja_active: "compte déjà activé",

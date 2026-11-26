@@ -20,7 +20,7 @@ with sync_playwright() as p:
     ad.page.locator("button.mode.m-test").click(); ad.page.wait_for_load_state("networkidle")
     assert ad.page.evaluate("location.hash") == "#/admin/test"
     ad.voit("Une copie complète pour essayer sans risque"); ad.voit("Ouvrir l'environnement de test")
-    ad.voit("faite · schéma 8"); ad.voit("oui · application 2.4.0"); ad.voit("jamais", exact=True); ad.photo("91-admin-test-avant-copie")
+    ad.voit("faite · schéma 9"); ad.voit("oui · application 2.5.0"); ad.voit("jamais", exact=True); ad.photo("91-admin-test-avant-copie")
     lien = ad.page.get_by_role("link", name="Ouvrir l'environnement de test")
     assert lien.get_attribute("href") == "/kokolio-test" and lien.get_attribute("target") == "_blank"
     assert ad.page.locator("nav#onglets").get_by_text("Test", exact=True).count() == 1

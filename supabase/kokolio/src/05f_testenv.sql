@@ -81,9 +81,12 @@ begin
     v_sql := v_sql || format('c_%s as (insert into %I.%I (%s) select %s from kokolio.%I returning 1), ', t, v_dst, t, v_cols, v_src, t);
     v_sel := v_sel || format('%L, (select count(*) from c_%s), ', t, t);
   end loop;
-  -- réglages et états (version du schéma exceptée) dans la même lecture : la tête du journal correspond à sa dernière ligne
-  v_sql := 'with ' || v_sql || format('c_meta as (insert into %I.meta (key, value) select m.key, m.value from kokolio.meta m where m.key not in (''schema_version'', ''test_clone'') '
-    || 'on conflict (key) do update set value = excluded.value, updated_at = now() returning 1) ', v_dst)
+  -- réglages et états (version du schéma exceptée) dans la même lecture : la tête du journal correspond à sa dernière ligne.
+  -- La simulation d'activité arrive arrêtée : le test est une image fixe de la production, qu'on anime ou non depuis son propre onglet « Test ».
+  v_sql := 'with ' || v_sql || format('c_meta as (insert into %I.meta (key, value) select m.key, '
+    || 'case when m.key = ''simulation'' and coalesce((m.value->>''on'')::boolean, false) then m.value || jsonb_build_object(''on'', false, ''stopped_at'', %L::text) else m.value end '
+    || 'from kokolio.meta m where m.key not in (''schema_version'', ''test_clone'') '
+    || 'on conflict (key) do update set value = excluded.value, updated_at = now() returning 1) ', v_dst, kokolio._iso(v_at))
     || 'select jsonb_build_object(' || v_sel || '''meta'', (select count(*) from c_meta))';
   execute format('delete from %I.meta d where d.key <> ''schema_version'' and not exists (select 1 from kokolio.meta m where m.key = d.key)', v_dst);
   execute v_sql into v_counts;

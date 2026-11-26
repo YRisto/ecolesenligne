@@ -48,9 +48,12 @@ with sync_playwright() as p:
     so.a("2026-12-01", "10:00").va("#/rh/cloture"); so.recharge(); so.voit("Clôture et export paie"); so.voit("Ouvert"); so.photo("37-cloture")
     so.clic("Préparer la clôture"); so.voit("non validée"); so.voit("sans pointage ni absence"); so.photo("38-cloture-bloquee", pleine=False)
     assert so.page.locator("#dlg").get_by_role("button", name="Clôturer le mois").count() == 0
+    # depuis la clôture, la validation s'ouvre sur tout ce qui bloque, responsables compris ; l'onglet, lui, ne montre que ce qui revient aux RH
     so.clic("Ouvrir la validation"); so.voit("Validation · tous les salariés"); so.photo("39-validation-rh")
+    so.va("#/rh/validation"); so.voit("Validation · à traiter par les RH"); so.voit("Ici, les salariés sans responsable"); so.photo("39b-validation-rh-a-traiter", pleine=False)
+    so.clic("Tout, responsables compris"); so.voit("Validation · tous les salariés"); assert so.page.url.endswith("#/rh/validation/tout")
     for _ in range(8):
-        so.va("#/rh/validation")
+        so.va("#/rh/validation/tout")
         ouvrir = so.page.get_by_role("button", name="Ouvrir", exact=True)
         demandes = so.page.locator(".carte", has_text="Demandes d'absence").get_by_role("button", name="Valider", exact=True)
         if demandes.count(): demandes.first.click(); so.page.wait_for_timeout(400); continue
@@ -63,7 +66,7 @@ with sync_playwright() as p:
             so.voit("Départ non pointé"); so.photo("39b-depart-non-pointe"); so.clic("Corriger"); so.voit("elle sera tracée à votre nom")
             so.page.locator("#dlg input[aria-label='Départ']").first.fill("17:00"); so.page.locator("#dlg textarea").fill("Départ non pointé, heure confirmée par la salariée"); so.valider_fenetre("Enregistrer")
         so.page.wait_for_timeout(400)
-    so.va("#/rh/validation"); so.voit("Rien à valider")
+    so.va("#/rh/validation/tout"); so.voit("Rien à valider")
     so.va("#/rh/cloture"); so.clic("Préparer la clôture"); so.voit("Toutes les journées sont validées"); so.photo("40-cloture-prete", pleine=False)
     with so.page.expect_download() as dl: so.clic("Télécharger le brouillon de l'export")
     assert dl.value.suggested_filename.startswith("BROUILLON-paie-2026-11")

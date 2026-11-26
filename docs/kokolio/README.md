@@ -48,7 +48,7 @@ Contrôle : `GET /api/kokolio/health` répond `{"ok":true,"database":"ok",…}` 
 
 | Profil | Voit | Peut |
 |---|---|---|
-| Salarié | ses pointages, ses absences, ses soldes, sa fiche | pointer, corriger (motif obligatoire, validation requise), demander une absence, annuler une demande en attente |
+| Salarié | ses pointages, ses absences, ses soldes, sa fiche ; l'organigramme (les responsables, leur poste, l'effectif des équipes) | pointer, corriger (motif obligatoire, validation requise), demander une absence, annuler une demande en attente |
 | Responsable (toute personne à qui un salarié est rattaché) | en plus : les journées, absences et soldes de son équipe directe, sans les coordonnées personnelles | valider ou refuser journées et absences, rouvrir, générer un code d'activation pour un membre de son équipe |
 | RH | tous les salariés | fiches, horaires, soldes, import, saisie pour un salarié, clôture, export, journal |
 | Administrateur | comme RH | en plus : profils RH et administrateur, réglages, motifs, autodiagnostic |
@@ -96,6 +96,26 @@ Une seconde installation complète de l'outil vit à côté de la production : m
 - **Seule passerelle, à sens unique.** Rien, dans le test, ne peut écrire en production : la copie ne se lance que depuis la production.
 - **Installation et mise à jour** : exécuter `install.sql`, puis `install-test.sql`, dans la console SQL. Les deux doivent être à la même version du schéma pour copier ; l'onglet Test le signale sinon.
 - **Limites à connaître.** Le test est hébergé au même endroit que la production : ses données comptent dans la capacité de la base, et une forte charge sur le test (essais k6) peut ralentir la production. Une copie se fait en une seule requête : à plusieurs centaines de milliers de lignes, elle peut dépasser le délai accordé par l'hébergement ; elle échoue alors sans rien changer.
+
+## Organigramme et validation par les responsables (depuis la version 2.5)
+
+- **D'où il vient.** L'organigramme se déduit du responsable indiqué sur chaque fiche (écran de la fiche, ou import : colonne `responsable` — l'identifiant — ou `matricule_responsable`). Rien d'autre à saisir.
+- **Ce qu'il montre.** Uniquement les personnes qui encadrent quelqu'un : nom, poste, effectif de l'équipe (en direct, et au total). La direction générale en tête, puis trois étages à déplier. Les salariés qui n'encadrent personne n'y figurent pas : chacun lit la structure, pas la liste du personnel. Aucun identifiant, matricule ni coordonnée n'est transmis.
+- **Où.** Sur la page d'accueil de ceux qui ont plusieurs espaces (responsables, RH, administrateurs). Pour le salarié, dont la page d'accueil est l'écran de pointage : sa ligne hiérarchique sous le pointage, et l'organigramme complet en un geste (`#/organigramme`).
+- **Validation.** Chaque responsable valide les journées et les demandes de son équipe directe. L'onglet Validation des RH ne montre par défaut que ce qui leur revient : les salariés sans responsable (ou dont le responsable est sorti ou désactivé). « Tout, responsables compris » montre le reste, pour suivre ou valider à la place d'un responsable ; depuis la clôture, la validation s'ouvre sur cette vue complète.
+
+## Simulation d'activité (depuis la version 2.5)
+
+Pour faire vivre un outil en cours d'essai : des salariés fictifs pointent, s'absentent, et leurs responsables valident.
+
+- **Où elle peut tourner.** Dans l'environnement de test ; en production seulement tant que le mode démonstration est actif. Hors de ces deux cas, la base la refuse (contrôle de l'autodiagnostic). Elle se met en marche et s'arrête dans Administration › Test ; c'est inscrit au journal.
+- **Qui est simulé.** Les fiches de profil salarié dont le compte n'a jamais été activé, présentes au moment de la mise en marche. Dès qu'une personne pose son mot de passe, la simulation ne touche plus à son compte ; si elle encadre une équipe, cette équipe attend ses validations.
+- **Ce qui se passe.** Chaque jour travaillé, chacun pointe son arrivée, sa pause et son départ à des heures qui lui ressemblent (certains arrivent tôt, d'autres en retard, quelques-uns oublient de pointer leur départ et corrigent le lendemain). Tous pointent, sauf les absents : congés posés à l'avance, arrêts déclarés le matin même, absences imprévues régularisées le lendemain. Les responsables simulés valident chaque matin les journées terminées de leur équipe et décident les demandes (quelques refus). Fréquences en tête de `lib/kokolio/engine/simulation.mjs`.
+- **Vraisemblable, pas aléatoire au sens strict.** Chaque tirage dépend du salarié et du jour : la journée de quelqu'un est la même quel que soit le moment où la simulation passe. Chaque événement porte son heure ; un passage ne joue que ceux dont l'heure est venue depuis le passage précédent. Les actions passent par les fonctions ordinaires de l'outil (mêmes règles, mêmes verrous), au nom du salarié simulé, à l'heure de l'événement ; elles sont repérées par l'adresse « simulation » dans la trace des pointages et dans le journal.
+- **Première mise en marche.** La journée de la veille est créée, et les absences déjà en cours sont posées (saisies par l'administrateur qui met en marche, au journal).
+- **Rythme.** Un passage par heure (`.github/workflows/kokolio-simulation.yml`, qui appelle `/api/kokolio/sim/tick` et `/api/kokolio-test/sim/tick`), et un passage dès qu'une page de l'outil est ouverte, puis toutes les dix minutes. L'adresse est publique, ne reçoit aucune donnée, ne renvoie que des compteurs, et ne fait rien si un passage a eu lieu dans les cinq dernières minutes. Après une interruption, au plus une semaine est rattrapée.
+- **Fin.** L'arrêt fige tout ; la remise en marche repart de l'instant présent. L'effacement des données de démonstration supprime aussi la simulation. Une copie vers le test l'y dépose arrêtée.
+- **À savoir.** Les pointages simulés s'ajoutent à la base : à 540 fiches, de l'ordre de 2 000 pointages par jour ouvré.
 
 ## Comptes et mots de passe
 
@@ -188,9 +208,11 @@ node --test tests/kokolio/api.test.mjs          # scénario complet contre une v
 node --test tests/kokolio/planning.test.mjs     # versions 2.0 à 2.2 : planification, annualisation, anomalies, présents, nuit, clôture
 node --test tests/kokolio/demo.test.mjs         # mise à jour de la base (version 1 → version courante) et mode démonstration (un fichier à la fois : même base locale)
 node --test tests/kokolio/env.test.mjs          # environnement de test : copie, cloisonnement des deux installations, sessions, justificatifs non copiés
+node --test tests/kokolio/sim.test.mjs          # organigramme, validation côté RH, simulation d'activité (périmètre, veille, passages sans doublon, copie, arrêt)
 bash tests/kokolio/sur-environnement-test.sh    # rejoue les suites « api » et « planning » contre l'environnement de test installé seul
-bash tests/kokolio/e2e/tout.sh                  # navigateur (Playwright) : mise en route, quotidien, RH, démonstration (outil vide, puis avec des comptes déjà créés), planification, annualisation, anomalies et présents, environnement de test
+bash tests/kokolio/e2e/tout.sh                  # navigateur (Playwright) : mise en route, quotidien, RH, démonstration (outil vide, puis avec des comptes déjà créés), planification, annualisation, anomalies et présents, environnement de test, organigramme et simulation
 node tests/kokolio/charge.mjs 500               # volume : 500 salariés, un mois de pointages, 200 pointages simultanés
+bash tests/kokolio/k6/lancer-local.sh tout      # charge (k6) sur le banc local : pic du matin, journée type, écrans lourds, montée en charge, endurance, robustesse — voir tests/kokolio/k6/README.md
 ```
 
 Dans l'outil : Administration › État › « Lancer l'autodiagnostic » rejoue en production, sur des comptes fictifs effacés aussitôt, les règles de cloisonnement et de verrouillage.

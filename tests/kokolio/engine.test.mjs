@@ -642,3 +642,197 @@ test("export : une absence comptée en jours calendaires part même sans jour pr
   // un arrêt entièrement après la sortie n'est pas transmis
   assert.deepEqual(lignes({ ...USER, exit_date: "2026-10-15" }, [abs("maladie", "2026-10-17", "2026-10-18")]), []);
 });
+
+/* ---------------------------------------------------------------- import : responsable désigné par son matricule */
+test("import : le responsable peut être désigné par son matricule", () => {
+  const p = prepareImport("nom;prenom;matricule;matricule_responsable\nDurand;Léa;1001;1002\nMorel;Paul;1002;\nPetit;Zoé;1003;0004\nRoux;Ana;1004;9999",
+    [{ login: "julien.bernard", matricule: "0004" }]);
+  assert.deepEqual(p.errors, []);
+  // dans le fichier, plus bas ; puis parmi les fiches déjà présentes ; puis introuvable
+  assert.deepEqual(p.rows.map((r) => [r.login, r.manager_login, r.errors.length]), [["lea.durand", "paul.morel", 0], ["paul.morel", "", 0], ["zoe.petit", "julien.bernard", 0], ["ana.roux", "", 1]]);
+  assert.match(p.rows[3].errors[0], /matricule du responsable « 9999 » introuvable/);
+  assert.ok(p.rows.every((r) => !("manager_matricule" in r)), "la colonne n'est pas transmise à la base");
+  // identifiant et matricule donnés ensemble : ils doivent désigner la même personne
+  const q = prepareImport("identifiant;nom;matricule;responsable;matricule_responsable\na.b;Durand;1;c.d;2\nc.d;Morel;2;;\ne.f;Petit;3;a.b;2", []);
+  assert.deepEqual(q.rows.map((r) => r.errors.length), [0, 0, 1]);
+  assert.match(q.rows[2].errors[0], /ne désignent pas la même personne/);
+});
+
+/* ---------------------------------------------------------------- simulation d'activité */
+import { REGLAGES, absencesEnCours, demandesDuJour, evenements, instantParis, journeeSimulee, parisDe, tirage } from "../../lib/kokolio/engine/simulation.mjs";
+import { toMin } from "../../lib/kokolio/engine/model.mjs";
+
+const SIM_TYPES = [...TYPES, { code: "sans_solde", label: "Congé sans solde", category: "autre" }, { code: "evenement", label: "Événement familial", category: "autre" }].map((t) => ({ ...t, active: true }));
+const SIM_SETTINGS = { ...SETTINGS, go_live: "2026-11-02", lieux: [{ code: "bureau", label: "Bureau" }, { code: "teletravail", label: "Télétravail" }] };
+// Une petite entreprise : un directeur, quatre responsables d'équipe, cent salariés, tous à 35 h du lundi au vendredi.
+function entreprise({ jours = [], absences = [] } = {}) {
+  const users = [], contracts = [];
+  const ajoute = (id, manager_id) => { users.push({ id, login: id, name: id, manager_id, entry_date: "2024-01-01", exit_date: null, tracked_from: null });
+    contracts.push({ ...C35, user_id: id, start_date: "2024-01-01", presence: "pointage" }); };
+  ajoute("dg", null);
+  for (let m = 1; m <= 4; m++) { ajoute(`m${m}`, "dg"); for (let k = 1; k <= 25; k++) ajoute(`s${m}-${k}`, `m${m}`); }
+  return { users, contracts, days: jours, absences, plan: [], closed: [], today: "2026-11-26", ctx: { settings: SIM_SETTINGS, types: SIM_TYPES } };
+}
+
+test("simulation : tirages reproductibles, heures de Paris", () => {
+  const a = tirage("u1|2026-11-25"), b = tirage("u1|2026-11-25"), c = tirage("u1|2026-11-26");
+  const sa = [a(), a(), a()], sb = [b(), b(), b()], sc = [c(), c(), c()];
+  assert.deepEqual(sa, sb); assert.notDeepEqual(sa, sc);
+  assert.ok(sa.every((x) => x >= 0 && x < 1));
+  assert.equal(instantParis("2026-11-25", "09:00"), "2026-11-25T08:00:00.000Z");   // heure d'hiver
+  assert.equal(instantParis("2026-07-15", "09:00"), "2026-07-15T07:00:00.000Z");   // heure d'été
+  assert.equal(instantParis("2026-03-29", "03:30"), "2026-03-29T01:30:00.000Z");   // le jour du passage à l'heure d'été
+  assert.deepEqual(parisDe("2026-11-25T23:30:00.000Z"), { jour: "2026-11-26", heure: "00:30" });
+  assert.deepEqual(parisDe(instantParis("2026-10-25", "12:00")), { jour: "2026-10-25", heure: "12:00" });
+});
+
+test("simulation : une journée vraisemblable pour chacun, la même à chaque calcul", () => {
+  const cas = {}, ecarts = [];
+  for (let u = 0; u < 400; u++) {
+    const id = `u${u}`, rec = buildDays({ user: { ...USER, id }, contracts: [C35], days: [], absences: [], types: TYPES, settings: SIM_SETTINGS, from: "2026-11-25", to: "2026-11-25", today: "2026-11-26" })[0];
+    const j = journeeSimulee({ id, rec, contract: C35, settings: SIM_SETTINGS });
+    assert.deepEqual(journeeSimulee({ id, rec, contract: C35, settings: SIM_SETTINGS }), j, "même salarié, même jour : même journée");
+    cas[j.cas] = (cas[j.cas] || 0) + 1;
+    if (j.cas === "absent") { assert.deepEqual(j.times, []); continue; }
+    const t = j.times.map(toMin);
+    assert.ok(t.every((x, i) => i === 0 || x > t[i - 1]), `heures croissantes : ${j.times}`);
+    assert.ok(t[0] >= 7 * 60 + 30 && t[0] <= 10 * 60 + 30, `arrivée plausible : ${j.times[0]}`);
+    if (j.cas === "oubli_depart") { assert.equal(j.times.length % 2, 1); assert.equal(j.complet.length, j.times.length + 1); continue; }
+    assert.ok([2, 4].includes(j.times.length));
+    ecarts.push(netMinutes(j.times, C35, SIM_SETTINGS) - 420);
+    assert.ok(["bureau", "teletravail"].includes(j.lieu));
+  }
+  // la plupart des journées sont normales ; chaque cas particulier existe, dans les proportions réglées
+  assert.ok(cas.normale > 300 && cas.sans_pause > 10 && cas.oubli_depart >= 2 && cas.absent >= 1, JSON.stringify(cas));
+  assert.ok(cas.oubli_depart < 30 && cas.absent < 20, JSON.stringify(cas));
+  // le temps fait tourne autour du temps prévu : à quelques minutes près en moyenne, jamais plus d'une demi-heure d'écart
+  const moyenne = ecarts.reduce((s, x) => s + x, 0) / ecarts.length;
+  assert.ok(Math.abs(moyenne) < 12, `écart moyen ${moyenne}`);
+  assert.ok(ecarts.every((x) => Math.abs(x) <= 35), `écart extrême ${Math.max(...ecarts.map(Math.abs))}`);
+  // jour de repos, jour d'absence : personne ne pointe ; demi-journée d'absence : une seule plage
+  const samedi = buildDays({ user: USER, contracts: [C35], days: [], absences: [], types: TYPES, settings: SIM_SETTINGS, from: "2026-11-28", to: "2026-11-28", today: "2026-11-30" })[0];
+  assert.equal(journeeSimulee({ id: "u1", rec: samedi, contract: C35, settings: SIM_SETTINGS }).cas, "repos");
+  const conge = run({ from: "2026-11-25", to: "2026-11-25", today: "2026-11-26", settings: SIM_SETTINGS, absences: [abs("cp", "2026-11-25", "2026-11-25")] })[0];
+  assert.deepEqual(journeeSimulee({ id: "u1", rec: conge, contract: C35, settings: SIM_SETTINGS }).times, []);
+  const matin = run({ from: "2026-11-25", to: "2026-11-25", today: "2026-11-26", settings: SIM_SETTINGS, absences: [abs("cp", "2026-11-25", "2026-11-25", "valide", "matin")] })[0];
+  const dm = journeeSimulee({ id: "u1", rec: matin, contract: C35, settings: SIM_SETTINGS });
+  assert.equal(dm.times.length, 2); assert.ok(toMin(dm.times[0]) >= 13 * 60, `absent le matin, il arrive l'après-midi : ${dm.times}`);
+  assert.ok(Math.abs(toMin(dm.times[1]) - toMin(dm.times[0]) - 210) <= 20);
+  // présence automatique : rien à pointer
+  assert.equal(journeeSimulee({ id: "u1", rec: run({ from: "2026-11-25", to: "2026-11-25", today: "2026-11-26", settings: SIM_SETTINGS, contracts: [{ ...C35, presence: "automatique" }] })[0],
+    contract: { ...C35, presence: "automatique" }, settings: SIM_SETTINGS }).cas, "repos");
+});
+
+test("simulation : passer chaque heure ou une seule fois donne exactement les mêmes événements", () => {
+  const d = entreprise();
+  const debut = instantParis("2026-11-25", "00:00"), fin = instantParis("2026-11-25", "23:59");
+  const dUnCoup = evenements(d, { apres: debut, jusqua: fin, limite: 100000 });
+  assert.equal(dUnCoup.reste, false);
+  const parHeure = [];
+  let apres = debut;
+  for (let hh = 1; hh <= 24; hh++) {
+    const jusqua = hh === 24 ? fin : instantParis("2026-11-25", `${String(hh).padStart(2, "0")}:00`);
+    parHeure.push(...evenements(d, { apres, jusqua, limite: 100000 }).events); apres = jusqua;
+  }
+  const cle = (e) => `${e.t}|${e.kind}|${e.user}`;
+  assert.deepEqual(parHeure.map(cle).sort(), dUnCoup.events.map(cle).sort());
+  // triés par heure, et chaque heure de la journée de travail voit pointer du monde
+  assert.deepEqual(dUnCoup.events.map((e) => e.t), [...dUnCoup.events.map((e) => e.t)].sort());
+  const pointages = dUnCoup.events.filter((e) => e.kind === "punch");
+  const parTranche = {}; for (const e of pointages) { const h = parisDe(e.t).heure.slice(0, 2); parTranche[h] = (parTranche[h] || 0) + 1; }
+  assert.ok(parTranche["08"] + parTranche["09"] >= 95, JSON.stringify(parTranche));        // presque tout le monde arrive entre 8 h et 10 h
+  assert.ok((parTranche["12"] || 0) + (parTranche["13"] || 0) > 120, JSON.stringify(parTranche));
+  // à la fin de la journée, tout le monde a pointé sauf les absents ; personne ne pointe deux fois à la même minute
+  const parSalarie = new Map(); for (const e of pointages) parSalarie.set(e.user, [...(parSalarie.get(e.user) || []), e.t]);
+  const absents = dUnCoup.events.filter((e) => e.kind === "absence" && e.args.start === "2026-11-25").map((e) => e.user);
+  assert.ok(parSalarie.size >= 105 - absents.length - 4 && parSalarie.size <= 105, `${parSalarie.size} salariés ont pointé`);
+  for (const [u, ts] of parSalarie) { assert.equal(new Set(ts).size, ts.length); assert.ok(!absents.includes(u), "un salarié en arrêt ce jour-là ne pointe pas"); }
+  // un lot trop gros est coupé : on reprend ensuite à l'heure indiquée, sans rien perdre ni rejouer
+  const lot1 = evenements(d, { apres: debut, jusqua: fin, limite: 150 });
+  assert.equal(lot1.reste, true); assert.ok(lot1.events.length <= 150 && lot1.jusqua < fin);
+  const suite = evenements(d, { apres: lot1.jusqua, jusqua: fin, limite: 100000 });
+  assert.equal(lot1.events.length + suite.events.length, dUnCoup.events.length);
+});
+
+test("simulation : le lendemain, corrections, régularisations et décisions des responsables", () => {
+  // la veille : s1-1 a oublié son départ, s1-2 a une journée complète, s1-3 a déposé un arrêt, s2-1 une demande de congé
+  const base = entreprise();
+  const veille = "2026-11-25", jour = "2026-11-26";
+  const plan = (id) => journeeSimulee({ id, rec: buildDays({ user: base.users.find((u) => u.id === id), contracts: [{ ...C35, user_id: id }], days: [], absences: [], types: SIM_TYPES, settings: SIM_SETTINGS, from: veille, to: veille, today: jour })[0], contract: C35, settings: SIM_SETTINGS });
+  // on cherche dans l'équipe 1 quelqu'un dont la journée simulée de la veille est un départ oublié
+  const oublieux = base.users.map((u) => u.id).find((id) => id.startsWith("s1-") && plan(id).cas === "oubli_depart") || null;
+  const jours = [], complet = "s1-2";
+  if (oublieux) jours.push({ id: "d-oubli", user_id: oublieux, day: veille, times: plan(oublieux).times, status: "a_valider", corrected: false, version: 3, lieu: "bureau" });
+  jours.push({ id: "d-complet", user_id: complet, day: veille, times: ["08:55", "12:30", "13:20", "17:05"], status: "a_valider", corrected: false, version: 4, lieu: "bureau" });
+  jours.push({ id: "d-valide", user_id: "s1-4", day: veille, times: ["09:00", "17:00"], status: "valide", corrected: false, version: 2, lieu: "bureau" });
+  const absences = [
+    { id: "a-arret", user_id: "s1-3", type_code: "maladie", start_date: jour, end_date: jour, half: "", status: "en_attente", version: 1, created_at: instantParis(jour, "07:50") },
+    { id: "a-conge", user_id: "s2-1", type_code: "cp", start_date: "2026-12-21", end_date: "2026-12-24", half: "", status: "en_attente", version: 1, created_at: instantParis(veille, "14:00") },
+    { id: "a-du-jour", user_id: "s2-2", type_code: "cp", start_date: "2026-12-28", end_date: "2026-12-29", half: "", status: "en_attente", version: 1, created_at: instantParis(jour, "08:30") },
+  ];
+  const d = entreprise({ jours, absences });
+  const ev = evenements(d, { apres: instantParis(jour, "00:00"), jusqua: instantParis(jour, "23:59"), limite: 100000 }).events;
+  const de = (kind, user) => ev.filter((e) => e.kind === kind && (!user || e.user === user));
+  // les responsables : m1 valide la journée complète de son équipe (pas celle déjà validée, pas le départ oublié), jamais une autre équipe
+  const valid = de("decide_days");
+  for (const e of valid) for (const it of e.args.items) assert.ok(["d-complet", "d-oubli"].includes(it.id) && e.user === "m1");
+  if (valid.length) { assert.deepEqual(valid[0].args.items.filter((x) => x.id === "d-complet"), [{ id: "d-complet", version: 4 }]); assert.ok(!valid[0].args.items.some((x) => x.id === "d-oubli")); }
+  // l'arrêt du jour se décide le jour même ; le congé demandé la veille aussi ; celui demandé ce matin attendra demain
+  const dec = de("decide_absence");
+  assert.ok(dec.every((e) => (e.args.id === "a-arret" && e.user === "m1") || (e.args.id === "a-conge" && e.user === "m2")), JSON.stringify(dec.map((e) => [e.user, e.args.id])));
+  assert.ok(!dec.some((e) => e.args.id === "a-du-jour"));
+  for (const e of dec) { assert.ok(["valide", "refuse"].includes(e.args.decision)); if (e.args.decision === "refuse") assert.ok(e.args.reason.length > 3); assert.notEqual(e.args.id === "a-arret" && e.args.decision, "refuse"); }
+  // le salarié en arrêt ne pointe pas ; les autres oui
+  assert.equal(de("punch", "s1-3").length, 0);
+  assert.ok(de("punch", "s1-2").length >= 1);
+  // le départ oublié est corrigé le matin dans trois cas sur quatre : s'il l'est, c'est avec l'heure prévue et la version lue
+  if (oublieux) {
+    const c = de("correct", oublieux);
+    assert.ok(c.length <= 1);
+    if (c.length) { assert.equal(c[0].args.day, veille); assert.equal(c[0].args.version, 3); assert.deepEqual(c[0].args.times, plan(oublieux).complet); assert.ok(c[0].args.comment.length >= 3); assert.ok(parisDe(c[0].t).heure < "10:05"); }
+  }
+  // sur l'ensemble, une forte majorité des responsables agit chaque jour, pas tous
+  const grande = entreprise({ jours: base.users.filter((u) => u.id.startsWith("s")).map((u, i) => ({ id: `j${i}`, user_id: u.id, day: veille, times: ["09:00", "12:00", "13:00", "17:00"], status: "a_valider", corrected: false, version: 1, lieu: "bureau" })) });
+  let actifs = 0, total = 0;
+  for (const j of ["2026-11-26", "2026-11-27", "2026-11-30", "2026-12-01", "2026-12-02", "2026-12-03", "2026-12-04"]) {
+    const e = evenements(grande, { apres: instantParis(j, "00:00"), jusqua: instantParis(j, "23:59"), limite: 100000 }).events.filter((x) => x.kind === "decide_days");
+    actifs += e.length; total += 4;
+    for (const x of e) assert.equal(x.args.items.length, 25, "toute l'équipe, rien que l'équipe");
+  }
+  assert.ok(actifs >= total * 0.55 && actifs <= total, `${actifs} validations sur ${total} possibles`);
+});
+
+test("simulation : demandes d'absence plausibles, sans chevauchement ; amorce des absences déjà en cours", () => {
+  const b = { user: { ...USER, id: "u1" }, contracts: [C35], absences: [], plan: [] };
+  let n = 0; const types = {};
+  for (let u = 0; u < 300; u++) for (const jour of ["2026-11-23", "2026-11-24", "2026-11-25", "2026-11-26", "2026-11-27"]) {
+    const dd = demandesDuJour({ ...b, user: { ...USER, id: `u${u}` } }, jour, { types: SIM_TYPES, settings: SIM_SETTINGS });
+    assert.ok(dd.length <= 1);
+    for (const x of dd) {
+      n++; types[x.type] = (types[x.type] || 0) + 1;
+      assert.ok(x.end >= x.start && x.days_count > 0 && /^\d\d:\d\d$/.test(x.heure));
+      assert.ok(isoDow(x.start) <= 5 && !holidaysFR(+x.start.slice(0, 4))[x.start], `début un jour ouvré : ${x.start}`);
+      if (x.type === "maladie") assert.equal(x.start, jour); else assert.ok(x.start > jour);
+      if (x.half) assert.equal(x.start, x.end);
+    }
+  }
+  // 1 500 jours-salariés : une trentaine de demandes, arrêts et congés à peu près à parts égales
+  const attendu = 1500 * (REGLAGES.maladie + REGLAGES.conge + REGLAGES.evenement);
+  assert.ok(n > attendu * 0.5 && n < attendu * 1.6, `${n} demandes pour ${attendu} attendues`);
+  assert.ok(types.maladie >= 4 && types.cp >= 4, JSON.stringify(types));
+  // un salarié déjà absent sur la période ne redemande pas la même chose ; un week-end, personne ne demande rien
+  const deja = [{ status: "valide", start_date: "2026-01-01", end_date: "2027-12-31" }];
+  for (let u = 0; u < 300; u++) assert.deepEqual(demandesDuJour({ ...b, user: { ...USER, id: `u${u}` }, absences: deja }, "2026-11-25", { types: SIM_TYPES, settings: SIM_SETTINGS }), []);
+  for (let u = 0; u < 50; u++) assert.deepEqual(demandesDuJour({ ...b, user: { ...USER, id: `u${u}` } }, "2026-11-28", { types: SIM_TYPES, settings: SIM_SETTINGS }), []);
+  // amorce : des absences qui touchent encore la veille ou l'avenir, jamais terminées avant, sans chevauchement pour un même salarié
+  const e = entreprise();
+  const amorce = absencesEnCours(e, "2026-11-26");
+  assert.ok(amorce.length >= 8 && amorce.length <= 60, `${amorce.length} absences d'amorce pour 105 salariés`);
+  const parU = new Map();
+  for (const a of amorce) {
+    assert.ok(a.end >= "2026-11-25" && a.start >= "2026-11-25" && a.days_count > 0 && a.user_id);
+    for (const autre of parU.get(a.user_id) || []) assert.ok(a.end < autre.start || a.start > autre.end, "pas de chevauchement");
+    parU.set(a.user_id, [...(parU.get(a.user_id) || []), a]);
+  }
+  assert.ok(amorce.some((a) => a.start <= "2026-11-26" && a.end >= "2026-11-25"), "certains sont absents dès la veille ou le jour même");
+});

@@ -17,7 +17,7 @@ with sync_playwright() as p:
     assert te.page.get_by_role("link", name="Aller à la production").first.get_attribute("href") == "/kokolio"
     te.photo("9b-test-non-installe")
     # la production, elle, fonctionne normalement
-    ad.va("#/admin/etat"); ad.clic("Lancer l'autodiagnostic"); ad.voit("47 contrôles réussis", delai=30000)
+    ad.va("#/admin/etat"); ad.clic("Lancer l'autodiagnostic"); ad.voit("51 contrôles réussis", delai=30000)
     print("environnement de test non installé : écrans d'explication vérifiés, production intacte")
     # la console signale la réponse 503 de l'adresse de test : attendu ici, on ne retient que les exceptions
     graves = [e for e in erreurs if "exception" in e or "valeur brute" in e]

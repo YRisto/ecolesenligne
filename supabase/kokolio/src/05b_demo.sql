@@ -174,6 +174,7 @@ begin
   update kokolio.meta set value = jsonb_set(jsonb_set(value, '{go_live}', to_jsonb(kokolio._today()::text)), '{version}', to_jsonb(coalesce((value->>'version')::int, 1) + 1)), updated_at = now()
   where key = 'settings';
   delete from kokolio.meta where key = 'demo';
+  delete from kokolio.meta where key = 'simulation';   -- la simulation d'activité s'arrête avec la démonstration
   perform kokolio._audit(me.id, 'donnees_demo_effacees', null, '', jsonb_build_object('comptes', v_users, 'journees', v_days), coalesce(p->>'ip', ''));
   return jsonb_build_object('users', v_users, 'days', v_days);
 end $$;

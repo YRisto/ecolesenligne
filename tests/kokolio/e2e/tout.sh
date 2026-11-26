@@ -34,3 +34,8 @@ KK_SANS_TEST=1 bash tests/kokolio/e2e/serveur-local.sh 3111 2>&1 | tail -1 > /tm
 CODE=$(grep CODE_ADMIN /tmp/kk-setup.txt | cut -d= -f2)
 if ! python3 tests/kokolio/e2e/08_test_non_installe.py "$CODE" > /tmp/kk-08_test_non_installe.log 2>&1; then echo "ÉCHEC à l'étape 08_test_non_installe"; grep -n "in <module>\|Expect \|waiting for\|AssertionError" /tmp/kk-08_test_non_installe.log | head -8; exit 1; fi
 tail -n 2 /tmp/kk-08_test_non_installe.log
+# … enfin l'organigramme sur l'accueil de chacun et la simulation d'activité (mode démonstration) : nouvel environnement
+bash tests/kokolio/e2e/serveur-local.sh 3111 2>&1 | tail -1 > /tmp/kk-setup.txt
+CODE=$(grep CODE_ADMIN /tmp/kk-setup.txt | cut -d= -f2)
+if ! python3 tests/kokolio/e2e/09_organigramme_simulation.py "$CODE" > /tmp/kk-09_organigramme_simulation.log 2>&1; then echo "ÉCHEC à l'étape 09_organigramme_simulation"; grep -n "in <module>\|Expect \|waiting for\|AssertionError" /tmp/kk-09_organigramme_simulation.log | head -8; exit 1; fi
+tail -n 2 /tmp/kk-09_organigramme_simulation.log

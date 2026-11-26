@@ -192,18 +192,63 @@ export function vueEtat() {
   });
 }
 
+/* ================= Simulation d'activité ================= */
+// Des salariés fictifs pointent, s'absentent et corrigent ; leurs responsables valident. Réservé à l'environnement de test,
+// et à la production tant qu'elle est en mode démonstration.
+function carteSimulation(sim) {
+  const ligne = (a, b) => h("div", { class: "ligne" }, h("span", null, a), h("span", { class: "num" }, b));
+  if (!sim.allowed) {
+    return h("div", { class: "carte" }, h("h3", null, "Simulation d'activité"),
+      h("p", { class: "discret" }, "Des salariés fictifs qui pointent et s'absentent pour faire vivre l'outil : cela se règle dans l'environnement de test. En production, la simulation n'existe que pendant le mode démonstration."));
+  }
+  const etat = h("p", { class: "discret" });
+  // fait avancer la simulation jusqu'à l'instant présent, lot après lot (la première fois, la journée d'hier est longue à créer)
+  const rattraper = async () => {
+    let total = 0;
+    for (let i = 0; i < 20; i++) {
+      const r = await api("sim/tick");
+      total += Object.values(r.faits || {}).reduce((x, y) => x + y, 0);
+      etat.textContent = `${total} événement${total > 1 ? "s" : ""} joué${total > 1 ? "s" : ""}…`;
+      if (!r.due || !r.passages) break;
+    }
+    return total;
+  };
+  const st = sim.state || {};
+  return h("div", { class: "carte" }, h("h3", null, "Simulation d'activité"),
+    h("p", null, "Des salariés fictifs pointent au fil de la journée — tous, sauf les absents —, posent des congés ou déclarent un arrêt, corrigent le lendemain un départ oublié ; leurs responsables valident les journées et décident les demandes. Le scénario est vraisemblable et varie d'un jour à l'autre."),
+    h("p", { class: "discret" }, "Seules les fiches jamais activées sont simulées : dès qu'une personne pose son mot de passe, la simulation ne touche plus à son compte, et son équipe attend ses validations. À la première mise en marche, la journée de la veille est créée, avec les absences déjà en cours."),
+    h("p", { class: "discret" }, ENV === "test" ? "Elle avance toutes les heures, et dès qu'une page de l'outil est ouverte. Une nouvelle copie de la production l'arrête ici : elle se remet en marche depuis cet écran."
+      : "Elle avance toutes les heures, et dès qu'une page de l'outil est ouverte. Elle n'existe en production que pendant le mode démonstration, et s'efface avec ses données. Une copie vers le test l'y dépose arrêtée."),
+    sim.on ? [
+      ligne("État", "en marche"), ligne("Fiches simulées", String(sim.enrolled ?? 0)),
+      ligne("Mise en marche", `${frHorodatage(st.started_at)}${st.by ? `, par ${st.by}` : ""}`), ligne("Simulée jusqu'à", st.last ? frHorodatage(st.last) : "—"),
+      ligne("Événements joués", fmtNb(st.total || 0)),
+    ] : [ligne("État", st.stopped_at ? `arrêtée le ${frHorodatage(st.stopped_at)}` : "jamais mise en marche"), ligne("Fiches qui seraient simulées", String(sim.candidates ?? 0))],
+    etat,
+    h("div", { class: "ligne gauche" },
+      sim.on ? h("button", { onclick: (ev) => agir(ev.currentTarget, async () => { await api("admin/sim", { on: false }); toast("Simulation arrêtée."); recharger(); }) }, "Arrêter la simulation")
+        : h("button", { class: "domaine", onclick: (ev) => agir(ev.currentTarget, async () => {
+            etat.textContent = "Mise en marche…";
+            await api("admin/sim", { on: true });
+            const n = await rattraper();
+            toast(`Simulation en marche : ${fmtNb(n)} événements joués.`); recharger();
+          }) }, "Mettre la simulation en marche"),
+      sim.on ? h("button", { onclick: (ev) => agir(ev.currentTarget, async () => { const n = await rattraper(); toast(n ? `${fmtNb(n)} événements joués.` : "La simulation est à jour."); recharger(); }) }, "Faire avancer maintenant") : null));
+}
+
 /* ================= Environnement de test ================= */
 // Une copie complète de l'outil, à une adresse à part : mêmes écrans, données séparées. On y essaie ce qu'on veut sans risque.
 export function vueTest() {
   if (ENV === "test") {
-    ecran(() => api("admin/test-status"), (d) => {
+    ecran(async () => ({ ...(await api("admin/test-status")), sim: await api("admin/sim") }), (d) => {
       const c = d.cloned;
       pose(h("h2", null, "Environnement de test"),
         h("div", { class: "carte" }, h("h3", null, "Vous êtes dans l'environnement de test"),
           h("p", null, "Les écrans sont ceux de la production, les données en sont une copie (les justificatifs exceptés : un fichier témoin les remplace). Tout ce qui est fait ici reste ici : rien ne remonte vers la production."),
           h("p", null, c?.at ? `Dernière copie de la production : ${frHorodatage(c.at)}${c.by ? `, par ${c.by}` : ""}.` : "Aucune copie de la production n'a encore été faite : l'environnement est vide."),
           h("p", { class: "discret" }, "La copie se relance depuis la production : Administration › Test. Elle remplace tout le contenu de cet environnement."),
-          h("div", { class: "ligne gauche" }, h("a", { class: "bouton domaine", href: "/kokolio#/admin/test" }, "Aller à la production"))));
+          h("div", { class: "ligne gauche" }, h("a", { class: "bouton domaine", href: "/kokolio#/admin/test" }, "Aller à la production"))),
+        carteSimulation(d.sim));
     });
     return;
   }
@@ -212,8 +257,8 @@ export function vueTest() {
     // l'environnement de test répond-il ? (son contrôle de santé est public et ne renvoie aucune donnée)
     let sante = null;
     try { const r = await fetch("/api/kokolio-test/health", { cache: "no-store" }); sante = await r.json(); } catch { sante = null; }
-    return { d, sante };
-  }, ({ d, sante }) => {
+    return { d, sante, sim: await api("admin/sim") };
+  }, ({ d, sante, sim }) => {
     const mo = (n) => `${fmtNb((n || 0) / 1048576)} Mo`;
     const ligne = (a, b) => h("div", { class: "ligne" }, h("span", null, a), h("span", { class: "num" }, b));
     const pret = d.installed && sante?.ok && String(d.schema) === String(d.schema_production);
@@ -249,7 +294,8 @@ export function vueTest() {
               const r = await api("admin/test-clone", { confirm: mot.value.trim().toUpperCase() });
               toast(`Copie terminée : ${r.counts?.users ?? 0} comptes, ${fmtNb(r.rows)} lignes.`); recharger();
             });
-        } }, "Copier la production vers le test"))));
+        } }, "Copier la production vers le test"))),
+      carteSimulation(sim));
   });
 }
 

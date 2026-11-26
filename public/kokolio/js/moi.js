@@ -1,6 +1,7 @@
 // Mon espace : pointer, mes heures, mes absences, mon année. Les fenêtres de correction et de demande d'absence
 // servent aussi aux RH quand ils agissent pour un salarié (userId renseigné).
 import { api } from "./api.js";
+import { carteOrganigramme } from "./organigramme.js";
 import { h, pose, toast, agir, ouvrir, pastille, etiquette, tuile, champ, listeAlertes, navMois, telecharger, base64VersBlob, pad,
   fmtMin, fmtEcart, fmtJ, fmtCourt, frJour, frJourLong, frMois, frMoisSeul, paires, hmAff, periode, classeEcart, jourSemaine } from "./dom.js";
 import { S, ecran, aller, recharger, calerHorloge, heureServeur, minutesServeur, moisCourant } from "./etat.js";
@@ -88,7 +89,8 @@ function rendrePointer(t) {
         h("span", { class: j.off ? "off" : "" }, (j.absence || (j.off ? (j.holiday ? `Férié : ${j.holiday}` : "Repos") : j.label || "Jour travaillé")) + (j.exception && !j.absence ? " · modifié" : ""),
           !j.off && !j.absence && j.ranges ? h("small", null, j.ranges) : null, j.note && !j.absence ? h("small", null, j.note) : null),
         h("span", { class: "num " + (j.off ? "off" : "") }, j.off || cadre ? "" : fmtCourt(j.minutes))])),
-      h("p", { class: "discret" }, "Les quatorze jours à venir. Votre responsable peut modifier un jour : il apparaît alors « modifié ».")) : null);
+      h("p", { class: "discret" }, "Les quatorze jours à venir. Votre responsable peut modifier un jour : il apparaît alors « modifié ».")) : null,
+    carteOrganigramme({ complet: false }));
 }
 const fmtJours = (n) => String(Math.round(Number(n) * 10) / 10).replace(".", ",");
 

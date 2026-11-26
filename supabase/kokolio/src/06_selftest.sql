@@ -7,7 +7,7 @@ create or replace function kokolio.selftest() returns jsonb language plpgsql as 
 declare
   v_checks jsonb := '[]'::jsonb; v_r jsonb; v_tag text := 'kktest_' || substr(replace(gen_random_uuid()::text, '-', ''), 1, 12);
   v_rh uuid; v_mgr uuid; v_e1 uuid; v_e2 uuid; v_seq0 bigint; v_fp text; v_ok boolean; v_day uuid; v_abs uuid; c kokolio.contracts;
-  t_rh text; t_mgr text; t_e1 text; t_e2 text; v_t0 timestamptz := '2001-02-15T09:00:00+01:00'; v_adm uuid; t_adm text;
+  t_rh text; t_mgr text; t_e1 text; t_e2 text; v_t0 timestamptz := '2001-02-15T09:00:00+01:00'; v_adm uuid; t_adm text; v_n bigint;
 begin
   begin
     insert into kokolio.meta (key, value) values ('test_mode', 'true'::jsonb) on conflict (key) do update set value = 'true'::jsonb;
@@ -175,15 +175,34 @@ begin
       'ok', not exists (select 1 from pg_class tb join pg_namespace ns on ns.oid = tb.relnamespace
                         where ns.nspname = 'kokolio' and tb.relkind = 'r' and tb.relname <> all (kokolio._test_tables() || array['meta', 'sessions', 'throttle'])));
 
-    -- 9. Mode démonstration : l'effacement des données n'existe que là
+    -- 8 ter. Organigramme : la structure, pas la liste des salariés. Simulation d'activité : réservée, et sourde aux passages forgés.
+    v_r := public.kokolio_api(jsonb_build_object('action', 'org_chart', 'token', t_e2));
+    v_checks := v_checks || jsonb_build_object('name', 'Organigramme : seuls ceux qui encadrent y figurent',
+      'ok', coalesce((v_r->>'ok')::boolean, false)
+            and exists (select 1 from jsonb_array_elements(v_r #> '{data,nodes}') x where (x->>'id')::uuid = v_mgr)
+            and not exists (select 1 from jsonb_array_elements(v_r #> '{data,nodes}') x where (x->>'id')::uuid in (v_e1, v_e2, v_rh)));
+    v_r := public.kokolio_api(jsonb_build_object('action', 'sim_set', 'token', t_rh, 'args', jsonb_build_object('on', true)));
+    v_checks := v_checks || jsonb_build_object('name', 'Simulation d''activité : mise en marche réservée aux administrateurs', 'ok', v_r->>'code' = 'interdit');
+    select count(*) into v_n from kokolio.punch_log l where l.user_id = v_e1;
+    v_r := public.kokolio_api(jsonb_build_object('action', 'sim_apply', 'args', jsonb_build_object('expect_last', 'x', 'upto', 'x',
+      'events', jsonb_build_array(jsonb_build_object('kind', 'punch', 'user', v_e1, 't', kokolio._iso(v_t0))))));
+    v_checks := v_checks || jsonb_build_object('name', 'Simulation d''activité : un passage forgé ne fait pointer personne',
+      'ok', (select count(*) from kokolio.punch_log l where l.user_id = v_e1) = v_n);
+
+    -- 9. Mode démonstration : l'effacement des données n'existe que là, et la simulation d'activité ne sort pas de son périmètre
     if exists (select 1 from kokolio.meta m where m.key = 'demo') then
       v_checks := v_checks || jsonb_build_object('name', 'Effacement des données réservé au mode démonstration (actif ici : contrôle sans objet)', 'ok', true);
+      v_checks := v_checks || jsonb_build_object('name', 'Simulation d''activité réservée au test et au mode démonstration (actif ici : contrôle sans objet)', 'ok', true);
     else
       insert into kokolio.users (login, role, last_name) values (v_tag || '_adm', 'admin', 'Test Admin') returning id into v_adm;
       t_adm := encode(sha256(convert_to(v_tag || 'adm', 'UTF8')), 'hex');
       insert into kokolio.sessions (token_hash, user_id, created_at, last_seen, expires_at) values (t_adm, v_adm, v_t0, v_t0, v_t0 + interval '1 day');
       v_r := public.kokolio_api(jsonb_build_object('action', 'demo_reset', 'token', t_adm, 'args', '{}'::jsonb));
       v_checks := v_checks || jsonb_build_object('name', 'Effacement des données impossible hors mode démonstration', 'ok', v_r->>'code' = 'etat');
+      v_r := public.kokolio_api(jsonb_build_object('action', 'sim_set', 'token', t_adm, 'args', jsonb_build_object('on', true)));
+      v_checks := v_checks || jsonb_build_object('name', case when kokolio._env() = 'test' then 'Simulation d''activité : permise dans l''environnement de test'
+                                                              else 'Simulation d''activité impossible en production hors mode démonstration' end,
+        'ok', case when kokolio._env() = 'test' then coalesce((v_r->>'ok')::boolean, false) else v_r->>'code' = 'etat' end);
     end if;
 
     raise exception 'KKTEST:%', v_checks::text;

@@ -1,5 +1,6 @@
 // Démarrage, navigation entre les espaces, accueil, compte.
 import { api, quandSessionPerdue, ENV } from "./api.js";
+import { carteOrganigramme, vueOrganigramme } from "./organigramme.js";
 import { h, pose, icone, logo, toast, agir, champ, fmtMin, frHorodatage, frCourt, confirmer } from "./dom.js";
 import { S, ecran, aller, calerHorloge } from "./etat.js";
 import { ecranConnexion, ecranIndisponible } from "./auth.js";
@@ -51,6 +52,16 @@ function bandeauTest() {
     h("span", { class: "long" }, " · rien de ce qui est fait ici ne touche la production"), h("a", { href: "/kokolio" }, "Aller à la production"));
   b.hidden = false;
 }
+// Simulation d'activité (environnement de test, mode démonstration) : tant qu'une page est ouverte, elle fait avancer la simulation
+// jusqu'à l'instant présent, sans rien afficher. Le serveur ne fait rien si elle est à jour ou arrêtée.
+let dernierPassage = 0;
+function passageSimulation() {
+  if (!S.info?.simulation || Date.now() - dernierPassage < 5 * 60e3) return;
+  dernierPassage = Date.now();
+  api("sim/tick", null, { silencieux: true }).catch(() => {});
+}
+setInterval(() => { if (!document.hidden) passageSimulation(); }, 10 * 60e3);
+
 async function ouvrirSession(message) {
   try { S.boot = await api("boot", null, { silencieux: true }); }
   catch (e) {
@@ -62,6 +73,7 @@ async function ouvrirSession(message) {
   if (!location.hash || location.hash === "#") history.replaceState(null, "", "#/");
   afficher();
   compterAttente();
+  passageSimulation();
 }
 quandSessionPerdue((e) => {
   if (!S.boot) return;
@@ -75,7 +87,8 @@ async function compterAttente() {
   const me = S.boot?.me; if (!me) return;
   try {
     if (me.is_manager || me.self_validate) { const p = await api("team/pending", {}); S.attenteEquipe = p.total_days + p.absences.length; }
-    if (me.role !== "salarie") { const p = await api("team/pending", { scope: "all" }); S.attenteRH = p.total_days + p.absences.length; }
+    // la pastille des RH ne compte que ce qui leur revient : le reste attend chez les responsables
+    if (me.role !== "salarie") { const p = await api("team/pending", { scope: "rh" }); S.attenteRH = p.total_days + p.absences.length; }
   } catch { return; }
   majPastilles();
 }
@@ -123,7 +136,7 @@ function afficher() {
   v.className = large ? "" : "etroit";
   const k = `${r.espace}/${r.onglet}`;
   const vues = {
-    "/": vueAccueil, "compte/": vueCompte, "apropos/": () => admin.vueVersions(true),
+    "/": vueAccueil, "compte/": vueCompte, "apropos/": () => admin.vueVersions(true), "organigramme/": vueOrganigramme,
     "moi/pointer": () => moi.vuePointer(), "moi/heures": () => moi.vueHeures(r.a), "moi/absences": () => moi.vueAbsences(), "moi/annee": () => moi.vueAnnee(r.a),
     "equipe/validation": () => equipe.vueValidation("equipe", r.a), "equipe/synthese": () => equipe.vueSynthese("equipe", r.a),
     "equipe/salarie": () => equipe.vueSalarie("equipe", r.a, r.b), "equipe/annee": () => moi.vueAnnee(r.b, r.a, "equipe"),
@@ -168,6 +181,7 @@ function vueAccueil() {
       liste.includes("admin") ? h("button", { class: "mode m-test seul", onclick: () => aller("#/admin/test") }, icone("test"),
         h("strong", null, "Environnement de test"),
         h("span", { class: "s" }, ENV === "test" ? "Vous y êtes : une copie de la production, où tout peut être essayé sans risque" : "Une copie complète de l'outil pour essayer sans risque : l'ouvrir, la remettre à l'image de la production")) : null),
+    carteOrganigramme({ complet: true }),
     h("p", { class: "pied" }, h("button", { class: "lien", onclick: () => aller("#/apropos") }, `Kokolio ${S.boot.app} · versions et fonctionnalités`)));
   majPastilles();
 }

@@ -66,8 +66,8 @@ after(() => fake?.kill());
 
 test("deux installations distinctes : chacune sait qui elle est et refuse de répondre pour l'autre", async () => {
   const hp = await adminP.call("health", {}, { method: "GET" }), ht = await adminT.call("health", {}, { method: "GET" });
-  assert.deepEqual([hp.ok, hp.environment, hp.schema, hp.cloned_at], [true, "production", 8, undefined]);
-  assert.deepEqual([ht.ok, ht.environment, ht.schema, ht.cloned_at], [true, "test", 8, null]);
+  assert.deepEqual([hp.ok, hp.environment, hp.schema, hp.cloned_at], [true, "production", 9, undefined]);
+  assert.deepEqual([ht.ok, ht.environment, ht.schema, ht.cloned_at], [true, "test", 9, null]);
   assert.equal((await adminP.ok("public/info")).environment, "production");
   assert.deepEqual([(await adminT.ok("public/info")).environment, (await adminT.ok("public/info")).cloned], ["test", null]);
   // branchement croisé (adresse de test reliée à la base de production, ou l'inverse) : la base refuse
@@ -99,7 +99,7 @@ test("la production vit sa vie ; le test, vide, ne connaît personne", async () 
   await adminT.fail("boot", {}, "session", 401, { cookie: adminP.cookie.replace("kk_session", "kkt_session") });
   // vu de la production : le test est installé, jamais copié
   const st = await adminP.ok("admin/test-status");
-  assert.deepEqual([st.environment, st.installed, st.schema, st.schema_production, st.cloned, st.users], ["production", true, 8, 8, null, 0]);
+  assert.deepEqual([st.environment, st.installed, st.schema, st.schema_production, st.cloned, st.users], ["production", true, 9, 9, null, 0]);
 });
 
 test("copie de la production vers le test : réservée à l'administrateur, confirmée, complète", async () => {
@@ -181,9 +181,9 @@ test("nouvelle copie : le test revient à l'image de la production, ses sessions
   await adminT.ok("auth/login", { login: "admin", password: PW.admin });
   assert.equal((await adminT.ok("rh/journal-verify", {})).ok, true);
   // un environnement de test en retard d'une version : la copie est refusée avec une explication
-  sql("update kokolio_test.meta set value = '7'::jsonb where key = 'schema_version'");
-  await adminP.fail("admin/test-clone", { confirm: "COPIER" }, "etat");
   sql("update kokolio_test.meta set value = '8'::jsonb where key = 'schema_version'");
+  await adminP.fail("admin/test-clone", { confirm: "COPIER" }, "etat");
+  sql("update kokolio_test.meta set value = '9'::jsonb where key = 'schema_version'");
 });
 
 test("import : le début de suivi d'une fiche existante se déplace quand la colonne est remplie", async () => {

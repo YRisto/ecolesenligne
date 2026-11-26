@@ -16,7 +16,7 @@ with sync_playwright() as p:
     ad.clic("Terminé"); ad.voit("Camille Martin"); ad.voit("7 fiches")
     ad.va("#/rh/synthese"); ad.voit("Synthèse · tous les salariés"); ad.voit("Thomas Petit"); ad.photo("62-synthese-demo")
     ad.va("#/rh/cloture"); ad.voit("Clôturé · version 1"); ad.photo("63-cloture-demo")
-    ad.va("#/rh/validation"); ad.voit("Demandes d'absence (3)"); ad.photo("64-validation-demo")
+    ad.va("#/rh/validation/tout"); ad.voit("Demandes d'absence (3)"); ad.photo("64-validation-demo")
     # un salarié fictif et son responsable se connectent avec leur code
     th = Poste(nav, "thomas"); th.activer("thomas.petit", codes["thomas.petit"], "Lampe+Orange58"); th.voit("Pointer mon arrivée"); th.voit("À régulariser")
     assert th.page.locator("#bandeau-demo").is_visible(); th.photo("65-salarie-fictif")

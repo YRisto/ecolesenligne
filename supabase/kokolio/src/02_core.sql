@@ -17,10 +17,13 @@ create or replace function kokolio._tz() returns text language sql stable as $$
   select coalesce((select m.value->>'timezone' from kokolio.meta m where m.key = 'settings'), 'Europe/Paris')
 $$;
 
--- L'heure fait foi côté serveur. Elle n'est remplaçable qu'en mode test (ligne « test_mode » absente en production).
+-- L'heure fait foi côté serveur. Elle n'est remplaçable qu'en mode test (ligne « test_mode » absente en production),
+-- et, le temps de jouer un événement simulé, par la simulation d'activité (environnement de test ou mode démonstration seulement).
 create or replace function kokolio._now() returns timestamptz language plpgsql stable as $$
 declare v_fake text;
 begin
+  v_fake := nullif(current_setting('kokolio.sim_now', true), '');
+  if v_fake is not null and kokolio._sim_allowed() then return v_fake::timestamptz; end if;
   v_fake := nullif(current_setting('kokolio.test_now', true), '');
   if v_fake is not null and exists (select 1 from kokolio.meta m where m.key = 'test_mode' and m.value = 'true'::jsonb) then
     return v_fake::timestamptz;

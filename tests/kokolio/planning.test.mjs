@@ -547,7 +547,7 @@ test("import : début de suivi, présence et cycle à la création", async () =>
 test("autodiagnostic et journal toujours intègres", async () => {
   const st = await admin.ok("admin/selftest");
   assert.equal(st.ok, true, JSON.stringify(st.checks.filter((c) => !c.ok)));
-  assert.equal(st.count, 47);
+  assert.equal(st.count, 51);
   const v = await sophie.ok("rh/journal-verify", {});
   assert.equal(v.ok, true);
 });

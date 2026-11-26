@@ -25,14 +25,23 @@ async function deciderAbsence(a, decision, reason) {
 }
 
 /* ================= Validation ================= */
+// Côté RH, deux vues : ce qui leur revient (les salariés sans responsable), ou tout ce qui attend, responsables compris (#/rh/validation/tout).
+let rhTout = false;
 export function vueValidation(espace, userId) {
-  const rh = espace === "rh", scope = rh ? "all" : "team";
+  const rh = espace === "rh";
+  if (rh && userId === "tout") { rhTout = true; userId = ""; } else if (rh && !userId) rhTout = false;   // sur la fiche d'un salarié, on garde la vue d'où l'on vient
+  const scope = rh ? (userId || rhTout ? "all" : "rh") : "team", liste = rhTout ? "#/rh/validation/tout" : "#/rh/validation";
   ecran(() => api("team/pending", { scope, user_id: userId || "" }), (p) => {
     const rien = !p.absences.length && !p.groups.length && !p.summary.length;
+    const choix = rh && !userId && p.encadres > 0 ? h("div", { class: "sous" },
+      h("button", { "aria-current": rhTout ? null : "page", onclick: () => aller("#/rh/validation") }, "À traiter par les RH"),
+      h("button", { "aria-current": rhTout ? "page" : null, onclick: () => aller("#/rh/validation/tout") }, "Tout, responsables compris")) : null;
     // journées prêtes, ni corrigées ni signalées : validables d'un geste ; les autres se regardent une à une
     const simples = p.groups.flatMap((g) => (g.own ? [] : g.days.filter((d) => d.state === "ok" && !d.corrected && !d.alerts.length)));
-    pose(h("div", { class: "ligne" }, h("h2", null, userId && rh ? "Validation" : rh ? "Validation · tous les salariés" : "Validation"),
-        userId && rh ? h("button", { onclick: () => aller("#/rh/validation") }, "‹ Tous les salariés") : null),
+    pose(h("div", { class: "ligne" }, h("h2", null, userId && rh ? "Validation" : rh ? (scope === "rh" && p.encadres > 0 ? "Validation · à traiter par les RH" : "Validation · tous les salariés") : "Validation"),
+        userId && rh ? h("button", { onclick: () => aller(liste) }, rhTout ? "‹ Tous les salariés" : "‹ À traiter par les RH") : null),
+      choix,
+      choix && scope === "rh" ? h("p", { class: "discret" }, "Ici, les salariés sans responsable. Les journées et les demandes des autres attendent chez leur responsable ; « Tout, responsables compris » les montre, pour suivre ou valider à sa place.") : null,
       rien ? h("div", { class: "carte" }, h("p", { class: "vide" }, "Rien à valider. Tout est à jour.")) : null,
       p.groups.length > 1 && simples.length > 1 ? h("div", { class: "bandeau info" }, h("strong", null, `${simples.length} journées sans correction ni alerte`),
         "Les journées corrigées par le salarié ou signalées par une alerte restent à examiner une à une.",
